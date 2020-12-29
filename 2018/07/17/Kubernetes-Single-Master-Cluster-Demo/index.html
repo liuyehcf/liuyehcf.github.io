@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes-Single-Master-Cluster-Demo">
+<meta property="og:url" content="http://example.com/2018/07/17/Kubernetes-Single-Master-Cluster-Demo/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-07-17T13:01:40.000Z">
+<meta property="article:modified_time" content="2020-12-28T14:15:38.950Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/07/17/Kubernetes-Single-Master-Cluster-Demo/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Kubernetes-Single-Master-Cluster-Demo | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/07/17/Kubernetes-Single-Master-Cluster-Demo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kubernetes-Single-Master-Cluster-Demo
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-07-17 21:01:40" itemprop="dateCreated datePublished" datetime="2018-07-17T21:01:40+08:00">2018-07-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-12-28 22:15:38" itemprop="dateModified" datetime="2020-12-28T22:15:38+08:00">2020-12-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/07/17/Kubernetes-Single-Master-Cluster-Demo/" class="post-meta-item leancloud_visitors" data-flag-title="Kubernetes-Single-Master-Cluster-Demo" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+
+<h1 id="1-环境"><a href="#1-环境" class="headerlink" title="1 环境"></a>1 环境</h1><p><code>Virtual Box</code>+<code>CentOS-7-x86_64-Minimal-1804.iso</code></p>
+<p><strong>tips</strong></p>
+<ol>
+<li>主机与<code>Virtual Box</code>之间不能共享剪切板（不知道为什么）<ul>
+<li>开启sshd服务，通过ssh连接到虚拟机即可</li>
+</ul>
+</li>
+<li>虚拟机开启两张网卡，一张是<code>NAT</code>，另一张是<code>Host-only</code><ul>
+<li><code>NAT</code>用于访问外网</li>
+<li><code>host-only</code>用于主机与虚拟机之间互通</li>
+</ul>
+</li>
+</ol>
+<h1 id="2-Install-Kubeadm"><a href="#2-Install-Kubeadm" class="headerlink" title="2 Install Kubeadm"></a>2 Install Kubeadm</h1><h2 id="2-1-关闭swap"><a href="#2-1-关闭swap" class="headerlink" title="2.1 关闭swap"></a>2.1 关闭swap</h2><p><strong>首先，需要关闭Swap，否则kubelet可能会不正常工作</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">swapon -s <span class="comment"># 查看swap的设备</span></span><br><span class="line">swapoff &lt;file-path&gt; <span class="comment"># 关闭对应的设备</span></span><br><span class="line">swapoff -a <span class="comment"># 关闭所有swap设备</span></span><br></pre></td></tr></table></figure>
+<h2 id="2-2-关闭防火墙"><a href="#2-2-关闭防火墙" class="headerlink" title="2.2 关闭防火墙"></a>2.2 关闭防火墙</h2><p>省点事，真的，别费劲了</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld</span><br></pre></td></tr></table></figure>
+<h2 id="2-3-修改hostname"><a href="#2-3-修改hostname" class="headerlink" title="2.3 修改hostname"></a>2.3 修改hostname</h2><p><strong>所有node的hostname必须不一样，这个很关键！因为k8s是通过hostname来路由的</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hostnamectl set-hostname &lt;name&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="2-4-检查mac地址以及UUID"><a href="#2-4-检查mac地址以及UUID" class="headerlink" title="2.4 检查mac地址以及UUID"></a>2.4 检查mac地址以及UUID</h2><p><strong>执行<code>ifconfig -a</code>，发现没有该命令！！！（我下载的镜像是Minimal，并且是最小安装）</strong></p>
+<p><strong>于是，执行<code>yum install ifconfig</code>，发现没有网络！！！我靠！！！估计是网卡没有开启，下面启用网卡</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /etc/sysconfig/network-scripts</span><br><span class="line">vi ifcfg-enp0s3 <span class="comment"># 将`ONBOOT`设置为yes。（如果有多个网卡配置文件，同样方式设置）</span></span><br><span class="line">systemctl restart network <span class="comment"># 重启网卡</span></span><br></pre></td></tr></table></figure>
+<p><strong>然后，安装<code>ifconfig</code></strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum search ifconfig <span class="comment"># 找到软件包名为`net-tools.x86_64`</span></span><br><span class="line">yum install -y net-tools.x86_64</span><br></pre></td></tr></table></figure>
+<p><strong>查看mac地址</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ifconfig -a</span><br><span class="line">ip link</span><br></pre></td></tr></table></figure>
+<p><strong>查看主板uuid</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /sys/class/dmi/id/product_uuid</span><br></pre></td></tr></table></figure>
+<p><strong>建议：通过主机ssh连接到虚拟机。由于虚拟机bash界面不能拷贝命令，而且不能翻看标准输出的内容，用起来非常蛋疼</strong></p>
+<h2 id="2-5-检查网络适配器"><a href="#2-5-检查网络适配器" class="headerlink" title="2.5 检查网络适配器"></a>2.5 检查网络适配器</h2><p>当包含2个及以上的网络适配器时，Kubernetes组件在默认路由配置中是不可达的，因此需要增加路由使得Kubernetes组件可达</p>
+<h2 id="2-6-安装docker"><a href="#2-6-安装docker" class="headerlink" title="2.6 安装docker"></a>2.6 安装docker</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y docker</span><br><span class="line">systemctl <span class="built_in">enable</span> docker &amp;&amp; systemctl start docker</span><br></pre></td></tr></table></figure>
+<h2 id="2-7-安装kubeadm-kubelet-kubectl"><a href="#2-7-安装kubeadm-kubelet-kubectl" class="headerlink" title="2.7 安装kubeadm/kubelet/kubectl"></a>2.7 安装kubeadm/kubelet/kubectl</h2><ul>
+<li>__kubeadm__：用于启动集群</li>
+<li>__kubelet__：存在于集群中所有机器上，用于启动pods以及containers等</li>
+<li>__kubectl__：用于与集群交互</li>
+</ul>
+<p>kubelet/kubectl的版本必须与kubeadm一致，否则可能会导致某些异常以及bug</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置配置文件</span></span><br><span class="line">cat &lt;&lt;<span class="string">EOF &gt; /etc/yum.repos.d/kubernetes.repo</span></span><br><span class="line"><span class="string">[kubernetes]</span></span><br><span class="line"><span class="string">name=Kubernetes</span></span><br><span class="line"><span class="string">baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64</span></span><br><span class="line"><span class="string">enabled=1</span></span><br><span class="line"><span class="string">gpgcheck=1</span></span><br><span class="line"><span class="string">repo_gpgcheck=1</span></span><br><span class="line"><span class="string">gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭SELinux</span></span><br><span class="line">setenforce 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装k8s</span></span><br><span class="line">yum install -y kubelet kubeadm kubectl</span><br><span class="line">systemctl <span class="built_in">enable</span> kubelet &amp;&amp; systemctl start kubelet</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong><code>setenforce 0</code>：SELinux转换为宽容模式，否则可能会有权限问题（例如，Start kube-proxy就会有问题）</strong></li>
+</ul>
+<p><strong>这里用的是阿里云的镜像，官方文档提供的是谷歌镜像（海外，需要翻墙），下面的配置流程都以墙内（使用的都是阿里云镜像）为主</strong></p>
+<h1 id="3-Start-Master"><a href="#3-Start-Master" class="headerlink" title="3 Start Master"></a>3 Start Master</h1><p><strong>接下来初始化master节点</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">kubeadm init --pod-network-cidr=10.244.0.0/16 --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --apiserver-advertise-address=192.168.56.105</span><br><span class="line"></span><br><span class="line"><span class="comment"># 其中</span></span><br><span class="line"><span class="comment"># --pod-network-cidr参数指定pod网络（这里用10.244.0.0/16是为了与下面的flannel覆盖网络的默认参数一致）</span></span><br><span class="line"><span class="comment"># --apiserver-advertise-address参数指定master的ip</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 出现如下信息，提示启动成功</span></span><br><span class="line">...</span><br><span class="line">Your Kubernetes control-plane has initialized successfully!</span><br><span class="line"></span><br><span class="line">To start using your cluster, you need to run the following as a regular user:</span><br><span class="line"></span><br><span class="line">  mkdir -p <span class="variable">$HOME</span>/.kube</span><br><span class="line">  sudo cp -i /etc/kubernetes/admin.conf <span class="variable">$HOME</span>/.kube/config</span><br><span class="line">  sudo chown $(id -u):$(id -g) <span class="variable">$HOME</span>/.kube/config</span><br><span class="line"></span><br><span class="line">You should now deploy a pod network to the cluster.</span><br><span class="line">Run <span class="string">&quot;kubectl apply -f [podnetwork].yaml&quot;</span> with one of the options listed at:</span><br><span class="line">  https://kubernetes.io/docs/concepts/cluster-administration/addons/</span><br><span class="line"></span><br><span class="line">Then you can join any number of worker nodes by running the following on each as root:</span><br><span class="line"></span><br><span class="line">kubeadm join 192.168.56.105:6443 --token xlys6c.70evo8lwk7ta4hbo \</span><br><span class="line">    --discovery-token-ca-cert-hash sha256:0fac04a6a3a18aaf7d9c3e154bdf1813119b9840f43e8c1649cbdfe5d50d1f2c</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>注意，我们需要保留下上面的join命令，即<code>kubeadm join ...</code>这个命令</strong></li>
+<li><strong>node节点需要通过这个命令来join master节点</strong></li>
+</ul>
+<p><strong>根据上述提示，安装network pod。<a target="_blank" rel="noopener" href="https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/">安装命令参考，一定要看这个，不同版本url是不同的</a>。这里，我们选择flannel（安装过程需要翻墙，否则拉取镜像会失败！！）</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在master上，为了让kubectl命令行起作用，必须配置如下环境变量</span></span><br><span class="line"><span class="built_in">export</span> KUBECONFIG=/etc/kubernetes/admin.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装flannel（这里只是参考，详见上面的安装命令参考）</span></span><br><span class="line">kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/62e44c867a2846fefb68bd5f178daf4da3095ccb/Documentation/kube-flannel.yml</span><br></pre></td></tr></table></figure>
+<p><strong>待flannel安装成功后（大约需要5-10分钟），查看节点概要信息。至此，master启动成功</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看节点概要信息</span></span><br><span class="line">kubectl get nodes</span><br><span class="line"></span><br><span class="line"><span class="comment"># 得到如下输出</span></span><br><span class="line">NAME         STATUS    ROLES     AGE       VERSION</span><br><span class="line">k8s-master   Ready     master    26m       v1.11.1</span><br></pre></td></tr></table></figure>
+<h2 id="3-1-重新生成kubeadm-join所需的token"><a href="#3-1-重新生成kubeadm-join所需的token" class="headerlink" title="3.1 重新生成kubeadm join所需的token"></a>3.1 重新生成kubeadm join所需的token</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 以下命令在master节点执行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1 创建token</span></span><br><span class="line">kubeadm token create</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2 计算hash</span></span><br><span class="line">openssl x509 -pubkey -<span class="keyword">in</span> /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&gt;/dev/null | openssl dgst -sha256 -hex | sed  <span class="string">&#x27;s/^ .* //&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在node节点执行join命令</span></span><br><span class="line"></span><br><span class="line">kubeadm join &lt;master ip&gt;:6443 --token &lt;token&gt; --discovery-token-ca-cert-hash sha256:&lt;<span class="built_in">hash</span>&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="3-2-Restart"><a href="#3-2-Restart" class="headerlink" title="3.2 Restart"></a>3.2 Restart</h2><p><strong>如果我们将master这台机器重启的话，k8s服务不会自动起来，需要进行如下操作</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 关闭swap</span></span><br><span class="line">swapoff -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭SELinux</span></span><br><span class="line">setenforce 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启kubelet</span></span><br><span class="line">systemctl start kubelet</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置环境变量</span></span><br><span class="line"><span class="built_in">export</span> KUBECONFIG=/etc/kubernetes/admin.conf</span><br></pre></td></tr></table></figure>
+<h1 id="4-Start-Node"><a href="#4-Start-Node" class="headerlink" title="4 Start Node"></a>4 Start Node</h1><p><strong>另外启动两台虚拟机，执行 <a href="#install-kubeadm">Install Kubeadm</a> 小节的所有操作</strong></p>
+<p><strong>现在需要将新启动的虚拟机，加入刚才启动的master</strong></p>
+<ul>
+<li>还记得master节点初始化k8s输出的<code>kubeadm join</code>命令吗，这个指令就用于node节点</li>
+<li>如果忘记了，我们还可以通过在master节点上执行<code>kubeadm token create --print-join-command</code>来创建<code>kubeadm join</code>命令</li>
+</ul>
+<p><strong>回到node节点对应的虚拟机，执行上述<code>kubeadm join</code>命令（该过程需要翻墙，因为会安装flannel，需要拉取镜像）</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">kubeadm join 192.168.56.108:6443 --token 3yokh0.16u9wvjk1x50nde2 --discovery-token-ca-cert-hash sha256:c36ac2694b043a660624e9d86a56999fcd23bf13b3994af6560aac713eacc54d</span><br><span class="line"><span class="comment"># 得到如下输出</span></span><br><span class="line"></span><br><span class="line">[preflight] running pre-flight checks</span><br><span class="line">  [WARNING RequiredIPVSKernelModulesAvailable]: the IPVS proxier will not be used, because the following required kernel modules are not loaded: [ip_vs ip_vs_rr ip_vs_wrr ip_vs_sh] or no <span class="built_in">builtin</span> kernel ipvs support: map[ip_vs_rr:&#123;&#125; ip_vs_wrr:&#123;&#125; ip_vs_sh:&#123;&#125; nf_conntrack_ipv4:&#123;&#125; ip_vs:&#123;&#125;]</span><br><span class="line">you can solve this problem with following methods:</span><br><span class="line"> 1. Run <span class="string">&#x27;modprobe -- &#x27;</span> to load missing kernel modules;</span><br><span class="line">2. Provide the missing <span class="built_in">builtin</span> kernel ipvs support</span><br></pre></td></tr></table></figure>
+<p><strong>按照提示，安装缺少的模块</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">modprobe -- ip_vs</span><br><span class="line">modprobe -- ip_vs_rr</span><br><span class="line">modprobe -- ip_vs_wrr</span><br><span class="line">modprobe -- ip_vs_sh</span><br></pre></td></tr></table></figure>
+<p><strong>继续执行join指令，加入master节点</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 先重置</span></span><br><span class="line">kubeadm reset</span><br><span class="line"></span><br><span class="line"><span class="comment"># join</span></span><br><span class="line">kubeadm join 192.168.56.108:6443 --token 3yokh0.16u9wvjk1x50nde2 --discovery-token-ca-cert-hash sha256:c36ac2694b043a660624e9d86a56999fcd23bf13b3994af6560aac713eacc54d</span><br><span class="line"></span><br><span class="line"><span class="comment"># 得到如下输出</span></span><br><span class="line">This node has joined the cluster:</span><br><span class="line">* Certificate signing request was sent to master and a response</span><br><span class="line">  was received.</span><br><span class="line">* The Kubelet was informed of the new secure connection details.</span><br><span class="line"></span><br><span class="line">Run <span class="string">&#x27;kubectl get nodes&#x27;</span> on the master to see this node join the cluster.</span><br></pre></td></tr></table></figure>
+<p><strong>至此一台node节点加入master节点完毕（大约需要5分钟的时间，才能在master上看到ready状态），另一台node节点重复上述操作</strong></p>
+<p><strong>全部完成后，回到master节点，执行如下指令</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">kubectl get nodes</span><br><span class="line"></span><br><span class="line"><span class="comment"># 得到如下输出</span></span><br><span class="line">NAME         STATUS    ROLES     AGE       VERSION</span><br><span class="line">k8s-master   Ready     master    27m       v1.11.1</span><br><span class="line">k8s-node-1   Ready     &lt;none&gt;    2m        v1.11.1</span><br><span class="line">k8s-node-2   Ready     &lt;none&gt;    11m       v1.11.1</span><br></pre></td></tr></table></figure>
+<h1 id="5-部署应用"><a href="#5-部署应用" class="headerlink" title="5 部署应用"></a>5 部署应用</h1><h2 id="5-1-制作镜像"><a href="#5-1-制作镜像" class="headerlink" title="5.1 制作镜像"></a>5.1 制作镜像</h2><p>这里以一个简单的<code>Spring-Boot</code>应用为例，制作一个镜像。<strong>具体示例代码详见<a href="/2017/11/24/Spring-Boot-Demo/" title="Spring-Boot-Demo">Spring-Boot-Demo</a></strong></p>
+<p>__首先，将<code>Spring-Boot</code>应用打包成一个fat-jar__，例如<code>spring-boot-1.0-SNAPSHOT.jar</code></p>
+<ul>
+<li>你可以随便搞一个简单的Web应用</li>
+</ul>
+<p><strong>然后，创建Dockerfile，内容如下</strong></p>
+<figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置基础镜像</span></span><br><span class="line"><span class="keyword">FROM</span> centos:<span class="number">7.5</span>.<span class="number">1804</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置工作目录</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /web</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 将当前目录下的内容添加到docker容器中的/web/lib路径中</span></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> . /web/lib</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行命令，安装java依赖</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yum install -y java</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 暴露8080端口</span></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">8080</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># docker run执行的命令</span></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">&quot;java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, <span class="string">&quot;lib/spring-boot-1.0-SNAPSHOT.jar&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+<p><strong>将上述<code>Dockerfile</code>与<code>spring-boot-1.0-SNAPSHOT.jar</code>放入同一个目录下，此时目录结构如下</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── Dockerfile</span><br><span class="line">└── spring-boot-1.0-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
+<p><strong>接着，我们开始制作镜像</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -t参数指定tag</span></span><br><span class="line"><span class="comment"># docker build -h 查看详细用法</span></span><br><span class="line">docker build -t hello-world:v1 .</span><br></pre></td></tr></table></figure>
+<p><strong>本地测试一下，能否运行起来（经验证，没问题）</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker run -help 查看详细用法</span></span><br><span class="line">docker run hello-world:v1</span><br></pre></td></tr></table></figure>
+<h2 id="5-2-上传镜像到镜像仓库"><a href="#5-2-上传镜像到镜像仓库" class="headerlink" title="5.2 上传镜像到镜像仓库"></a>5.2 上传镜像到镜像仓库</h2><p><strong>这里以<code>阿里云-容器镜像服务</code>为例，将刚才制作的镜像上传到镜像仓库。详细操作请参考<a target="_blank" rel="noopener" href="https://www.aliyun.com/product/acr?spm=5176.10695662.1996646101.searchclickresult.3cab795dkMnIFM">阿里云-容器镜像服务</a></strong></p>
+<p>创建完成后，镜像仓库<code>url</code>如下（你创建的镜像仓库肯定与我的不同）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">registry.cn-hangzhou.aliyuncs.com&#x2F;liuyehcf_default&#x2F;liuye_repo </span><br></pre></td></tr></table></figure>
+<p><strong>在<code>阿里云-容器镜像服务</code>控制台，点击刚才创建的镜像-管理，按照文档说明上传镜像，大致分为两步（以我的镜像仓库<code>url</code>为例）</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 登录</span></span><br><span class="line">sudo docker login --username=&lt;your user name&gt; registry.cn-hangzhou.aliyuncs.com</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打刚才制作的镜像打上tag</span></span><br><span class="line"><span class="comment"># 详细用法请参考 docker tag -h</span></span><br><span class="line">docker tag hello-world:v1 registry.cn-hangzhou.aliyuncs.com/liuyehcf_default/liuye_repo:v1 </span><br><span class="line"></span><br><span class="line"><span class="comment"># push镜像</span></span><br><span class="line">sudo docker push registry.cn-hangzhou.aliyuncs.com/liuyehcf_default/liuye_repo:v1</span><br></pre></td></tr></table></figure>
+<h2 id="5-3-部署应用"><a href="#5-3-部署应用" class="headerlink" title="5.3 部署应用"></a>5.3 部署应用</h2><p><strong>首先，编写应用所在pod的yml文件，hello-world.yml文件如下</strong></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">&quot;hello-world&quot;</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">restartPolicy:</span> <span class="string">Always</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;hello-world&quot;</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">&quot;registry.cn-hangzhou.aliyuncs.com/liuyehcf_default/liuye_repo:v1&quot;</span></span><br><span class="line">    <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">    <span class="attr">command:</span> [<span class="string">&quot;java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, <span class="string">&quot;lib/spring-boot-1.0-SNAPSHOT.jar&quot;</span>]</span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br></pre></td></tr></table></figure>
+<p><strong>在master节点上，启动该pod</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f hello-world.yml</span><br></pre></td></tr></table></figure>
+<p><strong>查看pod运行状态，可以看到pod部署成功</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 以下是输出信息</span></span><br><span class="line">NAME          READY     STATUS    RESTARTS   AGE</span><br><span class="line">hello-world   1/1       Running   0          4m</span><br></pre></td></tr></table></figure>
+<p><strong>由于我们这个Web应用服务在8080端口，但是上面的<code>hello-world.yml</code>文件中配置的是容器端口，我们仍然不能在外界访问这个服务。我们还需要增加一个<code>hello-world-service</code>，<code>hello-world-service.yml</code>文件内容如下</strong></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">hello-world-service</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">4000</span></span><br><span class="line">      <span class="attr">targetPort:</span> <span class="number">8080</span></span><br><span class="line">      <span class="attr">nodePort:</span> <span class="number">30001</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">NodePort</span></span><br></pre></td></tr></table></figure>
+<p><strong>启动service</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f hello-world-service.yml</span><br></pre></td></tr></table></figure>
+<p><strong>查看端口号（nodePort）</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">kubectl describe svc hello-world-service</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出信息如下</span></span><br><span class="line">Name:                     hello-world-service</span><br><span class="line">Namespace:                default</span><br><span class="line">Labels:                   &lt;none&gt;</span><br><span class="line">Annotations:              &lt;none&gt;</span><br><span class="line">Selector:                 mylabel=label_hello_world</span><br><span class="line">Type:                     NodePort</span><br><span class="line">IP:                       10.108.106.70</span><br><span class="line">Port:                     &lt;<span class="built_in">unset</span>&gt;  4000/TCP   <span class="comment"># service port</span></span><br><span class="line">TargetPort:               8080/TCP            <span class="comment"># target port</span></span><br><span class="line">NodePort:                 &lt;<span class="built_in">unset</span>&gt;  30001/TCP  <span class="comment"># node port</span></span><br><span class="line">Endpoints:                10.244.1.94:8080    <span class="comment"># pod Ip:port</span></span><br><span class="line">Session Affinity:         None</span><br><span class="line">External Traffic Policy:  Cluster</span><br><span class="line">Events:                   &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>访问<code>http://&lt;node_ip&gt;:30001/home</code>，成功！</strong></p>
+<h1 id="6-Helm"><a href="#6-Helm" class="headerlink" title="6 Helm"></a>6 Helm</h1><p><strong>步骤</strong></p>
+<ol>
+<li>下载，二进制包，传送门<a target="_blank" rel="noopener" href="https://github.com/helm/helm/releases">helm release</a></li>
+<li>解压缩，<code>tar -zxvf &lt;file&gt;</code></li>
+<li><code>mv linux-amd64/helm /usr/local/bin/helm</code></li>
+<li><code>helm init</code></li>
+</ol>
+<h2 id="6-1-参考"><a href="#6-1-参考" class="headerlink" title="6.1 参考"></a>6.1 参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/helm/helm/blob/master/docs/install.md">github helm</a></li>
+<li><a target="_blank" rel="noopener" href="https://helm.sh/docs/using_helm/#quickstart-guide">helm doc</a></li>
+</ul>
+<h1 id="7-Ingress"><a href="#7-Ingress" class="headerlink" title="7 Ingress"></a>7 Ingress</h1><p>todo ingress nginx</p>
+<p><strong>helm安装（未成功）</strong></p>
+<ol>
+<li><code>helm install stable/nginx-ingress --name my-nginx</code></li>
+</ol>
+<p><strong>非helm安装</strong></p>
+<ol>
+<li>安装<code>nginx-ingress-controller</code><ul>
+<li><code>kubectl apply -f mandatory.yaml</code></li>
+<li><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml">mandatory.yaml下载链接</a></li>
+</ul>
+</li>
+<li>安装<code>MetalLB</code><ul>
+<li><code>kubectl apply -f metallb.yaml</code></li>
+<li><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml">metallb.yaml下载链接</a></li>
+</ul>
+</li>
+<li>部署<code>nginx service</code><ul>
+<li><code>kubectl apply -f service-nodeport.yaml</code></li>
+<li><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/baremetal/service-nodeport.yaml">service-nodeport.yaml下载链接</a></li>
+</ul>
+</li>
+<li>修改<code>service-nodeport.yaml</code>中的<code>ingress-nginx</code>的<code>Type</code>，改为<code>LoadBalancer</code><ul>
+<li><code>kubectl edit svc ingress-nginx -n ingress-nginx</code></li>
+</ul>
+</li>
+<li>添加<code>configmap</code><ul>
+<li><code>kubectl apply -f metallb-system.yml</code></li>
+</ul>
+</li>
+<li>添加<code>ingress</code><ul>
+<li><code>kubectl apply -f test-ingress.yml</code></li>
+</ul>
+</li>
+<li>修改<code>hello-world-service</code>的<code>Type</code>，改为<code>LoadBalancer</code><ul>
+<li><code>kubectl edit svc hello-world-service</code></li>
+</ul>
+</li>
+</ol>
+<p><code>metallb-system.yml</code>如下</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">metallb-system</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">config</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">config:</span> <span class="string">|</span></span><br><span class="line">    <span class="attr">address-pools:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">default</span></span><br><span class="line">      <span class="attr">protocol:</span> <span class="string">layer2</span></span><br><span class="line">      <span class="attr">addresses:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">192.168</span><span class="number">.56</span><span class="number">.101</span><span class="number">-192.168</span><span class="number">.56</span><span class="number">.103</span></span><br></pre></td></tr></table></figure>
+<p><code>test-ingress.yml</code>如下</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Ingress</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">test-ingress</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">rules:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">http:</span></span><br><span class="line">      <span class="attr">paths:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">path:</span> <span class="string">/home</span></span><br><span class="line">        <span class="attr">backend:</span></span><br><span class="line">          <span class="attr">serviceName:</span> <span class="string">hello-world-service</span></span><br><span class="line">          <span class="attr">servicePort:</span> <span class="number">4000</span></span><br></pre></td></tr></table></figure>
+<p>查看ingress</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl get ingress test-ingress</span><br><span class="line"></span><br><span class="line">test-ingress   *         192.168.56.101   80        19d</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://192.168.56.101/home">https://192.168.56.101/home</a></p>
+<p><strong>Ingress Controller的作用</strong></p>
+<ol>
+<li>读取<code>Ingress</code>，并写入到nginx的配置文件中</li>
+<li>监听集群中<code>Service</code>的变化，及时更新backend</li>
+</ol>
+<h2 id="7-1-参考"><a href="#7-1-参考" class="headerlink" title="7.1 参考"></a>7.1 参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/kubernetes/ingress-nginx">kubernetes/ingress-nginx</a></li>
+<li><a target="_blank" rel="noopener" href="https://kubernetes.github.io/ingress-nginx/deploy/#prerequisite-generic-deployment-command">nginx ingress doc</a></li>
+<li><a target="_blank" rel="noopener" href="https://metallb.universe.tf/installation/">metallb doc</a></li>
+</ul>
+<h1 id="8-Command"><a href="#8-Command" class="headerlink" title="8 Command"></a>8 Command</h1><h2 id="8-1-kubectl"><a href="#8-1-kubectl" class="headerlink" title="8.1 kubectl"></a>8.1 kubectl</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看node概要信息</span></span><br><span class="line">kubectl get nodes</span><br><span class="line">kubectl get node &lt;node-name&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看node详细信息</span></span><br><span class="line">kubectl describe nodes</span><br><span class="line">kubectl describe node &lt;node-name&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看namespace空间</span></span><br><span class="line">kubectl get namespace</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看pod概要信息</span></span><br><span class="line">kubectl get pod -n &lt;namespace&gt;</span><br><span class="line">kubectl get pod -n &lt;namespace&gt; &lt;pod-name&gt;</span><br><span class="line">kubectl get pod -n &lt;namespace&gt; &lt;pod-name&gt; -o wide</span><br><span class="line">kubectl get pod --all-namespaces</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看pod详细信息</span></span><br><span class="line">kubectl describe pod -n &lt;namespace&gt;</span><br><span class="line">kubectl describe pod -n &lt;namespace&gt; &lt;pod-name&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除pod</span></span><br><span class="line">kubectl delete pod &lt;pod-name&gt; -n &lt;namespace&gt;</span><br><span class="line">kubectl delete pod &lt;pod-name&gt; --force --grace-period=0 -n &lt;namespace&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看service概要信息</span></span><br><span class="line">kubectl get svc &lt;service-name&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看service详细信息</span></span><br><span class="line">kubectl describe svc &lt;service-name&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看object</span></span><br><span class="line">kubectl get -f &lt;filename|url&gt; -o yaml</span><br><span class="line">kubectl get pod -n &lt;namespace&gt; &lt;pod-name&gt; -o yaml</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打label</span></span><br><span class="line">kubectl label pod -n &lt;namespace&gt; &lt;pod-name&gt; &lt;label_name&gt;=&lt;label_value&gt;</span><br></pre></td></tr></table></figure>
+<h1 id="9-参考"><a href="#9-参考" class="headerlink" title="9 参考"></a>9 参考</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://kubernetes.io/docs/setup/">Kubernetes-Creating a single master cluster with kubeadm</a></li>
+<li><a target="_blank" rel="noopener" href="https://kubernetes.io/docs/setup/independent/install-kubeadm/">Kubernetes-Installing kubeadm</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/issues/44665">issue#localhost:8080</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/issues/42791">issue#x509: certificate has expired or is not yet valid</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/liyingke112/article/details/76155428">kubernetes创建资源yaml文件例子–pod</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.dockone.io/article/932">十分钟带你理解Kubernetes核心概念</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/ygqygq2/article/details/81698193">Kubernetes集群中flannel因网卡名启动失败问题</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/07/17/Spring-Cloud-Consul-Based-Demo/" rel="prev" title="Spring-Cloud-Consul-Based-Demo">
+      <i class="fa fa-chevron-left"></i> Spring-Cloud-Consul-Based-Demo
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/07/18/Linux-CentOS/" rel="next" title="Linux-CentOS">
+      Linux-CentOS <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%8E%AF%E5%A2%83"><span class="nav-text">1 环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-Install-Kubeadm"><span class="nav-text">2 Install Kubeadm</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E5%85%B3%E9%97%ADswap"><span class="nav-text">2.1 关闭swap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E5%85%B3%E9%97%AD%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-text">2.2 关闭防火墙</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E4%BF%AE%E6%94%B9hostname"><span class="nav-text">2.3 修改hostname</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-%E6%A3%80%E6%9F%A5mac%E5%9C%B0%E5%9D%80%E4%BB%A5%E5%8F%8AUUID"><span class="nav-text">2.4 检查mac地址以及UUID</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-%E6%A3%80%E6%9F%A5%E7%BD%91%E7%BB%9C%E9%80%82%E9%85%8D%E5%99%A8"><span class="nav-text">2.5 检查网络适配器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-6-%E5%AE%89%E8%A3%85docker"><span class="nav-text">2.6 安装docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-7-%E5%AE%89%E8%A3%85kubeadm-kubelet-kubectl"><span class="nav-text">2.7 安装kubeadm&#x2F;kubelet&#x2F;kubectl</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Start-Master"><span class="nav-text">3 Start Master</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E9%87%8D%E6%96%B0%E7%94%9F%E6%88%90kubeadm-join%E6%89%80%E9%9C%80%E7%9A%84token"><span class="nav-text">3.1 重新生成kubeadm join所需的token</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-Restart"><span class="nav-text">3.2 Restart</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-Start-Node"><span class="nav-text">4 Start Node</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E9%83%A8%E7%BD%B2%E5%BA%94%E7%94%A8"><span class="nav-text">5 部署应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-%E5%88%B6%E4%BD%9C%E9%95%9C%E5%83%8F"><span class="nav-text">5.1 制作镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-%E4%B8%8A%E4%BC%A0%E9%95%9C%E5%83%8F%E5%88%B0%E9%95%9C%E5%83%8F%E4%BB%93%E5%BA%93"><span class="nav-text">5.2 上传镜像到镜像仓库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-%E9%83%A8%E7%BD%B2%E5%BA%94%E7%94%A8"><span class="nav-text">5.3 部署应用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-Helm"><span class="nav-text">6 Helm</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-%E5%8F%82%E8%80%83"><span class="nav-text">6.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-Ingress"><span class="nav-text">7 Ingress</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#7-1-%E5%8F%82%E8%80%83"><span class="nav-text">7.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-Command"><span class="nav-text">8 Command</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#8-1-kubectl"><span class="nav-text">8.1 kubectl</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%8F%82%E8%80%83"><span class="nav-text">9 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz","app_key":"uhkruDLNLNdL5rQjRBY2X9Ke","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes-网络">
+<meta property="og:url" content="http://example.com/2019/12/23/Kubernetes-%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-12-23T06:43:11.000Z">
+<meta property="article:modified_time" content="2020-12-28T14:15:39.022Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2019/12/23/Kubernetes-%E7%BD%91%E7%BB%9C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Kubernetes-网络 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/12/23/Kubernetes-%E7%BD%91%E7%BB%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kubernetes-网络
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-12-23 14:43:11" itemprop="dateCreated datePublished" datetime="2019-12-23T14:43:11+08:00">2019-12-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-12-28 22:15:39" itemprop="dateModified" datetime="2020-12-28T22:15:39+08:00">2020-12-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/12/23/Kubernetes-%E7%BD%91%E7%BB%9C/" class="post-meta-item leancloud_visitors" data-flag-title="Kubernetes-网络" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+
+<h1 id="1-NodePort网络链路-示例讲解"><a href="#1-NodePort网络链路-示例讲解" class="headerlink" title="1 NodePort网络链路-示例讲解"></a>1 NodePort网络链路-示例讲解</h1><h2 id="1-1-单副本"><a href="#1-1-单副本" class="headerlink" title="1.1 单副本"></a>1.1 单副本</h2><p><strong>deployment（hello-world-deployment.yml）</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">hello-world-deployment</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">mylabel:</span> <span class="string">label_hello_world_deployment</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">hello-world</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">registry.cn-hangzhou.aliyuncs.com/liuyehcf_default/liuye_repo:v1</span></span><br><span class="line">        <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, <span class="string">&quot;lib/spring-boot-1.0-SNAPSHOT.jar&quot;</span>]</span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br></pre></td></tr></table></figure>
+<p><strong>service（hello-world-service.yml）</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">hello-world-service</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">4000</span></span><br><span class="line">      <span class="attr">targetPort:</span> <span class="number">8080</span></span><br><span class="line">      <span class="attr">nodePort:</span> <span class="number">30001</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">NodePort</span></span><br></pre></td></tr></table></figure>
+<p>创建<code>deployment</code>以及<code>service</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-master ~]$ kubectl apply -f hello-world-service.yml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">service/hello-world-service created</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">[root@k8s-master ~]$ kubectl apply -f hello-world-deployment.yml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">deployment.apps/hello-world-deployment created</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>查找一下该<code>pod</code>部署在哪个<code>node</code>上</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-master ~]$ kubectl get pods -o wide</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME                                     READY   STATUS    RESTARTS   AGE   IP           NODE      NOMINATED NODE   READINESS GATES</span><br><span class="line">hello-world-deployment-cbdf4db7b-j6fpq   1/1     Running   0          56s   10.244.1.5   k8s-n-1   &lt;none&gt;           &lt;none&gt;</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>发现，应用部署在<code>k8s-n-1</code>上，查看<code>k8s-n-1</code>节点上的<code>iptables</code>规则，用<code>30001</code>作为条件过滤</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep <span class="string">&#x27;30001&#x27;</span></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">-A KUBE-NODEPORTS -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service:&quot;</span> -m tcp --dport 30001 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-NODEPORTS -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service:&quot;</span> -m tcp --dport 30001 -j KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>我们找到了名为<code>KUBE-NODEPORTS</code>的<code>Chain</code>的两条规则，继续用<code>KUBE-NODEPORTS</code>寻找上游<code>Chain</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep <span class="string">&#x27;KUBE-NODEPORTS&#x27;</span></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">:KUBE-NODEPORTS - [0:0]</span><br><span class="line">-A KUBE-NODEPORTS -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service:&quot;</span> -m tcp --dport 30001 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-NODEPORTS -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service:&quot;</span> -m tcp --dport 30001 -j KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line">-A KUBE-SERVICES -m comment --comment <span class="string">&quot;kubernetes service nodeports; NOTE: this must be the last rule in this chain&quot;</span> -m addrtype --dst-type LOCAL -j KUBE-NODEPORTS</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>我们找到了名为<code>KUBE-SERVICES</code>的<code>Chain</code>的一条规则，继续用<code>KUBE-SERVICES</code>寻找上游<code>Chain</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep <span class="string">&#x27;KUBE-SERVICES&#x27;</span></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">:KUBE-SERVICES - [0:0]</span><br><span class="line">-A INPUT -m conntrack --ctstate NEW -m comment --comment <span class="string">&quot;kubernetes service portals&quot;</span> -j KUBE-SERVICES</span><br><span class="line">-A FORWARD -m conntrack --ctstate NEW -m comment --comment <span class="string">&quot;kubernetes service portals&quot;</span> -j KUBE-SERVICES</span><br><span class="line">-A OUTPUT -m conntrack --ctstate NEW -m comment --comment <span class="string">&quot;kubernetes service portals&quot;</span> -j KUBE-SERVICES</span><br><span class="line">:KUBE-SERVICES - [0:0]</span><br><span class="line">-A PREROUTING -m comment --comment <span class="string">&quot;kubernetes service portals&quot;</span> -j KUBE-SERVICES</span><br><span class="line">-A OUTPUT -m comment --comment <span class="string">&quot;kubernetes service portals&quot;</span> -j KUBE-SERVICES</span><br><span class="line">-A KUBE-SERVICES ! -s 10.244.0.0/16 -d 10.96.103.220/32 -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service: cluster IP&quot;</span> -m tcp --dport 4000 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SERVICES -d 10.96.103.220/32 -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service: cluster IP&quot;</span> -m tcp --dport 4000 -j KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line">-A KUBE-SERVICES ! -s 10.244.0.0/16 -d 10.96.0.1/32 -p tcp -m comment --comment <span class="string">&quot;default/kubernetes:https cluster IP&quot;</span> -m tcp --dport 443 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SERVICES -d 10.96.0.1/32 -p tcp -m comment --comment <span class="string">&quot;default/kubernetes:https cluster IP&quot;</span> -m tcp --dport 443 -j KUBE-SVC-NPX46M4PTMTKRN6Y</span><br><span class="line">-A KUBE-SERVICES ! -s 10.244.0.0/16 -d 10.96.0.10/32 -p udp -m comment --comment <span class="string">&quot;kube-system/kube-dns:dns cluster IP&quot;</span> -m udp --dport 53 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SERVICES -d 10.96.0.10/32 -p udp -m comment --comment <span class="string">&quot;kube-system/kube-dns:dns cluster IP&quot;</span> -m udp --dport 53 -j KUBE-SVC-TCOU7JCQXEZGVUNU</span><br><span class="line">-A KUBE-SERVICES ! -s 10.244.0.0/16 -d 10.96.0.10/32 -p tcp -m comment --comment <span class="string">&quot;kube-system/kube-dns:dns-tcp cluster IP&quot;</span> -m tcp --dport 53 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SERVICES -d 10.96.0.10/32 -p tcp -m comment --comment <span class="string">&quot;kube-system/kube-dns:dns-tcp cluster IP&quot;</span> -m tcp --dport 53 -j KUBE-SVC-ERIFXISQEP7F7OF4</span><br><span class="line">-A KUBE-SERVICES ! -s 10.244.0.0/16 -d 10.96.0.10/32 -p tcp -m comment --comment <span class="string">&quot;kube-system/kube-dns:metrics cluster IP&quot;</span> -m tcp --dport 9153 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SERVICES -d 10.96.0.10/32 -p tcp -m comment --comment <span class="string">&quot;kube-system/kube-dns:metrics cluster IP&quot;</span> -m tcp --dport 9153 -j KUBE-SVC-JD5MR3NA4I4DYORP</span><br><span class="line">-A KUBE-SERVICES -m comment --comment <span class="string">&quot;kubernetes service nodeports; NOTE: this must be the last rule in this chain&quot;</span> -m addrtype --dst-type LOCAL -j KUBE-NODEPORTS</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>我们发现，<code>PREROUTING</code>、<code>INPUT</code>、<code>FORWARD</code>、<code>OUTPUT</code>为<code>KUBE-SERVICES</code>的上游<code>Chain</code></p>
+<p>接着我们回到<code>Chain KUBE-NODEPORTS</code>的规则，继续往下游分析，查看<code>Chain KUBE-SVC-5MRENC7Q6ZQR6GKR</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep <span class="string">&#x27;KUBE-SVC-5MRENC7Q6ZQR6GKR&#x27;</span></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">:KUBE-SVC-5MRENC7Q6ZQR6GKR - [0:0]</span><br><span class="line">-A KUBE-NODEPORTS -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service:&quot;</span> -m tcp --dport 30001 -j KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line">-A KUBE-SERVICES -d 10.96.103.220/32 -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service: cluster IP&quot;</span> -m tcp --dport 4000 -j KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line">-A KUBE-SVC-5MRENC7Q6ZQR6GKR -j KUBE-SEP-2KIVNDBOTOCNVG2U</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>找到了一条规则，该规则指向了另一个<code>Chain KUBE-SEP-2KIVNDBOTOCNVG2U</code>，继续往下查看</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep <span class="string">&#x27;KUBE-SEP-2KIVNDBOTOCNVG2U&#x27;</span></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">:KUBE-SEP-2KIVNDBOTOCNVG2U - [0:0]</span><br><span class="line">-A KUBE-SEP-2KIVNDBOTOCNVG2U -s 10.244.1.5/32 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SEP-2KIVNDBOTOCNVG2U -p tcp -m tcp -j DNAT --to-destination 10.244.1.5:8080</span><br><span class="line">-A KUBE-SVC-5MRENC7Q6ZQR6GKR -j KUBE-SEP-2KIVNDBOTOCNVG2U</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>找到了一条DNAT规则，该规则将数据包的目的ip以及端口改写为<code>10.244.1.5</code>以及<code>8080</code>，然后继续查找路由表</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ ip r | grep <span class="string">&#x27;10.244.1.0/24&#x27;</span></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">10.244.1.0/24 dev cni0 proto kernel scope link src 10.244.1.1</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>我们发现，路由表指向的是<code>cni0</code>，每个pod都对应了一个<code>veth pair</code>，一端连接在网桥上，另一端在容器的网络命名空间中，我们可以通过<code>brctl</code>来查看网桥<code>cni0</code>的相关信息</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ brctl show cni0</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">bridge name	bridge id		STP enabled	interfaces</span><br><span class="line">cni0		8000.2a11eb4c8527	no		veth8469bbce</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">[root@k8s-n-1 ~]$ brctl showmacs cni0</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">port no	mac addr		is <span class="built_in">local</span>?	ageing timer</span><br><span class="line">  2	a6:92:e2:fd:6c:9c	yes		   0.00</span><br><span class="line">  2	a6:92:e2:fd:6c:9c	yes		   0.00</span><br><span class="line">  2	ca:97:47:ed:dd:01	no		   3.75</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>可以看到，目前网桥<code>cni0</code>上只有一张网卡，该网卡类型是<code>veth</code>，veth是一对网卡，其中一张网卡在默认的网络命名空间中，另外一张网卡在pod的网络命名空间中。<code>brctl showmacs cni0</code>输出的三条数据中，其<code>port</code>都是2，代表这些对应着同一个网卡，即<code>veth</code>网卡，<code>is local</code>字段为<code>true</code>表示位于默认网络命名空间中，<code>is local</code>字段为<code>false</code>表示位于另一个网络命名空间中，接下来找到该docker的命名空间，然后进入该命名空间查看一下网卡的mac地址是否为<code>ca:97:47:ed:dd:01</code>，同时看一下该网卡的ip是否为<code>10.244.1.5</code></p>
+<ul>
+<li>注意，<code>brctl showmacs cni0</code>的输出中，<code>is local</code>为<code>false</code>的这条数据，<code>ageing timer</code>不是<code>0.00</code>，大约在300s后，这条数据将会消失。可以通过重新访问该<code>veth</code>网卡来激活（<code>ping</code>一下对应的<code>pod ip</code>）</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 其中 e464807dae4f 是容器id</span></span><br><span class="line">[root@k8s-n-1 ~]$ pid=$(docker inspect -f <span class="string">&#x27;&#123;&#123;.State.Pid&#125;&#125;&#x27;</span> e464807dae4f)</span><br><span class="line">[root@k8s-n-1 ~]$ nsenter -t <span class="variable">$&#123;pid&#125;</span> -n ifconfig</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">eth0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1450</span><br><span class="line">        inet 10.244.1.5  netmask 255.255.255.0  broadcast 0.0.0.0</span><br><span class="line">        inet6 fe80::c897:47ff:feed:dd01  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether ca:97:47:ed:dd:01  txqueuelen 0  (Ethernet)</span><br><span class="line">        RX packets 64  bytes 6286 (6.1 KiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 49  bytes 5643 (5.5 KiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line"></span><br><span class="line">lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span><br><span class="line">        inet 127.0.0.1  netmask 255.0.0.0</span><br><span class="line">        inet6 ::1  prefixlen 128  scopeid 0x10&lt;host&gt;</span><br><span class="line">        loop  txqueuelen 1000  (Local Loopback)</span><br><span class="line">        RX packets 0  bytes 0 (0.0 B)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 0  bytes 0 (0.0 B)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>接着，我们看下在<code>k8s-n-2</code>节点上，路由规则是怎样的</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-2 ~]$ ip r | grep <span class="string">&#x27;10.244.1.0/24&#x27;</span></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">10.244.1.0/24 via 10.244.1.0 dev flannel.1 onlink</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>可以看到，在<code>k8s-n-1</code>节点上，直接路由到了<code>flannel.1</code>这样网卡，然后通过<code>flannel</code>的网络（主机网络或覆盖网络）到达<code>k8s-n-1</code>上</p>
+<p><strong>iptables规则链</strong></p>
+<pre class="mermaid">graph TD
+A[PREROUTING/INPUT/OUTPUT/FORWARD] -->B[KUBE-SERVICES]
+B -->|nginx, srcIp not in cidr| C1[KUBE-MARK-MASQ]
+B -->|nginx, srcIp in cidr| C2[KUBE-SVC-nginx]
+B -->|tomcat, srcIp not in cidr| C3[KUBE-MARK-MASQ]
+B -->|tomcat, srcIp in cidr| C4[KUBE-SVC-tomcat]
+B -->|last rule in the chain 'KUBE-SERVICES'| C5[KUBE-NODEPORTS]
+C2 --> D1[KUBE-SEP-nginx]
+D1 --> E1[DNAT redirect to nginx pod's ip and port]</pre>
+
+<h2 id="1-2-多副本"><a href="#1-2-多副本" class="headerlink" title="1.2 多副本"></a>1.2 多副本</h2><p><strong>deployment（hello-world-deployment.yml）</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">hello-world-deployment</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">mylabel:</span> <span class="string">label_hello_world_deployment</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span> <span class="comment"># 这里改成3副本</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">hello-world</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">registry.cn-hangzhou.aliyuncs.com/liuyehcf_default/liuye_repo:v1</span></span><br><span class="line">        <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, <span class="string">&quot;lib/spring-boot-1.0-SNAPSHOT.jar&quot;</span>]</span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br></pre></td></tr></table></figure>
+<p><strong>service（hello-world-service.yml）</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">hello-world-service</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">4000</span></span><br><span class="line">      <span class="attr">targetPort:</span> <span class="number">8080</span></span><br><span class="line">      <span class="attr">nodePort:</span> <span class="number">30001</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">NodePort</span></span><br></pre></td></tr></table></figure>
+<p>创建<code>deployment</code>以及<code>service</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-master ~]$ kubectl apply -f hello-world-service.yml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">service/hello-world-service created</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">[root@k8s-master ~]$ kubectl apply -f hello-world-deployment.yml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">deployment.apps/hello-world-deployment created</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>查看一下<code>pod</code>的部署情况</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-master ~]$ kubectl get pods -o wide</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME                                     READY   STATUS    RESTARTS   AGE     IP           NODE      NOMINATED NODE   READINESS GATES</span><br><span class="line">hello-world-deployment-cbdf4db7b-5qflq   1/1     Running   0          5m      10.244.2.2   k8s-n-2   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">hello-world-deployment-cbdf4db7b-j6fpq   1/1     Running   1          5h35m   10.244.1.6   k8s-n-1   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">hello-world-deployment-cbdf4db7b-qc624   1/1     Running   0          5m      10.244.1.7   k8s-n-1   &lt;none&gt;           &lt;none&gt;</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>我们以<code>k8s-n-1</code>为例，首先以<code>NodePort</code>为关键字进行搜索</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep 30001</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">-A KUBE-NODEPORTS -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service:&quot;</span> -m tcp --dport 30001 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-NODEPORTS -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service:&quot;</span> -m tcp --dport 30001 -j KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>上游<code>Chain</code>与单副本完全一致，不再赘述，继续沿着下游<code>Chain</code>进行分析，搜索<code>KUBE-SVC-5MRENC7Q6ZQR6GKR</code>关键词</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">:KUBE-SVC-5MRENC7Q6ZQR6GKR - [0:0]</span><br><span class="line">-A KUBE-NODEPORTS -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service:&quot;</span> -m tcp --dport 30001 -j KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line">-A KUBE-SERVICES -d 10.96.103.220/32 -p tcp -m comment --comment <span class="string">&quot;default/hello-world-service: cluster IP&quot;</span> -m tcp --dport 4000 -j KUBE-SVC-5MRENC7Q6ZQR6GKR</span><br><span class="line">-A KUBE-SVC-5MRENC7Q6ZQR6GKR -m statistic --mode random --probability 0.33333333349 -j KUBE-SEP-NQUZNNDG4S4UQTZI</span><br><span class="line">-A KUBE-SVC-5MRENC7Q6ZQR6GKR -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-XYEBSHB6XMTA6LVQ</span><br><span class="line">-A KUBE-SVC-5MRENC7Q6ZQR6GKR -j KUBE-SEP-AFBU56PEPWZ4VPIJ</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>这里，我们就能发现单副本与多副本之间的差异了，在单副本的例子中，只有一条规则，而多副本的例子中，有多条规则（规则数量与副本数保持一致），并且使用了<code>statistic</code>模块，引入了随机因子，用于实现负载均衡的功能（<code>iptables -m statistic -h</code>查看该模块的参数），然后，分别查看三个下游<code>Chain</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep KUBE-SEP-NQUZNNDG4S4UQTZI</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">:KUBE-SEP-NQUZNNDG4S4UQTZI - [0:0]</span><br><span class="line">-A KUBE-SEP-NQUZNNDG4S4UQTZI -s 10.244.1.6/32 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SEP-NQUZNNDG4S4UQTZI -p tcp -m tcp -j DNAT --to-destination 10.244.1.6:8080</span><br><span class="line">-A KUBE-SVC-5MRENC7Q6ZQR6GKR -m statistic --mode random --probability 0.33333333349 -j KUBE-SEP-NQUZNNDG4S4UQTZI</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep KUBE-SEP-XYEBSHB6XMTA6LVQ</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">:KUBE-SEP-XYEBSHB6XMTA6LVQ - [0:0]</span><br><span class="line">-A KUBE-SEP-XYEBSHB6XMTA6LVQ -s 10.244.1.7/32 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SEP-XYEBSHB6XMTA6LVQ -p tcp -m tcp -j DNAT --to-destination 10.244.1.7:8080</span><br><span class="line">-A KUBE-SVC-5MRENC7Q6ZQR6GKR -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-XYEBSHB6XMTA6LVQ</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">[root@k8s-n-1 ~]$ iptables-save | grep KUBE-SEP-AFBU56PEPWZ4VPIJ</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">:KUBE-SEP-AFBU56PEPWZ4VPIJ - [0:0]</span><br><span class="line">-A KUBE-SEP-AFBU56PEPWZ4VPIJ -s 10.244.2.2/32 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SEP-AFBU56PEPWZ4VPIJ -p tcp -m tcp -j DNAT --to-destination 10.244.2.2:8080</span><br><span class="line">-A KUBE-SVC-5MRENC7Q6ZQR6GKR -j KUBE-SEP-AFBU56PEPWZ4VPIJ</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>这里，可以看到，三个<code>Chain</code>，每个<code>Chain</code>分别配置了一个DNAT，指向某一个<code>pod</code>。后续的链路，如果在<code>pod</code>在本机，则走<code>cni0</code>网桥，否则就走<code>flannel</code></p>
+<p><strong>iptables规则链</strong></p>
+<pre class="mermaid">graph TD
+A[PREROUTING/INPUT/OUTPUT/FORWARD] -->B[KUBE-SERVICES]
+B -->|nginx, srcIp not in cidr| C1[KUBE-MARK-MASQ]
+B -->|nginx, srcIp in cidr| C2[KUBE-SVC-NGINX]
+B -->|tomcat, srcIp not in cidr| C3[KUBE-MARK-MASQ]
+B -->|tomcat, srcIp in cidr| C4[KUBE-SVC-TOMCAT]
+B -->|last rule in the chain 'KUBE-SERVICES'| C5[KUBE-NODEPORTS]
+C2 -->|random| D1[KUBE-SEP-nginx1]
+C2 -->|random| D2[KUBE-SEP-nginx2]
+C2 -->|random| D3[KUBE-SEP-nginx3]
+D1 --> E1[DNAT redirect to nginx pod1's ip and port]
+D2 --> E2[DNAT redirect to nginx pod2's ip and port]
+D3 --> E3[DNAT redirect to nginx pod3's ip and port]</pre>
+
+<h2 id="1-3-总结"><a href="#1-3-总结" class="headerlink" title="1.3 总结"></a>1.3 总结</h2><ol>
+<li>每个<code>node</code>上的<code>pod</code>，其子网都相同</li>
+<li>同个<code>node</code>之间<code>pod</code>相互访问，最终会走到<code>cni</code>网桥，该网桥等价于一个二层交换机，接着一对<code>veth</code>网卡，其中一段在默认的网络命名空间，另一端在<code>pod</code>的网络命名空间</li>
+<li>不同<code>node</code>之间的<code>pod</code>相互访问，最终会走到<code>flannel</code></li>
+</ol>
+<h1 id="2-NDS"><a href="#2-NDS" class="headerlink" title="2 NDS"></a>2 NDS</h1><p><code>coreDNS</code>是每个<code>Kubernetes</code>集群都会安装的系统组件，用于<code>Service</code>的解析，将服务名称解析成<code>ClusterIP</code></p>
+<p>一般来说，<code>coredns</code>以<code>deployment</code>运行在集群中（也可能是<code>daemonset</code>）</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s-master ~]$ kubectl get deployment -n kube-system</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME            READY   UP-TO-DATE   AVAILABLE   AGE</span><br><span class="line">coredns         2/2     2            2           149d</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p><strong>下面，我们用一个pod来验证一下<code>dnsutils.yaml</code>，yaml文件内容如下，<code>dnsutils</code>这个镜像中包含了<code>dig</code>、<code>nslookup</code>等命令，换成其他任何包含这个两个命令的镜像都行</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">dnsutils</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">dnsutils</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">gcr.io/kubernetes-e2e-test-images/dnsutils:1.3</span></span><br><span class="line">    <span class="attr">command:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">sleep</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;3600&quot;</span></span><br><span class="line">    <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建pod</span></span><br><span class="line">[root@k8s-master ~]$ kubectl apply -f dnsutils.yaml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">pod/dnsutils created</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看一下pod是否启动成功</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get pods</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME                                      READY   STATUS    RESTARTS   AGE</span><br><span class="line">dnsutils                                  1/1     Running   0          33s</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 看下default以及kube-system命名空间下各有什么service</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get svc</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">kubernetes            ClusterIP   10.96.0.1        &lt;none&gt;        443/TCP          28d</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get svc -n kube-system</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE</span><br><span class="line">kube-dns        ClusterIP   10.96.0.10       &lt;none&gt;        53/UDP,53/TCP,9153/TCP   149d</span><br><span class="line">tiller-deploy   ClusterIP   10.108.160.127   &lt;none&gt;        44134/TCP                118d</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看/etc/resolv.conf，我们发现，指定的nameserver就是coredns的ClusterIP</span></span><br><span class="line">[root@k8s-master ~]$ kubectl <span class="built_in">exec</span> -it dnsutils -- cat /etc/resolv.conf</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">nameserver 10.96.0.10</span><br><span class="line">search default.svc.cluster.local svc.cluster.local cluster.local hz.ali.com</span><br><span class="line">options ndots:5</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 用nslookup查找位于相同命名空间下的服务 kubernetes</span></span><br><span class="line">[root@k8s-master ~]$ kubectl <span class="built_in">exec</span> -it dnsutils -- nslookup kubernetes</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Server:		10.96.0.10</span><br><span class="line">Address:	10.96.0.10<span class="comment">#53</span></span><br><span class="line"></span><br><span class="line">Name:	kubernetes.default.svc.cluster.local</span><br><span class="line">Address: 10.96.0.1</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 用nslookup查找位于不同命名空间下的服务 tiller-deploy</span></span><br><span class="line">[root@k8s-master ~]$ kubectl <span class="built_in">exec</span> -it dnsutils -- nslookup tiller-deploy.kube-system</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Server:		10.96.0.10</span><br><span class="line">Address:	10.96.0.10<span class="comment">#53</span></span><br><span class="line"></span><br><span class="line">Non-authoritative answer:</span><br><span class="line">Name:	tiller-deploy.kube-system.svc.cluster.local</span><br><span class="line">Address: 10.108.160.127</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理资源</span></span><br><span class="line">[root@k8s-master ~]$ kubectl delete -f dnsutils.yaml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">pod <span class="string">&quot;dnsutils&quot;</span> deleted</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p><strong>接下来，将修改<code>dnsutils.yaml</code>，设置成<code>hostnetwork</code>，同时不指定<code>dnsPolicy</code></strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">dnsutils</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">hostNetwork:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">dnsutils</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">gcr.io/kubernetes-e2e-test-images/dnsutils:1.3</span></span><br><span class="line">    <span class="attr">command:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">sleep</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;3600&quot;</span></span><br><span class="line">    <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建pod</span></span><br><span class="line">[root@k8s-master ~]$ kubectl apply -f dnsutils.yaml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">pod/dnsutils created</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看一下pod是否启动成功</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get pods</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME                                      READY   STATUS    RESTARTS   AGE</span><br><span class="line">dnsutils                                  1/1     Running   0          29s</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 看下default以及kube-system命名空间下各有什么service</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get svc</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">kubernetes            ClusterIP   10.96.0.1        &lt;none&gt;        443/TCP          28d</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get svc -n kube-system</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE</span><br><span class="line">kube-dns        ClusterIP   10.96.0.10       &lt;none&gt;        53/UDP,53/TCP,9153/TCP   149d</span><br><span class="line">tiller-deploy   ClusterIP   10.108.160.127   &lt;none&gt;        44134/TCP                118d</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看/etc/resolv.conf，我们发现，这个配置就是主机的配置</span></span><br><span class="line">[root@k8s-master ~]$ kubectl <span class="built_in">exec</span> -it dnsutils -- cat /etc/resolv.conf</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">nameserver 30.14.129.245</span><br><span class="line">nameserver 30.14.128.82</span><br><span class="line">nameserver 10.65.0.201</span><br><span class="line">search hz.ali.com</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 用nslookup查找位于相同命名空间下的服务 kubernetes，查找不到</span></span><br><span class="line">[root@k8s-master ~]$ kubectl <span class="built_in">exec</span> -it dnsutils -- nslookup kubernetes</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">;; Got SERVFAIL reply from 30.14.129.245, trying next server</span><br><span class="line">;; Got SERVFAIL reply from 30.14.128.82, trying next server</span><br><span class="line">Server:		10.65.0.201</span><br><span class="line">Address:	10.65.0.201<span class="comment">#53</span></span><br><span class="line"></span><br><span class="line">** server cant find kubernetes: SERVFAIL</span><br><span class="line"></span><br><span class="line"><span class="built_in">command</span> terminated with <span class="built_in">exit</span> code 1</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理资源</span></span><br><span class="line">[root@k8s-master ~]$ kubectl delete -f dnsutils.yaml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">pod <span class="string">&quot;dnsutils&quot;</span> deleted</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p><strong>我们继续修改<code>dnsutils.yaml</code>，设置成<code>hostnetwork</code>，同时将<code>dnsPolicy</code>设置为<code>ClusterFirstWithHostNet</code></strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">dnsutils</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">hostNetwork:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">dnsPolicy:</span> <span class="string">ClusterFirstWithHostNet</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">dnsutils</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">gcr.io/kubernetes-e2e-test-images/dnsutils:1.3</span></span><br><span class="line">    <span class="attr">command:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">sleep</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;3600&quot;</span></span><br><span class="line">    <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建pod</span></span><br><span class="line">[root@k8s-master ~]$ kubectl apply -f dnsutils.yaml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">pod/dnsutils created</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看一下pod是否启动成功</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get pods</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME                                      READY   STATUS    RESTARTS   AGE</span><br><span class="line">dnsutils                                  1/1     Running   0          42</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 看下default以及kube-system命名空间下各有什么service</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get svc</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">kubernetes            ClusterIP   10.96.0.1        &lt;none&gt;        443/TCP          28d</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line">[root@k8s-master ~]$ kubectl get svc -n kube-system</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">NAME            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE</span><br><span class="line">kube-dns        ClusterIP   10.96.0.10       &lt;none&gt;        53/UDP,53/TCP,9153/TCP   149d</span><br><span class="line">tiller-deploy   ClusterIP   10.108.160.127   &lt;none&gt;        44134/TCP                118d</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看/etc/resolv.conf，我们发现，指定的nameserver就是coredns的ClusterIP</span></span><br><span class="line">[root@k8s-master ~]$ kubectl <span class="built_in">exec</span> -it dnsutils -- cat /etc/resolv.conf</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">nameserver 10.96.0.10</span><br><span class="line">search default.svc.cluster.local svc.cluster.local cluster.local hz.ali.com</span><br><span class="line">options ndots:5</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 用nslookup查找位于相同命名空间下的服务 kubernetes</span></span><br><span class="line">[root@k8s-master ~]$ kubectl <span class="built_in">exec</span> -it dnsutils -- nslookup kubernetes</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Server:		10.96.0.10</span><br><span class="line">Address:	10.96.0.10<span class="comment">#53</span></span><br><span class="line"></span><br><span class="line">Name:	kubernetes.default.svc.cluster.local</span><br><span class="line">Address: 10.96.0.1</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 用nslookup查找位于不同命名空间下的服务 tiller-deploy</span></span><br><span class="line">[root@k8s-master ~]$ kubectl <span class="built_in">exec</span> -it dnsutils -- nslookup tiller-deploy.kube-system</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Server:		10.96.0.10</span><br><span class="line">Address:	10.96.0.10<span class="comment">#53</span></span><br><span class="line"></span><br><span class="line">Non-authoritative answer:</span><br><span class="line">Name:	tiller-deploy.kube-system.svc.cluster.local</span><br><span class="line">Address: 10.108.160.127</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理资源</span></span><br><span class="line">[root@k8s-master ~]$ kubectl delete -f dnsutils.yaml</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">pod <span class="string">&quot;dnsutils&quot;</span> deleted</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<h1 id="3-HostNetwork"><a href="#3-HostNetwork" class="headerlink" title="3 HostNetwork"></a>3 HostNetwork</h1><p>使用主机网络后，<code>PodIP</code>就是主机<code>IP</code>，<code>ContainerPort</code>就是主机<code>Port</code></p>
+<p>如果一个设置了主机网络的<code>Pod</code>，想要通过<code>serviceName:servicePort</code>来访问其他服务的时候，需要将<code>dnsPolicy</code>配置成<code>ClusterFirstWithHostNet</code></p>
+<p>此外，如果配置了一个<code>Service</code>，以<code>NodePort</code>方式将设置了主机网络的<code>Pod</code>对外露出，可能会导致这样的问题：假设主机A上部署了一个主机网络的<code>Pod</code>，并且以<code>NodePort</code>对外露出，<code>NodePort=30001</code>，此时访问主机B的30001端口，请求有可能无法触达A，原因如下：</p>
+<ul>
+<li><code>kube-proxy</code>设置的<code>iptables</code>规则可能会与用户设置的<code>iptables</code>规则冲突，因此<code>k8s</code>事先约定了一个NodePort范围，<code>30000-32767</code>，且在初始化集群时，需要指定一个网段用于分配<code>PodIP</code>，在这样的限制条件下，<code>kube-proxy</code>设置的<code>iptables</code>规则才能与用户原有的<code>iptables</code>规则互不影响</li>
+<li>当服务以<code>NodePort</code>形式露出时，且<code>Pod</code>为容器网络时，<code>kube-proxy</code>会配置如下两条规则<ul>
+<li>一条<code>DNAT</code>规则，改写目的端口为<code>NodePort</code>的IP数据包头，将其改为<code>PodIP</code></li>
+<li>一条<code>FORWARD</code>规则，对应的网段就是<code>PodIP</code>的网段</li>
+</ul>
+</li>
+<li>当服务以<code>NodePort</code>形式露出，且<code>Pod</code>为主机网络时，只设置了一条<code>DNAT</code>规则，而一般来说，<code>FORWARD</code>的默认策略是<code>DROP</code>。因此<ul>
+<li>当<code>Pod</code>的IP就是当前主机的IP时，直接走<code>INPUT</code>，进入本地网络协议栈，可以正常访问服务</li>
+<li>当<code>Pod</code>的IP是其他主机的IP时，经过<code>FORWARD</code>，由于没有配置对应的规则，流量被直接<code>DROP</code>，无法正常访问服务</li>
+</ul>
+</li>
+<li>解决方式：<code>iptables -P FORWARD ACCEPT</code>，将默认的<code>FORWARD</code>策略改为<code>ACCEPT</code></li>
+</ul>
+<h1 id="4-问题排查"><a href="#4-问题排查" class="headerlink" title="4 问题排查"></a>4 问题排查</h1><h2 id="4-1-排查一般思路"><a href="#4-1-排查一般思路" class="headerlink" title="4.1 排查一般思路"></a>4.1 排查一般思路</h2><h3 id="4-1-1-步骤1：确认系统网络参数是否配置正确"><a href="#4-1-1-步骤1：确认系统网络参数是否配置正确" class="headerlink" title="4.1.1 步骤1：确认系统网络参数是否配置正确"></a>4.1.1 步骤1：确认系统网络参数是否配置正确</h3><p><strong>以下两个配置项，需要设置成1，否则iptables规则无法应用于二层转发（同主机的pod之间的网络通信走的是二层转发）</strong></p>
+<ol>
+<li>net.bridge.bridge-nf-call-ip6tables</li>
+<li>net.bridge.bridge-nf-call-iptables</li>
+</ol>
+<p><strong>以下三个配置项，需要设置成1，否则流量从网卡<code>cni0</code>出来之后，无法forward到主机的外网网卡上，意味着，容器里面是无法访问公网的，具体表现就是在容器网络的容器中无法ping通外网ip</strong></p>
+<ol>
+<li>net.ipv4.ip_forward</li>
+<li>net.ipv4.conf.all.forwarding</li>
+<li>net.ipv6.conf.all.forwarding</li>
+</ol>
+<p><strong>如何修改配置</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 临时修改</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/bridge/bridge-nf-call-ip6tables</span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/bridge/bridge-nf-call-iptables</span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/conf/all/forwarding</span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv6/conf/all/forwarding</span><br><span class="line"></span><br><span class="line"><span class="comment"># 永久修改</span></span><br><span class="line">cat &gt;&gt; /etc/sysctl.conf &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">net.bridge.bridge-nf-call-ip6tables=1</span><br><span class="line">net.bridge.bridge-nf-call-iptables=1</span><br><span class="line">net.ipv4.ip_forward=1</span><br><span class="line">net.ipv4.conf.all.forwarding=1</span><br><span class="line">net.ipv6.conf.all.forwarding=1</span><br><span class="line">EOF</span><br><span class="line">sysctl -p /etc/sysctl.conf</span><br></pre></td></tr></table></figure>
+<h3 id="4-1-2-步骤2：检查防火墙是否已关闭"><a href="#4-1-2-步骤2：检查防火墙是否已关闭" class="headerlink" title="4.1.2 步骤2：检查防火墙是否已关闭"></a>4.1.2 步骤2：检查防火墙是否已关闭</h3><p>systemctl status firewalld</p>
+<h3 id="4-1-3-步骤3：校验iptables中的DNAT规则的目的ip是否可访问"><a href="#4-1-3-步骤3：校验iptables中的DNAT规则的目的ip是否可访问" class="headerlink" title="4.1.3 步骤3：校验iptables中的DNAT规则的目的ip是否可访问"></a>4.1.3 步骤3：校验iptables中的DNAT规则的目的ip是否可访问</h3><p>一般来说，DNAT的目的ip的流转方式有3类</p>
+<ol>
+<li>如果<code>目的ip</code>是当前主机的某个<code>podIp</code>，那么流量会转发到<code>cni0</code>，一般来说，这种情况都是没啥问题的</li>
+<li>如果<code>目的ip</code>是另一台主机的某个<code>podIp</code>，那么流量会转发到<code>flannel.1</code>，然后通过<code>overlay</code>转发到<code>podIp</code>所在的主机上<ul>
+<li>可能的网络限制：由于overlay是通过udp转发的，需要检查下主机是否有针对udp的过滤配置</li>
+</ul>
+</li>
+<li>如果<code>目的ip</code>是某个<code>机器的ip</code>，那么直接走外网网卡或者<code>lo</code><ul>
+<li>机器的ip如果变化了，那么iptables中记录的DNAT目的ip可能还是一个旧的主机ip，因此这个时候需要重启下pod，更新下iptables规则</li>
+</ul>
+</li>
+</ol>
+<h3 id="4-1-4-步骤4：检查容器中-etc-resolv-conf配置是否有效"><a href="#4-1-4-步骤4：检查容器中-etc-resolv-conf配置是否有效" class="headerlink" title="4.1.4 步骤4：检查容器中/etc/resolv.conf配置是否有效"></a>4.1.4 步骤4：检查容器中/etc/resolv.conf配置是否有效</h3><ol>
+<li>对于<code>coredns</code>来说，容器内的<code>/etc/resolv.conf</code>文件是在容器创建的时候，从宿主机上拷贝的。如果主机恰好用的dhcp的方式获取ip，那么获取的dns地址很有可能是dhcp的地址，这个地址是可能会失效的</li>
+<li>对于普通的容器网络的容器来说，容器内的<code>/etc/resolv.conf</code>配置的是coredns的clusterIp，因此不需要改动</li>
+<li>对于主机网络，且dnsPolicy为<code>ClusterFirst</code>的容器来说，容器内的<code>/etc/resolv.conf</code>文件是在容器创建的时候，从宿主机上拷贝的。如果主机恰好用的dhcp的方式获取ip，那么获取的dns地址很有可能是dhcp的地址，这个地址是可能会失效的</li>
+</ol>
+<h2 id="4-2-排查手段"><a href="#4-2-排查手段" class="headerlink" title="4.2 排查手段"></a>4.2 排查手段</h2><ol>
+<li>tcpdump抓包</li>
+<li>iptables配置一些打印日志的规则</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">iptables -I INPUT -p icmp -j LOG --log-prefix <span class="string">&quot;liuye-input: &quot;</span></span><br><span class="line">iptables -I FORWARD -p icmp -j LOG --log-prefix <span class="string">&quot;liuye-forward: &quot;</span></span><br><span class="line">iptables -I OUTPUT -p icmp -j LOG --log-prefix <span class="string">&quot;liuye-output: &quot;</span></span><br><span class="line">iptables -t nat -I PREROUTING -p icmp -j LOG --log-prefix <span class="string">&quot;liuye-prerouting: &quot;</span></span><br><span class="line">iptables -t nat -I POSTROUTING -p icmp -j LOG --log-prefix <span class="string">&quot;liuye-postrouting: &quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="4-3-容器网络不通"><a href="#4-3-容器网络不通" class="headerlink" title="4.3 容器网络不通"></a>4.3 容器网络不通</h2><p>现象：在容器中，pingk8s域名失败，ping外网域名失败</p>
+<p>kube-proxy包含如下日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">W1009 12:41:47.192659       6 proxier.go:320] missing br-netfilter module or unset sysctl br-nf-call-iptables; proxy may not work as intended</span><br></pre></td></tr></table></figure>
+<p>原因就是没有开启<code>bridge-nf-call-iptables</code>，当<code>bridge-nf-call-iptables</code>开启时，在二层网桥转发的数据也会被iptables链进制规则限制，而同主机的pod直接的数据转发是直接通过网桥进行转发的，而网桥在二层网络进行数据处理，所以<code>bridge-nf-call-iptables</code>没有开启时，pod无法通过clusterIP访问同主机的pod</p>
+<p><strong>如何开启</strong></p>
+<ol>
+<li><code>echo &#39;1&#39; &gt; /proc/sys/net/bridge/bridge-nf-call-iptables</code>：立即生效，重启后还原为默认配置</li>
+<li><code>echo &#39;net.bridge.bridge-nf-call-iptables=1&#39; &gt;&gt; /etc/sysctl.conf &amp;&amp; sysctl -p /etc/sysctl.conf</code>：修改默认配置，重启后也能生效</li>
+</ol>
+<h1 id="5-参考"><a href="#5-参考" class="headerlink" title="5 参考"></a>5 参考</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://xuxinkun.github.io/2016/07/22/kubernetes-proxy/">kubernetes入门之kube-proxy实现原理</a></li>
+<li><a target="_blank" rel="noopener" href="https://cizixs.com/2017/03/30/kubernetes-introduction-service-and-kube-proxy/">kubernetes 简介：service 和 kube-proxy 原理</a></li>
+<li><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1097449">kube-proxy工作原理</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5caccf256fb9a06851504647">如何找到VEth设备的对端接口VEth peer</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/34749675">技术干货|深入理解flannel</a></li>
+<li><a target="_blank" rel="noopener" href="https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/">Debugging DNS Resolution</a></li>
+<li><a target="_blank" rel="noopener" href="https://yuyicai.com/posts/k8s-pod-can-not-conne-to-pod-with-clusterip/">记一次pod无法通过clusterIP访问同主机其它pod的排障过程</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/27/Tun-Tap-Demo/" rel="prev" title="Tun-Tap-Demo">
+      <i class="fa fa-chevron-left"></i> Tun-Tap-Demo
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/02/Kubernetes-helm/" rel="next" title="Kubernetes-helm">
+      Kubernetes-helm <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-NodePort%E7%BD%91%E7%BB%9C%E9%93%BE%E8%B7%AF-%E7%A4%BA%E4%BE%8B%E8%AE%B2%E8%A7%A3"><span class="nav-text">1 NodePort网络链路-示例讲解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-%E5%8D%95%E5%89%AF%E6%9C%AC"><span class="nav-text">1.1 单副本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-%E5%A4%9A%E5%89%AF%E6%9C%AC"><span class="nav-text">1.2 多副本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-%E6%80%BB%E7%BB%93"><span class="nav-text">1.3 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-NDS"><span class="nav-text">2 NDS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-HostNetwork"><span class="nav-text">3 HostNetwork</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5"><span class="nav-text">4 问题排查</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E6%8E%92%E6%9F%A5%E4%B8%80%E8%88%AC%E6%80%9D%E8%B7%AF"><span class="nav-text">4.1 排查一般思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-1-%E6%AD%A5%E9%AA%A41%EF%BC%9A%E7%A1%AE%E8%AE%A4%E7%B3%BB%E7%BB%9F%E7%BD%91%E7%BB%9C%E5%8F%82%E6%95%B0%E6%98%AF%E5%90%A6%E9%85%8D%E7%BD%AE%E6%AD%A3%E7%A1%AE"><span class="nav-text">4.1.1 步骤1：确认系统网络参数是否配置正确</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-2-%E6%AD%A5%E9%AA%A42%EF%BC%9A%E6%A3%80%E6%9F%A5%E9%98%B2%E7%81%AB%E5%A2%99%E6%98%AF%E5%90%A6%E5%B7%B2%E5%85%B3%E9%97%AD"><span class="nav-text">4.1.2 步骤2：检查防火墙是否已关闭</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-3-%E6%AD%A5%E9%AA%A43%EF%BC%9A%E6%A0%A1%E9%AA%8Ciptables%E4%B8%AD%E7%9A%84DNAT%E8%A7%84%E5%88%99%E7%9A%84%E7%9B%AE%E7%9A%84ip%E6%98%AF%E5%90%A6%E5%8F%AF%E8%AE%BF%E9%97%AE"><span class="nav-text">4.1.3 步骤3：校验iptables中的DNAT规则的目的ip是否可访问</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-4-%E6%AD%A5%E9%AA%A44%EF%BC%9A%E6%A3%80%E6%9F%A5%E5%AE%B9%E5%99%A8%E4%B8%AD-etc-resolv-conf%E9%85%8D%E7%BD%AE%E6%98%AF%E5%90%A6%E6%9C%89%E6%95%88"><span class="nav-text">4.1.4 步骤4：检查容器中&#x2F;etc&#x2F;resolv.conf配置是否有效</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E6%8E%92%E6%9F%A5%E6%89%8B%E6%AE%B5"><span class="nav-text">4.2 排查手段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B8%8D%E9%80%9A"><span class="nav-text">4.3 容器网络不通</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8F%82%E8%80%83"><span class="nav-text">5 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz","app_key":"uhkruDLNLNdL5rQjRBY2X9Ke","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>
