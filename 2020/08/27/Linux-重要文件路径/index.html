@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-08-27T06:11:21.000Z">
-<meta property="article:modified_time" content="2020-12-28T14:15:39.105Z">
+<meta property="article:modified_time" content="2021-01-03T12:05:29.698Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-28 22:15:39" itemprop="dateModified" datetime="2020-12-28T22:15:39+08:00">2020-12-28</time>
+                <time title="修改时间：2021-01-03 20:05:29" itemprop="dateModified" datetime="2021-01-03T20:05:29+08:00">2021-01-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -334,6 +334,12 @@
 <li><code>/proc/buddyinfo</code>：内存碎片信息</li>
 <li><code>/proc/sys/net</code>：网络相关配置</li>
 <li><code>/proc/interrupts</code>：中断映射表</li>
+<li><code>/proc/net</code>：网络相关的统计信息<ul>
+<li><code>/proc/net/route</code>：路由表</li>
+<li><code>/proc/net/arp</code>：mac地址表</li>
+<li><code>/proc/net/tcp</code>：tcp连接信息</li>
+</ul>
+</li>
 </ol>
 <h1 id="3-其他"><a href="#3-其他" class="headerlink" title="3 其他"></a>3 其他</h1><ol>
 <li><code>/dev/disk/by-path</code>：以磁盘路径为名称的软链接文件</li>
@@ -486,7 +492,7 @@
 <div class="copyright">
   
   &copy; 2017 – 
-  <span itemprop="copyrightYear">2020</span>
+  <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -525,9 +531,14 @@
                 console.error('Failed to save visitor count', error);
               });
           } else {
-              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
-              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
-            
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
           }
         })
         .catch(error => {
@@ -554,7 +565,7 @@
         });
     }
 
-    let { app_id, app_key, server_url } = {"enable":true,"app_id":"qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz","app_key":"uhkruDLNLNdL5rQjRBY2X9Ke","server_url":null,"security":true};
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz","app_key":"uhkruDLNLNdL5rQjRBY2X9Ke","security":false};
     function fetchData(api_server) {
       var Counter = (method, url, data) => {
         return fetch(`${api_server}/1.1${url}`, {
