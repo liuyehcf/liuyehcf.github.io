@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/images/Akka-Overview/fig4.png">
 <meta property="og:image" content="http://example.com/images/Akka-Overview/fig5.png">
 <meta property="article:published_time" content="2019-01-16T11:54:09.000Z">
-<meta property="article:modified_time" content="2020-12-28T14:15:39.025Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.733Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -235,7 +235,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-28 22:15:39" itemprop="dateModified" datetime="2020-12-28T22:15:39+08:00">2020-12-28</time>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -414,7 +414,7 @@
 </ol>
 <h4 id="1-5-3-3-Querying-the-Logical-Actor-Hierarchy"><a href="#1-5-3-3-Querying-the-Logical-Actor-Hierarchy" class="headerlink" title="1.5.3.3 Querying the Logical Actor Hierarchy"></a>1.5.3.3 Querying the Logical Actor Hierarchy</h4><h3 id="1-5-4-Actor-Reference-and-Path-Equality"><a href="#1-5-4-Actor-Reference-and-Path-Equality" class="headerlink" title="1.5.4 Actor Reference and Path Equality"></a>1.5.4 Actor Reference and Path Equality</h3><p>只有当<code>Actor Path</code>相同，且封装了同一个<code>Actor</code>时，<code>Actor Reference</code>才相同。在<code>Actor</code>发生<code>re-create</code>（先<code>terminate</code>后<code>create</code>）前后的两个<code>Actor Reference</code>是不同的；在<code>Actor</code>发生<code>re-start</code>前后的两个<code>Actor</code>是相同的</p>
 <h3 id="1-5-5-Reusing-Actor-Paths"><a href="#1-5-5-Reusing-Actor-Paths" class="headerlink" title="1.5.5 Reusing Actor Paths"></a>1.5.5 Reusing Actor Paths</h3><p>当一个<code>Actor</code>终结后，又重新创建了一个新的<code>Actor</code>，这两个<code>Actor</code>复用同一个<code>Actor Path</code>。Akka不保证在此过渡期间发往该<code>Actor</code>的任何事件的有序性，换言之，新创建的<code>Actor</code>可能收到本该发往旧<code>Actor</code>的消息</p>
-<h3 id="1-5-6-The-Interplay-with-Remote-Deployment"><a href="#1-5-6-The-Interplay-with-Remote-Deployment" class="headerlink" title="1.5.6 The Interplay with Remote Deployment"></a>1.5.6 The Interplay with Remote Deployment</h3><p>在远程模式下，我们创建一个<code>Actor</code>，Akka系统会决定在本地JVM创建该<code>Actor</code>或者在远程JVM中创建该<code>Actor</code>。对于后者，<code>Action</code>的创建可能触发在另一个远程JVM中，显然对应的是另一个<code>Actor System</code>。因此，__<code>Actor System</code>会为这种方式创建的<code>Actor</code>赋予一个特殊的<code>Actor Path</code>__。在这种情况下，新创建的<code>Actor</code>，其对应的<code>Supervisor Actor</code>就在另一个<code>Actor System</code>中（触发创建动作的<code>Actor System</code>），因此<code>context.parent</code>与<code>context.path.parent</code>并不是同一个<code>Actor</code></p>
+<h3 id="1-5-6-The-Interplay-with-Remote-Deployment"><a href="#1-5-6-The-Interplay-with-Remote-Deployment" class="headerlink" title="1.5.6 The Interplay with Remote Deployment"></a>1.5.6 The Interplay with Remote Deployment</h3><p>在远程模式下，我们创建一个<code>Actor</code>，Akka系统会决定在本地JVM创建该<code>Actor</code>或者在远程JVM中创建该<code>Actor</code>。对于后者，<code>Action</code>的创建可能触发在另一个远程JVM中，显然对应的是另一个<code>Actor System</code>。因此，**<code>Actor System</code>会为这种方式创建的<code>Actor</code>赋予一个特殊的<code>Actor Path</code>**。在这种情况下，新创建的<code>Actor</code>，其对应的<code>Supervisor Actor</code>就在另一个<code>Actor System</code>中（触发创建动作的<code>Actor System</code>），因此<code>context.parent</code>与<code>context.path.parent</code>并不是同一个<code>Actor</code></p>
 <p><img src="/images/Akka-Overview/fig3.png" alt="fig3"></p>
 <h3 id="1-5-7-What-is-the-Address-part-used-for"><a href="#1-5-7-What-is-the-Address-part-used-for" class="headerlink" title="1.5.7 What is the Address part used for"></a>1.5.7 What is the Address part used for</h3><p>当通过网络传递一个<code>Actor Reference</code>时，<code>Actor Path</code>即代表了这个<code>Actor Reference</code>。因此，<code>Actor Path</code>必须将所有必要的信息打包进<code>Actor Path</code>当中，这些信息包括<code>protocol</code>、<code>host</code>、<code>port</code>。当<code>Actor System</code>接收一个来自远程节点的<code>Actor Reference</code>时，首先会检查<code>Actor Path</code>是否匹配了本地的一个<code>Actor</code>，如果匹配成功，则将其替换成一个<code>Local Actor Reference</code>，否则就是<code>Remote Actor Reference</code></p>
 <h3 id="1-5-8-Top-Level-Scopes-for-Actor-Paths"><a href="#1-5-8-Top-Level-Scopes-for-Actor-Paths" class="headerlink" title="1.5.8 Top-Level Scopes for Actor Paths"></a>1.5.8 Top-Level Scopes for Actor Paths</h3><ol>
@@ -425,8 +425,8 @@
 <li><code>/temp</code>: <code>Short-lived System-created Actor</code>的起始路径</li>
 <li><code>/remote</code>: <code>Remote Actor</code>的起始路径（其<code>Supervisor Actor</code>位于远程节点上）</li>
 </ol>
-<h2 id="1-6-Location-Transparency"><a href="#1-6-Location-Transparency" class="headerlink" title="1.6 Location Transparency"></a>1.6 Location Transparency</h2><h3 id="1-6-1-Distributed-by-Default"><a href="#1-6-1-Distributed-by-Default" class="headerlink" title="1.6.1 Distributed by Default"></a>1.6.1 Distributed by Default</h3><p>__Akka在设计之初就考虑到了分布式的场景：<code>Actor</code>之间所有的交互都是通过Message来完成的，且都是异步的，这就保证了所有的操作在单节点或者多节点上都是等价的__。为了实现这一愿景，所有的机制都是从<code>Remote</code>模式开始设计，然后对于<code>Local</code>模式进行优化。而不是从<code>Local</code>开始，然后再去考虑<code>Remote</code>的场景</p>
-<h3 id="1-6-2-How-is-Remoting-Used"><a href="#1-6-2-How-is-Remoting-Used" class="headerlink" title="1.6.2 How is Remoting Used"></a>1.6.2 How is Remoting Used</h3><p>__Akka几乎没有提供任何有关Remote的API，是否以Remote模式工作，完全取决于配置__。这种特性可以让我们在不改动任何一行代码的情况下，让<code>Akka System</code>工作于不同的模式下，并且可以得到很好的可伸缩性、扩展性</p>
+<h2 id="1-6-Location-Transparency"><a href="#1-6-Location-Transparency" class="headerlink" title="1.6 Location Transparency"></a>1.6 Location Transparency</h2><h3 id="1-6-1-Distributed-by-Default"><a href="#1-6-1-Distributed-by-Default" class="headerlink" title="1.6.1 Distributed by Default"></a>1.6.1 Distributed by Default</h3><p><strong>Akka在设计之初就考虑到了分布式的场景：<code>Actor</code>之间所有的交互都是通过Message来完成的，且都是异步的，这就保证了所有的操作在单节点或者多节点上都是等价的</strong>。为了实现这一愿景，所有的机制都是从<code>Remote</code>模式开始设计，然后对于<code>Local</code>模式进行优化。而不是从<code>Local</code>开始，然后再去考虑<code>Remote</code>的场景</p>
+<h3 id="1-6-2-How-is-Remoting-Used"><a href="#1-6-2-How-is-Remoting-Used" class="headerlink" title="1.6.2 How is Remoting Used"></a>1.6.2 How is Remoting Used</h3><p><strong>Akka几乎没有提供任何有关Remote的API，是否以Remote模式工作，完全取决于配置</strong>。这种特性可以让我们在不改动任何一行代码的情况下，让<code>Akka System</code>工作于不同的模式下，并且可以得到很好的可伸缩性、扩展性</p>
 <p>Akka中唯一个与Remote相关的API就是：我们可以向<code>Props</code>提供一个<code>Deploy</code>参数，来改变模式。但是当<code>Code</code>与<code>Configuration</code>共存时，<code>Configuration</code>最终生效</p>
 <h3 id="1-6-3-Peer-to-Peer-vs-Client-Server"><a href="#1-6-3-Peer-to-Peer-vs-Client-Server" class="headerlink" title="1.6.3 Peer-to-Peer vs. Client-Server"></a>1.6.3 Peer-to-Peer vs. Client-Server</h3><p><code>Akka Remote</code>是一个基于<code>Peer-to-Peer</code>的通信模块，用于连接多个<code>Actor System</code>，该模块是构建<code>Akka Clustering</code>的基础</p>
 <p>选用<code>Peer-to-Peer</code>模式而不是<code>Client-Server</code>模式，主要有以下几个原因</p>
@@ -434,7 +434,7 @@
 <li>不同<code>Actor System</code>之间的通信是镜像对称的：<code>Actor System A</code>可以连接到<code>Actor System B</code>；同时<code>Actor System B</code>也可以连接到<code>Actor System A</code></li>
 <li>不同<code>Actor System</code>在通信系统中的角色是镜像对称的，没有一个<code>Actor System</code>只接受连接，也没有一个<code>Actor System</code>只发起连接</li>
 </ol>
-<h3 id="1-6-4-Marking-Points-for-Scaling-Up-with-Routers"><a href="#1-6-4-Marking-Points-for-Scaling-Up-with-Routers" class="headerlink" title="1.6.4 Marking Points for Scaling Up with Routers"></a>1.6.4 Marking Points for Scaling Up with Routers</h3><p>__更进一步，有时候，我们不想让我们的系统拆分成多个部分运行在不同的节点上，而是想让我们的系统在不同的节点上运行多个实例__。Akka提供了不同的路由策略，包括<code>round-robin</code>。</p>
+<h3 id="1-6-4-Marking-Points-for-Scaling-Up-with-Routers"><a href="#1-6-4-Marking-Points-for-Scaling-Up-with-Routers" class="headerlink" title="1.6.4 Marking Points for Scaling Up with Routers"></a>1.6.4 Marking Points for Scaling Up with Routers</h3><p><strong>更进一步，有时候，我们不想让我们的系统拆分成多个部分运行在不同的节点上，而是想让我们的系统在不同的节点上运行多个实例</strong>。Akka提供了不同的路由策略，包括<code>round-robin</code>。</p>
 <p>The only thing necessary to achieve this is that the developer needs to declare a certain actor as “withRouter”, then—in its stead—a router actor will be created which will spawn up a configurable number of children of the desired type and route to them in the configured fashion. Once such a router has been declared, its configuration can be freely overridden from the configuration file, including mixing it with the remote deployment of (some of) the children.</p>
 <h2 id="1-7-Akka-and-the-Java-Memory-Model"><a href="#1-7-Akka-and-the-Java-Memory-Model" class="headerlink" title="1.7 Akka and the Java Memory Model"></a>1.7 Akka and the Java Memory Model</h2><h3 id="1-7-1-Java-Memory-Model"><a href="#1-7-1-Java-Memory-Model" class="headerlink" title="1.7.1 Java Memory Model"></a>1.7.1 Java Memory Model</h3><p>在Java 5之前，Java的内存模型存在很多问题</p>
 <ol>
@@ -458,9 +458,9 @@
 <li><a target="_blank" rel="noopener" href="https://doc.akka.io/docs/akka/current/general/index.html">General Concepts</a></li>
 </ul>
 <h1 id="2-Clustering"><a href="#2-Clustering" class="headerlink" title="2 Clustering"></a>2 Clustering</h1><h2 id="2-1-Cluster-Specification"><a href="#2-1-Cluster-Specification" class="headerlink" title="2.1 Cluster Specification"></a>2.1 Cluster Specification</h2><p><code>Akka Cluster</code>提供了去中心化的容错机制，即无单点故障以及单机瓶颈。它使用了<code>gossip</code>协议以及自动故障检测机制。<code>Akka Cluster</code>允许构建一个分布式的应用，即整个应用/服务部署在多个节点上（准确地说是多个<code>Actor System</code>）</p>
-<h3 id="2-1-1-Term"><a href="#2-1-1-Term" class="headerlink" title="2.1.1 Term"></a>2.1.1 Term</h3><p>__<code>node</code>（下文称为节点）__：<code>Akka Cluster</code>中的逻辑单元，由<code>hostname:port:uid</code>三元组唯一确定。一台物理机上可能运行着多个<code>node</code></p>
-<p>__<code>cluster</code>（下文称为集群）__：由多个<code>node</code>组成的一个有机整体</p>
-<p>__<code>leader</code>__：在<code>cluster</code>中扮演者领导者的__单个<code>node</code>__。管理者<code>cluter</code>以及<code>node</code>状态的转换</p>
+<h3 id="2-1-1-Term"><a href="#2-1-1-Term" class="headerlink" title="2.1.1 Term"></a>2.1.1 Term</h3><p><strong><code>node</code>（下文称为节点）</strong>：<code>Akka Cluster</code>中的逻辑单元，由<code>hostname:port:uid</code>三元组唯一确定。一台物理机上可能运行着多个<code>node</code></p>
+<p><strong><code>cluster</code>（下文称为集群）</strong>：由多个<code>node</code>组成的一个有机整体</p>
+<p><strong><code>leader</code>**：在<code>cluster</code>中扮演者领导者的</strong>单个<code>node</code>**。管理者<code>cluter</code>以及<code>node</code>状态的转换</p>
 <h3 id="2-1-2-Membership"><a href="#2-1-2-Membership" class="headerlink" title="2.1.2 Membership"></a>2.1.2 Membership</h3><p><code>cluster</code>由一组<code>node</code>构成。每个<code>node</code>的由三元组<code>hostname:port:uid</code>唯一确定。这个标志符包含了一个<code>UID</code>，这个<code>UID</code>在<code>hostname:port</code>范围下是唯一的，也就是说，一个<code>Actor System</code>无法重复加入到一个集群之中，当创建一个新的<code>Actor System</code>时，会生成一个新的<code>UID</code></p>
 <h4 id="2-1-2-1-Gossip"><a href="#2-1-2-1-Gossip" class="headerlink" title="2.1.2.1 Gossip"></a>2.1.2.1 Gossip</h4><p>集群节点之间的通信，使用的是<code>Gossip Protocol</code>。集群状态信息会及时在节点上收敛，收敛意味着，一个节点观测到的集群状态与其他节点观测到的集群状态一致。</p>
 <p>当任何节点变得<code>unreachable</code>时，这些节点需要变成<code>reachable</code>、<code>down</code>、<code>removed</code>状态，在此之前，处于非收敛状态</p>
@@ -519,7 +519,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> Cluster cluster = Cluster.get(system);</span><br><span class="line">List&lt;Address&gt; list = <span class="keyword">new</span> LinkedList&lt;&gt;(); <span class="comment">//replace this with your method to dynamically get seed nodes</span></span><br><span class="line">cluster.joinSeedNodes(list);</span><br></pre></td></tr></table></figure>
 <h3 id="2-2-3-Downing"><a href="#2-2-3-Downing" class="headerlink" title="2.2.3 Downing"></a>2.2.3 Downing</h3><p>当一个节点被<code>Failure Detector</code>认为是<code>unreachable</code>时，<code>Leader</code>便无法正常工作（因为此时集群处于非收敛状态），例如，无法将一个新加入集群的节点标记为<code>up</code>状态。该<code>unreachable</code>节点必须重新变得<code>reachable</code>或者被标记为<code>down</code>状态后，集群才会进入收敛状态，<code>Leader</code>才能进行正常工作。节点可以以手动或者自动的方式被标记为<code>down</code>状态。默认以手动方式，利用<code>JMX</code>或<code>HTTP</code>。此外，还可以以编程的方式将节点标记为<code>down</code>，即<code>Cluster.get(system).down(address)</code></p>
 <p>如果一个正常执行的节点将自身标记为<code>down</code>，那么该节点将会终止</p>
-<p>此外，<code>Akka</code>还提供了一种自动将<code>unreachable</code>节点标记为<code>down</code>的机制，这意味着<code>Leader</code>会自动将超过配置时间的<code>unreachable</code>节点标记为<code>down</code>。__<code>Akka</code>强烈建议<code>不要使用该特性</code>__：该<code>auto-down</code>特性不应该在生产环境使用，因为当出现网络抖动时（或者长时间的Full GC，或者其他原因），集群的两部分变得相互不可见，于是会将对方移除集群，随后形成了两个完全独立的集群</p>
+<p>此外，<code>Akka</code>还提供了一种自动将<code>unreachable</code>节点标记为<code>down</code>的机制，这意味着<code>Leader</code>会自动将超过配置时间的<code>unreachable</code>节点标记为<code>down</code>。**<code>Akka</code>强烈建议<code>不要使用该特性</code>**：该<code>auto-down</code>特性不应该在生产环境使用，因为当出现网络抖动时（或者长时间的Full GC，或者其他原因），集群的两部分变得相互不可见，于是会将对方移除集群，随后形成了两个完全独立的集群</p>
 <h3 id="2-2-4-Leaving"><a href="#2-2-4-Leaving" class="headerlink" title="2.2.4 Leaving"></a>2.2.4 Leaving</h3><p>节点离开集群的方式有两种</p>
 <ol>
 <li>直接杀掉JVM进程，该节点会被检测为<code>unreachable</code>，于是被自动或手动地标记为<code>down</code></li>
@@ -660,7 +660,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-count">303</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

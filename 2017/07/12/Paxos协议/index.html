@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-07-12T01:32:34.000Z">
-<meta property="article:modified_time" content="2020-12-28T14:15:38.952Z">
+<meta property="article:modified_time" content="2021-02-23T14:20:23.019Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-28 22:15:38" itemprop="dateModified" datetime="2020-12-28T22:15:38+08:00">2020-12-28</time>
+                <time title="修改时间：2021-02-23 22:20:23" itemprop="dateModified" datetime="2021-02-23T22:20:23+08:00">2021-02-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -281,13 +281,13 @@
 <a id="more"></a>
 
 <h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1 前言"></a>1 前言</h1><p><code>Paxos</code>算法是莱斯利·兰伯特（英语：Leslie Lamport，LaTeX中的“La”）于1990年提出的一种基于消息传递且具有高度容错特性的一致性算法。<code>Paxos</code>算法作为<code>Zookeeper</code>中的<code>leader选举算法</code></p>
-<h1 id="2-问题和假设"><a href="#2-问题和假设" class="headerlink" title="2 问题和假设"></a>2 问题和假设</h1><p>分布式系统中的节点通信存在两种模型：<strong><code>共享内存（Shared memory）</code>__和</strong><code>消息传递（Messages passing）</code>__。基于消息传递通信模型的分布式系统，不可避免的会发生以下错误：进程可能会慢、被杀死或者重启，消息可能会延迟、丢失、重复，在基础<code>Paxos</code>场景中，先不考虑可能出现消息篡改即拜占庭错误的情况。<code>Paxos</code>算法解决的问题是在一个可能发生上述异常的分布式系统中如何就某个值达成一致，保证不论发生以上任何异常，都不会破坏决议的一致性。一个典型的场景是，在一个分布式数据库系统中，如果各节点的初始状态一致，每个节点都执行相同的操作序列，那么他们最后能得到一个一致的状态。为保证每个节点执行相同的命令序列，需要在每一条指令上执行一个“一致性算法”以保证每个节点看到的指令一致。一个通用的一致性算法可以应用在许多场景中，是分布式计算中的重要问题。因此从20世纪80年代起对于一致性算法的研究就没有停止过</p>
+<h1 id="2-问题和假设"><a href="#2-问题和假设" class="headerlink" title="2 问题和假设"></a>2 问题和假设</h1><p>分布式系统中的节点通信存在两种模型：**<code>共享内存（Shared memory）</code><strong>和</strong><code>消息传递（Messages passing）</code>**。基于消息传递通信模型的分布式系统，不可避免的会发生以下错误：进程可能会慢、被杀死或者重启，消息可能会延迟、丢失、重复，在基础<code>Paxos</code>场景中，先不考虑可能出现消息篡改即拜占庭错误的情况。<code>Paxos</code>算法解决的问题是在一个可能发生上述异常的分布式系统中如何就某个值达成一致，保证不论发生以上任何异常，都不会破坏决议的一致性。一个典型的场景是，在一个分布式数据库系统中，如果各节点的初始状态一致，每个节点都执行相同的操作序列，那么他们最后能得到一个一致的状态。为保证每个节点执行相同的命令序列，需要在每一条指令上执行一个“一致性算法”以保证每个节点看到的指令一致。一个通用的一致性算法可以应用在许多场景中，是分布式计算中的重要问题。因此从20世纪80年代起对于一致性算法的研究就没有停止过</p>
 <p>为描述<code>Paxos</code>算法，Lamport虚拟了一个叫做<code>Paxos</code>的希腊城邦，这个岛按照议会民主制的政治模式制订法律，但是没有人愿意将自己的全部时间和精力放在这种事情上。所以无论是议员，议长或者传递纸条的服务员都不能承诺别人需要时一定会出现，也无法承诺批准决议或者传递消息的时间。但是这里假设没有拜占庭将军问题（Byzantine failure，即虽然有可能一个消息被传递了两次，但是绝对不会出现错误的消息）；只要等待足够的时间，消息就会被传到。另外，<code>Paxos</code>岛上的议员是不会反对其他议员提出的决议的<br>对应于分布式系统，议员对应于各个节点，制定的法律对应于系统的状态。各个节点需要进入一个一致的状态，例如在独立Cache的对称多处理器系统中，各个处理器读内存的某个字节时，必须读到同样的一个值，否则系统就违背了一致性的要求。一致性要求对应于法律条文只能有一个版本。议员和服务员的不确定性对应于节点和消息传递通道的不可靠性</p>
 <h1 id="3-算法"><a href="#3-算法" class="headerlink" title="3 算法"></a>3 算法</h1><h2 id="3-1-算法的提出与证明"><a href="#3-1-算法的提出与证明" class="headerlink" title="3.1 算法的提出与证明"></a>3.1 算法的提出与证明</h2><p>首先将议员的角色分为<code>proposers</code>，<code>acceptors</code>，和<code>learners</code>（允许身兼数职）</p>
 <ul>
-<li>__<code>proposers</code>：__提出提案，提案信息包括提案编号和提议的<code>value</code></li>
-<li>__<code>acceptor</code>：__收到提案后可以接受（<code>accept</code>）提案，若提案获得多数<code>acceptors</code>的接受，则称该提案被批准（<code>chosen</code>）</li>
-<li>__<code>learners</code>：__只能“学习”被批准的提案</li>
+<li><strong><code>proposers</code>：</strong>提出提案，提案信息包括提案编号和提议的<code>value</code></li>
+<li><strong><code>acceptor</code>：</strong>收到提案后可以接受（<code>accept</code>）提案，若提案获得多数<code>acceptors</code>的接受，则称该提案被批准（<code>chosen</code>）</li>
+<li><strong><code>learners</code>：</strong>只能“学习”被批准的提案</li>
 </ul>
 <p>划分角色后，就可以更精确的定义问题：</p>
 <ol>
@@ -321,8 +321,8 @@
 <p><code>P2c</code>：如果一个编号为<code>n</code>的提案具有<code>value v</code>，那么存在一个多数派，要么他们中所有人都没有接受（<code>accept</code>）编号小于<code>n</code>的任何提案，要么他们已经接受（<code>accept</code>）的所有编号小于<code>n</code>的提案中编号最大的那个提案具有<code>value v</code></p>
 <p><code>P2c</code>有点绕，我们来看看满足上述约束条件的提案是一个怎样的提案</p>
 <ol>
-<li>根据__<code>要么存在一个多数派，要么他们中所有人都没有接受（accept）编号小于n的任何提案</code>__，这意味着之前没有任何提案被通过，因为任何两个多数派必然存在交集</li>
-<li>根据__<code>要么他们已经接受（accept）的所有编号小于n的提案中编号最大的那个提案具有value v</code>__，这意味着具有<code>value v</code>的提案必然是之前被批准过的，因此编号为<code>n</code>的提案带有了之前已批准过的具有<code>value v</code>的提案</li>
+<li>根据**<code>要么存在一个多数派，要么他们中所有人都没有接受（accept）编号小于n的任何提案</code>**，这意味着之前没有任何提案被通过，因为任何两个多数派必然存在交集</li>
+<li>根据**<code>要么他们已经接受（accept）的所有编号小于n的提案中编号最大的那个提案具有value v</code>**，这意味着具有<code>value v</code>的提案必然是之前被批准过的，因此编号为<code>n</code>的提案带有了之前已批准过的具有<code>value v</code>的提案</li>
 </ol>
 </blockquote>
 <p>可以用数学归纳法证明<code>P2c</code>蕴涵<code>P2b</code>：</p>
@@ -350,7 +350,7 @@
 </ul>
 </li>
 </ul>
-<p>__这个过程在任何时候中断都可以保证正确性__。例如如果一个<code>proposer</code>发现已经有其他<code>proposers</code>提出了编号更高的提案，则有必要中断这个过程。因此为了优化，在上述<code>prepare</code>过程中，如果一个<code>acceptor</code>发现存在一个更高编号的提案，则需要通知<code>proposer</code>，提醒其中断这次提案</p>
+<p><strong>这个过程在任何时候中断都可以保证正确性</strong>。例如如果一个<code>proposer</code>发现已经有其他<code>proposers</code>提出了编号更高的提案，则有必要中断这个过程。因此为了优化，在上述<code>prepare</code>过程中，如果一个<code>acceptor</code>发现存在一个更高编号的提案，则需要通知<code>proposer</code>，提醒其中断这次提案</p>
 <h1 id="5-参考"><a href="#5-参考" class="headerlink" title="5 参考"></a>5 参考</h1><ul>
 <li><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-cn/Paxos%E7%AE%97%E6%B3%95">wiki-paxos</a></li>
 </ul>
@@ -358,7 +358,7 @@
 <h1 id="6-下面的论证转载自知乎"><a href="#6-下面的论证转载自知乎" class="headerlink" title="6 下面的论证转载自知乎"></a>6 下面的论证转载自<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/19787937">知乎</a></h1><p>首先我们简单介绍<code>Paxos</code>所保证的一致性的具体含义；达成一致的条件(何时达成一致）；基于的一个基本的数学原理；以及它需要满足的假设</p>
 <p>什么是一致性？实际上这个词在不同地方语义并不那么一致，<code>Paxos</code>面向的是一个理论的一致问题，这个问题的通俗描述是：</p>
 <blockquote>
-<p>有一个变量<code>v</code>，分布在N个进程中，每个进程都尝试修改自身<code>v</code>的值，它们的企图可能各不相同，例如进程A尝试令<code>v = a</code>，进程B尝试令<code>v = b</code>，但最终所有的进程会对<code>v</code>就某个值达成一致，即上述例子中如果<code>v = a</code>是<code>v</code>达成一致时的值，那么B上，最终<code>v</code>也会为<code>a</code>。__需要注意的是某个时刻达成一致并不等价于该时刻所有进程的本地的v值都相同__，有一个原因是进程可能挂掉，你不能要求挂掉的进程保证任何事。最终所有存活的进程本地v的值都会相同</p>
+<p>有一个变量<code>v</code>，分布在N个进程中，每个进程都尝试修改自身<code>v</code>的值，它们的企图可能各不相同，例如进程A尝试令<code>v = a</code>，进程B尝试令<code>v = b</code>，但最终所有的进程会对<code>v</code>就某个值达成一致，即上述例子中如果<code>v = a</code>是<code>v</code>达成一致时的值，那么B上，最终<code>v</code>也会为<code>a</code>。<strong>需要注意的是某个时刻达成一致并不等价于该时刻所有进程的本地的v值都相同</strong>，有一个原因是进程可能挂掉，你不能要求挂掉的进程保证任何事。最终所有存活的进程本地v的值都会相同</p>
 </blockquote>
 <p>这个一致性需要满足三个要求：</p>
 <ol>
@@ -376,20 +376,20 @@
 </blockquote>
 <p>Paxos中进程之间是平等的，即不存在一个特殊的进程，这是由于如果协议依赖于某个特殊的进程，那么这个进程挂掉势必会影响协议；<strong>而对于分布式环境，无法保证单个进程必然存活，能够容忍一定数量的进程挂掉，是分布式协议的必然要求。这是推导过程所要遵循的一个原则，称为平等性原则</strong></p>
 <p>消息传递是进程间通信的唯一手段，对于分布式环境来说，这是显然的</p>
-<p>__<code>Paxos</code>要求满足的前置假设只有一个：消息内容不会被篡改__；更正式的说是无拜占庭将军问题</p>
+<p><strong><code>Paxos</code>要求满足的前置假设只有一个：消息内容不会被篡改</strong>；更正式的说是无拜占庭将军问题</p>
 <p>假装的推导总是先从一些具体的场景开始，既然<code>Paxos</code>的假设仅仅只是消息不会被篡改，保证了这点任意场景下都能保证一致性，那么对于举例的场景它必然是能够保证一致性的；<strong>因此推导的目标总是先使得协议流程能在当前举例的场景下保证一致性，然后再举出另一个场景，当前的协议流程在这个场景下将不满足一致性，于是再丰富协议流程，满足该场景，如此往复，最终得到完整的<code>Paxos</code>，最后再不失一般性的论证：得到的协议对任意场景都能保证一致性</strong></p>
-<p>进程的平等性假设会带来如下的问题，考虑如下的场景1：三个进程的场景<code>P1</code>，<code>P2</code>，<code>P3</code>（n个进程的场景类似），<code>P1</code>尝试使得<code>v = a</code>，<code>P2</code>尝试使得<code>v = b</code>。假设它们都先改写了自身的<code>v</code>值，然后发送消息尝试改修<code>P3</code>的v值。显然如果P3收到两个消息后都满足了它们的企图，那么<code>v</code>就会两次被决定为不同的值，这破坏了之前的定义。因此<code>P3</code>必须得拒绝掉其中一个进程的请求，<strong>如何拒绝也是我们最先考虑的问题__。一个最简单的拒绝策略是先来后到，<code>P3</code>只会接受收到的第一个消息中，拒绝之后的消息，即只会改写<code>v</code>一次。按照这个策略，如果<code>P1</code>发送的消息首先到达<code>P3</code>，那么<code>P3</code>接受该消息令<code>v = a</code>，拒绝掉后到的来自<code>P2</code>的消息。但是这个策略会引入一个另外的问题：在场景1的基础上考虑这样的场景1’，<code>P3</code>也尝试决定<code>v</code>的值，<code>P3</code>尝试使得<code>v = c</code>，那么<code>P1，P2，P3</code>都尝试修改<code>v</code>的值，首先<code>P1</code>令<code>v = a</code>，<code>P2</code>令<code>v = b</code>，<code>P3</code>令<code>v = c</code>(相当于自己给自己发消息），按照之前的策略，每个进程只会改写<code>v</code>的值一次，那么将永远不会出现两个进程的v值相等的情况，并且永远不存在一个多数派，即<code>v</code>永远无法被决定。__更正式的说，这个协议不满足活性，活性要求协议总能达成一致__。__由此我们也得到第一个结论：进程必须能够多次改写v的值__。__同时我们也要意识到：当进程收到第一个消息时，进程是没有任何理由拒绝这个消息的请求</strong></p>
-<p>拒绝策略总是需要有一个依据，之前我们的依据是消息到达的先后，只接受第一个到达的消息，但这导致不满足活性。现在我们需要另一个拒绝策略，也就是需要另一个依据，这个依据至少能够区分两个消息。为此我们引入一个ID来描述这个消息，这样就可以根据ID的大小来作为拒绝或接受的依据；选择ID更大的消息接受和选择ID更小的消息接受是两种完全对称的策略，不妨选择前者。__这个策略不会导致明显的活性问题，ID更大的消息总是能被接受，一个节点可以多次更改v的值__。例如在场景1’中，只要<code>P1</code>的消息ID比<code>P3</code>发送给自己的消息ID更大，<code>P3</code>就会接受<code>P1</code>的消息，<code>令v = a</code>，从而令<code>v</code>的值被决定为<code>a</code>。再来考虑最初的场景1，不妨假设P1的消息ID大于P2的消息ID，根据P3收消息的先后可以分为两种情况：</p>
+<p>进程的平等性假设会带来如下的问题，考虑如下的场景1：三个进程的场景<code>P1</code>，<code>P2</code>，<code>P3</code>（n个进程的场景类似），<code>P1</code>尝试使得<code>v = a</code>，<code>P2</code>尝试使得<code>v = b</code>。假设它们都先改写了自身的<code>v</code>值，然后发送消息尝试改修<code>P3</code>的v值。显然如果P3收到两个消息后都满足了它们的企图，那么<code>v</code>就会两次被决定为不同的值，这破坏了之前的定义。因此<code>P3</code>必须得拒绝掉其中一个进程的请求，<strong>如何拒绝也是我们最先考虑的问题</strong>。一个最简单的拒绝策略是先来后到，<code>P3</code>只会接受收到的第一个消息中，拒绝之后的消息，即只会改写<code>v</code>一次。按照这个策略，如果<code>P1</code>发送的消息首先到达<code>P3</code>，那么<code>P3</code>接受该消息令<code>v = a</code>，拒绝掉后到的来自<code>P2</code>的消息。但是这个策略会引入一个另外的问题：在场景1的基础上考虑这样的场景1’，<code>P3</code>也尝试决定<code>v</code>的值，<code>P3</code>尝试使得<code>v = c</code>，那么<code>P1，P2，P3</code>都尝试修改<code>v</code>的值，首先<code>P1</code>令<code>v = a</code>，<code>P2</code>令<code>v = b</code>，<code>P3</code>令<code>v = c</code>(相当于自己给自己发消息），按照之前的策略，每个进程只会改写<code>v</code>的值一次，那么将永远不会出现两个进程的v值相等的情况，并且永远不存在一个多数派，即<code>v</code>永远无法被决定。<strong>更正式的说，这个协议不满足活性，活性要求协议总能达成一致</strong>。<strong>由此我们也得到第一个结论：进程必须能够多次改写v的值</strong>。<strong>同时我们也要意识到：当进程收到第一个消息时，进程是没有任何理由拒绝这个消息的请求</strong></p>
+<p>拒绝策略总是需要有一个依据，之前我们的依据是消息到达的先后，只接受第一个到达的消息，但这导致不满足活性。现在我们需要另一个拒绝策略，也就是需要另一个依据，这个依据至少能够区分两个消息。为此我们引入一个ID来描述这个消息，这样就可以根据ID的大小来作为拒绝或接受的依据；选择ID更大的消息接受和选择ID更小的消息接受是两种完全对称的策略，不妨选择前者。<strong>这个策略不会导致明显的活性问题，ID更大的消息总是能被接受，一个节点可以多次更改v的值</strong>。例如在场景1’中，只要<code>P1</code>的消息ID比<code>P3</code>发送给自己的消息ID更大，<code>P3</code>就会接受<code>P1</code>的消息，<code>令v = a</code>，从而令<code>v</code>的值被决定为<code>a</code>。再来考虑最初的场景1，不妨假设P1的消息ID大于P2的消息ID，根据P3收消息的先后可以分为两种情况：</p>
 <ol>
 <li><code>P3</code>先收到<code>P1</code>的消息，记做场景1-2，由于<code>P1</code>的消息是<code>P3</code>收到的第一个消息，<code>P3</code>接受该请求，令<code>v = a</code>；同时为了能对之后的收到的消息作出是否接受的判断，<code>P3</code>需要记录该消息的ID作为判断的依据。之后<code>P3</code>又收到<code>P2</code>的消息，该消息的ID小于<code>P3</code>记录的ID，即<code>P1</code>的消息ID，因此P3拒绝该消息，这样我们的目的就达到</li>
 <li><code>P3</code>先收到<code>P2</code>的消息，记作场景1-3，同样<code>P3</code>接受该消息，令<code>v = b</code>，记录该消息的ID。之后<code>P3</code>收到<code>P1</code>的消息，由于<code>P1</code>的消息ID大于<code>P3</code>记录的ID，因此<code>P3</code>无法拒绝该消息，之前的问题依旧存在</li>
 </ol>
-<p>尽管对于场景1-3，目前的策略依旧无法保证一致性，但是起码我们缩小协议无法保证安全性的场景的范围。先总结下我们目前的策略，并定义一些称谓以方便后面的论述。我们称呼进程<code>P</code>发送的尝试修改另一个进程中变量<code>v</code>的值的消息称之为提案，记作<code>Proposal</code>；提案的ID记作<code>proposal_id</code>；如果提案中附带的值被决定为是<code>v</code>的值，即大多数接受者接受了这个提案，那么称提案被通过。进程<code>P</code>记录的接受的提案ID为<code>a_proposal_id</code>。之前我们尚未清晰地定义<code>a_proposal_id</code>，实际上我们也就并未清晰地定义我们的拒绝策略，当<code>P</code>收到一个提案<code>Proposal-i</code>时，可能已经收到过多个提案，<code>Proposal-i.proposal_id</code>该和其中哪个提案的<code>proposal_id</code>比较，我们并未定义。__我们定义为其中的最大者，这样实际上进程<code>P</code>只需维护一个<code>a_proposal_id</code>即可__，当收到一个<code>Proposal</code>时，更新<code>a_proposal_id = max(Proposal.proposal_id，a_proposal_id）</code>。同时在之前的描述中我们应当注意到实际上一个进程存在两个功能：</p>
+<p>尽管对于场景1-3，目前的策略依旧无法保证一致性，但是起码我们缩小协议无法保证安全性的场景的范围。先总结下我们目前的策略，并定义一些称谓以方便后面的论述。我们称呼进程<code>P</code>发送的尝试修改另一个进程中变量<code>v</code>的值的消息称之为提案，记作<code>Proposal</code>；提案的ID记作<code>proposal_id</code>；如果提案中附带的值被决定为是<code>v</code>的值，即大多数接受者接受了这个提案，那么称提案被通过。进程<code>P</code>记录的接受的提案ID为<code>a_proposal_id</code>。之前我们尚未清晰地定义<code>a_proposal_id</code>，实际上我们也就并未清晰地定义我们的拒绝策略，当<code>P</code>收到一个提案<code>Proposal-i</code>时，可能已经收到过多个提案，<code>Proposal-i.proposal_id</code>该和其中哪个提案的<code>proposal_id</code>比较，我们并未定义。<strong>我们定义为其中的最大者，这样实际上进程<code>P</code>只需维护一个<code>a_proposal_id</code>即可</strong>，当收到一个<code>Proposal</code>时，更新<code>a_proposal_id = max(Proposal.proposal_id，a_proposal_id）</code>。同时在之前的描述中我们应当注意到实际上一个进程存在两个功能：</p>
 <ol>
 <li>进程主动尝试修改并决定<code>v</code>的值，向进程集合广播提案</li>
 <li>进程被动收到来自其它进程的提案，判断是否要接受它</li>
 </ol>
-<p>__因此可以把一个进程分为两个角色，称负责功能1的角色是提议者，记作<code>Proposer</code>，负责功能2的角色是接受者，记作<code>Acceptor</code>__。由于两者完全没有耦合，所以并不一定需要在同个进程，但是为了方面描述，我们假定一个进程同时担任两种角色，而实际的工程实现也往往如此。接着我们尝试解决场景1-3，这看起来很难。<code>P3</code>作为接受者，收到<code>P2</code>的提案之前未收到任何消息，只能接受该提案，而由于<code>P1</code>的提案<code>proposal_id</code>大于P2的提案，我们的拒绝策略也无法让<code>P3</code>拒绝<code>P2</code>。让我们先不急着推导具体可行的策略，先考虑下解决1-3场景可能的角度，有如下三种角度可以入手：</p>
+<p>**因此可以把一个进程分为两个角色，称负责功能1的角色是提议者，记作<code>Proposer</code>，负责功能2的角色是接受者，记作<code>Acceptor</code>**。由于两者完全没有耦合，所以并不一定需要在同个进程，但是为了方面描述，我们假定一个进程同时担任两种角色，而实际的工程实现也往往如此。接着我们尝试解决场景1-3，这看起来很难。<code>P3</code>作为接受者，收到<code>P2</code>的提案之前未收到任何消息，只能接受该提案，而由于<code>P1</code>的提案<code>proposal_id</code>大于P2的提案，我们的拒绝策略也无法让<code>P3</code>拒绝<code>P2</code>。让我们先不急着推导具体可行的策略，先考虑下解决1-3场景可能的角度，有如下三种角度可以入手：</p>
 <ol>
 <li><code>P3</code>能够拒绝掉<code>P2</code>的提案</li>
 <li><code>P3</code>能够拒绝掉<code>P1</code>的提案</li>
@@ -400,27 +400,27 @@
 </ul>
 <p>接着我们分析三个角度的可行性：</p>
 <blockquote>
-<p>角度1需要<code>P3</code>有做出拒绝的依据，由于消息是进程间通信唯一手段，这要求<code>P3</code>在收到<code>P2</code>的提案之前必须先收到过其它消息。对于场景1-3，只有<code>P1</code>，P2是主动发送消息的进程，<code>P2</code>当然不可能额外还发送一个消息试图令<code>P3</code>拒绝自己随后的提案。__那么唯一的可能是<code>P1</code>在正式发送提案前，还发送了一个消息给<code>P3</code>，这个消息先于<code>P2</code>的提案到达，给了<code>P3</code>拒绝<code>P2</code>提案的理由__。如果沿用目前的拒绝策略，那么<code>P1</code>只需先发送随后提案的<code>proposal_id</code>给<code>P3</code>，<code>P3</code>更新<code>a_proposal_id</code>为该消息附带的<code>proposal_id</code>，这样<code>a_proposal_id</code>将大于<code>P2</code>的提案的<code>proposal_id</code>，而导致<code>P2</code>的提案被拒绝，似乎这是一个可行的角度</p>
+<p>角度1需要<code>P3</code>有做出拒绝的依据，由于消息是进程间通信唯一手段，这要求<code>P3</code>在收到<code>P2</code>的提案之前必须先收到过其它消息。对于场景1-3，只有<code>P1</code>，P2是主动发送消息的进程，<code>P2</code>当然不可能额外还发送一个消息试图令<code>P3</code>拒绝自己随后的提案。<strong>那么唯一的可能是<code>P1</code>在正式发送提案前，还发送了一个消息给<code>P3</code>，这个消息先于<code>P2</code>的提案到达，给了<code>P3</code>拒绝<code>P2</code>提案的理由</strong>。如果沿用目前的拒绝策略，那么<code>P1</code>只需先发送随后提案的<code>proposal_id</code>给<code>P3</code>，<code>P3</code>更新<code>a_proposal_id</code>为该消息附带的<code>proposal_id</code>，这样<code>a_proposal_id</code>将大于<code>P2</code>的提案的<code>proposal_id</code>，而导致<code>P2</code>的提案被拒绝，似乎这是一个可行的角度</p>
 </blockquote>
 <blockquote>
 <p>对于角度2，我们目前的策略无法做到这一点，因此除了<code>proposal_id</code>外，我们还得给提案附加上额外的信息作为另外的拒绝策略的依据。提案由进程提出，也许我们可以附加进程的信息，但是就算<code>P3</code>得知<code>P1</code>的提案由<code>P1</code>提出，<code>P3</code>又凭什么歧视<code>P1</code>，这违反进程的平等性假设。似乎这个角度不是一个好角度</p>
 </blockquote>
 <blockquote>
-<p>最后我们分析一下角度3，角度3提供了与1，2截然不同的思路，它不再是考虑如何拒绝，而把注意力放在如何对提案的值做出恰当的限制上。对于场景1-3而言，从这个角度，由于<code>P3</code>无法拒绝<code>P1</code>和<code>P2</code>的提案中的任何一个，__因此<code>P1</code>的提案的值就必须与P2的提案一致；这也意味着了<code>P1</code>在正式提出提案前，需要有途径能获悉<code>P2</code>的提案的值。如我们上面一直强调的，消息是唯一的通信手段，<code>P1</code>必须收到来自其它节点消息才有可能得知<code>P2</code>提出的提案的值__。<code>P1</code>可以被动的等待收到消息，也可以主动地去询问其它节点等待回复。后者显然是更好的策略，没有收到想要的消息就一直等待未免也太消极了，这种等待也可能一直持续下去从而导致活性问题</p>
+<p>最后我们分析一下角度3，角度3提供了与1，2截然不同的思路，它不再是考虑如何拒绝，而把注意力放在如何对提案的值做出恰当的限制上。对于场景1-3而言，从这个角度，由于<code>P3</code>无法拒绝<code>P1</code>和<code>P2</code>的提案中的任何一个，<strong>因此<code>P1</code>的提案的值就必须与P2的提案一致；这也意味着了<code>P1</code>在正式提出提案前，需要有途径能获悉<code>P2</code>的提案的值。如我们上面一直强调的，消息是唯一的通信手段，<code>P1</code>必须收到来自其它节点消息才有可能得知<code>P2</code>提出的提案的值</strong>。<code>P1</code>可以被动的等待收到消息，也可以主动地去询问其它节点等待回复。后者显然是更好的策略，没有收到想要的消息就一直等待未免也太消极了，这种等待也可能一直持续下去从而导致活性问题</p>
 </blockquote>
 <p>经过上面的分析，我们暂时排除了从角度2入手（实际上后面也不会再考虑，因为从1，3入手已经足以解决问题）。下面将沿着角度1，3进行更深入的分析，我们先尝试从角度1出发，毕竟考虑如何拒绝已经有了经验。先来总结下我们在分析角度1时引入的额外的流程:</p>
 <blockquote>
-<p>__进程P在发送提案前，先广播一轮消息，消息附带着接下来要发送的提案的<code>proposal_id</code>。由于该消息和接下来发送的提案相关，且在提案被提出之前发送，不妨称这个消息为预提案__，记作<code>PreProposal</code>，预提案中附带着接下来的提案的<code>proposal_id</code>。当作为接受者的进程<code>Pj</code>收到预提案后，更新<code>Pj. a_proposal_id</code>。还记得我们之前的拒绝策略中<code>a_proposal_id</code>的更新策略嘛：<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，<code>a_proposal_id</code>是递增的。因此如果预提案的<code>proposal_id</code>小于<code>Pj.a_proposal_id</code>，Pj完全可以忽略这个预提案，因为这代表了该预提案对应的提案的<code>proposal_id</code>小于<code>Pj.a_proposal_id</code>，必然会被拒绝。我们沿用之前拒绝策略中<code>a_proposal_id</code>的更新策略。这样当收到预提案或者提案后，<code>a_proposal_id</code>的值均更新为<code>max(a_proposal_id,proposal_id)</code></p>
+<p><strong>进程P在发送提案前，先广播一轮消息，消息附带着接下来要发送的提案的<code>proposal_id</code>。由于该消息和接下来发送的提案相关，且在提案被提出之前发送，不妨称这个消息为预提案</strong>，记作<code>PreProposal</code>，预提案中附带着接下来的提案的<code>proposal_id</code>。当作为接受者的进程<code>Pj</code>收到预提案后，更新<code>Pj. a_proposal_id</code>。还记得我们之前的拒绝策略中<code>a_proposal_id</code>的更新策略嘛：<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，<code>a_proposal_id</code>是递增的。因此如果预提案的<code>proposal_id</code>小于<code>Pj.a_proposal_id</code>，Pj完全可以忽略这个预提案，因为这代表了该预提案对应的提案的<code>proposal_id</code>小于<code>Pj.a_proposal_id</code>，必然会被拒绝。我们沿用之前拒绝策略中<code>a_proposal_id</code>的更新策略。这样当收到预提案或者提案后，<code>a_proposal_id</code>的值均更新为<code>max(a_proposal_id,proposal_id)</code></p>
 </blockquote>
 <blockquote>
 <p><strong>一个小问题：每个进程如何确保提案编号的唯一性？似乎这也是一个分布式的问题</strong></p>
 </blockquote>
-<p>接着我们来看看引入了__预提案后__，能否真正解决场景1-3。根据P1和P2的预提案到达P3的先后也存在两种场景：</p>
+<p>接着我们来看看引入了<strong>预提案后</strong>，能否真正解决场景1-3。根据P1和P2的预提案到达P3的先后也存在两种场景：</p>
 <ol>
 <li>场景1-3-1：<code>P1</code>的预提案先到达，P3更新<code>a_proposal_id</code>为该提案的<code>proposal_id</code>，这导致随后到达的P2的提案的<code>proposal_id</code>小于<code>a_proposal_id</code>，被拒绝。满足一致性</li>
 <li>场景1-3-2：<code>P2</code>的提案先到达，<code>P3</code>接受<code>P2</code>的提案，此时和原始的场景1-3存在同样的问题。归根结底，预提案阶段能否使得<code>P3</code>拒绝<code>P2</code>的提案的，也依赖消息到达的顺序，和提案阶段的拒绝策略存在相同的问题，但至少又缩小了不能保证安全性的场景范围</li>
 </ol>
-<p>幸好我们还有角度3可以着手考虑，所以仍有希望完全解决场景1-3。在深入角度3之前，先总结下协议目前为止的流程，现在协议的流程已经分为了两个阶段：__预提案阶段和提案阶段__。两种消息：__预提案__和__提案__。两种角色：__接受者__和__提议者__，流程如下：</p>
+<p>幸好我们还有角度3可以着手考虑，所以仍有希望完全解决场景1-3。在深入角度3之前，先总结下协议目前为止的流程，现在协议的流程已经分为了两个阶段：<strong>预提案阶段和提案阶段</strong>。两种消息：<strong>预提案</strong>和<strong>提案</strong>。两种角色：<strong>接受者</strong>和<strong>提议者</strong>，流程如下：</p>
 <ol>
 <li><strong>阶段一：</strong><ul>
 <li><strong>提议者<code>Proposer</code>：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></strong></li>
@@ -434,13 +434,13 @@
 </li>
 </ol>
 <p>为了更形象，之前的讨论是基于三个进程的场景，实际上对于N进程的场景也是一样的。N进程时，与之前场景1对应的场景是：N个进程，存在两个进程<code>Pi</code>，<code>Pj</code>，<code>Pi</code>尝试令<code>v = a</code>，<code>Pj</code>尝试令<code>v = b</code>，<code>Pi</code>提出的预提案记作<code>PreProposal-i</code>，提案记作<code>Proposal-i</code>；<code>Pj</code>的预提案<code>PreProsal-j</code>，提案<code>Proposal-j</code>。之拒绝策略的讨论都是基于一个关键的进程<code>P3</code>，只要<code>P3</code>最终能拒绝<code>Proposal-i</code>和<code>Proposal-j</code>中的一个，两个提案就不会都被通过，那么一致性不被破坏。<code>Pi</code>的提案被通过代表了存在一个法定集合<code>Q-i</code>，<code>Q-i</code>中的进程都接受了<code>Proposal-i</code>，<code>Pj</code>同理，存在一个<code>Q-j</code>，<code>Q-j</code>中的进程都接受了<code>Proposal-j</code>。<strong>由于法定集合的性质，两个多数集<code>Q-i</code>和<code>Q-j</code>中必然存在一个公共进程<code>Pk</code>。<code>Pk</code>即相当于场景1中的<code>P3</code>，只要<code>Pk</code>能够拒绝<code>Proposal-i</code>和<code>Proposal-j</code>中的一个，协议依旧是安全的</strong></p>
-<p>__为了不失一般性，下面我们都以N个进程的场景作为讨论的基础，称为场景2__，由于场景1和场景2可以一一对应，所以接下来顺着限制提案的值的角度，我们直接针对场景2-3-2，__对于其他的场景，场景和场景1一样，我们的拒绝策略已经足以应付__。<code>v</code>的值被决定代表有一个提案，它被法定数目的集合接受，我们称这为提案被通过</p>
-<p>首先我们看下场景2-3-2，<code>Pi</code>对应场景1-3-2中的<code>P1</code>，<code>Pj</code>对应<code>P2</code>，<code>Pk</code>对应<code>P3</code>。<code>Pj</code>的提案<code>Proposal-j</code>最终会被法定集合<code>Q-j</code>接受，即<code>v</code>的值被决定为<code>b</code>，且<code>Proposal-i.proposal-id &gt; Proposal-j.proposal_id</code>。我们需要限制<code>Pi</code>的提案的值，不能让<code>Pi</code>自由的给<code>Proposal-i</code>中的<code>v</code>赋值。在2-3-2中，由于拒绝策略失效，所以只能令<code>Proposal-i.v = Proposal-j.v = b</code>。__要做到这一点，正如前面的分析所言，<code>Pi</code>需要先主动询问进程集合，来得知<code>Proposal-j.v = b</code>这一事实。显然<code>Pi</code>是没有先验信息来得知<code>Proposal-j</code>由哪个进程提出，也不知道<code>Q-i</code>和<code>Q-j</code>的公共节点<code>Pk</code>具体是哪个进程，因此<code>Pi</code>只能广播它的查询__。由于我们需要允许少数进程失败，<code>Pi</code>可能只能得到大多数进程的回复，而这之中可能不包括Pj。我们称这些进程的集合为<code>Q-i-2</code>，为了描述更简单，无妨假设<code>Q-i-2 = Q-i</code>。尽管<code>Pi</code>的查询可能得不到<code>Pj</code>的回复，好在<code>Proposal-j</code>将会被<code>Q-j</code>内所有进程接受，因此如果接受者在接受提案时，顺便记录该提案，那么<code>Q-j</code>内所有进程都将得知<code>Proposal-j.v = b</code>。由于<code>Pk</code>属于<code>Q-i</code>和<code>Q-j</code>的交集，所以<code>Pk</code>即收到了<code>Pi</code>的询问，又接受了提案<code>Proposal-j</code>。__之前我们已经引入了预提案阶段，显然我们可以为预提案附带上查询的意义，<code>Pk</code>作为接受者收到<code>Pi</code>的预提案后，回复它记录的提案__。有一个问题是<code>Pk</code>此时是否已经记录了<code>Proposal-j</code>呢？很巧的是在场景2-3-2中，<code>Pj</code>的提案<code>Proposal-j</code>是先于<code>Pi</code>的预提案<code>PreProposal-i</code>先到达，所以<code>Pk</code>已经记录了<code>Proposal-j.v = b</code>，<code>Pj</code>收到的来自Pk的回复中包含了提案<code>Proposal-j</code>，而2-3-2之外的场景，拒绝策略已经足以应付。这里依旧还有两个问题，先讨论第一个：</p>
+<p><strong>为了不失一般性，下面我们都以N个进程的场景作为讨论的基础，称为场景2</strong>，由于场景1和场景2可以一一对应，所以接下来顺着限制提案的值的角度，我们直接针对场景2-3-2，<strong>对于其他的场景，场景和场景1一样，我们的拒绝策略已经足以应付</strong>。<code>v</code>的值被决定代表有一个提案，它被法定数目的集合接受，我们称这为提案被通过</p>
+<p>首先我们看下场景2-3-2，<code>Pi</code>对应场景1-3-2中的<code>P1</code>，<code>Pj</code>对应<code>P2</code>，<code>Pk</code>对应<code>P3</code>。<code>Pj</code>的提案<code>Proposal-j</code>最终会被法定集合<code>Q-j</code>接受，即<code>v</code>的值被决定为<code>b</code>，且<code>Proposal-i.proposal-id &gt; Proposal-j.proposal_id</code>。我们需要限制<code>Pi</code>的提案的值，不能让<code>Pi</code>自由的给<code>Proposal-i</code>中的<code>v</code>赋值。在2-3-2中，由于拒绝策略失效，所以只能令<code>Proposal-i.v = Proposal-j.v = b</code>。<strong>要做到这一点，正如前面的分析所言，<code>Pi</code>需要先主动询问进程集合，来得知<code>Proposal-j.v = b</code>这一事实。显然<code>Pi</code>是没有先验信息来得知<code>Proposal-j</code>由哪个进程提出，也不知道<code>Q-i</code>和<code>Q-j</code>的公共节点<code>Pk</code>具体是哪个进程，因此<code>Pi</code>只能广播它的查询</strong>。由于我们需要允许少数进程失败，<code>Pi</code>可能只能得到大多数进程的回复，而这之中可能不包括Pj。我们称这些进程的集合为<code>Q-i-2</code>，为了描述更简单，无妨假设<code>Q-i-2 = Q-i</code>。尽管<code>Pi</code>的查询可能得不到<code>Pj</code>的回复，好在<code>Proposal-j</code>将会被<code>Q-j</code>内所有进程接受，因此如果接受者在接受提案时，顺便记录该提案，那么<code>Q-j</code>内所有进程都将得知<code>Proposal-j.v = b</code>。由于<code>Pk</code>属于<code>Q-i</code>和<code>Q-j</code>的交集，所以<code>Pk</code>即收到了<code>Pi</code>的询问，又接受了提案<code>Proposal-j</code>。<strong>之前我们已经引入了预提案阶段，显然我们可以为预提案附带上查询的意义，<code>Pk</code>作为接受者收到<code>Pi</code>的预提案后，回复它记录的提案</strong>。有一个问题是<code>Pk</code>此时是否已经记录了<code>Proposal-j</code>呢？很巧的是在场景2-3-2中，<code>Pj</code>的提案<code>Proposal-j</code>是先于<code>Pi</code>的预提案<code>PreProposal-i</code>先到达，所以<code>Pk</code>已经记录了<code>Proposal-j.v = b</code>，<code>Pj</code>收到的来自Pk的回复中包含了提案<code>Proposal-j</code>，而2-3-2之外的场景，拒绝策略已经足以应付。这里依旧还有两个问题，先讨论第一个：</p>
 <blockquote>
 <p>实际上很可能并不是只有<code>Pi</code>和<code>Pj</code>分别提出了<code>Proposal-i</code>和<code>Proposal-j</code>，其它进程也会发起预提案和提案，所以收到<code>PreProposal-i</code>时<code>Pk</code>可能已经接受过多个提案，并非只有<code>Proposal-j</code>，那么<code>Pk</code>应该回复<code>PreProposal-i</code>其中哪个，或者都回复？<code>Pk</code>并不知道<code>Proposal-j</code>会被通过，它只知道自己接受了该提案。都回复是个效率很低但是可以保证<code>Pk</code>不会遗漏<code>Proposal-j</code>，<code>Pk</code>已经回复了它所能知道的全部，我们也无法要求更多。需要注意到的是进程是平等的，所以<code>Q-i</code>中所有进程都和<code>Pk</code>一样回复了它接受过的所有提案。当<code>Pi</code>收到所有来自<code>Q-i</code>的回复，随之而来的是第二个问题：</p>
 </blockquote>
 <blockquote>
-<p><code>Pi</code>收到了多个<code>Proposal</code>作为<code>Acceptor</code>对<code>PreProposal-i</code>的回复，<strong>记这些<code>Proposal</code>组成的集合为<code>K-i</code>__，那么它应当选择<code>K-i</code>中哪个一个提案的值作为它接下来的提案<code>Proposal-i</code>的<code>v</code>值？__记选择的这个提案为<code>Proposal-m</code>__。在场景2-3-2中，我们第一直觉是希望选择的<code>Proposal-m</code>即是<code>Proposal-j</code>，但是实际上，我们只要保证<code>Proposal-m .v = Proposal-j.v</code>即可。从另一个角度，<code>K-i</code>中很可能存在这样的提案<code>Proposal-f</code>，<code>Proposal-f.v != Proposal-j.v</code>，我们要做的是避免选择到这类提案。我们可以根据一些依据瞎选碰碰运气，但是这并明智，所以先让我们来分析一下<code>Proposal-f</code>有什么特征。__我们不妨假设存在这样的策略<code>cf</code>，<code>cf</code>使得选择出提案<code>Proposal-m</code>满足<code>Proposal-m.v = Proposal-j.v</code>__。<code>Proposal-f</code>能够被提出，代表存在一个多数集合<code>Q-f</code>，<code>Q-f</code>中每个进程都接受了<code>PreProposal-f</code>，同时假设是进程<code>P-f</code>提出了<code>PreProposal-f</code>和<code>Proposal-f</code>。</strong><code>Q-f</code>和<code>Q-j</code>必然存在一个公共节点，记做<code>Ps</code>__，<code>Ps</code>既接受了<code>PreProposal-f</code>又接受了<code>Proposal-j</code>。<code>Ps</code>收到<code>PreProposal-f</code>和<code>Proposal-j</code>的顺序只有两种可能：</p>
+<p><code>Pi</code>收到了多个<code>Proposal</code>作为<code>Acceptor</code>对<code>PreProposal-i</code>的回复，<strong>记这些<code>Proposal</code>组成的集合为<code>K-i</code>**，那么它应当选择<code>K-i</code>中哪个一个提案的值作为它接下来的提案<code>Proposal-i</code>的<code>v</code>值？</strong>记选择的这个提案为<code>Proposal-m</code><strong>。在场景2-3-2中，我们第一直觉是希望选择的<code>Proposal-m</code>即是<code>Proposal-j</code>，但是实际上，我们只要保证<code>Proposal-m .v = Proposal-j.v</code>即可。从另一个角度，<code>K-i</code>中很可能存在这样的提案<code>Proposal-f</code>，<code>Proposal-f.v != Proposal-j.v</code>，我们要做的是避免选择到这类提案。我们可以根据一些依据瞎选碰碰运气，但是这并明智，所以先让我们来分析一下<code>Proposal-f</code>有什么特征。</strong>我们不妨假设存在这样的策略<code>cf</code>，<code>cf</code>使得选择出提案<code>Proposal-m</code>满足<code>Proposal-m.v = Proposal-j.v</code><strong>。<code>Proposal-f</code>能够被提出，代表存在一个多数集合<code>Q-f</code>，<code>Q-f</code>中每个进程都接受了<code>PreProposal-f</code>，同时假设是进程<code>P-f</code>提出了<code>PreProposal-f</code>和<code>Proposal-f</code>。</strong><code>Q-f</code>和<code>Q-j</code>必然存在一个公共节点，记做<code>Ps</code>**，<code>Ps</code>既接受了<code>PreProposal-f</code>又接受了<code>Proposal-j</code>。<code>Ps</code>收到<code>PreProposal-f</code>和<code>Proposal-j</code>的顺序只有两种可能：</p>
 </blockquote>
 <ol>
 <li><code>Ps</code>先收到<code>PreProposal-f</code></li>
@@ -463,13 +463,13 @@
 <p>我们先总结下目前得到的协议流程：</p>
 <ol>
 <li><strong>阶段一：预提案阶段</strong><ul>
-<li>__提议者<code>Proposer</code>__：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></li>
-<li>__接受者<code>Acceptor</code>__：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id</code>大于<code>a_proposal_id</code>，那么回复该预提案的提议者改接受者接受过的所有提案</li>
+<li>**提议者<code>Proposer</code>**：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></li>
+<li>**接受者<code>Acceptor</code>**：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id</code>大于<code>a_proposal_id</code>，那么回复该预提案的提议者改接受者接受过的所有提案</li>
 </ul>
 </li>
 <li><strong>阶段二：提案阶段</strong><ul>
-<li>__提议者<code>Proposer</code>__：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组合成的集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。向接受者<code>Acceptor</code>广播提案，和之前的预提案共享同一个<code>proposal_id</code></li>
-<li>__接受者<code>Acceptor</code>__：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code></li>
+<li>**提议者<code>Proposer</code>**：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组合成的集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。向接受者<code>Acceptor</code>广播提案，和之前的预提案共享同一个<code>proposal_id</code></li>
+<li>**接受者<code>Acceptor</code>**：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code></li>
 </ul>
 </li>
 </ol>
@@ -503,17 +503,17 @@
 </blockquote>
 <p>我们依旧可以从<code>Proposal-i</code>出发，(1)~(7)与上面相同，同理得到：存在一个提案<code>Proposal-m</code>，<code>Proposal-m ！= Proposal-v</code>，且<code>Proposal-m.proposal_id &gt; Proposal-j.proposal_id</code>，且<code>Proposal-m.proposal_id &lt; Proposal-i.proposal_id</code></p>
 <p>显然<code>Proposal-m</code>满足集合<code>KD</code>对提案的要求，故<code>Proposal-m</code>属于<code>KD</code>，又<code>Proposal-m.proposal_id &lt; Proposal-i.proposal_id</code>，这和<code>Proposal-i</code>是<code>KD</code>中<code>proposal_id</code>最小的提案的定义矛盾。因此不存在这样的非空集合<code>KD</code>，即不存在一个提案<code>Proposal-k,Proposal-k.v != Proposal-j.v</code>且<code>Proposal-k.proposal_id&gt;Proposal-j.proposal_id</code>。即如果一个提案<code>Proposal-j</code>最终会被通过，对于任意的一个提案<code>Proposal-i</code>，如果<code>Proposal-i.proposal_id &gt; Proposal-j.proposal_id</code>，那么必定<code>Proposal-i.v = Proposal-j.v</code>，即<code>CP1</code></p>
-<p><code>CP1</code>约束了<code>proposal_id</code>大于<code>Proposal-j</code>的提案的值，保证了如果一个提案<code>Proposal-j</code>最终会被通过，不会存在另一个<code>proposal-id</code>更大且值不同的提案被通过，因为这些提案的值都和<code>Proposal-j</code>相同。那么对于<code>proposal_id</code>更小的提案呢？我们假设存在一个提案<code>Proposal-o</code>，<code>Proposal-o.proposal_id &lt; Proposal-j.proposal_id</code>，且<code>Proposal-o.v != Proposal-j.v</code>，<code>Proposal-o</code>最终会被通过，将CP1应用于<code>Proposal-o</code>，则可知<code>Proposal-j</code>不存在，这矛盾，故<code>Proposal-o</code>不存在。__故由CP1我们可知：如果一个提案<code>Proposal-j</code>最终会被通过，那么不存在另一个值与<code>Proposal-j</code>不同的提案被通过__。由此协议必然是安全的。虽然我们得到了一个安全的一致性协议，基本上它就是<code>Paxos</code>，但是真正的<code>Paxos</code>要比我们假装推导出的协议更简单一点</p>
+<p><code>CP1</code>约束了<code>proposal_id</code>大于<code>Proposal-j</code>的提案的值，保证了如果一个提案<code>Proposal-j</code>最终会被通过，不会存在另一个<code>proposal-id</code>更大且值不同的提案被通过，因为这些提案的值都和<code>Proposal-j</code>相同。那么对于<code>proposal_id</code>更小的提案呢？我们假设存在一个提案<code>Proposal-o</code>，<code>Proposal-o.proposal_id &lt; Proposal-j.proposal_id</code>，且<code>Proposal-o.v != Proposal-j.v</code>，<code>Proposal-o</code>最终会被通过，将CP1应用于<code>Proposal-o</code>，则可知<code>Proposal-j</code>不存在，这矛盾，故<code>Proposal-o</code>不存在。<strong>故由CP1我们可知：如果一个提案<code>Proposal-j</code>最终会被通过，那么不存在另一个值与<code>Proposal-j</code>不同的提案被通过</strong>。由此协议必然是安全的。虽然我们得到了一个安全的一致性协议，基本上它就是<code>Paxos</code>，但是真正的<code>Paxos</code>要比我们假装推导出的协议更简单一点</p>
 <p>回过头来看下我们的阶段1中接受者<code>Acceptor</code>的行为，它要回复所有的它接受过的提案，从实践的角度，不论是在本地保存所有它接受过的提案还是通过网络将它们传输给提议者，开销都太大且不可控。再看下阶段二中，提议者的选值策略，它只是选择了收到的多数集接受者回复的提案中<code>proposal_id</code>最大的那一个，因此接受者实际上只需要回复它接受过的<code>proposal_id</code>最大的提案即可，因为其它提案根本不可能会被选值策略选中。因此最终的协议如下，它就是Paxos</p>
 <ol>
 <li><strong>阶段一：预提案阶段</strong><ul>
-<li>__提议者<code>Proposer</code>__：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></li>
-<li>__接受者<code>Acceptor</code>__：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id &gt; a_proposal_id</code>，<code>Acceptor</code>回复记录的接受过的<code>proposal_id</code>最大的提案</li>
+<li>**提议者<code>Proposer</code>**：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></li>
+<li>**接受者<code>Acceptor</code>**：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id &gt; a_proposal_id</code>，<code>Acceptor</code>回复记录的接受过的<code>proposal_id</code>最大的提案</li>
 </ul>
 </li>
 <li><strong>阶段二：提案阶段</strong><ul>
-<li>__提议者<code>Proposer</code>__：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组成的法定数目的提案集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。然后把该提案广播给接受者们，提案和预提案共享同一个<code>proposal_id</code></li>
-<li>__接受者<code>Acceptor</code>__：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，更新记录的提案</li>
+<li>**提议者<code>Proposer</code>**：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组成的法定数目的提案集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。然后把该提案广播给接受者们，提案和预提案共享同一个<code>proposal_id</code></li>
+<li>**接受者<code>Acceptor</code>**：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，更新记录的提案</li>
 </ul>
 </li>
 </ol>
@@ -532,7 +532,7 @@
 <p><strong>只允许<code>Acceptor</code>通过第一个收到的提案，如果存在一个多数派通过某个提案，那么对该提案具有的<code>v</code>达成一致</strong></p>
 </blockquote>
 <p>在<code>协议v1</code>下，会出现这样的场景（记为<code>场景v1</code>）：<code>P1</code>、<code>P2</code>、<code>P3</code>三个进程各自提出一个提案，三个提案具有不同的值。显然，每个进程总是能优先收到自己提出的提案，根据<code>协议v1</code>，每个进程将通过自己提出的提案，于是永远无法达成一个多数派，无法就某个<code>v</code>值达成一致，<strong>因此这个<code>协议v1</code>不满足活性</strong></p>
-<p>那么我们该如何优化<code>协议v1</code>？我们可以为每个<code>Proposal</code>加上一个<code>proposal_id</code>，这个<code>proposal_id</code>满足__全序关系__，我们假定存在一种方式能够为每个<code>Proposal</code>加上一个满足全序关系且递增的<code>proposal_id</code>(如何实现这个<code>proposal_id</code>实际上也是一个分布式的问题，但是不在本文的讨论范围内，我们只需要假定这种方式存在即可)，那么优化后的协议如下</p>
+<p>那么我们该如何优化<code>协议v1</code>？我们可以为每个<code>Proposal</code>加上一个<code>proposal_id</code>，这个<code>proposal_id</code>满足<strong>全序关系</strong>，我们假定存在一种方式能够为每个<code>Proposal</code>加上一个满足全序关系且递增的<code>proposal_id</code>(如何实现这个<code>proposal_id</code>实际上也是一个分布式的问题，但是不在本文的讨论范围内，我们只需要假定这种方式存在即可)，那么优化后的协议如下</p>
 <p><strong><code>协议v2</code>：</strong></p>
 <blockquote>
 <p><strong>只允许<code>Acceptor</code>通过<code>proposal_id</code>更大的提案(更大指的是该提案的<code>proposal_id</code>比当前进程收到过的所有提案的<code>proposal_id</code>都要大)，如果存在一个多数派通过某个提案，那么对该提案具有的<code>v</code>达成一致</strong></p>
@@ -564,13 +564,13 @@
 <p><strong><code>协议v4</code></strong></p>
 <ol>
 <li><strong>阶段一：预提案阶段</strong><ul>
-<li>__提议者<code>Proposer</code>__：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></li>
-<li>__接受者<code>Acceptor</code>__：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id &gt; a_proposal_id</code>，<code>Acceptor</code>回复记录的接受过的<code>proposal_id</code>最大的提案</li>
+<li>**提议者<code>Proposer</code>**：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></li>
+<li>**接受者<code>Acceptor</code>**：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id &gt; a_proposal_id</code>，<code>Acceptor</code>回复记录的接受过的<code>proposal_id</code>最大的提案</li>
 </ul>
 </li>
 <li><strong>阶段二：提案阶段</strong><ul>
-<li>__提议者<code>Proposer</code>__：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组成的法定数目的提案集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。然后把该提案广播给接受者们，提案和预提案共享同一个<code>proposal_id</code></li>
-<li>__接受者<code>Acceptor</code>__：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，更新记录的提案</li>
+<li>**提议者<code>Proposer</code>**：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组成的法定数目的提案集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。然后把该提案广播给接受者们，提案和预提案共享同一个<code>proposal_id</code></li>
+<li>**接受者<code>Acceptor</code>**：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，更新记录的提案</li>
 </ul>
 </li>
 </ol>
@@ -692,7 +692,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-count">303</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

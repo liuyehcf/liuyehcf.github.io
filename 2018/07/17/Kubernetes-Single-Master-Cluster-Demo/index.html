@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-07-17T13:01:40.000Z">
-<meta property="article:modified_time" content="2020-12-28T14:15:38.950Z">
+<meta property="article:modified_time" content="2021-02-23T14:20:23.019Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-28 22:15:38" itemprop="dateModified" datetime="2020-12-28T22:15:38+08:00">2020-12-28</time>
+                <time title="修改时间：2021-02-23 22:20:23" itemprop="dateModified" datetime="2021-02-23T22:20:23+08:00">2021-02-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -308,9 +308,9 @@
 <h2 id="2-5-检查网络适配器"><a href="#2-5-检查网络适配器" class="headerlink" title="2.5 检查网络适配器"></a>2.5 检查网络适配器</h2><p>当包含2个及以上的网络适配器时，Kubernetes组件在默认路由配置中是不可达的，因此需要增加路由使得Kubernetes组件可达</p>
 <h2 id="2-6-安装docker"><a href="#2-6-安装docker" class="headerlink" title="2.6 安装docker"></a>2.6 安装docker</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y docker</span><br><span class="line">systemctl <span class="built_in">enable</span> docker &amp;&amp; systemctl start docker</span><br></pre></td></tr></table></figure>
 <h2 id="2-7-安装kubeadm-kubelet-kubectl"><a href="#2-7-安装kubeadm-kubelet-kubectl" class="headerlink" title="2.7 安装kubeadm/kubelet/kubectl"></a>2.7 安装kubeadm/kubelet/kubectl</h2><ul>
-<li>__kubeadm__：用于启动集群</li>
-<li>__kubelet__：存在于集群中所有机器上，用于启动pods以及containers等</li>
-<li>__kubectl__：用于与集群交互</li>
+<li><strong>kubeadm</strong>：用于启动集群</li>
+<li><strong>kubelet</strong>：存在于集群中所有机器上，用于启动pods以及containers等</li>
+<li><strong>kubectl</strong>：用于与集群交互</li>
 </ul>
 <p>kubelet/kubectl的版本必须与kubeadm一致，否则可能会导致某些异常以及bug</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置配置文件</span></span><br><span class="line">cat &lt;&lt;<span class="string">EOF &gt; /etc/yum.repos.d/kubernetes.repo</span></span><br><span class="line"><span class="string">[kubernetes]</span></span><br><span class="line"><span class="string">name=Kubernetes</span></span><br><span class="line"><span class="string">baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64</span></span><br><span class="line"><span class="string">enabled=1</span></span><br><span class="line"><span class="string">gpgcheck=1</span></span><br><span class="line"><span class="string">repo_gpgcheck=1</span></span><br><span class="line"><span class="string">gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭SELinux</span></span><br><span class="line">setenforce 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装k8s</span></span><br><span class="line">yum install -y kubelet kubeadm kubectl</span><br><span class="line">systemctl <span class="built_in">enable</span> kubelet &amp;&amp; systemctl start kubelet</span><br></pre></td></tr></table></figure>
@@ -347,7 +347,7 @@
 <p><strong>全部完成后，回到master节点，执行如下指令</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">kubectl get nodes</span><br><span class="line"></span><br><span class="line"><span class="comment"># 得到如下输出</span></span><br><span class="line">NAME         STATUS    ROLES     AGE       VERSION</span><br><span class="line">k8s-master   Ready     master    27m       v1.11.1</span><br><span class="line">k8s-node-1   Ready     &lt;none&gt;    2m        v1.11.1</span><br><span class="line">k8s-node-2   Ready     &lt;none&gt;    11m       v1.11.1</span><br></pre></td></tr></table></figure>
 <h1 id="5-部署应用"><a href="#5-部署应用" class="headerlink" title="5 部署应用"></a>5 部署应用</h1><h2 id="5-1-制作镜像"><a href="#5-1-制作镜像" class="headerlink" title="5.1 制作镜像"></a>5.1 制作镜像</h2><p>这里以一个简单的<code>Spring-Boot</code>应用为例，制作一个镜像。<strong>具体示例代码详见<a href="/2017/11/24/Spring-Boot-Demo/" title="Spring-Boot-Demo">Spring-Boot-Demo</a></strong></p>
-<p>__首先，将<code>Spring-Boot</code>应用打包成一个fat-jar__，例如<code>spring-boot-1.0-SNAPSHOT.jar</code></p>
+<p><strong>首先，将<code>Spring-Boot</code>应用打包成一个fat-jar</strong>，例如<code>spring-boot-1.0-SNAPSHOT.jar</code></p>
 <ul>
 <li>你可以随便搞一个简单的Web应用</li>
 </ul>
@@ -571,7 +571,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-count">303</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

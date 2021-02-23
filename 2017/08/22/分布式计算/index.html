@@ -30,7 +30,7 @@
 <meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%A1%E7%AE%97/fig1.jpg">
 <meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%A1%E7%AE%97/fig2.jpg">
 <meta property="article:published_time" content="2017-08-22T06:32:02.000Z">
-<meta property="article:modified_time" content="2020-12-28T14:15:39.050Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.333Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-28 22:15:39" itemprop="dateModified" datetime="2020-12-28T22:15:39+08:00">2020-12-28</time>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -288,9 +288,9 @@
 <p>举个例子，要求从数据库中100G的用户购买数据，分析出各地域的消费习惯金额等。如果没什么时间要求，就写个对应的业务处理服务程序，部署到服务器上，让它慢慢跑就是了，预计10个小时能处理完。后面嫌太慢，想办法加快到3个小时</p>
 <p>平常开发中类似的需求也很多，总结出来就是，数据量大、单机计算慢。如果上Hadoop、storm之类成本较高、而且有点大才小用。当然让老板买更好的服务器配置也是一种办法</p>
 <h1 id="2-利用分片算法"><a href="#2-利用分片算法" class="headerlink" title="2 利用分片算法"></a>2 利用分片算法</h1><p>分布式计算的核心在于计算任务拆分，如果数据能以水平拆分的方式，分布到5台机器上，每台机器只计算自身的1/5数据，这样即能在3小时内完成需求了</p>
-<p>如上所述，需要把这些数据按照一定维度进行划分。按需求来看以用户ID划分最好，__由于用户之间没有状态上的关联，所以也不需要事务性及二次迭代计算__。用简单的hash取模对id进行划分</p>
+<p>如上所述，需要把这些数据按照一定维度进行划分。按需求来看以用户ID划分最好，<strong>由于用户之间没有状态上的关联，所以也不需要事务性及二次迭代计算</strong>。用简单的hash取模对id进行划分</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">f(memberid) % 5 &#x3D; ServerN</span><br></pre></td></tr></table></figure>
-<p>这样程序可以分别部署到5台机器上，然后程序按照配置只取对应余数的用户id，计算出结果并入库。__这种方式多机之间毫无关联，不需要进行通信，可以避免很多问题。__机器上的程序本身也不具备分布式的特性，它和单机一样，只计算自身获取到的数据即可，所以如果某台机器上程序崩溃的话，处理方式和单机一样，比如记录下处理进度，下次从当前进度继续进行后续计算</p>
+<p>这样程序可以分别部署到5台机器上，然后程序按照配置只取对应余数的用户id，计算出结果并入库。<strong>这种方式多机之间毫无关联，不需要进行通信，可以避免很多问题。</strong>机器上的程序本身也不具备分布式的特性，它和单机一样，只计算自身获取到的数据即可，所以如果某台机器上程序崩溃的话，处理方式和单机一样，比如记录下处理进度，下次从当前进度继续进行后续计算</p>
 <h1 id="3-利用消息队列"><a href="#3-利用消息队列" class="headerlink" title="3 利用消息队列"></a>3 利用消息队列</h1><p>使用分片方式相对比较简单，但有如下不足之处</p>
 <ul>
 <li>它不具有负载均衡的能力，如果某台机器配置稍好点，它可能最先计算完，然后空闲等待着。也有可能是某些用户行为数据比较少，导致计算比较快完成</li>
@@ -304,10 +304,10 @@
 </ol>
 <p>虽然仅仅引入了个第三方，但它已经具备了分布式计算的很多特性</p>
 <ol>
-<li>__计算任务分发__：Master把需要计算的用户数据，不断的推送消息队列</li>
-<li>__程序一致性__：Worker订阅相同的消息队列即可，无需更改程序代码</li>
-<li>__任意扩容__：由于程序完全一样，意味着如果想要加快速度，重复部署一份程序到新机器即可。当然这是理论上的，实际当中会受限于消息队列、数据库存储等</li>
-<li>__容灾性__：如果5台中某一台程序挂了也不影响，利用Rabbitmq的消息确认机制，机器崩溃时正在计算的那一条数据会在超时，在其他节点上进行消费处理</li>
+<li><strong>计算任务分发</strong>：Master把需要计算的用户数据，不断的推送消息队列</li>
+<li><strong>程序一致性</strong>：Worker订阅相同的消息队列即可，无需更改程序代码</li>
+<li><strong>任意扩容</strong>：由于程序完全一样，意味着如果想要加快速度，重复部署一份程序到新机器即可。当然这是理论上的，实际当中会受限于消息队列、数据库存储等</li>
+<li><strong>容灾性</strong>：如果5台中某一台程序挂了也不影响，利用Rabbitmq的消息确认机制，机器崩溃时正在计算的那一条数据会在超时，在其他节点上进行消费处理</li>
 </ol>
 <h1 id="4-Hadoop简介"><a href="#4-Hadoop简介" class="headerlink" title="4 Hadoop简介"></a>4 Hadoop简介</h1><p>Hadoop介绍已经相当多了，这里简述一下：”Hadoop是一套海量数据计算存储的基础平台架构”。下面分析一下这句话</p>
 <ul>
@@ -462,7 +462,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-count">303</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

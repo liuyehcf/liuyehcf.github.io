@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-08-20T11:52:42.000Z">
-<meta property="article:modified_time" content="2020-12-28T14:15:38.984Z">
+<meta property="article:modified_time" content="2021-02-23T14:20:23.020Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-28 22:15:38" itemprop="dateModified" datetime="2020-12-28T22:15:38+08:00">2020-12-28</time>
+                <time title="修改时间：2021-02-23 22:20:23" itemprop="dateModified" datetime="2021-02-23T22:20:23+08:00">2021-02-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -284,16 +284,16 @@
 <p>Linux内核将这4G字节的空间分为两部分，将最高的1G字节（0xC0000000-0xFFFFFFFF）供内核使用，称为内核空间。而将较低的3G字节（0x00000000-0xBFFFFFFF）供各个进程使用，称为用户空间。每个进程可以通过系统调用陷入内核态，因此内核空间是由所有进程共享的。虽然说内核和用户态进程占用了这么大地址空间，但是并不意味它们使用了这么多物理内存，仅表示它可以支配这么大的地址空间。它们是根据需要，将物理内存映射到虚拟地址空间中使用</p>
 <p>Linux对进程地址空间有个标准布局，地址空间中由各个不同的内存段组成(Memory Segment)，主要的内存段如下：</p>
 <ol>
-<li>__程序段(Text Segment)__：可执行文件代码的内存映射</li>
-<li>__数据段 (Data Segment)__：可执行文件的已初始化全局变量的内存映射</li>
-<li>__BSS段 (BSS Segment)__：未初始化的全局变量或者静态变量（用零页初始化）</li>
-<li>__堆区 (Heap)__：存储动态内存分配，匿名的内存映射</li>
-<li>__栈区 (Stack)__：进程用户空间栈，由编译器自动分配释放，存放函数的参数值、局部变量的值等</li>
-<li>__映射段(Memory Mapping Segment)__：任何内存映射文件</li>
+<li>**程序段(Text Segment)**：可执行文件代码的内存映射</li>
+<li>**数据段 (Data Segment)**：可执行文件的已初始化全局变量的内存映射</li>
+<li>**BSS段 (BSS Segment)**：未初始化的全局变量或者静态变量（用零页初始化）</li>
+<li>**堆区 (Heap)**：存储动态内存分配，匿名的内存映射</li>
+<li>**栈区 (Stack)**：进程用户空间栈，由编译器自动分配释放，存放函数的参数值、局部变量的值等</li>
+<li>**映射段(Memory Mapping Segment)**：任何内存映射文件</li>
 </ol>
 <p>而上面进程虚拟地址空间中的栈区，正指的是我们所说的进程栈。进程栈的初始化大小是由编译器和链接器计算出来的，但是栈的实时大小并不是固定的，Linux内核会根据入栈情况对栈区进行动态增长（其实也就是添加新的页表）。但是并不是说栈区可以无限增长，它也有最大限制<code>RLIMIT_STACK</code>(一般为8M)，我们可以通过<code>ulimit</code>来查看或更改 <code>RLIMIT_STACK</code> 的值</p>
-<h1 id="2-线程栈"><a href="#2-线程栈" class="headerlink" title="2 线程栈"></a>2 线程栈</h1><p>从Linux内核的角度来说，其实它并没有线程的概念。Linux把所有线程都当做进程来实现，它将线程和进程不加区分的统一到了<code>task_struct</code>中。__线程仅仅被视为一个与其他进程共享某些资源的进程，而是否共享地址空间几乎是进程和Linux中所谓线程的唯一区别__。线程创建的时候，加上了CLONE_VM标记，<strong>这样线程的内存描述符将直接指向父进程的内存描述符</strong></p>
-<p>虽然线程的地址空间和进程一样，但是对待其地址空间的stack还是有些区别的。__对于Linux进程或者说主线程，其stack是在fork的时候生成的，实际上就是复制了父亲的stack空间地址，然后写时拷贝(cow)以及动态增长__。然而对于主线程生成的子线程而言，其stack将不再是这样的了，而是事先固定下来的，使用mmap系统调用，它不带有<code>VM_STACK_FLAGS</code>标记</p>
+<h1 id="2-线程栈"><a href="#2-线程栈" class="headerlink" title="2 线程栈"></a>2 线程栈</h1><p>从Linux内核的角度来说，其实它并没有线程的概念。Linux把所有线程都当做进程来实现，它将线程和进程不加区分的统一到了<code>task_struct</code>中。<strong>线程仅仅被视为一个与其他进程共享某些资源的进程，而是否共享地址空间几乎是进程和Linux中所谓线程的唯一区别</strong>。线程创建的时候，加上了CLONE_VM标记，<strong>这样线程的内存描述符将直接指向父进程的内存描述符</strong></p>
+<p>虽然线程的地址空间和进程一样，但是对待其地址空间的stack还是有些区别的。<strong>对于Linux进程或者说主线程，其stack是在fork的时候生成的，实际上就是复制了父亲的stack空间地址，然后写时拷贝(cow)以及动态增长</strong>。然而对于主线程生成的子线程而言，其stack将不再是这样的了，而是事先固定下来的，使用mmap系统调用，它不带有<code>VM_STACK_FLAGS</code>标记</p>
 <p>线程栈不能动态增长，一旦用尽就没了，这是和生成进程的fork不同的地方</p>
 <h1 id="3-进程内核栈"><a href="#3-进程内核栈" class="headerlink" title="3 进程内核栈"></a>3 进程内核栈</h1><p>在每一个进程的生命周期中，必然会通过到系统调用陷入内核。在执行系统调用陷入内核之后，这些内核代码所使用的栈并不是原先进程用户空间中的栈，而是一个单独内核空间的栈，这个称作进程内核栈。进程内核栈在进程创建的时候，通过slab分配器从<code>thread_info_cache</code>缓存池中分配出来，其大小为<code>THREAD_SIZE</code>，一般来说是一个页大小4K</p>
 <p>在陷入内核后，系统调用中也是存在函数调用和自动变量，这些都需要栈支持。用户空间的栈显然不安全，需要内核栈的支持。此外，内核栈同时用于保存一些系统调用前的应用层信息（如用户空间栈指针、系统调用参数）</p>
@@ -425,7 +425,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-count">303</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

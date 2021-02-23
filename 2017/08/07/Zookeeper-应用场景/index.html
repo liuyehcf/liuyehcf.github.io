@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-08-07T06:53:49.000Z">
-<meta property="article:modified_time" content="2020-12-28T14:15:39.166Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:52.821Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-28 22:15:39" itemprop="dateModified" datetime="2020-12-28T22:15:39+08:00">2020-12-28</time>
+                <time title="修改时间：2021-02-23 22:19:52" itemprop="dateModified" datetime="2021-02-23T22:19:52+08:00">2021-02-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -290,8 +290,8 @@
 <p><strong>注意：在上面提到的应用场景中，有个默认前提是：数据量很小，但是数据更新可能会比较快的场景。</strong></p>
 <h1 id="2-负载均衡"><a href="#2-负载均衡" class="headerlink" title="2 负载均衡"></a>2 负载均衡</h1><p>这里说的负载均衡是指软负载均衡。在分布式环境中，为了保证高可用性，通常同一个应用或同一个服务的提供方都会部署多份，达到对等服务。而消费者就须要在这些对等的服务器中选择一个来执行相关的业务逻辑，其中比较典型的是消息中间件中的生产者，消费者负载均衡</p>
 <p>消息中间件中发布者和订阅者的负载均衡，linkedin开源的KafkaMQ和阿里开源的metaq都是通过Zookeeper来做到生产者、消费者的负载均衡。这里以metaq为例如讲下：</p>
-<p>__生产者负载均衡__：metaq发送消息的时候，生产者在发送消息的时候必须选择一台broker上的一个分区来发送消息，因此metaq在运行过程中，会把所有broker和对应的分区信息全部注册到ZK指定节点上，默认的策略是一个依次轮询的过程，生产者在通过ZK获取分区列表之后，会按照brokerId和partition的顺序排列组织成一个有序的分区列表，发送的时候按照从头到尾循环往复的方式选择一个分区来发送消息</p>
-<p>__消费负载均衡__：在消费过程中，一个消费者会消费一个或多个分区中的消息，但是一个分区只会由一个消费者来消费。MetaQ的消费策略是：</p>
+<p><strong>生产者负载均衡</strong>：metaq发送消息的时候，生产者在发送消息的时候必须选择一台broker上的一个分区来发送消息，因此metaq在运行过程中，会把所有broker和对应的分区信息全部注册到ZK指定节点上，默认的策略是一个依次轮询的过程，生产者在通过ZK获取分区列表之后，会按照brokerId和partition的顺序排列组织成一个有序的分区列表，发送的时候按照从头到尾循环往复的方式选择一个分区来发送消息</p>
+<p><strong>消费负载均衡</strong>：在消费过程中，一个消费者会消费一个或多个分区中的消息，但是一个分区只会由一个消费者来消费。MetaQ的消费策略是：</p>
 <ul>
 <li>每个分区针对同一个group只挂载一个消费者</li>
 <li>如果同一个group的消费者数目大于分区数目，则多出来的消费者将不参与消费</li>
@@ -300,8 +300,8 @@
 <p>在某个消费者故障或者重启等情况下，其他消费者会感知到这一变化（通过 Zookeeper watch消费者列表），然后重新进行负载均衡，保证所有的分区都有消费者进行消费</p>
 <h1 id="3-命名服务"><a href="#3-命名服务" class="headerlink" title="3 命名服务"></a>3 命名服务</h1><p>命名服务也是分布式系统中比较常见的一类场景。在分布式系统中，通过使用命名服务，客户端应用能够根据指定名字来获取资源或服务的地址，提供者等信息。被命名的实体通常可以是集群中的机器，提供的服务地址，远程对象等等——这些我们都可以统称他们为名字（Name）。其中较为常见的就是一些分布式服务框架中的服务地址列表。通过调用ZK提供的创建节点的API，能够很容易创建一个全局唯一的path，这个path就可以作为一个名称</p>
 <p>阿里巴巴集团开源的分布式服务框架Dubbo中使用ZooKeeper来作为其命名服务，维护全局的服务地址列表，点击这里查看Dubbo开源项目。在Dubbo实现中：</p>
-<p>__服务提供者__在启动的时候，向ZK上的指定节点/dubbo/${serviceName}/providers目录下写入自己的URL地址，这个操作就完成了服务的发布</p>
-<p>__服务消费者__启动的时候，订阅/dubbo/${serviceName}/providers目录下的提供者URL地址， 并向/dubbo/${serviceName} /consumers目录下写入自己的URL地址</p>
+<p><strong>服务提供者</strong>在启动的时候，向ZK上的指定节点/dubbo/${serviceName}/providers目录下写入自己的URL地址，这个操作就完成了服务的发布</p>
+<p><strong>服务消费者</strong>启动的时候，订阅/dubbo/${serviceName}/providers目录下的提供者URL地址， 并向/dubbo/${serviceName} /consumers目录下写入自己的URL地址</p>
 <p>注意，所有向ZK上注册的地址都是临时节点，这样就能够保证服务提供者和消费者能够自动感应资源的变化</p>
 <p>另外，Dubbo还有针对服务粒度的监控，方法是订阅/dubbo/${serviceName}目录下所有提供者和消费者的信息</p>
 <h1 id="4-分布式通知-协调"><a href="#4-分布式通知-协调" class="headerlink" title="4 分布式通知/协调"></a>4 分布式通知/协调</h1><p>ZooKeeper中特有watcher注册与异步通知机制，能够很好的实现分布式环境下不同系统之间的通知与协调，实现对数据变更的实时处理。使用方法通常是不同系统都对ZK上同一个znode进行注册，监听znode的变化（包括znode本身内容及子节点的），其中一个系统update了znode，那么另一个系统能够收到通知，并作出相应处理</p>
@@ -311,7 +311,7 @@
 <li>另一种工作汇报模式：一些类似于任务分发系统，子任务启动后，到zk来注册一个临时节点，并且定时将自己的进度进行汇报（将进度写回这个临时节点），这样任务管理者就能够实时知道任务进度</li>
 </ul>
 <p>总之，使用Zookeeper来进行分布式通知和协调能够大大降低系统之间的耦合</p>
-<h1 id="5-集群管理与Master选举"><a href="#5-集群管理与Master选举" class="headerlink" title="5 集群管理与Master选举"></a>5 集群管理与Master选举</h1><p>__集群机器监控__：这通常用于那种对集群中机器状态，机器在线率有较高要求的场景，能够快速对集群中机器变化作出响应。这样的场景中，往往有一个监控系统，实时检测集群机器是否存活。过去的做法通常是：监控系统通过某种手段（比如ping）定时检测每个机器，或者每个机器自己定时向监控系统汇报“我还活着”。 这种做法可行，但是存在两个比较明显的问题：</p>
+<h1 id="5-集群管理与Master选举"><a href="#5-集群管理与Master选举" class="headerlink" title="5 集群管理与Master选举"></a>5 集群管理与Master选举</h1><p><strong>集群机器监控</strong>：这通常用于那种对集群中机器状态，机器在线率有较高要求的场景，能够快速对集群中机器变化作出响应。这样的场景中，往往有一个监控系统，实时检测集群机器是否存活。过去的做法通常是：监控系统通过某种手段（比如ping）定时检测每个机器，或者每个机器自己定时向监控系统汇报“我还活着”。 这种做法可行，但是存在两个比较明显的问题：</p>
 <ol>
 <li>集群中机器有变动的时候，牵连修改的东西比较多</li>
 <li>有一定的延时</li>
@@ -459,7 +459,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-count">303</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

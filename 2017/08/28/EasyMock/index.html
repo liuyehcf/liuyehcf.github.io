@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-08-28T07:13:17.000Z">
-<meta property="article:modified_time" content="2020-12-28T14:15:38.995Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.793Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-28 22:15:38" itemprop="dateModified" datetime="2020-12-28T22:15:38+08:00">2020-12-28</time>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -284,7 +284,7 @@
         <p><strong>阅读更多</strong></p>
 <a id="more"></a>
 
-<h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1 前言"></a>1 前言</h1><p>mock测试就是在测试过程中，对于某些不容易构造或者不容易获取的对象，用一个__虚拟的对象(不要被虚拟误导，就是Java对象，虚拟描述的是这个对象的行为)__来创建以便测试的测试方法</p>
+<h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1 前言"></a>1 前言</h1><p>mock测试就是在测试过程中，对于某些不容易构造或者不容易获取的对象，用一个**虚拟的对象(不要被虚拟误导，就是Java对象，虚拟描述的是这个对象的行为)**来创建以便测试的测试方法</p>
 <p>真实对象具有不可确定的行为，产生不可预测的效果，（如：股票行情，天气预报）真实对象很难被创建的真实对象的某些行为很难被触发真实对象实际上还不存在的（和其他开发小组或者和新的硬件打交道）等等</p>
 <p>使用一个接口来描述这个对象。在产品代码中实现这个接口，在测试代码中实现这个接口，在被测试代码中只是通过接口来引用对象，所以它不知道这个引用的对象是真实对象，还是mock对象</p>
 <h1 id="2-示例"><a href="#2-示例" class="headerlink" title="2 示例"></a>2 示例</h1><p>该示例的目的并不是教你如何去用mock进行测试，而是给出mock对象的创建过程以及它的行为</p>
@@ -306,7 +306,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">createMock</span><span class="params">(<span class="keyword">final</span> Class&lt;T&gt; toMock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        state.assertRecordState();</span><br><span class="line">        <span class="comment">//创建一个代理工厂</span></span><br><span class="line">        <span class="keyword">final</span> IProxyFactory&lt;T&gt; proxyFactory = createProxyFactory(toMock);</span><br><span class="line">        <span class="comment">//利用工厂产生代理类的对象</span></span><br><span class="line">        <span class="keyword">return</span> proxyFactory.createProxy(toMock, <span class="keyword">new</span> ObjectMethodsFilter(toMock,</span><br><span class="line">                <span class="keyword">new</span> MockInvocationHandler(<span class="keyword">this</span>), <span class="keyword">null</span>));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> RuntimeExceptionWrapper e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> (RuntimeException) e.getRuntimeException().fillInStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>IProxyFactory接口有两个实现，JavaProxyFactory(JDK动态代理)和ClassProxyFactory(Cglib)。我们以JavaProxyFactory为例进行讲解，动态代理的实现不是本篇博客的重点。下面给出<code>JavaProxyFactory#createProxy</code>方法的源码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> T <span class="title">createProxy</span><span class="params">(<span class="keyword">final</span> Class&lt;T&gt; toMock, <span class="keyword">final</span> InvocationHandler handler)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//就是简单调用了JDK动态代理的接口，没有任何难度</span></span><br><span class="line">    <span class="keyword">return</span> (T) Proxy.newProxyInstance(toMock.getClassLoader(), <span class="keyword">new</span> Class[] &#123; toMock &#125;, handler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们再来回顾一下上述例子中的代码，我们发现一个很奇怪的现象。在EasyMock.replay方法前后，调用mock.isMale所产生的行为是不同的。__在这里EasyMock.replay类似于一个开关__，可以改变mock对象的行为。可是这是如何做到的呢？</p>
+<p>我们再来回顾一下上述例子中的代码，我们发现一个很奇怪的现象。在EasyMock.replay方法前后，调用mock.isMale所产生的行为是不同的。<strong>在这里EasyMock.replay类似于一个开关</strong>，可以改变mock对象的行为。可是这是如何做到的呢？</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//这里调用mock的isMale方法不会抛出异常</span></span><br><span class="line">EasyMock.expect(mock.isMale(<span class="string">&quot;Bob&quot;</span>)).andReturn(<span class="keyword">true</span>);</span><br><span class="line">EasyMock.expect(mock.isMale(<span class="string">&quot;Alice&quot;</span>)).andReturn(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//关键开关语句</span></span><br><span class="line">EasyMock.replay(mock);</span><br><span class="line"></span><br><span class="line"><span class="comment">//这里只能调用上面预定义行为的方法，若没有设定预期值那么将抛出异常</span></span><br><span class="line">System.out.println(mock.isMale(<span class="string">&quot;Bob&quot;</span>));</span><br><span class="line">System.out.println(mock.isMale(<span class="string">&quot;Alice&quot;</span>));</span><br><span class="line">System.out.println(mock.isMale(<span class="string">&quot;Robot&quot;</span>));</span><br></pre></td></tr></table></figure>
 <p>生成代理对象的方法分析(<code>IMocksControl#createMock</code>)我们先暂时放在一边，我们现在先来跟踪一下<code>EasyMock.replay</code>方法的执行逻辑。源码如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Switches the given mock objects (more exactly: the controls of the mock</span></span><br><span class="line"><span class="comment"> * objects) to replay mode. For details, see the EasyMock documentation.</span></span><br><span class="line"><span class="comment"> * </span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> mocks</span></span><br><span class="line"><span class="comment"> *            the mock objects.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">replay</span><span class="params">(<span class="keyword">final</span> Object... mocks)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">final</span> Object mock : mocks) &#123;</span><br><span class="line">        <span class="comment">//依次对每个mock对象执行下面的逻辑</span></span><br><span class="line">        getControl(mock).replay();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -438,7 +438,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">298</span>
+          <span class="site-state-item-count">303</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
