@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java-NIO">
+<meta property="og:url" content="http://example.com/2017/07/10/Java-NIO/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Java-NIO/fig1.png">
+<meta property="og:image" content="http://example.com/images/Java-NIO/fig2.png">
+<meta property="og:image" content="http://example.com/images/Java-NIO/fig3.png">
+<meta property="og:image" content="http://example.com/images/Java-NIO/fig4.png">
+<meta property="og:image" content="http://example.com/images/Java-NIO/fig5.png">
+<meta property="og:image" content="http://example.com/images/Java-NIO/fig6.png">
+<meta property="article:published_time" content="2017-07-10T10:45:20.000Z">
+<meta property="article:modified_time" content="2021-08-22T09:58:27.933Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Java-NIO/fig1.png">
+
+<link rel="canonical" href="http://example.com/2017/07/10/Java-NIO/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java-NIO | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/10/Java-NIO/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java-NIO
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-10 18:45:20" itemprop="dateCreated datePublished" datetime="2017-07-10T18:45:20+08:00">2017-07-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-22 17:58:27" itemprop="dateModified" datetime="2021-08-22T17:58:27+08:00">2021-08-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-IO/" itemprop="url" rel="index"><span itemprop="name">Java IO</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/10/Java-NIO/" class="post-meta-item leancloud_visitors" data-flag-title="Java-NIO" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/10/Java-NIO/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/10/Java-NIO/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-基本概念"><a class="markdownIt-Anchor" href="#1-基本概念"></a> 1 基本概念</h1>
+<h2 id="11-用户空间内核空间"><a class="markdownIt-Anchor" href="#11-用户空间内核空间"></a> 1.1 用户空间内核空间</h2>
+<p>现在操作系统都是采用虚拟存储器，那么对32位操作系统而言，它的寻址空间(虚拟储存空间)为4G(2的32次方)。操作系统的核心是内核，独立于普通的应用程序，可以访问受保护的内存空间，也有访问底层硬件设备的所有权限。为了保证用户进程不能直接操作内核，保证内核的安全，操作系统将虚拟空间划分为两个部分，一个部分为内核空间，一部分为用户空间</p>
+<p>如何分配这两个空间的大小也是有讲究的，如windows 32位操作系统，默认的用户空间：内核空间的比例是1:1；而在32位Linux系统中的默认比例是3:1(3G用户空间，1G内核空间)</p>
+<p>内核空间和用户空间是现代操作系统的两种工作模式，内核模块运行在内核空间，而用户态应用程序运行在用户空间。<strong>它们代表不同的级别，因而对系统资源具有不同的访问权限</strong>。内核模块运行在最高级别(内核态)，这个级下所有的操作都受系统信任，而应用程序运行在较低级别(用户态)。在这个级别，处理器控制着对硬件的直接访问以及对内存的非授权访问。内核态和用户态有自己的内存映射，即自己的地址空间</p>
+<p>处理器总处于以下状态中的一种</p>
+<ol>
+<li><strong>内核态</strong>，运行于进程上下文，内核代表进程运行于内核空间</li>
+<li><strong>内核态</strong>，运行于中断上下文，内核代表硬件运行于内核空间</li>
+<li><strong>用户态</strong>，运行于用户空间</li>
+</ol>
+<p>用户空间的应用程序，通过系统调用，进入内核空间。由内核代表该进程运行于内核空间，这就涉及到上下文的切换，用户空间和内核空间具有不同的地址映射，通用或专用的寄存器组，而用户空间的进程要传递很多变量、参数给内核，内核也要保存用户进程的一些寄存器、变量等，以便系统调用结束后回到用户空间继续执行</p>
+<p>所谓的&quot;进程上下文&quot;，就是一个进程在执行的时候，CPU的所有寄存器中的值、进程的状态以及堆栈上的内容，当内核需要切换到另一个进程时，它需要保存当前进程的所有状态，即保存当前进程的进程上下文，以便再次执行该进程时，能够恢复切换时的状态，继续执行</p>
+<h2 id="12-进程切换"><a class="markdownIt-Anchor" href="#12-进程切换"></a> 1.2 进程切换</h2>
+<p>为了控制进程的执行，内核必须要有能力挂起正在CPU上运行的进程，并恢复以前挂起的某个进程的执行。这种行为成为进程的切换。任何进程都是在操作系统内核的支持下运行的，是与内核紧密相关的</p>
+<p>进程切换的过程，会经过下面这些变化</p>
+<ol>
+<li>保存处理机上下文，包括程序计数器和其他寄存器</li>
+<li>更新PCB(process control block)信息</li>
+<li>将进程的PCB移入相应的队列，如就绪、在某事件阻塞等队列</li>
+<li>选择另外一个进程执行，并更新PCB</li>
+<li>更新内存管理的数据结构</li>
+<li>恢复处理机上下文</li>
+</ol>
+<p>PCB通常包含如以下的信息：</p>
+<ol>
+<li><strong>进程标识符</strong>(内部，外部)</li>
+<li><strong>处理机的信息</strong>(通用寄存器，指令计数器，PSW，用户的栈指针)</li>
+<li><strong>进程调度信息</strong>(进程状态，进程的优先级，进程调度所需的其它信息，事件)</li>
+<li><strong>进程控制信息</strong>(程序的数据的地址，资源清单，进程同步和通信机制，链接指针)</li>
+</ol>
+<h2 id="13-同步-异步-阻塞-非阻塞"><a class="markdownIt-Anchor" href="#13-同步-异步-阻塞-非阻塞"></a> 1.3 同步、异步、阻塞、非阻塞</h2>
+<p>在讨论这个问题的时候，是需要有具体的上下文的(context)，不同的上下文下，其含义可能不太一致。<strong>本小节的讨论所基于的上下文：Linux环境下的network IO</strong></p>
+<p>首先看Stevens给出的定义(POSIX的定义)</p>
+<blockquote>
+<p>A synchronous I/O operation causes the requesting process to be blocked until that I/O operation completes;</p>
+</blockquote>
+<blockquote>
+<p>An asynchronous I/O operation does not cause the requesting process to be blocked;</p>
+</blockquote>
+<p>两者的区别就在于synchronous IO做&quot;IO operation&quot;的时候会将process阻塞。按照这个定义，blocking IO，non-blocking IO，IO multiplexing都属于synchronous IO</p>
+<ul>
+<li>定义中所指的&quot;IO operation&quot;是指真实的IO操作(数据报从内核拷贝到用户空间的过程)</li>
+</ul>
+<p><strong>同步与异步(用户是否等待操作完成)：描述的是用户线程与内核的交互方式</strong>，同步指用户线程发起IO请求后需要等待或者轮询内核IO操作完成后才能继续执行；而异步是指用户线程发起IO请求后仍然继续执行，当内核IO操作完成后会通知用户线程，或者调用用户线程注册的回调函数</p>
+<p><strong>阻塞与非阻塞(内核在操作完成前是否返回)</strong>：描述是用户线程调用内核IO操作的方式，阻塞是指IO操作需要彻底完成后才返回到用户空间；而非阻塞是指IO操作被调用后立即返回给用户一个状态值，无需等到IO操作彻底完成</p>
+<h2 id="14-系统调用"><a class="markdownIt-Anchor" href="#14-系统调用"></a> 1.4 系统调用</h2>
+<p>所谓系统调用，就是用户在程序中调用操作系统所提供的一些子功能(程序)。<strong>它是通过系统调用命令，中断现行程序而转去执行相应的子程序，以完成特定的系统功能</strong>。完成后，控制又返回到发出系统调用命令之后的一条指令，被中断的程序将继续执行下去<br />
+<code>系统调用</code>与<code>过程调用</code>不同，其主要区别是：</p>
+<ol>
+<li><strong>运行的状态不同</strong>：在程序中的过程一般都是用户程序，或者都是系统程序，即都是运行在同一个系统状态的（用户态或系统态）</li>
+<li><strong>进入的方式不同</strong>：一般的过程调用可以直接由调用过程转向被调用的过程。而执行系统调用时，<strong>由于调用过程与被调用过程是处于不同的状态</strong>，因而不允许由调用过程直接转向被调用过程，通常是通过<code>访问管中断（即软中断）</code>进入，先进入操作系统，经分析后，才能转向相应的命令处理程序</li>
+<li><strong>返回方式的不同</strong></li>
+<li><strong>代码层次不同</strong>：一般过程调用中的被调用程序是用户级程序，而系统调用是操作系统中的代码程序，是系统级程序</li>
+<li><strong>被调用代码的位置不同</strong>：过程（函数）调用是一种静态调用，调用者和被调用代码在同一程序内，经过连接编辑后作为目标代码的一部份。当过程（函数）升级或修改时，必须重新编译连结。而系统调用是一种动态调用，系统调用的处理代码在调用程序之外（在操作系统中），这样一来，系统调用处理代码升级或修改时，与调用程序无关。而且，调用程序的长度也大大缩短，减少了调用程序占用的存储空间</li>
+</ol>
+<h1 id="2-linux-io模型"><a class="markdownIt-Anchor" href="#2-linux-io模型"></a> 2 Linux-IO模型</h1>
+<p><strong>Linux系统IO分为<code>内核准备数据</code>和<code>将数据从内核拷贝到用户空间</code>两个阶段</strong></p>
+<p><img src="/images/Java-NIO/fig1.png" alt="fig1" /></p>
+<h2 id="21-阻塞ioblocking-io"><a class="markdownIt-Anchor" href="#21-阻塞ioblocking-io"></a> 2.1 阻塞IO(Blocking IO)</h2>
+<p><img src="/images/Java-NIO/fig2.png" alt="fig2" /></p>
+<p>在这个模型中，应用程序为了执行这个read操作，会调用相应的一个system call，将系统控制权交给内核，然后就进行等待(这个等待的过程就是被阻塞了)，内核开始执行这个system call，执行完毕后会向应用程序返回响应，应用程序得到响应后，就不再阻塞，并进行后面的工作</p>
+<p><strong>优点</strong>：</p>
+<ol>
+<li>能够及时返回数据，无延迟</li>
+</ol>
+<p><strong>缺点</strong>：</p>
+<ol>
+<li>对用户来说处于等待就要付出性能代价</li>
+</ol>
+<h2 id="22-非阻塞ionon-blocking-io"><a class="markdownIt-Anchor" href="#22-非阻塞ionon-blocking-io"></a> 2.2 非阻塞IO(Non-Blocking IO)</h2>
+<p><img src="/images/Java-NIO/fig3.png" alt="fig3" /></p>
+<p>当用户进程发出read操作时，调用相应的system call，这个system call会立即从内核中返回。但是在返回的这个时间点，内核中的数据可能还没有准备好，也就是说内核只是很快就返回了system call，只有这样才不会阻塞用户进程，对于应用程序，虽然这个IO操作很快就返回了，但是它并不知道这个IO操作是否真的成功了，为了知道IO操作是否成功，应用程序需要主动的循环去问内核</p>
+<p><strong>优点</strong>：</p>
+<ol>
+<li>能够在等待的时间里去做其他的事情</li>
+</ol>
+<p><strong>缺点</strong>：</p>
+<ol>
+<li>任务完成的响应延迟增大了，因为每过一段时间去轮询一次read操作，而任务可能在两次轮询之间的任意时间完成，这对导致整体数据吞吐量的降低</li>
+</ol>
+<h2 id="23-多路复用ioio-multiplexing"><a class="markdownIt-Anchor" href="#23-多路复用ioio-multiplexing"></a> 2.3 多路复用IO(I/O Multiplexing)</h2>
+<p><img src="/images/Java-NIO/fig4.png" alt="fig4" /></p>
+<p>I/O multiplexing这里面的multiplexing指的其实是在单个线程(内核级线程)通过记录跟踪每一个Sock(I/O流)的状态来同时管理多个I/O流</p>
+<p>如果IO多路复用配合Reactor设计模式，可以从select调用的阻塞中解放出来，一旦有sock准备好，来主动通知，这样用户在等待数据准备好之前，可以做自己的事情</p>
+<p><strong>select</strong>：</p>
+<ol>
+<li>select会修改传入的参数数组，这个对于一个需要调用很多次的函数，是非常不友好的</li>
+<li>select如果任何一个sock(I/O stream)出现了数据，select仅仅会返回，但是并不会告诉你是那个sock上有数据，于是你只能自己一个一个的找，10几个sock可能还好，要是几万的sock每次都找一遍，这个无谓的开销就颇有海天盛筵的豪气了</li>
+<li>select只能监视1024个链接，linux将其定义在头文件中，参见FD_SETSIZE</li>
+<li>select不是线程安全的，如果你把一个sock加入到select，然后突然另外一个线程发现，尼玛，这个socket不用，要收回。对不起，这个select不支持的，如果你丧心病狂的竟然关掉这个socket，select的标准行为是不可预测的，这个可是写在文档中的哦</li>
+</ol>
+<p><strong>poll</strong>：</p>
+<ol>
+<li>去掉了1024个链接的限制</li>
+<li>poll从设计上来说，不再修改传入数组</li>
+<li>但是poll仍然不是线程安全的，这就意味着，不管服务器有多强悍，你也只能在一个线程里面处理一组I/O流</li>
+</ol>
+<p><strong>epoll</strong>：</p>
+<ol>
+<li>epoll现在是线程安全的</li>
+<li>epoll现在不仅告诉你sock组里面数据，还会告诉你具体哪个sock有数据，你不用自己去找了</li>
+</ol>
+<h2 id="24-信号驱动io"><a class="markdownIt-Anchor" href="#24-信号驱动io"></a> 2.4 信号驱动IO</h2>
+<p><img src="/images/Java-NIO/fig5.png" alt="fig5" /></p>
+<h2 id="25-异步io"><a class="markdownIt-Anchor" href="#25-异步io"></a> 2.5 异步IO</h2>
+<p><img src="/images/Java-NIO/fig6.png" alt="fig6" /></p>
+<h1 id="3-参考"><a class="markdownIt-Anchor" href="#3-参考"></a> 3 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/Anker/p/3265058.html">select/poll/epoll</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/" rel="prev" title="Java-垃圾收集器">
+      <i class="fa fa-chevron-left"></i> Java-垃圾收集器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/10/TCP-IP/" rel="next" title="TCP-IP">
+      TCP-IP <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 1 基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E7%94%A8%E6%88%B7%E7%A9%BA%E9%97%B4%E5%86%85%E6%A0%B8%E7%A9%BA%E9%97%B4"><span class="nav-text"> 1.1 用户空间内核空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E8%BF%9B%E7%A8%8B%E5%88%87%E6%8D%A2"><span class="nav-text"> 1.2 进程切换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%90%8C%E6%AD%A5-%E5%BC%82%E6%AD%A5-%E9%98%BB%E5%A1%9E-%E9%9D%9E%E9%98%BB%E5%A1%9E"><span class="nav-text"> 1.3 同步、异步、阻塞、非阻塞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8"><span class="nav-text"> 1.4 系统调用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-linux-io%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 2 Linux-IO模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E9%98%BB%E5%A1%9Eioblocking-io"><span class="nav-text"> 2.1 阻塞IO(Blocking IO)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E9%9D%9E%E9%98%BB%E5%A1%9Eionon-blocking-io"><span class="nav-text"> 2.2 非阻塞IO(Non-Blocking IO)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8ioio-multiplexing"><span class="nav-text"> 2.3 多路复用IO(I&#x2F;O Multiplexing)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E4%BF%A1%E5%8F%B7%E9%A9%B1%E5%8A%A8io"><span class="nav-text"> 2.4 信号驱动IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-%E5%BC%82%E6%AD%A5io"><span class="nav-text"> 2.5 异步IO</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%8F%82%E8%80%83"><span class="nav-text"> 3 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

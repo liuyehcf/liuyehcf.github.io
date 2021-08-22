@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java-顺序一致性">
+<meta property="og:url" content="http://example.com/2017/07/08/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E8%A7%86%E5%9B%BE.png">
+<meta property="og:image" content="http://example.com/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E6%AD%A3%E7%A1%AE%E5%90%8C%E6%AD%A5%E6%97%B6%E7%9A%84%E6%89%A7%E8%A1%8C%E6%97%B6%E5%BA%8F.png">
+<meta property="og:image" content="http://example.com/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E6%9C%AA%E6%AD%A3%E7%A1%AE%E5%90%8C%E6%AD%A5%E6%97%B6%E7%9A%84%E6%89%A7%E8%A1%8C%E6%97%B6%E5%BA%8F.png">
+<meta property="og:image" content="http://example.com/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E6%89%A7%E8%A1%8C%E6%97%B6%E5%BA%8F%E5%AF%B9%E6%AF%94.png">
+<meta property="og:image" content="http://example.com/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E6%80%BB%E7%BA%BF%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6.png">
+<meta property="og:image" content="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBjb250ZW50U2NyaXB0VHlwZT0iYXBwbGljYXRpb24vZWNtYXNjcmlwdCIgY29udGVudFN0eWxlVHlwZT0idGV4dC9jc3MiIGhlaWdodD0iMjI3cHgiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiIHN0eWxlPSJ3aWR0aDozMTZweDtoZWlnaHQ6MjI3cHg7YmFja2dyb3VuZDojRUVFQkRDOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgMzE2IDIyNyIgd2lkdGg9IjMxNnB4IiB6b29tQW5kUGFuPSJtYWduaWZ5Ij48ZGVmcz48ZmlsdGVyIGhlaWdodD0iMzAwJSIgaWQ9ImYxNTI0NGQyNTBjM29tIiB3aWR0aD0iMzAwJSIgeD0iLTEiIHk9Ii0xIj48ZmVHYXVzc2lhbkJsdXIgcmVzdWx0PSJibHVyT3V0IiBzdGREZXZpYXRpb249IjIuMCIvPjxmZUNvbG9yTWF0cml4IGluPSJibHVyT3V0IiByZXN1bHQ9ImJsdXJPdXQyIiB0eXBlPSJtYXRyaXgiIHZhbHVlcz0iMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgLjQgMCIvPjxmZU9mZnNldCBkeD0iNC4wIiBkeT0iNC4wIiBpbj0iYmx1ck91dDIiIHJlc3VsdD0iYmx1ck91dDMiLz48ZmVCbGVuZCBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJibHVyT3V0MyIgbW9kZT0ibm9ybWFsIi8+PC9maWx0ZXI+PC9kZWZzPjxnPjxwYXRoIGQ9Ik0xMTQsNDMuNzg5MSBMMTE0LjI4MDIsNDMuNzg5MSBMMTEzLjQ0NzYsNTMuNjAzMiBMMTE0LjI1NzcsNjMuNDE3NCBMMTE0LjUzMjksNzMuMjMxNiBMMTEzLjA0ODgsODMuMDQ1OCBMMTEzLjg5NjQsOTIuODU5OSBMMTEzLjQzMTMsMTAyLjY3NDEgTDExMy40ODg3LDExMi40ODgzIEwxMTMuOTA5MSwxMjIuMzAyNSBMMTEzLjA3ODIsMTMyLjExNjYgTDExNC43MzgyLDE0MS45MzA4IEwxMTMuMTU5NiwxNTEuNzQ1IEwxMTMuNzM2MywxNjEuNTU5MiBMMTE0LjU3NTksMTcxLjM3MzMgTDExNCwxODEuMTg3NSAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2U6IzAwMDBGRjtzdHJva2Utd2lkdGg6MS4wO3N0cm9rZS1kYXNoYXJyYXk6NS4wLDUuMDsiLz48cGF0aCBkPSJNMjA1LDQzLjc4OTEgTDIwNS4yODAyLDQzLjc4OTEgTDIwNC40NDc2LDUzLjYwMzIgTDIwNS4yNTc3LDYzLjQxNzQgTDIwNS41MzI5LDczLjIzMTYgTDIwNC4wNDg4LDgzLjA0NTggTDIwNC44OTY0LDkyLjg1OTkgTDIwNC40MzEzLDEwMi42NzQxIEwyMDQuNDg4NywxMTIuNDg4MyBMMjA0LjkwOTEsMTIyLjMwMjUgTDIwNC4wNzgyLDEzMi4xMTY2IEwyMDUuNzM4MiwxNDEuOTMwOCBMMjA0LjE1OTYsMTUxLjc0NSBMMjA0LjczNjMsMTYxLjU1OTIgTDIwNS41NzU5LDE3MS4zNzMzIEwyMDUsMTgxLjE4NzUgIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlOiMwMDAwRkY7c3Ryb2tlLXdpZHRoOjEuMDtzdHJva2UtZGFzaGFycmF5OjUuMCw1LjA7Ii8+PHBvbHlnb24gZmlsbD0iIzFFOTBGRiIgZmlsdGVyPSJ1cmwoI2YxNTI0NGQyNTBjM29tKSIgcG9pbnRzPSI3NCw1LDc0LDUuMjEwMiw4My42MjUsNC41ODU3LDkzLjI1LDUuMTkzMywxMDIuODc1LDUuMzk5NywxMTIuNSw0LjI4NjYsMTIyLjEyNSw0LjkyMjMsMTMxLjc1LDQuNTczNSwxNDEuMzc1LDQuNjE2NSwxNTEsNSwxNTAuOTc3Myw1LDE1MC43Njk1LDExLjc1NzgsMTUxLjE4NDUsMTguNTE1NiwxNTAuNzg5OSwyNS4yNzM0LDE1MC45MzQxLDMyLjAzMTMsMTUxLDM4Ljc4OTEsMTUxLDM5LjIyMSwxNDEuMzc1LDM4LjcwMzMsMTMxLjc1LDM4Ljg1NzMsMTIyLjEyNSwzOC43NTcxLDExMi41LDM4Ljk2NzYsMTAyLjg3NSwzOS4wMjgyLDkzLjI1LDM5LjM3NDgsODMuNjI1LDM5LjQ2MDEsNzQsMzguNzg5MSw3NC4yMjY0LDM4Ljc4OTEsNzQuMDg0OSwzMi4wMzEzLDc0LjE1NDUsMjUuMjczNCw3NC4yMzQxLDE4LjUxNTYsNzMuNzU5NiwxMS43NTc4LDc0LDUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNjMiIHg9IjgxIiB5PSIyNy43Nzk4Ij7lpITnkIblmahBPC90ZXh0Pjxwb2x5Z29uIGZpbGw9IiMxRTkwRkYiIGZpbHRlcj0idXJsKCNmMTUyNDRkMjUwYzNvbSkiIHBvaW50cz0iNzQsMTgwLjE4NzUsNzQsMTgwLjM5NzcsODMuNjI1LDE3OS43NzMyLDkzLjI1LDE4MC4zODA4LDEwMi44NzUsMTgwLjU4NzIsMTEyLjUsMTc5LjQ3NDEsMTIyLjEyNSwxODAuMTA5OCwxMzEuNzUsMTc5Ljc2MSwxNDEuMzc1LDE3OS44MDQsMTUxLDE4MC4xODc1LDE1MC45NzczLDE4MC4xODc1LDE1MC43Njk1LDE4Ni45NDUzLDE1MS4xODQ1LDE5My43MDMxLDE1MC43ODk5LDIwMC40NjA5LDE1MC45MzQxLDIwNy4yMTg4LDE1MSwyMTMuOTc2NiwxNTEsMjE0LjQwODUsMTQxLjM3NSwyMTMuODkwOCwxMzEuNzUsMjE0LjA0NDgsMTIyLjEyNSwyMTMuOTQ0NiwxMTIuNSwyMTQuMTU1MSwxMDIuODc1LDIxNC4yMTU3LDkzLjI1LDIxNC41NjIzLDgzLjYyNSwyMTQuNjQ3Niw3NCwyMTMuOTc2Niw3NC4yMjY0LDIxMy45NzY2LDc0LjA4NDksMjA3LjIxODgsNzQuMTU0NSwyMDAuNDYwOSw3NC4yMzQxLDE5My43MDMxLDczLjc1OTYsMTg2Ljk0NTMsNzQsMTgwLjE4NzUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNjMiIHg9IjgxIiB5PSIyMDIuOTY3MyI+5aSE55CG5ZmoQTwvdGV4dD48cG9seWdvbiBmaWxsPSIjMUU5MEZGIiBmaWx0ZXI9InVybCgjZjE1MjQ0ZDI1MGMzb20pIiBwb2ludHM9IjE2NSw1LDE2NSw1LjIxMDIsMTc0LjYyNSw0LjU4NTcsMTg0LjI1LDUuMTkzMywxOTMuODc1LDUuMzk5NywyMDMuNSw0LjI4NjYsMjEzLjEyNSw0LjkyMjMsMjIyLjc1LDQuNTczNSwyMzIuMzc1LDQuNjE2NSwyNDIsNSwyNDEuOTc3Myw1LDI0MS43Njk1LDExLjc1NzgsMjQyLjE4NDUsMTguNTE1NiwyNDEuNzg5OSwyNS4yNzM0LDI0MS45MzQxLDMyLjAzMTMsMjQyLDM4Ljc4OTEsMjQyLDM5LjIyMSwyMzIuMzc1LDM4LjcwMzMsMjIyLjc1LDM4Ljg1NzMsMjEzLjEyNSwzOC43NTcxLDIwMy41LDM4Ljk2NzYsMTkzLjg3NSwzOS4wMjgyLDE4NC4yNSwzOS4zNzQ4LDE3NC42MjUsMzkuNDYwMSwxNjUsMzguNzg5MSwxNjUuMjI2NCwzOC43ODkxLDE2NS4wODQ5LDMyLjAzMTMsMTY1LjE1NDUsMjUuMjczNCwxNjUuMjM0MSwxOC41MTU2LDE2NC43NTk2LDExLjc1NzgsMTY1LDUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNjMiIHg9IjE3MiIgeT0iMjcuNzc5OCI+5aSE55CG5ZmoQjwvdGV4dD48cG9seWdvbiBmaWxsPSIjMUU5MEZGIiBmaWx0ZXI9InVybCgjZjE1MjQ0ZDI1MGMzb20pIiBwb2ludHM9IjE2NSwxODAuMTg3NSwxNjUsMTgwLjM5NzcsMTc0LjYyNSwxNzkuNzczMiwxODQuMjUsMTgwLjM4MDgsMTkzLjg3NSwxODAuNTg3MiwyMDMuNSwxNzkuNDc0MSwyMTMuMTI1LDE4MC4xMDk4LDIyMi43NSwxNzkuNzYxLDIzMi4zNzUsMTc5LjgwNCwyNDIsMTgwLjE4NzUsMjQxLjk3NzMsMTgwLjE4NzUsMjQxLjc2OTUsMTg2Ljk0NTMsMjQyLjE4NDUsMTkzLjcwMzEsMjQxLjc4OTksMjAwLjQ2MDksMjQxLjkzNDEsMjA3LjIxODgsMjQyLDIxMy45NzY2LDI0MiwyMTQuNDA4NSwyMzIuMzc1LDIxMy44OTA4LDIyMi43NSwyMTQuMDQ0OCwyMTMuMTI1LDIxMy45NDQ2LDIwMy41LDIxNC4xNTUxLDE5My44NzUsMjE0LjIxNTcsMTg0LjI1LDIxNC41NjIzLDE3NC42MjUsMjE0LjY0NzYsMTY1LDIxMy45NzY2LDE2NS4yMjY0LDIxMy45NzY2LDE2NS4wODQ5LDIwNy4yMTg4LDE2NS4xNTQ1LDIwMC40NjA5LDE2NS4yMzQxLDE5My43MDMxLDE2NC43NTk2LDE4Ni45NDUzLDE2NSwxODAuMTg3NSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjU7Ii8+PHRleHQgZmlsbD0iI0E5RENERiIgZm9udC1mYW1pbHk9IkltcGFjdCIgZm9udC1zaXplPSIxNyIgbGVuZ3RoQWRqdXN0PSJzcGFjaW5nIiB0ZXh0TGVuZ3RoPSI2MyIgeD0iMTcyIiB5PSIyMDIuOTY3MyI+5aSE55CG5ZmoQjwvdGV4dD48cGF0aCBkPSJNNSw1OC43ODkxIEw1LjE4NjgsNTguNzg5MSBMNC42MzE3LDYzLjc4OTEgTDUuMTcxOCw2OC43ODkxIEw1LjM1NTMsNzMuNzg5MSBMNC4zNjU5LDc4Ljc4OTEgTDUsODMuNzg5MSBMNSw4My41ODE4IEwxNC43NzI3LDgyLjY1MTcgTDI0LjU0NTUsODIuNzY2NCBMMzQuMzE4Miw4My42MDczIEw0NC4wOTA5LDgxLjk0NTQgTDUzLjg2MzYsODUuMjY1NCBMNjMuNjM2NCw4Mi4xMDgzIEw3My40MDkxLDgzLjI2MTcgTDgzLjE4MTgsODQuOTQwOSBMOTIuOTU0NSw4My41NjAzIEwxMDIuNzI3Myw4My45NzEgTDExMi41LDgzLjcwMzkgTDEyMi4yNzI3LDg0LjI2NTEgTDEzMi4wNDU1LDg0LjQyNjggTDE0MS44MTgyLDg1LjM1MDkgTDE1MS41OTA5LDg1LjU3ODUgTDE2MS4zNjM2LDg1LjYwMDQgTDE3MS4xMzY0LDg0LjQ2ODEgTDE4MC45MDkxLDg1LjAyNTMgTDE5MC42ODE4LDg1LjY2MTcgTDIwMC40NTQ1LDgxLjg2NTkgTDIxMC4yMjczLDg1LjU5ODQgTDIyMCw4My43ODkxIEwyMTkuNzM2NCw4My43ODkxIEwyMjAuNDc0NSw4MC43ODkxIEwyMTkuNTYsNzcuNzg5MSBMMjE5LjkzOTEsNzQuNzg5MSBMMjIwLjY1OTIsNzEuNzg5MSBMMjIwLDY4Ljc4OTEgTDIxOS45Njk0LDY4Ljc1ODQgTDIxOC4wNjYyLDY2Ljg1NTIgTDIxNi4yMTI4LDY1LjAwMTkgTDIxNC4yNjE2LDYzLjA1MDcgTDIxMS45OTc1LDYwLjc4NjYgTDIxMCw1OC43ODkxIEwyMTAsNTkuNTU1IEwyMDAuMjM4MSw1Ny4yNjI2IEwxOTAuNDc2Miw1OS41NDc0IEwxODAuNzE0Myw2MC4yNTA5IEwxNzAuOTUyNCw1OS45NzQ1IEwxNjEuMTkwNSw2MC40MjM4IEwxNTEuNDI4Niw1Ny41MDA4IEwxNDEuNjY2Nyw1Ny4wNDk5IEwxMzEuOTA0OCw1Ny4xMzIgTDEyMi4xNDI5LDU4LjYzMiBMMTEyLjM4MSw1OC4yNjUgTDEwMi42MTksNjAuNjA2MiBMOTIuODU3MSw1OC4zMjMzIEw4My4wOTUyLDU3Ljg3NDMgTDczLjMzMzMsNTkuMzk3OCBMNjMuNTcxNCw1Ny4wMTA4IEw1My44MDk1LDU3LjQwNDcgTDQ0LjA0NzYsNjAuNTE5NiBMMzQuMjg1Nyw1OS45NTA4IEwyNC41MjM4LDYwLjc0NzcgTDE0Ljc2MTksNTcuOTMwOSBMNSw1OC43ODkxICIgZmlsbD0iI0ZCRkI3NyIgZmlsdGVyPSJ1cmwoI2YxNTI0NGQyNTBjM29tKSIgc3R5bGU9InN0cm9rZTojQTgwMDM2O3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBhdGggZD0iTTIxMCw1OC43ODkxIEwyMTAuMjgzNyw1OC43ODkxIEwyMTAuNTI0OCw2MC43ODkxIEwyMDkuNTgwMSw2Mi43ODkxIEwyMDkuOTE0OCw2NC43ODkxIEwyMTAuMTEyLDY2Ljc4OTEgTDIxMCw2OC43ODkxIEwyMTAsNjkuMzY4NCBMMjEyLDY4Ljc4NTMgTDIxNCw2OS4yMDAyIEwyMTYsNjguMjk2OCBMMjE4LDY4LjE4NzEgTDIyMCw2OC43ODkxIEwyMjAuMzE2NSw2OS4xMDU2IEwyMTcuNTQ5NCw2Ni4zMzg0IEwyMTYuMzE5OSw2NS4xMDkgTDIxNC4xMjk5LDYyLjkxODkgTDIxMS44MzE2LDYwLjYyMDcgTDIxMCw1OC43ODkxICIgZmlsbD0iI0ZCRkI3NyIgc3R5bGU9InN0cm9rZTojQTgwMDM2O3N0cm9rZS13aWR0aDoxLjA7Ii8+PHRleHQgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iMTk0IiB4PSIxMSIgeT0iNzUuODU2Ij7lhpnkuovliqEx77ya5YaZbG9uZ+Wei+WPmOmHj+eahOmrmDMy5L2NPC90ZXh0PjxwYXRoIGQ9Ik0xMDAsOTcuOTIxOSBMMTAwLjE4NjgsOTcuOTIxOSBMOTkuNjMxNywxMDIuOTIxOSBMMTAwLjE3MTgsMTA3LjkyMTkgTDEwMC4zNTUzLDExMi45MjE5IEw5OS4zNjU5LDExNy45MjE5IEwxMDAsMTIyLjkyMTkgTDEwMCwxMjIuNzE0NiBMMTA5Ljg1NzEsMTIxLjc4NDYgTDExOS43MTQzLDEyMS44OTkyIEwxMjkuNTcxNCwxMjIuNzQwMSBMMTM5LjQyODYsMTIxLjA3ODIgTDE0OS4yODU3LDEyNC4zOTgzIEwxNTkuMTQyOSwxMjEuMjQxMSBMMTY5LDEyMi4zOTQ1IEwxNzguODU3MSwxMjQuMDczNyBMMTg4LjcxNDMsMTIyLjY5MzEgTDE5OC41NzE0LDEyMy4xMDM4IEwyMDguNDI4NiwxMjIuODM2NyBMMjE4LjI4NTcsMTIzLjM5NzkgTDIyOC4xNDI5LDEyMy41NTk2IEwyMzgsMTI0LjQ4MzcgTDI0Ny44NTcxLDEyNC43MTE0IEwyNTcuNzE0MywxMjQuNzMzMiBMMjY3LjU3MTQsMTIzLjYwMDkgTDI3Ny40Mjg2LDEyNC4xNTgxIEwyODcuMjg1NywxMjQuNzk0NSBMMjk3LjE0MjksMTIwLjk5ODcgTDMwNywxMjIuOTIxOSBMMzA3LjYwMzEsMTIyLjkyMTkgTDMwNi43MzY0LDExOS45MjE5IEwzMDcuNDc0NSwxMTYuOTIxOSBMMzA2LjU2LDExMy45MjE5IEwzMDYuOTM5MSwxMTAuOTIxOSBMMzA3LDEwNy45MjE5IEwzMDcuNDY2MSwxMDguMzg4IEwzMDQuOTY5NCwxMDUuODkxMiBMMzAzLjA2NjIsMTAzLjk4ODEgTDMwMS4yMTI4LDEwMi4xMzQ3IEwyOTkuMjYxNiwxMDAuMTgzNSBMMjk3LDk3LjkyMTkgTDI5Nyw5Ny45MTE1IEwyODcuMTUsOTguNjg3OCBMMjc3LjMsOTYuMzk1NCBMMjY3LjQ1LDk4LjY4MDIgTDI1Ny42LDk5LjM4MzcgTDI0Ny43NSw5OS4xMDczIEwyMzcuOSw5OS41NTY2IEwyMjguMDUsOTYuNjMzNyBMMjE4LjIsOTYuMTgyNyBMMjA4LjM1LDk2LjI2NDggTDE5OC41LDk3Ljc2NDkgTDE4OC42NSw5Ny4zOTc4IEwxNzguOCw5OS43MzkgTDE2OC45NSw5Ny40NTYxIEwxNTkuMSw5Ny4wMDcxIEwxNDkuMjUsOTguNTMwNiBMMTM5LjQsOTYuMTQzNiBMMTI5LjU1LDk2LjUzNzUgTDExOS43LDk5LjY1MjQgTDEwOS44NSw5OS4wODM3IEwxMDAsOTcuOTIxOSAiIGZpbGw9IiNGQkZCNzciIGZpbHRlcj0idXJsKCNmMTUyNDRkMjUwYzNvbSkiIHN0eWxlPSJzdHJva2U6I0E4MDAzNjtzdHJva2Utd2lkdGg6MS4wOyIvPjxwYXRoIGQ9Ik0yOTcsOTcuOTIxOSBMMjk3LjY1MjksOTcuOTIxOSBMMjk2LjcxNCw5OS45MjE5IEwyOTcuMjgzNywxMDEuOTIxOSBMMjk3LjUyNDgsMTAzLjkyMTkgTDI5Ni41ODAxLDEwNS45MjE5IEwyOTcsMTA3LjkyMTkgTDI5NywxMDcuODM2NyBMMjk5LDEwOC4wMzM5IEwzMDEsMTA4LjUwMTIgTDMwMywxMDcuOTE4MSBMMzA1LDEwOC4zMzMgTDMwNywxMDcuOTIxOSBMMzA2LjY1MTksMTA3LjU3MzggTDMwNC41NzQzLDEwNS40OTYyIEwzMDMuMzE2NSwxMDQuMjM4NCBMMzAwLjU0OTQsMTAxLjQ3MTIgTDI5OS4zMTk5LDEwMC4yNDE4IEwyOTcsOTcuOTIxOSAiIGZpbGw9IiNGQkZCNzciIHN0eWxlPSJzdHJva2U6I0E4MDAzNjtzdHJva2Utd2lkdGg6MS4wOyIvPjx0ZXh0IGZpbGw9IiMwMDAwMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjE4NiIgeD0iMTA2IiB5PSIxMTQuOTg4OCI+6K+75LqL5Yqh77ya6K+7bG9uZ+Wei+WPmOmHj+eahOmrmDMy5L2NPC90ZXh0PjxwYXRoIGQ9Ik01LDEzNy4wNTQ3IEw1LjE4NjgsMTM3LjA1NDcgTDQuNjMxNywxNDIuMDU0NyBMNS4xNzE4LDE0Ny4wNTQ3IEw1LjM1NTMsMTUyLjA1NDcgTDQuMzY1OSwxNTcuMDU0NyBMNSwxNjIuMDU0NyBMNSwxNjEuODQ3NSBMMTQuNzcyNywxNjAuOTE3NCBMMjQuNTQ1NSwxNjEuMDMyIEwzNC4zMTgyLDE2MS44NzI5IEw0NC4wOTA5LDE2MC4yMTEgTDUzLjg2MzYsMTYzLjUzMTEgTDYzLjYzNjQsMTYwLjM3MzkgTDczLjQwOTEsMTYxLjUyNzMgTDgzLjE4MTgsMTYzLjIwNjUgTDkyLjk1NDUsMTYxLjgyNTkgTDEwMi43MjczLDE2Mi4yMzY3IEwxMTIuNSwxNjEuOTY5NSBMMTIyLjI3MjcsMTYyLjUzMDggTDEzMi4wNDU1LDE2Mi42OTI0IEwxNDEuODE4MiwxNjMuNjE2NSBMMTUxLjU5MDksMTYzLjg0NDIgTDE2MS4zNjM2LDE2My44NjYgTDE3MS4xMzY0LDE2Mi43MzM3IEwxODAuOTA5MSwxNjMuMjkwOSBMMTkwLjY4MTgsMTYzLjkyNzMgTDIwMC40NTQ1LDE2MC4xMzE1IEwyMTAuMjI3MywxNjMuODY0IEwyMjAsMTYyLjA1NDcgTDIxOS43MzY0LDE2Mi4wNTQ3IEwyMjAuNDc0NSwxNTkuMDU0NyBMMjE5LjU2LDE1Ni4wNTQ3IEwyMTkuOTM5MSwxNTMuMDU0NyBMMjIwLjY1OTIsMTUwLjA1NDcgTDIyMCwxNDcuMDU0NyBMMjE5Ljk2OTQsMTQ3LjAyNDEgTDIxOC4wNjYyLDE0NS4xMjA5IEwyMTYuMjEyOCwxNDMuMjY3NSBMMjE0LjI2MTYsMTQxLjMxNjMgTDIxMS45OTc1LDEzOS4wNTIyIEwyMTAsMTM3LjA1NDcgTDIxMCwxMzcuODIwNiBMMjAwLjIzODEsMTM1LjUyODIgTDE5MC40NzYyLDEzNy44MTMxIEwxODAuNzE0MywxMzguNTE2NSBMMTcwLjk1MjQsMTM4LjI0MDEgTDE2MS4xOTA1LDEzOC42ODk0IEwxNTEuNDI4NiwxMzUuNzY2NSBMMTQxLjY2NjcsMTM1LjMxNTUgTDEzMS45MDQ4LDEzNS4zOTc2IEwxMjIuMTQyOSwxMzYuODk3NyBMMTEyLjM4MSwxMzYuNTMwNiBMMTAyLjYxOSwxMzguODcxOCBMOTIuODU3MSwxMzYuNTg4OSBMODMuMDk1MiwxMzYuMTM5OSBMNzMuMzMzMywxMzcuNjYzNCBMNjMuNTcxNCwxMzUuMjc2NSBMNTMuODA5NSwxMzUuNjcwNCBMNDQuMDQ3NiwxMzguNzg1MiBMMzQuMjg1NywxMzguMjE2NSBMMjQuNTIzOCwxMzkuMDEzMyBMMTQuNzYxOSwxMzYuMTk2NiBMNSwxMzcuMDU0NyAiIGZpbGw9IiNGQkZCNzciIGZpbHRlcj0idXJsKCNmMTUyNDRkMjUwYzNvbSkiIHN0eWxlPSJzdHJva2U6I0E4MDAzNjtzdHJva2Utd2lkdGg6MS4wOyIvPjxwYXRoIGQ9Ik0yMTAsMTM3LjA1NDcgTDIxMC4yODM3LDEzNy4wNTQ3IEwyMTAuNTI0OCwxMzkuMDU0NyBMMjA5LjU4MDEsMTQxLjA1NDcgTDIwOS45MTQ4LDE0My4wNTQ3IEwyMTAuMTEyLDE0NS4wNTQ3IEwyMTAsMTQ3LjA1NDcgTDIxMCwxNDcuNjM0IEwyMTIsMTQ3LjA1MSBMMjE0LDE0Ny40NjU5IEwyMTYsMTQ2LjU2MjQgTDIxOCwxNDYuNDUyNyBMMjIwLDE0Ny4wNTQ3IEwyMjAuMzE2NSwxNDcuMzcxMiBMMjE3LjU0OTQsMTQ0LjYwNDEgTDIxNi4zMTk5LDE0My4zNzQ2IEwyMTQuMTI5OSwxNDEuMTg0NiBMMjExLjgzMTYsMTM4Ljg4NjMgTDIxMCwxMzcuMDU0NyAiIGZpbGw9IiNGQkZCNzciIHN0eWxlPSJzdHJva2U6I0E4MDAzNjtzdHJva2Utd2lkdGg6MS4wOyIvPjx0ZXh0IGZpbGw9IiMwMDAwMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjE5NCIgeD0iMTEiIHk9IjE1NC4xMjE2Ij7lhpnkuovliqEy77ya5YaZbG9uZ+Wei+WPmOmHj+eahOS9jjMy5L2NPC90ZXh0PjwhLS1NRDU9WzBkYThkZWFjMjAwMWI3NWUwNzJmNWQzN2Y5MDkyOGE3XQpAc3RhcnR1bWwNCnNraW5wYXJhbSBiYWNrZ3JvdW5kQ29sb3IgI0VFRUJEQw0Kc2tpbnBhcmFtIGhhbmR3cml0dGVuIHRydWUNCg0Kc2tpbnBhcmFtIHNlcXVlbmNlIHsNCglBcnJvd0NvbG9yIERlZXBTa3lCbHVlDQoJQWN0b3JCb3JkZXJDb2xvciBEZWVwU2t5Qmx1ZQ0KCUxpZmVMaW5lQm9yZGVyQ29sb3IgYmx1ZQ0KCUxpZmVMaW5lQmFja2dyb3VuZENvbG9yICNBOURDREYNCgkNCglQYXJ0aWNpcGFudEJvcmRlckNvbG9yIERlZXBTa3lCbHVlDQoJUGFydGljaXBhbnRCYWNrZ3JvdW5kQ29sb3IgRG9kZ2VyQmx1ZQ0KCVBhcnRpY2lwYW50Rm9udE5hbWUgSW1wYWN0DQoJUGFydGljaXBhbnRGb250U2l6ZSAxNw0KCVBhcnRpY2lwYW50Rm9udENvbG9yICNBOURDREYNCgkNCglBY3RvckJhY2tncm91bmRDb2xvciBhcXVhDQoJQWN0b3JGb250Q29sb3IgRGVlcFNreUJsdWUNCglBY3RvckZvbnRTaXplIDE3DQoJQWN0b3JGb250TmFtZSBBYXBleA0KfQ0KTm90ZSBvdmVyIOWkhOeQhuWZqEE65YaZ5LqL5YqhMe+8muWGmWxvbmflnovlj5jph4/nmoTpq5gzMuS9jQ0KTm90ZSBvdmVyIOWkhOeQhuWZqEI66K+75LqL5Yqh77ya6K+7bG9uZ+Wei+WPmOmHj+eahOmrmDMy5L2NDQpOb3RlIG92ZXIg5aSE55CG5ZmoQTrlhpnkuovliqEy77ya5YaZbG9uZ+Wei+WPmOmHj+eahOS9jjMy5L2NDQpAZW5kdW1sDQoKUGxhbnRVTUwgdmVyc2lvbiAxLjIwMjEuMTBiZXRhMihVbmtub3duIGNvbXBpbGUgdGltZSkKKEdQTCBzb3VyY2UgZGlzdHJpYnV0aW9uKQpKYXZhIFJ1bnRpbWU6IEphdmEoVE0pIFNFIFJ1bnRpbWUgRW52aXJvbm1lbnQKSlZNOiBKYXZhIEhvdFNwb3QoVE0pIDY0LUJpdCBTZXJ2ZXIgVk0KRGVmYXVsdCBFbmNvZGluZzogVVRGLTgKTGFuZ3VhZ2U6IGVuCkNvdW50cnk6IFVTCi0tPjwvZz48L3N2Zz4=">
+<meta property="article:published_time" content="2017-07-08T13:02:00.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.107Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E8%A7%86%E5%9B%BE.png">
+
+<link rel="canonical" href="http://example.com/2017/07/08/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java-顺序一致性 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/08/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java-顺序一致性
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-08 21:02:00" itemprop="dateCreated datePublished" datetime="2017-07-08T21:02:00+08:00">2017-07-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/" itemprop="url" rel="index"><span itemprop="name">Java Virtual Machine</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/Java-Memory-Model/" itemprop="url" rel="index"><span itemprop="name">Java Memory Model</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/08/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/" class="post-meta-item leancloud_visitors" data-flag-title="Java-顺序一致性" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/08/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/08/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p>顺序一致性内存模型是一个理论参考模型，在设计的时候，处理器的内存模型和编程语言的内存模型都会以顺序一致性内存模型作为参考</p>
+<h1 id="2-数据竞争与顺序一致性"><a class="markdownIt-Anchor" href="#2-数据竞争与顺序一致性"></a> 2 数据竞争与顺序一致性</h1>
+<p>当程序未正确同步时，就可能会存在数据竞争。Java内存模型规范对数据竞争的定义如下</p>
+<ol>
+<li>在一个线程中写一个变量</li>
+<li>在另一个线程中读同一个变量</li>
+<li>而且写和读没有通过同步来排序</li>
+</ol>
+<p>当代码中包含数据竞争时，程序的执行往往产生违反直觉的结果。如果一个多线程程序能正确同步，这个程序将是一个没有数据竞争的程序</p>
+<p>JMM对正确同步的多线程程序的内存一致性做了如下保证</p>
+<ul>
+<li>如果程序是正确同步的，程序的执行将具有顺序一致性(Sequentially Consistent)—<strong>即程序的执行结果与该程序在顺序一致性内存模型中的执行结果相同</strong>。这对程序员来说，是一个极强的保证</li>
+<li>这里的同步是指广义上的同步，包括对常用同步原语(synchronized/volatile/final)的正确使用</li>
+</ul>
+<h1 id="3-顺序一致性内存模型"><a class="markdownIt-Anchor" href="#3-顺序一致性内存模型"></a> 3 顺序一致性内存模型</h1>
+<p>顺序一致性内存模型是一个被计算机科学家理想化了的理论参考模型，它为程序员提供了极强的内存可见性保证。顺序一致性内存模型由两大特征</p>
+<ol>
+<li>一个线程中的所有操作必须按照程序的顺序来执行</li>
+<li>(不管程序是否同步)所有线程都只能看到一个单一的操作执行顺序。在顺序一致性模型中，每个操作都必须原子执行且立刻对所有线程可见</li>
+</ol>
+<p>顺序一致性内存模型为程序员提供的视图如下</p>
+<p><img src="/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E8%A7%86%E5%9B%BE.png" alt="顺序一致性模型视图" /></p>
+<ul>
+<li>在概念上，顺序一致性模型有一个单一的全局内存，这个内存通过一个左右摆动的开关可以连接到任意一个线程，同时每一个线程必须按照程序的顺序来执行内存读/写操作</li>
+<li>从上面的示意图可以看到，<strong>在任意时刻，最多只能有一个线程可以连接到内存</strong>。当多个线程并发执行时，图中的开关装置能把所有线程的所有内存读/写操作串行化(即在顺序一致性模型中，所有操作之间具有全序关系)</li>
+</ul>
+<p>为了更好地理解，通过两个示意图来对顺序一致性模型的特性做进一步的说明</p>
+<ul>
+<li>假设有两个线程A和B并发执行
+<ul>
+<li>A线程有三个操作，它们在程序中的执行顺序是：A1–&gt;A2–&gt;A3</li>
+<li>B线程有三个操作，它们在程序中的执行顺序是：B1–&gt;B2–&gt;B3</li>
+</ul>
+</li>
+<li>假设这两个线程使用监视器锁来正确同步：A线程的3个操作执行后释放监视器锁，随后B线程获取同一个监视器锁。那么程序在顺序一致性模型中的执行效果将如下图所示</li>
+</ul>
+<p><img src="/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E6%AD%A3%E7%A1%AE%E5%90%8C%E6%AD%A5%E6%97%B6%E7%9A%84%E6%89%A7%E8%A1%8C%E6%97%B6%E5%BA%8F.png" alt="正确同步时的执行时序" /></p>
+<ul>
+<li>现在假设这两个线程没有做同步，下面是这个未同步程序在顺序一致性模型中的执行示意图</li>
+</ul>
+<p><img src="/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E6%9C%AA%E6%AD%A3%E7%A1%AE%E5%90%8C%E6%AD%A5%E6%97%B6%E7%9A%84%E6%89%A7%E8%A1%8C%E6%97%B6%E5%BA%8F.png" alt="未正确同步时的执行时序" /></p>
+<ul>
+<li>未同步程序在顺序一致性模型中虽然整体执行顺序是无序的，但是所有线程都只能看到一个一致的整体执行顺序。以上图为例，线程A和线程B看到的执行顺序都是：B1–&gt;A1–&gt;A2–&gt;B2–&gt;A3–&gt;B3。之所以能得到这个保证是因为顺序一致性内存模型中的每个操作必须立即对任意线程可见</li>
+</ul>
+<p><strong>在JMM中没有上述保证，未同步程序在JMM中不但整体的执行顺序是无序的，而且所有线程看到的操作执行顺序也可能不一致</strong></p>
+<ul>
+<li>比如，当前线程把写过的数据缓存在本地内存中，在没有刷新到主内存之前，这个写操作仅对当前线程可见。从其他线程的角度来观察，会认为这个写操作根本没有被当前线程执行。只有当前线程把本地内存中写过的数据刷新到主存之后，这个写操作才能对其他线程可见。在这种情况下，当前线程和其他线程看到的操作执行顺序并不一致</li>
+</ul>
+<h1 id="4-同步程序的顺序一致性效果"><a class="markdownIt-Anchor" href="#4-同步程序的顺序一致性效果"></a> 4 同步程序的顺序一致性效果</h1>
+<p>下面，对前面的ReorderExample用锁来同步，看看正确同步的程序如何具有顺序一致性，示例代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SynchronizedExample</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> flag = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">writer</span><span class="params">()</span> </span>&#123; <span class="comment">//获取锁</span></span><br><span class="line">        a = <span class="number">1</span>;</span><br><span class="line">        flag = <span class="keyword">true</span>;</span><br><span class="line">    &#125;                                   <span class="comment">//释放锁</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">reader</span><span class="params">()</span> </span>&#123; <span class="comment">//获取锁</span></span><br><span class="line">        <span class="keyword">if</span> (flag) &#123;</span><br><span class="line">            <span class="keyword">int</span> i = a * a;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;                                   <span class="comment">//释放锁</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在上面的实例代码中，假设A线程执行writer()方法后，B线程执行reader()方法。这是一个正确同步的多线程程序。根据JMM规范，该程序的执行结果将与该程序在顺序一致性模型中的执行结果相同，下面是该程序在两个内存模型中的执行时序对比图</li>
+</ul>
+<p><img src="/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E6%89%A7%E8%A1%8C%E6%97%B6%E5%BA%8F%E5%AF%B9%E6%AF%94.png" alt="执行时序对比图" /></p>
+<ul>
+<li>在顺序一致性模型中，所有操作完全按程序的顺序串行执行</li>
+<li>在JMM中，临界区内的代码可以重排序(<strong>JMM不允许临界区内的代码&quot;逸出&quot;到临界区之外</strong>，那样会破坏监视器的语义)。JMM会在退出临界区和进入临界区这两个关键点做一些特殊处理，使得线程在这两个时间点具有与顺序一致性模型相同的内存模型
+<ul>
+<li>虽然线程A在临界区内做了重排，但是由于监视器的特性，这里的线程B根本无法&quot;观察&quot;到线程A在临界区内的重排序。这种重排序既提高了效率，有没有改变程序执行结果</li>
+</ul>
+</li>
+</ul>
+<p>这里可以看到，<strong>JMM在具体实现上的基本方针为：在不改变(正确同步)程序执行结果的前提下，尽可能地为编译器和处理器的优化打开了方便之门</strong></p>
+<h1 id="5-未同步程序的执行特性"><a class="markdownIt-Anchor" href="#5-未同步程序的执行特性"></a> 5 未同步程序的执行特性</h1>
+<p>对于未同步或未正确同步的多线程程序，JMM只提供最小保证：<strong>线程执行时读到的值，要么是之前某个线程写入的值，要么是默认值(0,null,false)，JMM保证线程读操作读取到的值不会无中生有(Out of Thin Air)冒出来</strong></p>
+<ul>
+<li>为了实现最小安全性，JVM在堆上分配对象时，首先会对内存空间进行清零，然后才会在上面分配对象(JMM内部会同步这两个操作)。因此，在已清零的内存空间(Pre-zeroed Memory)分配对象时，域的默认初始化已经完成了</li>
+</ul>
+<p>JMM不保证未同步程序的执行结果与该程序在顺序一致性模型中的执行结果一致。因为如果想要保证执行结果一致，JMM需要禁止大量的处理器和编译器优化，这对程序的执行性能会产生很大的影响。而且未同步程序在顺序一致性模型中执行时，整体是无序的，其执行结果往往无法预知。而且，保证未同步程序在这两个模型中的执行结果一致没有意义</p>
+<p>未同步程序在JMM中执行时，整体上是无序的，其执行结果无法预知，未同步程序在两个模型中的执行特性有如下几个差异</p>
+<ol>
+<li>顺序一致性模型保证单线程内的操作会按照程序的顺序执行，而JMM不保证单线程内的操作会按照程序的顺序执行</li>
+<li>顺序一致性模型保证所有线程只能看到一致的的操作执行顺序，而JMM不保证所有线程能看到一致的操作执行顺序</li>
+<li>JMM不保证64位的long型和double型变量的写操作具有原子性，而顺序一致性模型保证对所有内存读/写操作都具有原子性</li>
+</ol>
+<p>上述第3个差异与处理器总线的工作机制密切相关。在计算机中，数据通过总线在处理器和内存之间传递。每次处理器和内存之间的数据传递都是通过一系列步骤来完成的，这一系列步骤称之为总线事务(Bus Transaction)。总线事务包括读事务(Read Transaction)和写事务(Write Transaction)。读事务从内存传送数据到处理器，写事务从处理器传送数据到内存，每个事务会读/写内存中一个或多个物理上连续的字。<strong>这里的关键是：总线会同步试图并发使用总线的事务</strong>。在一个处理器执行总线事务期间，总线会禁止其他处理器和I/O设备执行内存读/写。下面通过一个示意图来说明总线工作机制</p>
+<p><img src="/images/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/%E6%80%BB%E7%BA%BF%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6.png" alt="执行时序对比图" /></p>
+<ul>
+<li>假设处理器A，B和C同时向总线发起总线事务，这时总线仲裁(Bus Arbitration)会对竞争做出仲裁，这里假设总线在仲裁后判定处理器A在竞争中获胜(总线仲裁会确保所有处理器都能公平的访问内存)。此时处理器A继续它的总线事务，而其他两个处理器则要等待处理器A的总线事务完成后才能再次执行内存访问。假设在处理器A执行总线事务期间(不管这个总线事务是读事务还是写事务)，处理器D向总线发起了总线事务，此时处理器D的请求会被总线禁止</li>
+<li>总线的这些工作机制可以把所有处理器对内存的访问以串行化的方式来执行。<strong>在任意时刻，最多只能有一个处理器可以访问内存，这个特性确保了单个总线事务之中的内存读/写操作具有原子性</strong></li>
+</ul>
+<p>在一些32位的处理器上，如果要求对64位数据的写操作具有原子性，会有比较大的开销。为了照顾这种处理器，Java语言规范鼓励但不强求JVM对64位的long型变量和double型变量的写操作具有原子性(但事实上，大多数商用的JVM都保证long和double变量的写操作原子性，例如Hot-spot)。当JVM在处理器上运行时，可能会把一个64位long/double/型变量的写操作拆分成两个32位的写操作来执行。<strong>这两个32位的写操作可能会被分配到不同的总线事务中执行，此时对这个64位变量的写操作将不具有原子性</strong></p>
+<ul>
+<li>当单个内存操作不具有原子性时，可能会产生意想不到的后果，例如下图</li>
+</ul>
+<img src='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBjb250ZW50U2NyaXB0VHlwZT0iYXBwbGljYXRpb24vZWNtYXNjcmlwdCIgY29udGVudFN0eWxlVHlwZT0idGV4dC9jc3MiIGhlaWdodD0iMjI3cHgiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiIHN0eWxlPSJ3aWR0aDozMTZweDtoZWlnaHQ6MjI3cHg7YmFja2dyb3VuZDojRUVFQkRDOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgMzE2IDIyNyIgd2lkdGg9IjMxNnB4IiB6b29tQW5kUGFuPSJtYWduaWZ5Ij48ZGVmcz48ZmlsdGVyIGhlaWdodD0iMzAwJSIgaWQ9ImYxNTI0NGQyNTBjM29tIiB3aWR0aD0iMzAwJSIgeD0iLTEiIHk9Ii0xIj48ZmVHYXVzc2lhbkJsdXIgcmVzdWx0PSJibHVyT3V0IiBzdGREZXZpYXRpb249IjIuMCIvPjxmZUNvbG9yTWF0cml4IGluPSJibHVyT3V0IiByZXN1bHQ9ImJsdXJPdXQyIiB0eXBlPSJtYXRyaXgiIHZhbHVlcz0iMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgLjQgMCIvPjxmZU9mZnNldCBkeD0iNC4wIiBkeT0iNC4wIiBpbj0iYmx1ck91dDIiIHJlc3VsdD0iYmx1ck91dDMiLz48ZmVCbGVuZCBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJibHVyT3V0MyIgbW9kZT0ibm9ybWFsIi8+PC9maWx0ZXI+PC9kZWZzPjxnPjxwYXRoIGQ9Ik0xMTQsNDMuNzg5MSBMMTE0LjI4MDIsNDMuNzg5MSBMMTEzLjQ0NzYsNTMuNjAzMiBMMTE0LjI1NzcsNjMuNDE3NCBMMTE0LjUzMjksNzMuMjMxNiBMMTEzLjA0ODgsODMuMDQ1OCBMMTEzLjg5NjQsOTIuODU5OSBMMTEzLjQzMTMsMTAyLjY3NDEgTDExMy40ODg3LDExMi40ODgzIEwxMTMuOTA5MSwxMjIuMzAyNSBMMTEzLjA3ODIsMTMyLjExNjYgTDExNC43MzgyLDE0MS45MzA4IEwxMTMuMTU5NiwxNTEuNzQ1IEwxMTMuNzM2MywxNjEuNTU5MiBMMTE0LjU3NTksMTcxLjM3MzMgTDExNCwxODEuMTg3NSAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2U6IzAwMDBGRjtzdHJva2Utd2lkdGg6MS4wO3N0cm9rZS1kYXNoYXJyYXk6NS4wLDUuMDsiLz48cGF0aCBkPSJNMjA1LDQzLjc4OTEgTDIwNS4yODAyLDQzLjc4OTEgTDIwNC40NDc2LDUzLjYwMzIgTDIwNS4yNTc3LDYzLjQxNzQgTDIwNS41MzI5LDczLjIzMTYgTDIwNC4wNDg4LDgzLjA0NTggTDIwNC44OTY0LDkyLjg1OTkgTDIwNC40MzEzLDEwMi42NzQxIEwyMDQuNDg4NywxMTIuNDg4MyBMMjA0LjkwOTEsMTIyLjMwMjUgTDIwNC4wNzgyLDEzMi4xMTY2IEwyMDUuNzM4MiwxNDEuOTMwOCBMMjA0LjE1OTYsMTUxLjc0NSBMMjA0LjczNjMsMTYxLjU1OTIgTDIwNS41NzU5LDE3MS4zNzMzIEwyMDUsMTgxLjE4NzUgIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlOiMwMDAwRkY7c3Ryb2tlLXdpZHRoOjEuMDtzdHJva2UtZGFzaGFycmF5OjUuMCw1LjA7Ii8+PHBvbHlnb24gZmlsbD0iIzFFOTBGRiIgZmlsdGVyPSJ1cmwoI2YxNTI0NGQyNTBjM29tKSIgcG9pbnRzPSI3NCw1LDc0LDUuMjEwMiw4My42MjUsNC41ODU3LDkzLjI1LDUuMTkzMywxMDIuODc1LDUuMzk5NywxMTIuNSw0LjI4NjYsMTIyLjEyNSw0LjkyMjMsMTMxLjc1LDQuNTczNSwxNDEuMzc1LDQuNjE2NSwxNTEsNSwxNTAuOTc3Myw1LDE1MC43Njk1LDExLjc1NzgsMTUxLjE4NDUsMTguNTE1NiwxNTAuNzg5OSwyNS4yNzM0LDE1MC45MzQxLDMyLjAzMTMsMTUxLDM4Ljc4OTEsMTUxLDM5LjIyMSwxNDEuMzc1LDM4LjcwMzMsMTMxLjc1LDM4Ljg1NzMsMTIyLjEyNSwzOC43NTcxLDExMi41LDM4Ljk2NzYsMTAyLjg3NSwzOS4wMjgyLDkzLjI1LDM5LjM3NDgsODMuNjI1LDM5LjQ2MDEsNzQsMzguNzg5MSw3NC4yMjY0LDM4Ljc4OTEsNzQuMDg0OSwzMi4wMzEzLDc0LjE1NDUsMjUuMjczNCw3NC4yMzQxLDE4LjUxNTYsNzMuNzU5NiwxMS43NTc4LDc0LDUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNjMiIHg9IjgxIiB5PSIyNy43Nzk4Ij7lpITnkIblmahBPC90ZXh0Pjxwb2x5Z29uIGZpbGw9IiMxRTkwRkYiIGZpbHRlcj0idXJsKCNmMTUyNDRkMjUwYzNvbSkiIHBvaW50cz0iNzQsMTgwLjE4NzUsNzQsMTgwLjM5NzcsODMuNjI1LDE3OS43NzMyLDkzLjI1LDE4MC4zODA4LDEwMi44NzUsMTgwLjU4NzIsMTEyLjUsMTc5LjQ3NDEsMTIyLjEyNSwxODAuMTA5OCwxMzEuNzUsMTc5Ljc2MSwxNDEuMzc1LDE3OS44MDQsMTUxLDE4MC4xODc1LDE1MC45NzczLDE4MC4xODc1LDE1MC43Njk1LDE4Ni45NDUzLDE1MS4xODQ1LDE5My43MDMxLDE1MC43ODk5LDIwMC40NjA5LDE1MC45MzQxLDIwNy4yMTg4LDE1MSwyMTMuOTc2NiwxNTEsMjE0LjQwODUsMTQxLjM3NSwyMTMuODkwOCwxMzEuNzUsMjE0LjA0NDgsMTIyLjEyNSwyMTMuOTQ0NiwxMTIuNSwyMTQuMTU1MSwxMDIuODc1LDIxNC4yMTU3LDkzLjI1LDIxNC41NjIzLDgzLjYyNSwyMTQuNjQ3Niw3NCwyMTMuOTc2Niw3NC4yMjY0LDIxMy45NzY2LDc0LjA4NDksMjA3LjIxODgsNzQuMTU0NSwyMDAuNDYwOSw3NC4yMzQxLDE5My43MDMxLDczLjc1OTYsMTg2Ljk0NTMsNzQsMTgwLjE4NzUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNjMiIHg9IjgxIiB5PSIyMDIuOTY3MyI+5aSE55CG5ZmoQTwvdGV4dD48cG9seWdvbiBmaWxsPSIjMUU5MEZGIiBmaWx0ZXI9InVybCgjZjE1MjQ0ZDI1MGMzb20pIiBwb2ludHM9IjE2NSw1LDE2NSw1LjIxMDIsMTc0LjYyNSw0LjU4NTcsMTg0LjI1LDUuMTkzMywxOTMuODc1LDUuMzk5NywyMDMuNSw0LjI4NjYsMjEzLjEyNSw0LjkyMjMsMjIyLjc1LDQuNTczNSwyMzIuMzc1LDQuNjE2NSwyNDIsNSwyNDEuOTc3Myw1LDI0MS43Njk1LDExLjc1NzgsMjQyLjE4NDUsMTguNTE1NiwyNDEuNzg5OSwyNS4yNzM0LDI0MS45MzQxLDMyLjAzMTMsMjQyLDM4Ljc4OTEsMjQyLDM5LjIyMSwyMzIuMzc1LDM4LjcwMzMsMjIyLjc1LDM4Ljg1NzMsMjEzLjEyNSwzOC43NTcxLDIwMy41LDM4Ljk2NzYsMTkzLjg3NSwzOS4wMjgyLDE4NC4yNSwzOS4zNzQ4LDE3NC42MjUsMzkuNDYwMSwxNjUsMzguNzg5MSwxNjUuMjI2NCwzOC43ODkxLDE2NS4wODQ5LDMyLjAzMTMsMTY1LjE1NDUsMjUuMjczNCwxNjUuMjM0MSwxOC41MTU2LDE2NC43NTk2LDExLjc1NzgsMTY1LDUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNjMiIHg9IjE3MiIgeT0iMjcuNzc5OCI+5aSE55CG5ZmoQjwvdGV4dD48cG9seWdvbiBmaWxsPSIjMUU5MEZGIiBmaWx0ZXI9InVybCgjZjE1MjQ0ZDI1MGMzb20pIiBwb2ludHM9IjE2NSwxODAuMTg3NSwxNjUsMTgwLjM5NzcsMTc0LjYyNSwxNzkuNzczMiwxODQuMjUsMTgwLjM4MDgsMTkzLjg3NSwxODAuNTg3MiwyMDMuNSwxNzkuNDc0MSwyMTMuMTI1LDE4MC4xMDk4LDIyMi43NSwxNzkuNzYxLDIzMi4zNzUsMTc5LjgwNCwyNDIsMTgwLjE4NzUsMjQxLjk3NzMsMTgwLjE4NzUsMjQxLjc2OTUsMTg2Ljk0NTMsMjQyLjE4NDUsMTkzLjcwMzEsMjQxLjc4OTksMjAwLjQ2MDksMjQxLjkzNDEsMjA3LjIxODgsMjQyLDIxMy45NzY2LDI0MiwyMTQuNDA4NSwyMzIuMzc1LDIxMy44OTA4LDIyMi43NSwyMTQuMDQ0OCwyMTMuMTI1LDIxMy45NDQ2LDIwMy41LDIxNC4xNTUxLDE5My44NzUsMjE0LjIxNTcsMTg0LjI1LDIxNC41NjIzLDE3NC42MjUsMjE0LjY0NzYsMTY1LDIxMy45NzY2LDE2NS4yMjY0LDIxMy45NzY2LDE2NS4wODQ5LDIwNy4yMTg4LDE2NS4xNTQ1LDIwMC40NjA5LDE2NS4yMzQxLDE5My43MDMxLDE2NC43NTk2LDE4Ni45NDUzLDE2NSwxODAuMTg3NSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjU7Ii8+PHRleHQgZmlsbD0iI0E5RENERiIgZm9udC1mYW1pbHk9IkltcGFjdCIgZm9udC1zaXplPSIxNyIgbGVuZ3RoQWRqdXN0PSJzcGFjaW5nIiB0ZXh0TGVuZ3RoPSI2MyIgeD0iMTcyIiB5PSIyMDIuOTY3MyI+5aSE55CG5ZmoQjwvdGV4dD48cGF0aCBkPSJNNSw1OC43ODkxIEw1LjE4NjgsNTguNzg5MSBMNC42MzE3LDYzLjc4OTEgTDUuMTcxOCw2OC43ODkxIEw1LjM1NTMsNzMuNzg5MSBMNC4zNjU5LDc4Ljc4OTEgTDUsODMuNzg5MSBMNSw4My41ODE4IEwxNC43NzI3LDgyLjY1MTcgTDI0LjU0NTUsODIuNzY2NCBMMzQuMzE4Miw4My42MDczIEw0NC4wOTA5LDgxLjk0NTQgTDUzLjg2MzYsODUuMjY1NCBMNjMuNjM2NCw4Mi4xMDgzIEw3My40MDkxLDgzLjI2MTcgTDgzLjE4MTgsODQuOTQwOSBMOTIuOTU0NSw4My41NjAzIEwxMDIuNzI3Myw4My45NzEgTDExMi41LDgzLjcwMzkgTDEyMi4yNzI3LDg0LjI2NTEgTDEzMi4wNDU1LDg0LjQyNjggTDE0MS44MTgyLDg1LjM1MDkgTDE1MS41OTA5LDg1LjU3ODUgTDE2MS4zNjM2LDg1LjYwMDQgTDE3MS4xMzY0LDg0LjQ2ODEgTDE4MC45MDkxLDg1LjAyNTMgTDE5MC42ODE4LDg1LjY2MTcgTDIwMC40NTQ1LDgxLjg2NTkgTDIxMC4yMjczLDg1LjU5ODQgTDIyMCw4My43ODkxIEwyMTkuNzM2NCw4My43ODkxIEwyMjAuNDc0NSw4MC43ODkxIEwyMTkuNTYsNzcuNzg5MSBMMjE5LjkzOTEsNzQuNzg5MSBMMjIwLjY1OTIsNzEuNzg5MSBMMjIwLDY4Ljc4OTEgTDIxOS45Njk0LDY4Ljc1ODQgTDIxOC4wNjYyLDY2Ljg1NTIgTDIxNi4yMTI4LDY1LjAwMTkgTDIxNC4yNjE2LDYzLjA1MDcgTDIxMS45OTc1LDYwLjc4NjYgTDIxMCw1OC43ODkxIEwyMTAsNTkuNTU1IEwyMDAuMjM4MSw1Ny4yNjI2IEwxOTAuNDc2Miw1OS41NDc0IEwxODAuNzE0Myw2MC4yNTA5IEwxNzAuOTUyNCw1OS45NzQ1IEwxNjEuMTkwNSw2MC40MjM4IEwxNTEuNDI4Niw1Ny41MDA4IEwxNDEuNjY2Nyw1Ny4wNDk5IEwxMzEuOTA0OCw1Ny4xMzIgTDEyMi4xNDI5LDU4LjYzMiBMMTEyLjM4MSw1OC4yNjUgTDEwMi42MTksNjAuNjA2MiBMOTIuODU3MSw1OC4zMjMzIEw4My4wOTUyLDU3Ljg3NDMgTDczLjMzMzMsNTkuMzk3OCBMNjMuNTcxNCw1Ny4wMTA4IEw1My44MDk1LDU3LjQwNDcgTDQ0LjA0NzYsNjAuNTE5NiBMMzQuMjg1Nyw1OS45NTA4IEwyNC41MjM4LDYwLjc0NzcgTDE0Ljc2MTksNTcuOTMwOSBMNSw1OC43ODkxICIgZmlsbD0iI0ZCRkI3NyIgZmlsdGVyPSJ1cmwoI2YxNTI0NGQyNTBjM29tKSIgc3R5bGU9InN0cm9rZTojQTgwMDM2O3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBhdGggZD0iTTIxMCw1OC43ODkxIEwyMTAuMjgzNyw1OC43ODkxIEwyMTAuNTI0OCw2MC43ODkxIEwyMDkuNTgwMSw2Mi43ODkxIEwyMDkuOTE0OCw2NC43ODkxIEwyMTAuMTEyLDY2Ljc4OTEgTDIxMCw2OC43ODkxIEwyMTAsNjkuMzY4NCBMMjEyLDY4Ljc4NTMgTDIxNCw2OS4yMDAyIEwyMTYsNjguMjk2OCBMMjE4LDY4LjE4NzEgTDIyMCw2OC43ODkxIEwyMjAuMzE2NSw2OS4xMDU2IEwyMTcuNTQ5NCw2Ni4zMzg0IEwyMTYuMzE5OSw2NS4xMDkgTDIxNC4xMjk5LDYyLjkxODkgTDIxMS44MzE2LDYwLjYyMDcgTDIxMCw1OC43ODkxICIgZmlsbD0iI0ZCRkI3NyIgc3R5bGU9InN0cm9rZTojQTgwMDM2O3N0cm9rZS13aWR0aDoxLjA7Ii8+PHRleHQgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iMTk0IiB4PSIxMSIgeT0iNzUuODU2Ij7lhpnkuovliqEx77ya5YaZbG9uZ+Wei+WPmOmHj+eahOmrmDMy5L2NPC90ZXh0PjxwYXRoIGQ9Ik0xMDAsOTcuOTIxOSBMMTAwLjE4NjgsOTcuOTIxOSBMOTkuNjMxNywxMDIuOTIxOSBMMTAwLjE3MTgsMTA3LjkyMTkgTDEwMC4zNTUzLDExMi45MjE5IEw5OS4zNjU5LDExNy45MjE5IEwxMDAsMTIyLjkyMTkgTDEwMCwxMjIuNzE0NiBMMTA5Ljg1NzEsMTIxLjc4NDYgTDExOS43MTQzLDEyMS44OTkyIEwxMjkuNTcxNCwxMjIuNzQwMSBMMTM5LjQyODYsMTIxLjA3ODIgTDE0OS4yODU3LDEyNC4zOTgzIEwxNTkuMTQyOSwxMjEuMjQxMSBMMTY5LDEyMi4zOTQ1IEwxNzguODU3MSwxMjQuMDczNyBMMTg4LjcxNDMsMTIyLjY5MzEgTDE5OC41NzE0LDEyMy4xMDM4IEwyMDguNDI4NiwxMjIuODM2NyBMMjE4LjI4NTcsMTIzLjM5NzkgTDIyOC4xNDI5LDEyMy41NTk2IEwyMzgsMTI0LjQ4MzcgTDI0Ny44NTcxLDEyNC43MTE0IEwyNTcuNzE0MywxMjQuNzMzMiBMMjY3LjU3MTQsMTIzLjYwMDkgTDI3Ny40Mjg2LDEyNC4xNTgxIEwyODcuMjg1NywxMjQuNzk0NSBMMjk3LjE0MjksMTIwLjk5ODcgTDMwNywxMjIuOTIxOSBMMzA3LjYwMzEsMTIyLjkyMTkgTDMwNi43MzY0LDExOS45MjE5IEwzMDcuNDc0NSwxMTYuOTIxOSBMMzA2LjU2LDExMy45MjE5IEwzMDYuOTM5MSwxMTAuOTIxOSBMMzA3LDEwNy45MjE5IEwzMDcuNDY2MSwxMDguMzg4IEwzMDQuOTY5NCwxMDUuODkxMiBMMzAzLjA2NjIsMTAzLjk4ODEgTDMwMS4yMTI4LDEwMi4xMzQ3IEwyOTkuMjYxNiwxMDAuMTgzNSBMMjk3LDk3LjkyMTkgTDI5Nyw5Ny45MTE1IEwyODcuMTUsOTguNjg3OCBMMjc3LjMsOTYuMzk1NCBMMjY3LjQ1LDk4LjY4MDIgTDI1Ny42LDk5LjM4MzcgTDI0Ny43NSw5OS4xMDczIEwyMzcuOSw5OS41NTY2IEwyMjguMDUsOTYuNjMzNyBMMjE4LjIsOTYuMTgyNyBMMjA4LjM1LDk2LjI2NDggTDE5OC41LDk3Ljc2NDkgTDE4OC42NSw5Ny4zOTc4IEwxNzguOCw5OS43MzkgTDE2OC45NSw5Ny40NTYxIEwxNTkuMSw5Ny4wMDcxIEwxNDkuMjUsOTguNTMwNiBMMTM5LjQsOTYuMTQzNiBMMTI5LjU1LDk2LjUzNzUgTDExOS43LDk5LjY1MjQgTDEwOS44NSw5OS4wODM3IEwxMDAsOTcuOTIxOSAiIGZpbGw9IiNGQkZCNzciIGZpbHRlcj0idXJsKCNmMTUyNDRkMjUwYzNvbSkiIHN0eWxlPSJzdHJva2U6I0E4MDAzNjtzdHJva2Utd2lkdGg6MS4wOyIvPjxwYXRoIGQ9Ik0yOTcsOTcuOTIxOSBMMjk3LjY1MjksOTcuOTIxOSBMMjk2LjcxNCw5OS45MjE5IEwyOTcuMjgzNywxMDEuOTIxOSBMMjk3LjUyNDgsMTAzLjkyMTkgTDI5Ni41ODAxLDEwNS45MjE5IEwyOTcsMTA3LjkyMTkgTDI5NywxMDcuODM2NyBMMjk5LDEwOC4wMzM5IEwzMDEsMTA4LjUwMTIgTDMwMywxMDcuOTE4MSBMMzA1LDEwOC4zMzMgTDMwNywxMDcuOTIxOSBMMzA2LjY1MTksMTA3LjU3MzggTDMwNC41NzQzLDEwNS40OTYyIEwzMDMuMzE2NSwxMDQuMjM4NCBMMzAwLjU0OTQsMTAxLjQ3MTIgTDI5OS4zMTk5LDEwMC4yNDE4IEwyOTcsOTcuOTIxOSAiIGZpbGw9IiNGQkZCNzciIHN0eWxlPSJzdHJva2U6I0E4MDAzNjtzdHJva2Utd2lkdGg6MS4wOyIvPjx0ZXh0IGZpbGw9IiMwMDAwMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjE4NiIgeD0iMTA2IiB5PSIxMTQuOTg4OCI+6K+75LqL5Yqh77ya6K+7bG9uZ+Wei+WPmOmHj+eahOmrmDMy5L2NPC90ZXh0PjxwYXRoIGQ9Ik01LDEzNy4wNTQ3IEw1LjE4NjgsMTM3LjA1NDcgTDQuNjMxNywxNDIuMDU0NyBMNS4xNzE4LDE0Ny4wNTQ3IEw1LjM1NTMsMTUyLjA1NDcgTDQuMzY1OSwxNTcuMDU0NyBMNSwxNjIuMDU0NyBMNSwxNjEuODQ3NSBMMTQuNzcyNywxNjAuOTE3NCBMMjQuNTQ1NSwxNjEuMDMyIEwzNC4zMTgyLDE2MS44NzI5IEw0NC4wOTA5LDE2MC4yMTEgTDUzLjg2MzYsMTYzLjUzMTEgTDYzLjYzNjQsMTYwLjM3MzkgTDczLjQwOTEsMTYxLjUyNzMgTDgzLjE4MTgsMTYzLjIwNjUgTDkyLjk1NDUsMTYxLjgyNTkgTDEwMi43MjczLDE2Mi4yMzY3IEwxMTIuNSwxNjEuOTY5NSBMMTIyLjI3MjcsMTYyLjUzMDggTDEzMi4wNDU1LDE2Mi42OTI0IEwxNDEuODE4MiwxNjMuNjE2NSBMMTUxLjU5MDksMTYzLjg0NDIgTDE2MS4zNjM2LDE2My44NjYgTDE3MS4xMzY0LDE2Mi43MzM3IEwxODAuOTA5MSwxNjMuMjkwOSBMMTkwLjY4MTgsMTYzLjkyNzMgTDIwMC40NTQ1LDE2MC4xMzE1IEwyMTAuMjI3MywxNjMuODY0IEwyMjAsMTYyLjA1NDcgTDIxOS43MzY0LDE2Mi4wNTQ3IEwyMjAuNDc0NSwxNTkuMDU0NyBMMjE5LjU2LDE1Ni4wNTQ3IEwyMTkuOTM5MSwxNTMuMDU0NyBMMjIwLjY1OTIsMTUwLjA1NDcgTDIyMCwxNDcuMDU0NyBMMjE5Ljk2OTQsMTQ3LjAyNDEgTDIxOC4wNjYyLDE0NS4xMjA5IEwyMTYuMjEyOCwxNDMuMjY3NSBMMjE0LjI2MTYsMTQxLjMxNjMgTDIxMS45OTc1LDEzOS4wNTIyIEwyMTAsMTM3LjA1NDcgTDIxMCwxMzcuODIwNiBMMjAwLjIzODEsMTM1LjUyODIgTDE5MC40NzYyLDEzNy44MTMxIEwxODAuNzE0MywxMzguNTE2NSBMMTcwLjk1MjQsMTM4LjI0MDEgTDE2MS4xOTA1LDEzOC42ODk0IEwxNTEuNDI4NiwxMzUuNzY2NSBMMTQxLjY2NjcsMTM1LjMxNTUgTDEzMS45MDQ4LDEzNS4zOTc2IEwxMjIuMTQyOSwxMzYuODk3NyBMMTEyLjM4MSwxMzYuNTMwNiBMMTAyLjYxOSwxMzguODcxOCBMOTIuODU3MSwxMzYuNTg4OSBMODMuMDk1MiwxMzYuMTM5OSBMNzMuMzMzMywxMzcuNjYzNCBMNjMuNTcxNCwxMzUuMjc2NSBMNTMuODA5NSwxMzUuNjcwNCBMNDQuMDQ3NiwxMzguNzg1MiBMMzQuMjg1NywxMzguMjE2NSBMMjQuNTIzOCwxMzkuMDEzMyBMMTQuNzYxOSwxMzYuMTk2NiBMNSwxMzcuMDU0NyAiIGZpbGw9IiNGQkZCNzciIGZpbHRlcj0idXJsKCNmMTUyNDRkMjUwYzNvbSkiIHN0eWxlPSJzdHJva2U6I0E4MDAzNjtzdHJva2Utd2lkdGg6MS4wOyIvPjxwYXRoIGQ9Ik0yMTAsMTM3LjA1NDcgTDIxMC4yODM3LDEzNy4wNTQ3IEwyMTAuNTI0OCwxMzkuMDU0NyBMMjA5LjU4MDEsMTQxLjA1NDcgTDIwOS45MTQ4LDE0My4wNTQ3IEwyMTAuMTEyLDE0NS4wNTQ3IEwyMTAsMTQ3LjA1NDcgTDIxMCwxNDcuNjM0IEwyMTIsMTQ3LjA1MSBMMjE0LDE0Ny40NjU5IEwyMTYsMTQ2LjU2MjQgTDIxOCwxNDYuNDUyNyBMMjIwLDE0Ny4wNTQ3IEwyMjAuMzE2NSwxNDcuMzcxMiBMMjE3LjU0OTQsMTQ0LjYwNDEgTDIxNi4zMTk5LDE0My4zNzQ2IEwyMTQuMTI5OSwxNDEuMTg0NiBMMjExLjgzMTYsMTM4Ljg4NjMgTDIxMCwxMzcuMDU0NyAiIGZpbGw9IiNGQkZCNzciIHN0eWxlPSJzdHJva2U6I0E4MDAzNjtzdHJva2Utd2lkdGg6MS4wOyIvPjx0ZXh0IGZpbGw9IiMwMDAwMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjE5NCIgeD0iMTEiIHk9IjE1NC4xMjE2Ij7lhpnkuovliqEy77ya5YaZbG9uZ+Wei+WPmOmHj+eahOS9jjMy5L2NPC90ZXh0PjwhLS1NRDU9WzBkYThkZWFjMjAwMWI3NWUwNzJmNWQzN2Y5MDkyOGE3XQpAc3RhcnR1bWwNCnNraW5wYXJhbSBiYWNrZ3JvdW5kQ29sb3IgI0VFRUJEQw0Kc2tpbnBhcmFtIGhhbmR3cml0dGVuIHRydWUNCg0Kc2tpbnBhcmFtIHNlcXVlbmNlIHsNCglBcnJvd0NvbG9yIERlZXBTa3lCbHVlDQoJQWN0b3JCb3JkZXJDb2xvciBEZWVwU2t5Qmx1ZQ0KCUxpZmVMaW5lQm9yZGVyQ29sb3IgYmx1ZQ0KCUxpZmVMaW5lQmFja2dyb3VuZENvbG9yICNBOURDREYNCgkNCglQYXJ0aWNpcGFudEJvcmRlckNvbG9yIERlZXBTa3lCbHVlDQoJUGFydGljaXBhbnRCYWNrZ3JvdW5kQ29sb3IgRG9kZ2VyQmx1ZQ0KCVBhcnRpY2lwYW50Rm9udE5hbWUgSW1wYWN0DQoJUGFydGljaXBhbnRGb250U2l6ZSAxNw0KCVBhcnRpY2lwYW50Rm9udENvbG9yICNBOURDREYNCgkNCglBY3RvckJhY2tncm91bmRDb2xvciBhcXVhDQoJQWN0b3JGb250Q29sb3IgRGVlcFNreUJsdWUNCglBY3RvckZvbnRTaXplIDE3DQoJQWN0b3JGb250TmFtZSBBYXBleA0KfQ0KTm90ZSBvdmVyIOWkhOeQhuWZqEE65YaZ5LqL5YqhMe+8muWGmWxvbmflnovlj5jph4/nmoTpq5gzMuS9jQ0KTm90ZSBvdmVyIOWkhOeQhuWZqEI66K+75LqL5Yqh77ya6K+7bG9uZ+Wei+WPmOmHj+eahOmrmDMy5L2NDQpOb3RlIG92ZXIg5aSE55CG5ZmoQTrlhpnkuovliqEy77ya5YaZbG9uZ+Wei+WPmOmHj+eahOS9jjMy5L2NDQpAZW5kdW1sDQoKUGxhbnRVTUwgdmVyc2lvbiAxLjIwMjEuMTBiZXRhMihVbmtub3duIGNvbXBpbGUgdGltZSkKKEdQTCBzb3VyY2UgZGlzdHJpYnV0aW9uKQpKYXZhIFJ1bnRpbWU6IEphdmEoVE0pIFNFIFJ1bnRpbWUgRW52aXJvbm1lbnQKSlZNOiBKYXZhIEhvdFNwb3QoVE0pIDY0LUJpdCBTZXJ2ZXIgVk0KRGVmYXVsdCBFbmNvZGluZzogVVRGLTgKTGFuZ3VhZ2U6IGVuCkNvdW50cnk6IFVTCi0tPjwvZz48L3N2Zz4='>
+<ul>
+<li>假设处理器A写一个long型变量，同时处理器B要读这个long型变量。处理器A中64位的写操作被拆分为两个32位的写操作，且这两个32位的写操作被分配到不同的写事务中执行。同时，处理器B中64位的读操作被分配到单个的读事务中执行。当处理器A和B按上图的时序来执行时，处理器B将看到被处理器A&quot;写了一半&quot;的无效值</li>
+</ul>
+<p><strong>注意：在JSR-133之前的旧内存模型中，一个64位long/double型变量的读/写操作可以被拆分为两个32位写操作来执行。从JSR-133内存模型开始(即从JDK5开始)，仅仅允许把一个64位long/double型变量的写操作拆分成两个32位的写操作来执行，任意的读操作在JSR-133中都必须具有原子性(即将任意读操作必须要在单个读事务中执行)</strong></p>
+<h1 id="6-参考"><a class="markdownIt-Anchor" href="#6-参考"></a> 6 参考</h1>
+<ul>
+<li>《Java并发编程的艺术》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/08/Java-%E9%87%8D%E6%8E%92%E5%BA%8F/" rel="prev" title="Java-重排序">
+      <i class="fa fa-chevron-left"></i> Java-重排序
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/08/Java-volatile%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89/" rel="next" title="Java-volatile的内存语义">
+      Java-volatile的内存语义 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E4%B8%8E%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-text"> 2 数据竞争与顺序一致性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 3 顺序一致性内存模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%90%8C%E6%AD%A5%E7%A8%8B%E5%BA%8F%E7%9A%84%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E6%95%88%E6%9E%9C"><span class="nav-text"> 4 同步程序的顺序一致性效果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%9C%AA%E5%90%8C%E6%AD%A5%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%89%A7%E8%A1%8C%E7%89%B9%E6%80%A7"><span class="nav-text"> 5 未同步程序的执行特性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%8F%82%E8%80%83"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

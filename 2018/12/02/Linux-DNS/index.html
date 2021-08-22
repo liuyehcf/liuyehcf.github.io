@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux-DNS">
+<meta property="og:url" content="http://example.com/2018/12/02/Linux-DNS/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-12-02T02:42:02.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.733Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/12/02/Linux-DNS/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux-DNS | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/12/02/Linux-DNS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux-DNS
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-02 10:42:02" itemprop="dateCreated datePublished" datetime="2018-12-02T10:42:02+08:00">2018-12-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/" itemprop="url" rel="index"><span itemprop="name">Operating System</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/12/02/Linux-DNS/" class="post-meta-item leancloud_visitors" data-flag-title="Linux-DNS" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/12/02/Linux-DNS/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/12/02/Linux-DNS/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-什么是dns"><a class="markdownIt-Anchor" href="#1-什么是dns"></a> 1 什么是DNS</h1>
+<h2 id="11-用网络主机名取得ip的历史渊源"><a class="markdownIt-Anchor" href="#11-用网络主机名取得ip的历史渊源"></a> 1.1 用网络主机名取得IP的历史渊源</h2>
+<p><strong>单一文件处理上网的年代：<code>/etc/hosts</code></strong></p>
+<ul>
+<li>利用某些特定的文件将主机名与IP做一个对应，如此一来，我们就可以通过主机名来取得该主机的IP了</li>
+<li>但是主机名与IP的对应无法自动在所有计算机内更新，且要将主机名加入该文件仅能向INTERNIC注册，若IP数量太多时，该文件会过大，也就更不利于其他主机同步化了</li>
+<li>在私有网络内部，最好将所有的私有IP与主机名对应都写入这个文件中</li>
+</ul>
+<h2 id="12-dns的主机名对应ip的查询流程"><a class="markdownIt-Anchor" href="#12-dns的主机名对应ip的查询流程"></a> 1.2 DNS的主机名对应IP的查询流程</h2>
+<h3 id="121-dns的阶层架构与tld"><a class="markdownIt-Anchor" href="#121-dns的阶层架构与tld"></a> 1.2.1 DNS的阶层架构与TLD</h3>
+<p><strong>在整个DNS系统的最上方一定是<code>.</code>（小数点）这个DNS服务器，称为<code>root</code></strong>，最早在它下面管理的就只有<code>.com</code>、<code>.edu</code>、<code>.gov</code>、<code>.mil</code>、<code>.org</code>、<code>.net</code>这种特殊区域以及以国家为分类的第二层的主机名，这两者称为<code>Top Level Domains（TLDs）</code></p>
+<p><strong>一般顶级域名（Generic TLDs, gTLD）：例如<code>.com</code>、<code>.org</code>、<code>.gov</code>等</strong></p>
+<p><strong>地区顶级层域名（Country Code TLDs, ccTLD）：例如<code>.uk</code>、<code>.jp</code>、<code>.cn</code>等</strong></p>
+<p><strong>最早root管理六大领域域名，如下表：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">名称</th>
+<th style="text-align:left">代表意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>com</code></td>
+<td style="text-align:left">公司、行号、企业</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>org</code></td>
+<td style="text-align:left">组织、机构</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>edu</code></td>
+<td style="text-align:left">教育单位</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>gov</code></td>
+<td style="text-align:left">政府单位</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>net</code></td>
+<td style="text-align:left">网络、通信</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>mil</code></td>
+<td style="text-align:left">军事单位</td>
+</tr>
+</tbody>
+</table>
+<h3 id="122-授权与分层负责"><a class="markdownIt-Anchor" href="#122-授权与分层负责"></a> 1.2.2 授权与分层负责</h3>
+<ol>
+<li>我们不能执行设置TLD，必须向上层ISP申请域名的授权才行</li>
+<li>每个国家之下记录的主要区域，基本与root管理的六大类类似</li>
+<li><strong>每一个上层的DNS服务器所记录的信息，其实只有其下一层的主机名而已</strong></li>
+<li>这样设置的好处：每台机器管理的只有下一层的hostname对应的IP，所以减少了管理上的困扰，如果下层Client端如果有问题，只要询问上一层DNS Server即可，不需要跨越上层，排错也会比较简单</li>
+</ol>
+<h3 id="123-通过dns查询主机名ip的流程"><a class="markdownIt-Anchor" href="#123-通过dns查询主机名ip的流程"></a> 1.2.3 通过DNS查询主机名IP的流程</h3>
+<p>DNS是以类似树形目录的形态来进行主机名的管理的，所以每一台DNS服务器都仅管理自己的下一层主机名的转译，至于下层的下层，则授权给下层的DNS主机来管理</p>
+<p>当你在浏览器地址输入<code>http://www.ksu.edu.tw</code>时，计算机会依据相关设置（在Linux下面就是利用<code>/etc/resolv.conf</code>这个文件）所提供的DNS（以<code>168.95.1.1</code>为例）的IP去进行连接查询</p>
+<ol>
+<li>收到用户的查询要求，先查看本身有没有记录，若无则向<code>.（root）</code>查询</li>
+<li>向最顶层的<code>.（root）</code>查询
+<ul>
+<li>由于<code>.（root）</code>只记录了<code>.tw</code>的信息（因为台湾地区只有<code>.tw</code>向<code>.（root）</code>注册）</li>
+<li>从而转向<code>.tw</code>查询</li>
+</ul>
+</li>
+<li>向第二层的<code>.tw</code>服务器查询
+<ul>
+<li>这台机器<code>（.tw）</code>管理的仅仅有<code>.edu.tw</code>、<code>.com.tw</code>、<code>gov.tw</code>等</li>
+<li>转向<code>.edu.tw</code>这个区域的主机查询</li>
+</ul>
+</li>
+<li>向第三层的<code>.edu.tw</code>服务器查询
+<ul>
+<li>查询到<code>.ksu.edu.tw</code>的IP</li>
+<li>转向<code>.ksu.edu.tw</code>查询</li>
+</ul>
+</li>
+<li>向第四层的<code>.ksu.edu.tw</code>服务器查询
+<ul>
+<li>找到了<code>www.ksu.edu.tw</code></li>
+</ul>
+</li>
+<li>记录缓存并回报用户
+<ul>
+<li>DNS（168.95.1.1）会先记录一份查询结果在自己的缓存中，以方便响应下一次的相同要求</li>
+</ul>
+</li>
+</ol>
+<p>整个分层查询的流程就是这样，总要先经过<code>.（root）</code>来向下一层进行查询，这样分层的好处如下</p>
+<ol>
+<li>主机名修改的仅需要更改自己的DNS即可，不需要通知其他人
+<ul>
+<li>只要你的主机名是经过上层合法的DNS服务器设置的，那么就可以在Internet上被查到</li>
+</ul>
+</li>
+<li>DNS服务器对主机名解析结果的缓存时间
+<ul>
+<li>在缓存内的答案是有时间性的，通常是数十分钟到三天之内</li>
+<li>因此当修改了一个<code>domain name</code>后，可能要2-3天才能全面启用</li>
+</ul>
+</li>
+<li>可持续向下授权（子域名授权）</li>
+</ol>
+<p><code>dig +trace www.ksu.edu.tw</code>：显示分层查询的过程</p>
+<h3 id="124-dns使用的port-number"><a class="markdownIt-Anchor" href="#124-dns使用的port-number"></a> 1.2.4 DNS使用的port number</h3>
+<p>DNS使用的port是<code>53</code>，在<code>/etc/services</code>这个文件搜寻<code>domain</code>关键词就可以查到53这个port<br />
+通常DNS是以UDP这个较快速的数据传输协议来查询，如果没有查到完整的信息，就会再次以TCP这个协议来重新查询，因此防火墙要放行TCP\UDP的port53</p>
+<h2 id="13-合法dns的关键申请区域查询授权"><a class="markdownIt-Anchor" href="#13-合法dns的关键申请区域查询授权"></a> 1.3 合法DNS的关键：申请区域查询授权</h2>
+<p>DNS服务器的架设还有合法与不合法之分，而不像其他服务器一样，架设好之后别人就查得到</p>
+<p>向上层区域注册取得合法的区域查询授权</p>
+<ol>
+<li>申请一个合法的主机名就需要注册，注册就需要花钱</li>
+<li>注册取得的数据有两种
+<ul>
+<li>FQDN（Fully Qualified Domain Name，全限定域名）：只需要主机名，详细的设置数据就由ISP帮我们搞定</li>
+<li>申请区域查询权：以<code>.ksu.edu.tw</code>为例，<code>.ksu.edu.tw</code>必须要向<code>.edu.tw</code>那台主机注册申请区域授权，未来有任何<code>.ksu.edu.tw</code>的要求时，<code>.edu.tw</code>都会转向<code>.ksu.edu.cn</code>，此时我们就需要架设DNS服务器来设置<code>.ksu.edu.tw</code>相关的主机名对应才行</li>
+</ul>
+</li>
+<li>架设DNS，而且是可以连上Internet上面的DNS，就必须通过上层DNS服务器的授权才行</li>
+<li>让你的主机名对应IP且让其他计算机可以查询到，可以有如下两种方式
+<ul>
+<li>上层DNS授权区域查询权，让你自己设置DNS服务器</li>
+<li>直接请上层DNS服务器来帮你设置主机名对应</li>
+</ul>
+</li>
+</ol>
+<p>拥有区域查询权后，所有的主机名信息都以自己为准，与上层无关。DNS系统记录的信息非常多，重点有两个</p>
+<ol>
+<li><strong>记录服务器所在的NS（NameServer）标志</strong></li>
+<li><strong>记录主机名对应的A（Address）标志</strong></li>
+<li><strong>架设的DNS主机在其上层DNS主机中记录的是NS标志</strong></li>
+</ol>
+<h2 id="14-主机名交由isp代管还是自己设置dns服务器"><a class="markdownIt-Anchor" href="#14-主机名交由isp代管还是自己设置dns服务器"></a> 1.4 主机名交由ISP代管还是自己设置DNS服务器</h2>
+<p>无论如何你只有两个选择</p>
+<ol>
+<li>请上层DNS帮你设置好Hostname与IP</li>
+<li>请上层DNS将某个domain name段授权给你作为DNS的主要管理区域</li>
+</ol>
+<p>需要架设DNS的时机</p>
+<ol>
+<li>你所负责需要连上Internet的主机数量庞大，例如负责公司几十台的网络Server，而这些Server都是挂载在你公司的区域之下</li>
+<li>你可能需要时常修改你的Server的名字，或者你的Server有随时增加的可能性与变动性</li>
+</ol>
+<p>不需要架设DNS的时机</p>
+<ol>
+<li>网络主机数量很少</li>
+<li>你可以直接请上层DNS主机管理员帮你设置好Hostname的对应</li>
+<li>你对于DNS的认知不足，如果架设反而容易造成网络不通的情况</li>
+<li>架设DNS费用很高</li>
+</ol>
+<h2 id="15-dns数据库的记录正解-反解-zone的意义"><a class="markdownIt-Anchor" href="#15-dns数据库的记录正解-反解-zone的意义"></a> 1.5 DNS数据库的记录：正解、反解、Zone的意义</h2>
+<p>记录的东西可以称为数据库，在数据库里针对每个要解析的域（domain），就称为一个区域（zone）</p>
+<p><strong>概念</strong>：</p>
+<ol>
+<li>正解：从主机名查询到IP的流程</li>
+<li>反解：从IP反解析到主机名的流程</li>
+<li>无论正解还是反解，每个域记录的就是一个区域（zone）</li>
+<li>举例来说
+<ul>
+<li>昆山科大DNS服务器管理的就是<code>*.ksu.edu.tw</code>这个域的查询权，任何想要知道<code>*.ksu.edu.tw</code>主机名的IP都得向昆山科大的DNS服务器查询，此时<code>.ksu.edu.tw</code>就是一个“正解的区域”</li>
+<li>昆山科大有几个<code>Class C</code>的子域，例如<code>120.114.140.0/24</code>，如果这254个可用IP都要设置主机名，那么这个<code>120.114.140.0/24</code>就是一个“反解的区域”</li>
+</ul>
+</li>
+</ol>
+<p><strong>正解的设置权以及DNS正解Zone记录的标志</strong></p>
+<ol>
+<li>只要该域没有人使用，那谁先抢到了，就能够使用了</li>
+<li>正解的Zone通常有以下几种标志
+<ul>
+<li><code>SOA</code>：就是开始验证（Start of Authority）的缩写</li>
+<li><code>NS</code>：就是名称服务器（Name Server）的缩写，后面记录的数据时DNS服务器</li>
+<li><code>A</code>：就是地址（Address）的缩写，后面记录的是IP的对应</li>
+</ul>
+</li>
+</ol>
+<p><strong>反解的设置权以及DNS反解Zone记录的标志</strong></p>
+<ol>
+<li>反解主要是由IP找到主机名，重点是IP所有人是谁</li>
+<li>IP都是INTERNIC发放给各家ISP的，而且IP不能乱设置（路由问题）</li>
+<li><strong>因此能够设置反解的就只有IP的拥有人，亦即ISP才有权利设置反解</strong></li>
+<li>除非你取得是整个<code>Class C</code>以上等级的IP网段，那你的ISP才可能给你IP反解授权，否则，若有反解的需求，就需要向你的直属上层ISP申请才行</li>
+<li>反解的Zone记录的主要信息如下：
+<ul>
+<li><code>NS</code></li>
+<li><code>SOA</code></li>
+<li><code>PTR</code>：就是指向（PoinTeR）的缩写，后面记录的数据就是反解到的主机名</li>
+</ul>
+</li>
+</ol>
+<p>每台DNS都需要的正解<code>Zone：hint</code></p>
+<ol>
+<li>一个正解或一个反解就可以称为一个<code>Zone</code>了</li>
+<li><code>.</code>这个<code>Zone</code>是最重要的
+<ul>
+<li>当DNS服务器在自己的数据找不到所需的信息时，一定会去找<code>.</code></li>
+<li>因此就必须具有记录<code>.</code>在哪里的记录<code>Zone</code>才行</li>
+<li>这个记录<code>.</code>的<code>Zone</code>类型，就被称为<code>hint</code>类型，这个几乎是每个DNS服务器都需要知道的<code>Zone</code></li>
+</ul>
+</li>
+<li>一台简单的正解DNS服务器，基本就要有两个<code>Zone</code>才行，一个是<code>hint</code>，一个是关于自己域的正解<code>Zone</code></li>
+</ol>
+<p>正反解是否一定要成对</p>
+<ol>
+<li>正反解不需要成对</li>
+<li>在很多情况下，常常会只有正解的设置需求</li>
+<li>事实上，需要正反解成对需求的大概仅有<code>Mail Server</code>，由于目前网络带宽经常被垃圾邮件、广告邮件占光，所以Internet的社会对于合法的<code>Mail Server</code>规定也就越来越严格</li>
+</ol>
+<h2 id="16-dns数据库的类型hint-masterslave架构"><a class="markdownIt-Anchor" href="#16-dns数据库的类型hint-masterslave架构"></a> 1.6 DNS数据库的类型：hint、Master/Slave架构</h2>
+<p>现在注册域名，那么ISP都会要求你填写两台DNS服务器的IP，因为需要作为备份之用</p>
+<ol>
+<li>如果有两台以上的DNS服务器，那么网络上会搜寻到哪一台是不确定的，因为是随机的</li>
+<li>这两台DNS服务器的内容必须一模一样，如果不同步将会造成用户无法取得正确数据的问题</li>
+<li>为了解决这个问题，因此在<code>.（root）</code>这个<code>hint</code>类型的数据库文件外，还有两种基本类型
+<ul>
+<li><code>Master</code>（主人，主要）数据库</li>
+<li><code>Slave</code>（奴隶，次要）数据库</li>
+</ul>
+</li>
+</ol>
+<p><strong>Master</strong></p>
+<ol>
+<li>这种类型的DNS数据库中，里面所有的主机名相关信息，都需要管理员自己手动去修改与设置，设置完毕后还需要重新启动DNS服务去读取正确的数据库内容，才算完成数据库更新</li>
+<li>一般来说，我们说的DNS架设，就是指这种数据库的类型</li>
+<li>同时这种类型的数据库，还能够提供数据库内容给<code>Slave</code>的DNS服务器</li>
+</ol>
+<p><strong>Slave</strong></p>
+<ol>
+<li>通常不会只有一台DNS服务器，如果每台DNS都使用Master数据库类型，当有用户想我们要求修改或添加、删除数据时，一笔数据就需要做三次</li>
+<li><code>Slave</code>必须与<code>Master</code>相互搭配</li>
+<li>假如有三台主机提供DNS服务，且三台内容相同，那么只需要指定一台服务器为Master，其他两台为该Master的Slave服务器，那么当要修改的一笔名称对应时，我们只要手动更改Master那台机器的配置文件，然后重新启动BIND这个服务后，其他两台Slave就会自动被通知更新了</li>
+</ol>
+<p><strong>Master/Slave的查询优先权</strong></p>
+<ol>
+<li>不论是<code>Master</code>还是<code>Slave</code>服务器，都必须可以同时提供DNS服务才行，因为在DNS系统中，域名的查询是“先进先出”的状态</li>
+<li>每一台DNS服务器的数据库内容需要完全一致，否则就会造成客户端找到的IP是错误的</li>
+</ol>
+<p><strong>Master/Slave数据的同步化过程</strong></p>
+<ol>
+<li><code>Slave</code>需要更新来自<code>Master</code>的数据，所以当然<code>Slave</code>在设置之初就需要存在<code>Master</code>才行</li>
+<li>不论<code>Master</code>还是<code>Slave</code>数据库，都会有一个代表该数据库新旧的“序号”，这个序号数值的大小，是会影响是否要更新的操作</li>
+<li>更新的方式主要有以下两种
+<ul>
+<li><strong>Master主动告知</strong>：在Master修改了数据库内容，并加大数据库序号后，重新启动DNS服务，那Master会主动告知Slave来更新数据库，此时能实现数据同步</li>
+<li><strong>Slave主动提出要求</strong>：Slave会定时向Master查看数据库的序号，当发现Master数据库序号比Slave序号更大时，那么Slave就会开始更新，如果序号不变，就判断数据库没有变动，不会进行同步更新</li>
+</ul>
+</li>
+</ol>
+<h1 id="2-client端的设置"><a class="markdownIt-Anchor" href="#2-client端的设置"></a> 2 Client端的设置</h1>
+<h2 id="21-相关配置文件"><a class="markdownIt-Anchor" href="#21-相关配置文件"></a> 2.1 相关配置文件</h2>
+<p><strong>问题：</strong></p>
+<ol>
+<li>从主机名对应到IP有两种方法，<code>/etc/hosts</code>或者通过DNS架构</li>
+<li>那么这两种方法分别使用什么配置文件</li>
+<li>可否同时存在</li>
+<li>若可以同时存在，哪种优先</li>
+</ol>
+<p><strong>如下几个配置文件</strong></p>
+<ol>
+<li><code>/etc/hosts</code>：最早的Hostname对应IP的文件</li>
+<li><code>/etc/reslov.conf</code>：就是ISP的DNS服务器IP记录处<br />
+1.<code>/etc/nsswitch.conf</code>：决定先使用<code>/etc/hosts</code>还是<code>/etc/reslov.conf</code>的设置</li>
+</ol>
+<p><strong>一般而言，默认的Linux主机与IP的对应解析都以/etc/hosts优先</strong></p>
+<p><strong><code>/etc/resolv.conf</code></strong></p>
+<ol>
+<li>DNS服务器的IP可以设置多个，为什么要多个（避免DNS服务器宕机找不到IP），有点类似DNS备份功能</li>
+<li>在正常情况下，永远只有第一台DNS服务器会被用来查询</li>
+<li>为什么<code>/etc/resolv.conf</code>内容会被自动修改
+<ul>
+<li>当使用DHCP时，系统会主动使用DHCP服务器传来的数据进行系统配置文件的修订</li>
+<li>如果不想使用DHCP传来的服务器设置值，可以在/etc/sysconfig/network-scripts/ifcfg-eth0等相关文件内增加<code>PEERDNS=no</code>一行，然后重新启动即可</li>
+</ul>
+</li>
+</ol>
+<h2 id="22-dns的正解-反解查询命令host-nslookup-dig"><a class="markdownIt-Anchor" href="#22-dns的正解-反解查询命令host-nslookup-dig"></a> 2.2 DNS的正解、反解查询命令：host、nslookup、dig</h2>
+<h3 id="221-host"><a class="markdownIt-Anchor" href="#221-host"></a> 2.2.1 host</h3>
+<p><strong>格式：</strong></p>
+<ul>
+<li><code>host [-a] FQDN [server]</code></li>
+<li><code>host -l domain [server]</code></li>
+</ul>
+<p><strong>参数说明：</strong></p>
+<ul>
+<li><code>-a</code>：代表列出该主机所有的相关信息，包括IP、TTL与排错信息等</li>
+<li><code>-l</code>：若后面接的那个domian设置允许allow-transfer时，则列出该domain所管理的所有主机名对应数据</li>
+<li><code>server</code>：这个参数可有可无，当想要利用非<code>/etc/resolv.conf</code>内的DNS主机来查询主机名与IP的对应时，就可以利用这个参数了</li>
+</ul>
+<h3 id="222-nslookup"><a class="markdownIt-Anchor" href="#222-nslookup"></a> 2.2.2 nslookup</h3>
+<p><strong>格式：</strong></p>
+<ul>
+<li><code>nslookup [FQDN] [server]</code></li>
+<li><code>nslookup</code></li>
+</ul>
+<h3 id="223-dig"><a class="markdownIt-Anchor" href="#223-dig"></a> 2.2.3 dig</h3>
+<p><strong>格式：</strong></p>
+<ul>
+<li><code>dig [option] FQDN [@server]</code></li>
+</ul>
+<p><strong>参数说明：</strong></p>
+<ul>
+<li><code>+trace</code>：从<code>.</code>开始追踪</li>
+<li><code>-t type</code>：查询的数据主要有MX，NS，SOA等类型</li>
+<li><code>-x</code>：查询反解信息，非常重要</li>
+<li><code>@server</code>：如果不以<code>/etc/resolv.conf</code>的设置来作为DNS查询，可在此填入其他的IP</li>
+</ul>
+<p><strong>查询结果介绍</strong></p>
+<ol>
+<li>整个显示出的信息包括以下几个部分</li>
+<li>QUESTION（问题）：显示所要查询的内容</li>
+<li>ANSWER（回答）：依据刚刚的QUESTION去查询所得到的结果</li>
+<li>AUTHORITY（验证）：查询结果是由哪台服务器提供的（好像没有了???）</li>
+</ol>
+<p><strong>示例：</strong></p>
+<ul>
+<li><code>dig linux.vbird.org</code></li>
+<li><code>dig -x 120.114.100.20</code></li>
+</ul>
+<h3 id="224-whois"><a class="markdownIt-Anchor" href="#224-whois"></a> 2.2.4 whois</h3>
+<p>whiois用于查询这个域是谁管的</p>
+<h1 id="3-dns服务器的软件-种类与caching-only-dns服务器设置"><a class="markdownIt-Anchor" href="#3-dns服务器的软件-种类与caching-only-dns服务器设置"></a> 3 DNS服务器的软件、种类与Caching only DNS服务器设置</h1>
+<h2 id="31-搭建dns所需要的软件"><a class="markdownIt-Anchor" href="#31-搭建dns所需要的软件"></a> 3.1 搭建DNS所需要的软件</h2>
+<p>我们要使用的DNS软件就是使用伯克莱大学发展出来的BIND（Berkeley Internet Name Domain）</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">yum install bind-libs</span><br><span class="line">yum install bind-utils</span><br><span class="line">yum install <span class="built_in">bind</span></span><br><span class="line">yum install bind-chroot</span><br><span class="line">rpm -qa | grep <span class="string">&#x27;^bind&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>chroot代表的是“change to root（根目录）”，root代表的是根目录</p>
+<ul>
+<li>早期BIND默认将程序启动在<code>var/named</code>当中，但是该程序可以在根目录下的其他目录到处转移，若BIND程序有问题，则该程序会造成整个系统的危害</li>
+<li>为了避免这个问题，我们将目录指定为BIND程序的根目录，由于已经是根目录，所以BIND便不能离开该目录</li>
+<li>CentOS 默认将BIND锁在<code>/var/named/chroot</code>目录中</li>
+</ul>
+<h2 id="32-bind的默认路径设置与chroot"><a class="markdownIt-Anchor" href="#32-bind的默认路径设置与chroot"></a> 3.2 BIND的默认路径设置与chroot</h2>
+<p>搭建好BIND需要设置的两个主要数据</p>
+<ol>
+<li>BIND本身的配置文件（<code>/etc/named.conf</code>）：主要规范主机的设置、zone file的存在、权限的设置等</li>
+<li>正反解数据库文件（zone file）：记录主机名与IP的对应等</li>
+</ol>
+<p>一般来说，CentOS的默认目录如下</p>
+<ol>
+<li><code>/etc/named.conf</code>：配置文件</li>
+<li><code>/etc/sysconfig/named</code>：是否启动chroot及额外参数</li>
+<li><code>/var/named/</code>：数据库文件默认放置的目录</li>
+<li><code>/var/run/named</code>：named这支程序执行时默认放置<code>pid-file</code>在此目录内</li>
+</ol>
+<p>一般来说，目前主要的distribution都已经自动地将BIND相关程序给chroot了</p>
+<ol>
+<li>chroot指定的目录记录在<code>/etc/sysconfig/named</code></li>
+</ol>
+<h2 id="33-单纯的cache-only-dns服务器与forwarding功能"><a class="markdownIt-Anchor" href="#33-单纯的cache-only-dns服务器与forwarding功能"></a> 3.3 单纯的cache-only DNS服务器与forwarding功能</h2>
+<p><strong>什么是cache-only与forwarding DNS服务器</strong></p>
+<ol>
+<li>有个只需要<code>.</code>这个zone file的简单DNS服务器，我们称这种没有公开的DNS数据库的服务器为cache-only（唯高速缓存） DNS Server
+<ul>
+<li>这个DNS Server只有缓存搜寻结果的功能</li>
+<li>它本身并没有主机名与IP正反解的配置文件，完全是由对外的查询来提供它的数据源</li>
+<li>不论谁来查询数据，这台DNS一律开始从自己的缓存以及<code>.</code>找起</li>
+</ul>
+</li>
+<li>如果连<code>.</code>都不想要，那就需要指定一个上层DNS服务器作为forwarding目标
+<ul>
+<li>将原本自己要往<code>.</code>查询的任务，丢给上层DNS服务器去处理即可</li>
+<li>即便forwarding DNS具有<code>.</code>这个zone file，还是会将查询权委托请求上层DNS查询</li>
+</ul>
+</li>
+</ol>
+<p><strong>什么时候有搭建cache-only DNS的需求</strong></p>
+<ul>
+<li>在某些公司，为了预防员工利用公司网络资源做自己的事情，所以都会针对Internet的连接作比较严格的限制，连port 53这个DNS会用到的port也可能会被挡在防火墙外，此时，可以在防火墙那台机器上面，加装一个cache-only DNS服务器</li>
+<li>即利用自己的防火墙主机上的DNS服务区帮你的Client端解析<code>hostname&lt;--&gt;IP</code>，因为防火墙主机可以设置放行自己的DNS功能，而Client端就设置该防火墙IP为DNS服务器的IP即可，这样就可以取得主机名与IP的转译了</li>
+<li>通常搭建cache-only DNS服务器大都是为了系统安全</li>
+</ul>
+<p><strong>实际设置cache-only DNS Server</strong></p>
+<ul>
+<li>由于不需要设置正反解的Zone，只需要<code>.</code>的Zone支持即可</li>
+<li>所以只需要设置一个文件（<code>named.conf</code>主配置文件）</li>
+<li>另外，cache-only只要加上forwarders的设置即可指定forwarding的数据</li>
+<li>详细步骤如下
+<ol>
+<li>
+<p>编辑主要配置文件<code>/etc/named.conf</code>，以下为参数解释</p>
+<ul>
+<li><code>listen-on port 53&#123;any;&#125;</code>：监听在这台主机系统上面的哪个网络接口，默认是监听在localhost，亦即只有本机可以对DNS服务器进行查询，因此要改成any。注意，由于可以监听多个接口，因此any后面必须有分号</li>
+<li><code>directory /var/named</code>：如果此文件下面有规范到正/反解的zone file文件，该文件名默认应该存储到哪个目录，默认放到/var/named下面，由于chroot的关系，最终这些数据库文件会被主动链接到/var/named/chroot/var/named/这个目录</li>
+<li><code>dump-file</code>、<code>statistics-file</code>、<code>memstatistics-file</code>：与named这个服务有关的许多统计信息</li>
+<li><code>allow-query&#123;any;&#125;</code>：针对客户端的设置，表示到底谁可以对该DNS服务器提出查询请求的意思。原本文件的内容默认是针对localhost开放，这里改成对所有用户开放。默认的DNS就是对所有用户放行，因此这个设置值可以不用写（注意原本文件内容与默认的DNS的区别）</li>
+<li><code>forward only;</code>：这个设置可以让DNS服务仅进行forward，即便有<code>.</code>这个zone file，也不会使用<code>.</code>的数据，只会将查询权上交给上层DNS服务器，这个是cache only DNS最常见的设置</li>
+<li><code>forwarders&#123;10.3.9.6;&#125;;</code>：可以设置多个DNS服务器，避免其中一台宕机导致服务停止，每一个forwarder服务器的IP都需要有<code>;</code>来结尾，另外大括号外也要有<code>;</code></li>
+</ul>
+</li>
+<li>
+<p>启动named并查看服务器的端口<br />
+<code>systemctl restart named.service</code><br />
+<code>netstat -tunlp | grep named</code></p>
+</li>
+<li>
+<p>检查<code>/var/log/messages</code>的日志信息（极重要）</p>
+</li>
+<li>
+<p>测试</p>
+<ul>
+<li>如果你的DNS服务器具有连上因特网的功能，那么通过<code>dig www.baidu.com @127.0.0.1</code></li>
+<li>如果找到<code>www.baidu.com</code>的IP，并且最先面显示<code>SERVER:127.0.0.1#53（127.0.0.1）</code>字样，就代表成功了</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<p><strong>forwarders的好处与问题分析</strong></p>
+<ol>
+<li>利用forwarders的功能来提高效率的理论
+<ul>
+<li>当很多下层DNS服务器都使用forwarders时，那么那个被设置为forwarder的主机，由于会记录很多的查询信息记录</li>
+<li>因此对那些下层的DNS服务器而言，查询速度回快很多，亦即节省很多查询时间，因为forwarder服务器里面有较多缓存记录</li>
+<li>因此包括forwarder本身，以及所有向这台forwarder要求数据的DNS服务器，都能减少往<code>.</code>查询的机会，因此速度当然加快</li>
+</ul>
+</li>
+<li>利用forwarders反而会使整体的效率降低
+<ul>
+<li>当DNS本身的业务量就很繁忙时，那么你的cache-only DNS服务器还要向他要求数据，因为它原本的数据传输量就太大了，带宽方面可能负荷过大，而太多的下层DNS还向它要求数据，所以它的查询速度会变慢</li>
+<li>而你的cache-only Server又是向它提出要求的，因此自然两边的查询速度都会同步下降</li>
+</ul>
+</li>
+<li>如果上层DNS速度很快的话，那么它被设置为forwarder时，或许真的可以提高不少效率</li>
+</ol>
+<h1 id="4-dns服务器的详细设置"><a class="markdownIt-Anchor" href="#4-dns服务器的详细设置"></a> 4 DNS服务器的详细设置</h1>
+<p><strong>架设DNS服务器的细节</strong></p>
+<ol>
+<li>DNS服务器的架设需要上层DNS的授权才可以成为合法的DNS服务器（否则只是练习）
+<ul>
+<li>没有注册，就代表在上层的DNS服务器中是没有这台DNS服务器的记录的，即本台DNS服务器是没有一个合法域名，因此不具备分配主机名的能力</li>
+<li>但是没有注册，只要该DNS可以正常联网，那么其他主机仍然可以通过这台DNS来查询“合法主机名”的IP，这里的合法主机名必然是在其他DNS服务器进行注册过的主机名</li>
+</ul>
+</li>
+<li>配置文件的位置：目前BIND程序已进行chroot，相关目录参考<code>/etc/sysconfig/named</code></li>
+<li>named主要配置文件：<code>/etc/named.conf</code></li>
+<li>每个正、反解区域都需要一个数据库文件，而文件名则是由<code>/etc/named.conf</code>所设置</li>
+<li>当DNS查询时，若本身没有数据库文件，则前往root（<code>.</code>）或farwarders服务器查询</li>
+<li>named能否成功启动务必要查询<code>/var/log/messages</code>内的信息（其实<code>systemctl restart named.service</code>，若失败则会提供日志查询的命令的）</li>
+</ol>
+<h2 id="41-正解文件记录的数据resource-recordrr"><a class="markdownIt-Anchor" href="#41-正解文件记录的数据resource-recordrr"></a> 4.1 正解文件记录的数据（Resource Record,RR）</h2>
+<p><strong>正解文件资源记录（Resource Record，RR）格式</strong>，我们可以发现，dig命令输出结果的格式几乎是固定的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[domain]        [ttl]             [class]      [[RR type]       [RR data]]</span><br><span class="line">[待查数据]       [暂存时间（秒）]     IN           [资源类型]        [资源内容]</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>domain</code>：域名</li>
+<li><code>ttl</code>：time ro live，缓存时间，单位秒</li>
+<li><code>class</code>：要查询信息的类别，<code>IN</code>代表类别为<code>IP协议</code>，即<code>Internet</code>。还有其它类别，比如<code>chaos</code>等，由于现在都是互联网，所以其它基本不用</li>
+<li><code>RR type</code>与<code>RR data</code>是互相有关联性的
+<ul>
+<li><code>A</code>&lt;==&gt;<code>IPv4</code></li>
+<li><code>AAAA</code>&lt;==&gt;<code>IPv6</code></li>
+<li><code>NS</code>&lt;==&gt;<code>主机名</code></li>
+</ul>
+</li>
+<li>此外，在domain部分，若可能的话，请尽量使用FQDN，即主机名结尾加一个小数点（<code>.</code>），就被称为FQDN（Fully Qualified Domain Name，全限定域名）</li>
+<li><code>ttl</code>：time to live的缩写，这笔记录被其他DNS服务器查询到后，这个记录会在对方DNS服务器的缓存中，保持多少秒钟的意思，由于ttl可由特定参数统一管理，因此在RR记录格式中，通常这个ttl字段是可以忽略的</li>
+</ul>
+<p><strong>正解文件的RR记录格式汇整如下</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"><code>[domian]</code></th>
+<th style="text-align:left"><code>IN</code></th>
+<th style="text-align:left"><code>[[RR type]</code></th>
+<th style="text-align:left"><code>[RR data]]</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>主机名.</code></td>
+<td style="text-align:left"><code>IN</code></td>
+<td style="text-align:left"><code>A</code></td>
+<td style="text-align:left"><code>IPv4的IP地址</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>主机名.</code></td>
+<td style="text-align:left"><code>IN</code></td>
+<td style="text-align:left"><code>AAAA</code></td>
+<td style="text-align:left"><code>IPv6的IP地址</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>域名.</code></td>
+<td style="text-align:left"><code>IN</code></td>
+<td style="text-align:left"><code>NS</code></td>
+<td style="text-align:left"><code>管理这个域名的服务器主机名</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>域名.</code></td>
+<td style="text-align:left"><code>IN</code></td>
+<td style="text-align:left"><code>SOA</code></td>
+<td style="text-align:left"><code>管理这个域名的七个重要参数</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>域名.</code></td>
+<td style="text-align:left"><code>IN</code></td>
+<td style="text-align:left"><code>MX</code></td>
+<td style="text-align:left"><code>顺序数字，接收邮件的服务器主机名</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>主机别名.</code></td>
+<td style="text-align:left"><code>IN</code></td>
+<td style="text-align:left"><code>CNAME</code></td>
+<td style="text-align:left"><code>实际代表这个主机别名的主机名</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>A、AAAA（Address）：查询IP的记录</strong></p>
+<ul>
+<li><code>dig -t a www.ksu.edu.tw</code></li>
+<li>这个A的RR类型是在查询某个主机名的IP，也是最常被查询的一个RR标志</li>
+<li>如果IP设置的是IPv6的话，那么查询就需要使用AAAA类型才行</li>
+</ul>
+<p><strong>NS（Name Server）：查询管理区域名（Zone）的服务器主机名</strong></p>
+<ul>
+<li><code>dig -t ns ksu.edu.cn</code></li>
+</ul>
+<p><strong>SOA（Start of Authority）：查询管理域名的服务器管理信息</strong></p>
+<ul>
+<li>如果有多台DNS服务器管理同一个域名，那么最好使用Master/Slave的方式来进行管理，就需要声明被管理的zone file是如何进行传输的，此时就需要SOA（Start Of Authorty）的标志了</li>
+<li><code>dig -t soa ksu.edu.tw</code></li>
+</ul>
+<p><strong>SOA后面总共会接七个参数</strong></p>
+<ol>
+<li><code>Master DNS服务器主机名</code>：这个区域主要是哪台DNS作为Master的意思</li>
+<li><code>管理员的E-mail</code>：由于@在数据库文件中是有特殊意义的，因此就将@替换为mail</li>
+<li><code>序号（Serial）</code>：当修改了数据库内容时，需要将这个值放大才行，通常的格式为<code>YYYYMMDDNU</code>，例如2010080369代表2010年08月03当天第69次更改</li>
+<li><code>更新频率（Refresh）</code>：Salve向Master要求数据更新的频率，如果发现序号没有增大，则不会下载数据库文件</li>
+<li><code>失败重新尝试时间（Retry）</code>：由于某些因素导致Slave无法对Master实现连接，那么在多长时间内，Slave会尝试重新连接到Master，若连接成功了，又恢复为原来的更新频率</li>
+<li><code>时效时间（Expire）</code>：如果一直尝试失败，持续连接到这个设置值时限，那么Save将不再继续尝试连接，并尝试删除这份下载的zone file信息</li>
+<li><code>缓存时间（Mimumum TTL）</code>：如果数据库zone file中，每笔RR记录都没有写到TTL缓存时间的话，那么就以SOA的设置值为主</li>
+</ol>
+<p><strong>参数限制</strong></p>
+<ol>
+<li><code>Refresh&gt;=Retry*2</code></li>
+<li><code>Refresh+Retry&lt;Expire</code></li>
+<li><code>Expire&gt;=Retry*10</code></li>
+<li><code>Expire&gt;=7Days</code></li>
+</ol>
+<p><strong>CNAME（Canonical Name）：设置某主机名的别名（alias）</strong></p>
+<ul>
+<li>有时候你不想针对某个主机名设置A标志，而是想通过另外一台主机名的A来规范这个新主机名，这时可以使用CNAME的设置</li>
+<li>为什么要用CNAME?
+<ul>
+<li>如果你有一个IP，这个IP是给很多主机名使用的，那么当你的IP更改时，所有的数据就得全部更新A标志才行</li>
+<li>如果你只有一个主要主机名设置A，而其他的标志使用CNAME，那么当IP更改时你只需要修订一个A标志，其他的CNAME就跟着变动了，处理起来比较容易</li>
+</ul>
+</li>
+</ul>
+<p><strong>MX（Mail Exchanger）：查询某域名的邮件服务器主机名</strong></p>
+<ul>
+<li>MX是Mail eXchanger（邮件交换）的意思</li>
+<li>通常整个区域会设置一个MX，表示所有寄给这个区域的E-mail应该要送到后头的E-mail Server主机名上才行</li>
+<li>通常大型的企业会有多台上层的邮件服务器来预先接受信件，那么数字较小的邮件服务器优先</li>
+</ul>
+<h2 id="42-反解文件记录的rr数据"><a class="markdownIt-Anchor" href="#42-反解文件记录的rr数据"></a> 4.2 反解文件记录的RR数据</h2>
+<p>以<code>www.ksu.edu.tw.</code>为例，从整个域的概念来看，越右边出现的名称代表域越大，即<code>.（root）&gt;.tw&gt;.edu</code></p>
+<p>但是IP不同，以<code>120.114.100.101</code>为例，<code>120&gt;114&gt;100&gt;101</code>，与默认的DNS从右边向左边查询不一样，于是反解的Zone必须要将IP反过来，而在结尾时加上<code>.in-addr-arpa.</code>的结尾字样即可<code>dig -x 120.114.100.101</code>得到以下输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">101.100.114.120.in-addr.arpa. 3600 IN	PTR	120-114-100-101.ksu.edu.tw.</span><br><span class="line"></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p><strong>PRT就是反解，即是查询IP所对应的主机名</strong>：反解最重要的地方就是：后面的主机名尽量使用完整的FQDN，亦即机上小数点<code>.</code>，</p>
+<h2 id="43-步骤一dns的环境规划"><a class="markdownIt-Anchor" href="#43-步骤一dns的环境规划"></a> 4.3 步骤一：DNS的环境规划</h2>
+<p>1、假设在局域网中要设置DNS服务器，局域网域名为<code>centos.liuye</code>，搭配的IP网段为<code>192.168.100.0/24</code>，因此主要正解区域为<code>centos.liuye</code>，反解的区域是<code>192.168.100.0/24</code>。并且想要寻找<code>.</code>而不通过forwarders的辅助，因此还需要<code>.</code>的区域正解文件，以下为需要的配置文件</p>
+<ol>
+<li><code>named.conf</code>：主要配置文件</li>
+<li><code>named.centos.liuye</code>：主要的<code>centos.liuye</code>的正解文件</li>
+<li><code>named.192.168.100</code>：主要的<code>192.168.100.0/24</code>的反解文件</li>
+<li><code>named.ca</code>：由bind软件提供的<code>.</code>正解文件</li>
+</ol>
+<h2 id="44-步骤二主配置文件etcnamedconf的设置"><a class="markdownIt-Anchor" href="#44-步骤二主配置文件etcnamedconf的设置"></a> 4.4 步骤二：主配置文件/etc/named.conf的设置</h2>
+<p>该文件的主要任务</p>
+<ul>
+<li><code>options</code>：规范DNS服务器的权限（可否查询、forward与否等）</li>
+<li><code>zone</code>：设置出Zone（domain name）以及zone file的所在（包含master/slave/hint）</li>
+<li>其他：设置DNS本机管理接口以及相关的密钥文件（key file）</li>
+</ul>
+<p><strong>以下为配置内容</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">options &#123;</span><br><span class="line">	listen-on port 53 &#123; any; &#125;;</span><br><span class="line">	directory 	&quot;/var/named&quot;;</span><br><span class="line">	dump-file 	&quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">	statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">	memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">	allow-query     &#123; any; &#125;;</span><br><span class="line"></span><br><span class="line">	recursion yes;</span><br><span class="line"></span><br><span class="line">	allow-transfer &#123;none;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;.&quot; IN&#123;</span><br><span class="line">	type hint;</span><br><span class="line">	file &quot;named.ca&quot;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;centos.liuye.&quot; IN&#123;</span><br><span class="line">	type master;</span><br><span class="line">	file &quot;named.centos.liuye&quot;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;200.168.192.in-addr.arpa.&quot; IN &#123;</span><br><span class="line">	type master;</span><br><span class="line">	file &quot;named.192.168.200&quot;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="45-步骤三最上层root数据库文件的设置"><a class="markdownIt-Anchor" href="#45-步骤三最上层root数据库文件的设置"></a> 4.5 步骤三：最上层.（root）数据库文件的设置</h2>
+<p><code>.</code>是由INTERNIC所管理维护的，全世界共有13台管理<code>.</code>的DNS服务器</p>
+<p>BIND软件已经提供了一个名为<code>namced.ca</code>的文件了</p>
+<h2 id="46-步骤四正解数据库文件的设置"><a class="markdownIt-Anchor" href="#46-步骤四正解数据库文件的设置"></a> 4.6 步骤四：正解数据库文件的设置</h2>
+<p>正解文件一定要有的RR标志有下面几个</p>
+<ol>
+<li>关于本区域的基础设置方面：例如缓存记忆时间（TTL）、域名（ORIGIN）等</li>
+<li>关于Master/Slave的认证方面（SOA）</li>
+<li>关于本区域的域名服务器所在的主机名与IP对应（NS、A）</li>
+<li>其他正反解相关的资源记录（A、MX、CNAME等）</li>
+</ol>
+<p>正解文件中的特殊符号</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">字符</th>
+<th style="text-align:left">意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">一定从行首开始</td>
+<td style="text-align:left"><strong>所有设置数据一定要从行首开始，前面不可有空格符，若有空格符，代表延续前一个domain的意思，非常重要</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>@</code></td>
+<td style="text-align:left">代表Zone的意思，例如写在<code>named.centso.liuye</code>中，@代表<code>centos.liuye.</code>（注意最后的点），如果写在<code>named.192.168.200</code>文件中，则<code>@</code>代表200.168.192.in-addr.arpa.（注意最后的点）</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.</code></td>
+<td style="text-align:left">非常重要，因为它带包一个完整主机名（FQDN）而不是仅有hostname而已。例如在<code>named.centos.liuye</code>当中写<code>www.centos.liuye</code>则FQDN为<code>www.centos.liuye.@</code>==&gt;<code>www.centos.liuye.centos.liuye.</code>，因此自然要写成<code>www.centos.liuye.</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>;</code></td>
+<td style="text-align:left">代表批注符号，似乎<code>#</code>也是批注，两个都能用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>以下为配置内容</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$TTL 600</span><br><span class="line">@  IN  SOA  master.centos.liuye.  liuye.www.centos.liuye.  </span><br><span class="line">(2011080401 3H 15M 1W 1D)</span><br><span class="line">@  IN  NS  master.centos.liuye.</span><br><span class="line">master.centos.liuye.  IN A  192.168.200.254</span><br><span class="line">@  IN  MX  10  www.centos.liuye.</span><br><span class="line"></span><br><span class="line">www.centos.liuye.  IN A  192.168.200.254</span><br><span class="line">linux.centos.liuye.  IN CNAME  www.centos.liuye.</span><br><span class="line">ftp.centos.liuye.  IN CNAME  www.centos.liuye.</span><br><span class="line"></span><br><span class="line">Linux2.centos.liuye.  IN  A  192.168.200.101</span><br></pre></td></tr></table></figure>
+<p><strong>务必注意完整主机名（FQDN）之后的点</strong></p>
+<ul>
+<li>加上了<code>.</code>表示这是个完整的主机名（FQDN），亦即<code>hostname+domain name</code></li>
+<li>若没有加上<code>.</code>，表示该名称仅为<code>hostname</code>，因此完整的FQDN要加上Zone，即<code>hostname.@</code></li>
+</ul>
+<h2 id="47-步骤五反解数据库文件的设置"><a class="markdownIt-Anchor" href="#47-步骤五反解数据库文件的设置"></a> 4.7 步骤五：反解数据库文件的设置</h2>
+<p>由于反解的Zone名称是<code>zz.yy.xx.in-addr.arpa.</code>模样，因此只要在反解里面用到主机名时，务必使用FQDN来设置</p>
+<p>由于我们的Zone是<code>200.168.192.in-addr.arpa.</code>，因此IP的全名部分已经含有192.168.200了，因此我们只需要写出最后一个IP即可，而且不用加点，利用hostname.@来帮助我们补全</p>
+<p><strong>以下为配置内容</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$TTL    600</span><br><span class="line">@  IN  SOA  master.centos.liuye.  liuye.www.centos.liuye.  </span><br><span class="line">(2011080401 3H 15M 1W 1D)</span><br><span class="line">@  IN  NS  master.centos.liuye.</span><br><span class="line">254  IN  PTR  master.centos.liuye.</span><br><span class="line"></span><br><span class="line">254  IN  PTR  www.centos.liuye.</span><br><span class="line">101  IN  PTR  Linux2.centos.liuye.</span><br></pre></td></tr></table></figure>
+<ul>
+<li>同理，反解的主机名也得记得自后加<code>.</code>，否则给你自动补上<code>.@</code>了</li>
+</ul>
+<h2 id="48-步骤六dns启动查看与防火墙"><a class="markdownIt-Anchor" href="#48-步骤六dns启动查看与防火墙"></a> 4.8 步骤六：DNS启动查看与防火墙</h2>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart named.service</span><br><span class="line">systemctl <span class="built_in">enable</span> named.service</span><br></pre></td></tr></table></figure>
+<p><strong>利用firewall-cmd或者firewall-config来配置防火墙</strong></p>
+<h2 id="49-测试与数据库更新"><a class="markdownIt-Anchor" href="#49-测试与数据库更新"></a> 4.9 测试与数据库更新</h2>
+<p><strong>测试有两种方式</strong></p>
+<ol>
+<li>一种通过Client端的查询功能，目的是检验数据库设置有无错误</li>
+<li>利用<code>http://thednsreport.com/</code>来检验，但是该网站的检验主要是以合法授权的Zone为主，我们自己乱搞的DNS是没法检验的</li>
+</ol>
+<p><strong>修改<code>/etc/resolv.conf</code></strong></p>
+<ul>
+<li>使得自己的非合法DNS主机IP写在最上面，否则只要上面的DNS网络通畅，那么该DNS便是无效的，因此自然查不到自己设定的非法主机名</li>
+</ul>
+<p><strong>判断成功与否</strong></p>
+<ul>
+<li>是否与预期相符合</li>
+<li>如果出现错误信息或者找不到某个反解的IP或者正解的主机名那么就说明不正确了</li>
+</ul>
+<p><strong>数据库更新，例如主机名或IP变更，或者添加某个主机名与IP对应</strong></p>
+<ul>
+<li>先针对要更改的那个Zone的数据库文件去做更新，就是加入RR（Resource Record）标志</li>
+<li>更改该zone file的序号（Serial），就是SOA的第三个参数（第一个数字），因为这个数字会影响到Master/Slave的判定更新与否</li>
+<li>重新启动named，或者让named重新读取配置文件即可</li>
+</ul>
+<h1 id="5-协同工作的dnsslave-dns及子域授权设定"><a class="markdownIt-Anchor" href="#5-协同工作的dnsslave-dns及子域授权设定"></a> 5 协同工作的DNS：Slave DNS及子域授权设定</h1>
+<p><strong>Slave DNS的特色</strong></p>
+<ul>
+<li>为了不间断地提供DNS服务，你的领域至少需要有两台DNS服务器来提供查询的功能</li>
+<li>这几台DNS服务器应该要分散在两个以上的不同IP网段才好</li>
+<li>为方便管理，通常除了一台主要Master DNS之外，其他的DNS会使用Slave模式</li>
+<li>Slave DNS服务器本身并没有数据库，它的数据库是由Master DNS所提供的</li>
+<li>Master/Slave DNS需要有可以相互传输zone file的相关信息才行，这部分需要/etc/named.conf的设置加以辅助</li>
+</ul>
+<h2 id="51-masterdns权限的开放"><a class="markdownIt-Anchor" href="#51-masterdns权限的开放"></a> 5.1 masterDNS权限的开放</h2>
+<p><strong>基本假设</strong></p>
+<ol>
+<li>提供Slave DNS服务器进行zone transfer的服务器为<code>master.centos.liuye</code></li>
+<li><code>centos.liuye</code>以及<code>200.168.192.in-addr.arpa</code>两个Zone都提供给Slave DNS使用</li>
+<li><code>master.centos.liuye</code>的named仅提供给<code>slave.centos.liuye</code>这台主机进行zone transfer</li>
+<li>Slave DNS Server架设在192.168.200.101这台服务器上面（所以zone file要修订）</li>
+<li>将上面的Master主机修改后如下</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">options &#123;</span><br><span class="line">	listen-on port 53 &#123; any; &#125;;</span><br><span class="line">	directory 	&quot;/var/named&quot;;</span><br><span class="line">	dump-file 	&quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">	statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">	memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">	allow-query     &#123; any; &#125;;</span><br><span class="line"></span><br><span class="line">	recursion yes;</span><br><span class="line"></span><br><span class="line">	allow-transfer &#123;none;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;.&quot; IN&#123;</span><br><span class="line">	type hint;</span><br><span class="line">	file &quot;named.ca&quot;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;centos.liuye.&quot; IN&#123;</span><br><span class="line">	type master;</span><br><span class="line">	file &quot;named.centos.liuye&quot;;</span><br><span class="line">	allow-transfer &#123; 192.168.200.101; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;200.168.192.in-addr.arpa.&quot; IN &#123;</span><br><span class="line">	type master;</span><br><span class="line">	file &quot;named.192.168.200&quot;;</span><br><span class="line">	allow-transfer &#123; 192.168.200.101; &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="52-slave-dns的设置与数据库权限问题"><a class="markdownIt-Anchor" href="#52-slave-dns的设置与数据库权限问题"></a> 5.2 Slave DNS的设置与数据库权限问题</h2>
+<p>既然Slave DNS也是DNS服务器，所以也要安装bind、bind-chroot等软件</p>
+<p>既然Master/Slave的数据库是相同的，那么理论上<code>/etc/named.conf</code>内容就是大同小异了</p>
+<ul>
+<li>唯一要注意的就是zone type类型，以及声明Master在哪里</li>
+<li>至于zone filename部分，由于zone file都是从Master取得的，通过named这个程序来主动建立起需要的zone file，因此这个zone file放置的目录权限就很重要</li>
+</ul>
+<p><strong>以下是<code>/etc/named.conf</code>配置内容</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">options &#123;</span><br><span class="line">	listen-on port 53 &#123; any; &#125;;</span><br><span class="line">	directory 	&quot;/var/named&quot;;</span><br><span class="line">	dump-file 	&quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">	statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">	memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">	allow-query     &#123; any; &#125;;</span><br><span class="line"></span><br><span class="line">	recursion yes;</span><br><span class="line"></span><br><span class="line">	allow-transfer &#123;none;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;.&quot; IN&#123;</span><br><span class="line">	type hint;</span><br><span class="line">	file &quot;named.ca&quot;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;centos.liuye.&quot; IN&#123;</span><br><span class="line">	type slave;</span><br><span class="line">	file &quot;slaves/named.centos.liuye&quot;;</span><br><span class="line">	masters &#123; 192.168.200.254; &#125;;   //注意大括号与IP之间有空格，不然会高亮红色显示</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;200.168.192.in-addr.arpa.&quot; IN &#123;</span><br><span class="line">	type slave;</span><br><span class="line">	file &quot;slaves/named.192.168.200&quot;;</span><br><span class="line">	masters &#123; 192.168.200.254; &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="53-配置子域dns服务器子域授权课题"><a class="markdownIt-Anchor" href="#53-配置子域dns服务器子域授权课题"></a> 5.3 配置子域DNS服务器：子域授权课题</h2>
+<p>我们以刚在Master上面建立的<code>centos.liuye</code>这个Zone为例，假设今天你是个ISP，有人想和你申请domain name，他要的domian是<code>lh.centos.liuye</code>，该如何处理</p>
+<ul>
+<li>上层DNS服务器：也就是<code>master.centos.liuye</code>这一台，只要在<code>centos.liuye</code>那个zone file内，增加指定NS并指向下层DNS主机名与IP对应即可，而zone file的需要也要增加才行</li>
+<li>下层DNS服务器：申请的域名必须是上层DNS所可以提供的名称，并告知上层DNS管理员，我们这个Zone所需指定的DNS主机名与对应的IP即可，然后就可以开始设置自己的Zone与zone file相关数据了</li>
+</ul>
+<p><strong>上层DNS服务器</strong>：只需要添加zone file的<code>NS</code>与<code>A</code>即可，在<code>/etc/named.conf</code>中添加如下两行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lh.centos.liuye.	IN NS	dns.lh.centos.liuye.</span><br><span class="line">dns.lh.centos.liuye.	IN A	192.168.200.102</span><br></pre></td></tr></table></figure>
+<p><strong>下层DNS服务器</strong>：需要有完整的Zone相关设置，<code>/etc/named.conf</code>中内容如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">options &#123;</span><br><span class="line">	listen-on port 53 &#123; any; &#125;;</span><br><span class="line">	directory 	&quot;/var/named&quot;;</span><br><span class="line">	dump-file 	&quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">	statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">	memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">	allow-query     &#123; any; &#125;;</span><br><span class="line"></span><br><span class="line">	recursion yes;</span><br><span class="line"></span><br><span class="line">	allow-transfer &#123;none;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;.&quot; IN&#123;</span><br><span class="line">	type hint;</span><br><span class="line">	file &quot;named.ca&quot;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;lh.centos.liuye.&quot; IN&#123;</span><br><span class="line">	type master;</span><br><span class="line">	file &quot;named.lh.centos.liuye&quot;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong><code>/var/named/named.lh.centos.liuye</code>内容如下</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$TTL	600</span><br><span class="line">@		IN SOA	dns.lh.centos.liuye. root.lh.centos.liuye. </span><br><span class="line">(2016112901 3H 15M 1W 1D)</span><br><span class="line">@		IN NS 	dns.lh.centos.liuye.</span><br><span class="line">dns		IN A	192.168.200.101</span><br></pre></td></tr></table></figure>
+<h2 id="54-依不同接口给予不同的dns主机名view功能的应用"><a class="markdownIt-Anchor" href="#54-依不同接口给予不同的dns主机名view功能的应用"></a> 5.4 依不同接口给予不同的DNS主机名：view功能的应用</h2>
+<p>以目前的局域网服务器来说，我的<code>master.centos.liuye</code>有两个接口，分别是<code>192.168.200.254/24</code>（对内）以及<code>192.168.136.166</code>（对外）</p>
+<ul>
+<li>外边的用户想要了解到<code>master.centos.liuye</code>这台服务器的IP时，取得的是<code>192.168.200.254</code>，因此需要通过NAT才能连接到该接口</li>
+<li>但是明明<code>192.168.136.166</code>与<code>192.168.200.254</code>是同一台服务器主机，有没有办法让外部查询找到<code>master.centos.liuye</code>是<code>192.168.136.166</code>而内部的找到则回应1<code>92.168.200.254</code>—<strong>通过view功能</strong></li>
+</ul>
+<p><strong>设置view</strong></p>
+<ol>
+<li>建立一个名为intranet的名字，这个名字代表客户端为<code>192.168.200.0/24</code>的来源</li>
+<li>建立一个名为internet的名字，这个名字代表客户端为非<code>192.168.136.0/24</code>的其他来源</li>
+<li>intranet使用的zone file为前面所建立的zone filename，internet使用的zone filename则在原本的文件名后面累加inter的扩展名，并修订各标志的结果</li>
+<li>最终的结果中，从内网查到的<code>www.centos.liuye</code>的IP应该是<code>192.168.200.254</code>，从外网中查询到的<code>www.centos.liuye</code>的IP应该是<code>192.168.136.166</code></li>
+</ol>
+<p><strong>以下为修改后的<code>/etc/named.conf</code></strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">options &#123;</span><br><span class="line">	listen-on port 53 &#123; any; &#125;;</span><br><span class="line">	directory 	&quot;/var/named&quot;;</span><br><span class="line">	dump-file 	&quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">	statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">	memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">	allow-query     &#123; any; &#125;;</span><br><span class="line"></span><br><span class="line">	recursion yes;</span><br><span class="line"></span><br><span class="line">	allow-transfer &#123;none;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">acl intranet &#123; 192.168.200.0/24; &#125;;</span><br><span class="line">acl internet &#123; ! 192.168.200.0/24; any; &#125;;</span><br><span class="line"></span><br><span class="line">view &quot;lan&quot;&#123;</span><br><span class="line">	match-clients &#123; &quot;intranet&quot;; &#125;;</span><br><span class="line">	zone &quot;.&quot; IN&#123;</span><br><span class="line">		type hint;</span><br><span class="line">		file &quot;named.ca&quot;;</span><br><span class="line">	&#125;;</span><br><span class="line"></span><br><span class="line">	zone &quot;centos.liuye.&quot; IN&#123;</span><br><span class="line">		type master;</span><br><span class="line">		file &quot;named.centos.liuye&quot;;</span><br><span class="line">		allow-transfer &#123; 192.168.200.101; &#125;;</span><br><span class="line">	&#125;;</span><br><span class="line"></span><br><span class="line">	zone &quot;200.168.192.in-addr.arpa.&quot; IN &#123;</span><br><span class="line">		type master;</span><br><span class="line">		file &quot;named.192.168.200&quot;;</span><br><span class="line">		allow-transfer &#123; 192.168.200.101; &#125;;</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">view &quot;wan&quot; &#123;</span><br><span class="line">	match-clients &#123; &quot;internet&quot;; &#125;;</span><br><span class="line">	zone &quot;.&quot; IN &#123;</span><br><span class="line">		type hint;</span><br><span class="line">		file &quot;named.ca&quot;;</span><br><span class="line">	&#125;;</span><br><span class="line"></span><br><span class="line">	zone &quot;centos.liuye.&quot; IN&#123;</span><br><span class="line">		type master;</span><br><span class="line">		file &quot;named.centos.liuye.inter&quot;;</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h1 id="6-dns服务器的高级设定"><a class="markdownIt-Anchor" href="#6-dns服务器的高级设定"></a> 6 DNS服务器的高级设定</h1>
+<h2 id="架设一个合法授权的dns服务器"><a class="markdownIt-Anchor" href="#架设一个合法授权的dns服务器"></a> 架设一个合法授权的DNS服务器</h2>
+<ol>
+<li>必须要上层服务器将子域的查询权开放给你来设置</li>
+<li>申请一个合法的domian name（缴费）</li>
+<li>以DNS服务器的详细设置的内容来设置主机</li>
+<li>测试</li>
+</ol>
+<h2 id="61-lame-server的问题"><a class="markdownIt-Anchor" href="#61-lame-server的问题"></a> 6.1 LAME Server的问题</h2>
+<p>当DNS服务器在向外面的DNS系统查询某些正反解时，可能由于对方DNS主机的设置错误，导致无法解析到预期的正反解结果，这时候就是所谓的Lame Server的错误</p>
+<h2 id="62-利用rndc命令管理dns服务器"><a class="markdownIt-Anchor" href="#62-利用rndc命令管理dns服务器"></a> 6.2 利用RNDC命令管理DNS服务器</h2>
+<p>rndc是BIND version9以后所提供的功能，可以让你轻松管理DNS服务器，包括检查已经存在DNS缓存当中的资料，重新更新某个Zone而不需要重新启动整个DNS，以及检查DNS的状态与统计资料等</p>
+<p>由于rndc可以很深入地管理你的DNS服务器，所以要进行一些控制</p>
+<ul>
+<li>通过rndc的设置来建立密钥（rndc key），并将密钥相关的信息写入named.conf配置文件当中</li>
+<li>通过以下步骤进行配置（详见P639-P640）
+<ul>
+<li>rndc-confgen</li>
+<li>然后将输出的信息中的<code>key &quot;rndc-key&quot;&#123;...&#125;;</code>部分复制</li>
+<li><code>vim /etc/rndc.key</code></li>
+<li>将复制的信息覆盖掉原内容</li>
+<li><code>vim /etc/named.conf</code></li>
+<li>在最后面添加上述复制的内容</li>
+<li>然后追加以下<br />
+*</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">controls&#123;</span><br><span class="line">inet 127.0.0.1 port 953 allow &#123; 127.0.0.1; &#125; keys &#123; &quot;rndc-key&quot;; &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="63-搭建动态dns服务器让你成为isp"><a class="markdownIt-Anchor" href="#63-搭建动态dns服务器让你成为isp"></a> 6.3 搭建动态DNS服务器：让你成为ISP</h2>
+<p>如果以拨号方式的ADSL连上Internet，那么IP通常是ISP随机提供的，因此，每次上网的IP都不固定，因此DDNS（Dynamic DNS,DDNS）主机就必须提供一个机制，让客户端可以通过这个机制来修改他们在DDNS主机上面的zone file内的数据才行</p>
+<p><strong>如何实现</strong></p>
+<ul>
+<li>BIND9就提供类似的机制</li>
+<li>我们的DDNS主机现提供Client一个key（就是认证用的数据，你可以将它理解成账号与密码的概念）</li>
+<li>Client端利用这个key，并配合BIND9的nsupdate命令，就可以连上DDNS主机，并且修改主机上面zone file内的对应表了</li>
+</ul>
+<p><strong>DDNS Server端的设置</strong></p>
+<ul>
+<li><code>&lt;dnssec-keygen&gt;</code>
+<ul>
+<li><code>dnssec-keygen -a [算法] -b [密码长度] -n [类型] 名称</code></li>
+<li><code>-a</code>：后面接的type为盐酸方式，主要有RSAMD5、RSA、DSA、DH、HMAC-MD5等</li>
+<li><code>-b</code>：密码长度，通常给予512位的HMAC-MD5</li>
+<li><code>-n</code>：后面接的则是客户端能够更新的类型，主要有下面两种
+<ul>
+<li><code>ZONE</code>：客户端可以更新任何标志及整个ZONE</li>
+<li><code>HOST</code>：客户端仅可以针对他的主机名来更新</li>
+</ul>
+</li>
+<li><code>cd /etc/named</code></li>
+<li><code>dnssec-keygen -a HMAC-MD5 -b 512 -n HOST web</code></li>
+<li>接下来将公钥的密码复制到<code>/etc/named.conf</code>中，将私钥传给<code>web.centos.liuye</code>那台主机</li>
+<li><code>vim /etc/named.conf</code><br />
+*</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">key &quot;web&quot; &#123;</span><br><span class="line">	algorithm hmac-md5;</span><br><span class="line">	secret &quot;&lt;这里是公钥密码&gt;&quot;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;centos.liuye.&quot; IN&#123;</span><br><span class="line">	type master;</span><br><span class="line">	file &quot;named.centos.liuye&quot;;</span><br><span class="line">	allow-transfer &#123; 192.168.200.101; &#125;;</span><br><span class="line">	update-policy&#123;   #添加这一段</span><br><span class="line">		grant web name web.centos.liuye. A;</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>    * `grant [key_name] name [hostname] 标签`：允许指定主机通过指定密码修改指定标签
+* `chmod g+w /var/named`
+* `chown named /var/named/named.centos.liuye`
+* `systemctl restart named.service`
+* `setsebool -P named_write_master_zones=1`
+</code></pre>
+<p><strong>设置Client端</strong></p>
+<ul>
+<li>将Server端的密码公钥与私钥文件通过sftp传送到客户端的<code>/usr/local/ddns</code>目录下</li>
+<li><code>cd /usr/local/ddns</code></li>
+<li><code>nsupdate -k *.key</code>
+<ul>
+<li>server 192.168.200.254</li>
+<li>update add web.centos.liuye 600 A 192.168.200.102</li>
+<li>send</li>
+<li>[ctrl]+D   &lt;==退出</li>
+</ul>
+</li>
+<li>于是就会发现在DNS服务器端的/var/named/里面多出一个临时文件，那就是named.centos.liuye.jnl，用于记录客户端要求而更新的数据</li>
+</ul>
+<h1 id="7-参考"><a class="markdownIt-Anchor" href="#7-参考"></a> 7 参考</h1>
+<ul>
+<li>《鸟哥的Linux私房菜：服务器架设篇（第三版）》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/11/19/%E8%8B%B1%E8%AF%AD%E6%B5%81%E5%88%A9%E8%AF%B4-3/" rel="prev" title="英语流利说-3">
+      <i class="fa fa-chevron-left"></i> 英语流利说-3
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/12/02/SSL%E5%8D%8F%E8%AE%AE/" rel="next" title="SSL协议">
+      SSL协议 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AFdns"><span class="nav-text"> 1 什么是DNS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E7%94%A8%E7%BD%91%E7%BB%9C%E4%B8%BB%E6%9C%BA%E5%90%8D%E5%8F%96%E5%BE%97ip%E7%9A%84%E5%8E%86%E5%8F%B2%E6%B8%8A%E6%BA%90"><span class="nav-text"> 1.1 用网络主机名取得IP的历史渊源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-dns%E7%9A%84%E4%B8%BB%E6%9C%BA%E5%90%8D%E5%AF%B9%E5%BA%94ip%E7%9A%84%E6%9F%A5%E8%AF%A2%E6%B5%81%E7%A8%8B"><span class="nav-text"> 1.2 DNS的主机名对应IP的查询流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#121-dns%E7%9A%84%E9%98%B6%E5%B1%82%E6%9E%B6%E6%9E%84%E4%B8%8Etld"><span class="nav-text"> 1.2.1 DNS的阶层架构与TLD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#122-%E6%8E%88%E6%9D%83%E4%B8%8E%E5%88%86%E5%B1%82%E8%B4%9F%E8%B4%A3"><span class="nav-text"> 1.2.2 授权与分层负责</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#123-%E9%80%9A%E8%BF%87dns%E6%9F%A5%E8%AF%A2%E4%B8%BB%E6%9C%BA%E5%90%8Dip%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="nav-text"> 1.2.3 通过DNS查询主机名IP的流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#124-dns%E4%BD%BF%E7%94%A8%E7%9A%84port-number"><span class="nav-text"> 1.2.4 DNS使用的port number</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%90%88%E6%B3%95dns%E7%9A%84%E5%85%B3%E9%94%AE%E7%94%B3%E8%AF%B7%E5%8C%BA%E5%9F%9F%E6%9F%A5%E8%AF%A2%E6%8E%88%E6%9D%83"><span class="nav-text"> 1.3 合法DNS的关键：申请区域查询授权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E4%B8%BB%E6%9C%BA%E5%90%8D%E4%BA%A4%E7%94%B1isp%E4%BB%A3%E7%AE%A1%E8%BF%98%E6%98%AF%E8%87%AA%E5%B7%B1%E8%AE%BE%E7%BD%AEdns%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-text"> 1.4 主机名交由ISP代管还是自己设置DNS服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#15-dns%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E8%AE%B0%E5%BD%95%E6%AD%A3%E8%A7%A3-%E5%8F%8D%E8%A7%A3-zone%E7%9A%84%E6%84%8F%E4%B9%89"><span class="nav-text"> 1.5 DNS数据库的记录：正解、反解、Zone的意义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#16-dns%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E7%B1%BB%E5%9E%8Bhint-masterslave%E6%9E%B6%E6%9E%84"><span class="nav-text"> 1.6 DNS数据库的类型：hint、Master&#x2F;Slave架构</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-client%E7%AB%AF%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="nav-text"> 2 Client端的设置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-text"> 2.1 相关配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-dns%E7%9A%84%E6%AD%A3%E8%A7%A3-%E5%8F%8D%E8%A7%A3%E6%9F%A5%E8%AF%A2%E5%91%BD%E4%BB%A4host-nslookup-dig"><span class="nav-text"> 2.2 DNS的正解、反解查询命令：host、nslookup、dig</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-host"><span class="nav-text"> 2.2.1 host</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-nslookup"><span class="nav-text"> 2.2.2 nslookup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#223-dig"><span class="nav-text"> 2.2.3 dig</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#224-whois"><span class="nav-text"> 2.2.4 whois</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-dns%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E8%BD%AF%E4%BB%B6-%E7%A7%8D%E7%B1%BB%E4%B8%8Ecaching-only-dns%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%AE%BE%E7%BD%AE"><span class="nav-text"> 3 DNS服务器的软件、种类与Caching only DNS服务器设置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E6%90%AD%E5%BB%BAdns%E6%89%80%E9%9C%80%E8%A6%81%E7%9A%84%E8%BD%AF%E4%BB%B6"><span class="nav-text"> 3.1 搭建DNS所需要的软件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-bind%E7%9A%84%E9%BB%98%E8%AE%A4%E8%B7%AF%E5%BE%84%E8%AE%BE%E7%BD%AE%E4%B8%8Echroot"><span class="nav-text"> 3.2 BIND的默认路径设置与chroot</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E5%8D%95%E7%BA%AF%E7%9A%84cache-only-dns%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8Eforwarding%E5%8A%9F%E8%83%BD"><span class="nav-text"> 3.3 单纯的cache-only DNS服务器与forwarding功能</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-dns%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E8%AF%A6%E7%BB%86%E8%AE%BE%E7%BD%AE"><span class="nav-text"> 4 DNS服务器的详细设置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E6%AD%A3%E8%A7%A3%E6%96%87%E4%BB%B6%E8%AE%B0%E5%BD%95%E7%9A%84%E6%95%B0%E6%8D%AEresource-recordrr"><span class="nav-text"> 4.1 正解文件记录的数据（Resource Record,RR）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E5%8F%8D%E8%A7%A3%E6%96%87%E4%BB%B6%E8%AE%B0%E5%BD%95%E7%9A%84rr%E6%95%B0%E6%8D%AE"><span class="nav-text"> 4.2 反解文件记录的RR数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-%E6%AD%A5%E9%AA%A4%E4%B8%80dns%E7%9A%84%E7%8E%AF%E5%A2%83%E8%A7%84%E5%88%92"><span class="nav-text"> 4.3 步骤一：DNS的环境规划</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-%E6%AD%A5%E9%AA%A4%E4%BA%8C%E4%B8%BB%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6etcnamedconf%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="nav-text"> 4.4 步骤二：主配置文件&#x2F;etc&#x2F;named.conf的设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-%E6%AD%A5%E9%AA%A4%E4%B8%89%E6%9C%80%E4%B8%8A%E5%B1%82root%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="nav-text"> 4.5 步骤三：最上层.（root）数据库文件的设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#46-%E6%AD%A5%E9%AA%A4%E5%9B%9B%E6%AD%A3%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="nav-text"> 4.6 步骤四：正解数据库文件的设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#47-%E6%AD%A5%E9%AA%A4%E4%BA%94%E5%8F%8D%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="nav-text"> 4.7 步骤五：反解数据库文件的设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#48-%E6%AD%A5%E9%AA%A4%E5%85%ADdns%E5%90%AF%E5%8A%A8%E6%9F%A5%E7%9C%8B%E4%B8%8E%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-text"> 4.8 步骤六：DNS启动查看与防火墙</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#49-%E6%B5%8B%E8%AF%95%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9B%B4%E6%96%B0"><span class="nav-text"> 4.9 测试与数据库更新</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8D%8F%E5%90%8C%E5%B7%A5%E4%BD%9C%E7%9A%84dnsslave-dns%E5%8F%8A%E5%AD%90%E5%9F%9F%E6%8E%88%E6%9D%83%E8%AE%BE%E5%AE%9A"><span class="nav-text"> 5 协同工作的DNS：Slave DNS及子域授权设定</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-masterdns%E6%9D%83%E9%99%90%E7%9A%84%E5%BC%80%E6%94%BE"><span class="nav-text"> 5.1 masterDNS权限的开放</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-slave-dns%E7%9A%84%E8%AE%BE%E7%BD%AE%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9D%83%E9%99%90%E9%97%AE%E9%A2%98"><span class="nav-text"> 5.2 Slave DNS的设置与数据库权限问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E9%85%8D%E7%BD%AE%E5%AD%90%E5%9F%9Fdns%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AD%90%E5%9F%9F%E6%8E%88%E6%9D%83%E8%AF%BE%E9%A2%98"><span class="nav-text"> 5.3 配置子域DNS服务器：子域授权课题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E4%BE%9D%E4%B8%8D%E5%90%8C%E6%8E%A5%E5%8F%A3%E7%BB%99%E4%BA%88%E4%B8%8D%E5%90%8C%E7%9A%84dns%E4%B8%BB%E6%9C%BA%E5%90%8Dview%E5%8A%9F%E8%83%BD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text"> 5.4 依不同接口给予不同的DNS主机名：view功能的应用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-dns%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E9%AB%98%E7%BA%A7%E8%AE%BE%E5%AE%9A"><span class="nav-text"> 6 DNS服务器的高级设定</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E8%AE%BE%E4%B8%80%E4%B8%AA%E5%90%88%E6%B3%95%E6%8E%88%E6%9D%83%E7%9A%84dns%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-text"> 架设一个合法授权的DNS服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#61-lame-server%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text"> 6.1 LAME Server的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-%E5%88%A9%E7%94%A8rndc%E5%91%BD%E4%BB%A4%E7%AE%A1%E7%90%86dns%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-text"> 6.2 利用RNDC命令管理DNS服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-%E6%90%AD%E5%BB%BA%E5%8A%A8%E6%80%81dns%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%AE%A9%E4%BD%A0%E6%88%90%E4%B8%BAisp"><span class="nav-text"> 6.3 搭建动态DNS服务器：让你成为ISP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%8F%82%E8%80%83"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

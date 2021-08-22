@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring-Transaction-Demo">
+<meta property="og:url" content="http://example.com/2018/08/10/Spring-Transaction-Demo/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-08-10T03:41:14.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:52.800Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/08/10/Spring-Transaction-Demo/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Spring-Transaction-Demo | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/08/10/Spring-Transaction-Demo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring-Transaction-Demo
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-10 11:41:14" itemprop="dateCreated datePublished" datetime="2018-08-10T11:41:14+08:00">2018-08-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:52" itemprop="dateModified" datetime="2021-02-23T22:19:52+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/" itemprop="url" rel="index"><span itemprop="name">Framework</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/08/10/Spring-Transaction-Demo/" class="post-meta-item leancloud_visitors" data-flag-title="Spring-Transaction-Demo" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/08/10/Spring-Transaction-Demo/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/08/10/Spring-Transaction-Demo/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-环境"><a class="markdownIt-Anchor" href="#1-环境"></a> 1 环境</h1>
+<ol>
+<li><code>IDEA</code></li>
+<li><code>Maven3.5.3</code></li>
+<li><code>Spring-Boot-2.0.4.RELEASE</code></li>
+</ol>
+<h1 id="2-demo工程目录结构"><a class="markdownIt-Anchor" href="#2-demo工程目录结构"></a> 2 Demo工程目录结构</h1>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── pom.xml</span><br><span class="line">└── src</span><br><span class="line">    ├── main</span><br><span class="line">    │   ├── java</span><br><span class="line">    │   │   └── org</span><br><span class="line">    │   │       └── liuyehcf</span><br><span class="line">    │   │           └── spring</span><br><span class="line">    │   │               └── tx</span><br><span class="line">    │   │                   ├── Application.java</span><br><span class="line">    │   │                   ├── DalConfig.java</span><br><span class="line">    │   │                   ├── UserController.java</span><br><span class="line">    │   │                   ├── UserDAO.groovy</span><br><span class="line">    │   │                   ├── UserDO.java</span><br><span class="line">    │   │                   └── UserService.java</span><br><span class="line">    │   └── resources</span><br><span class="line">    │       ├── application.properties</span><br><span class="line">    │       └── create.sql</span><br><span class="line">    └── test</span><br><span class="line">        ├── java</span><br><span class="line">        │   └── org</span><br><span class="line">        │       └── liuyehcf</span><br><span class="line">        │           └── spring</span><br><span class="line">        │               └── tx</span><br><span class="line">        │                   └── test</span><br><span class="line">        │                       ├── BaseConfig.java</span><br><span class="line">        │                       ├── TestApplication.java</span><br><span class="line">        │                       ├── TestController.java</span><br><span class="line">        │                       └── TestDalConfig.java</span><br><span class="line">        └── resources</span><br><span class="line">            └── db</span><br><span class="line">                └── create_h2.sql</span><br></pre></td></tr></table></figure>
+<h1 id="3-pom"><a class="markdownIt-Anchor" href="#3-pom"></a> 3 pom</h1>
+<p>Demo工程的依赖配置</p>
+<ol>
+<li>mysql驱动</li>
+<li>mybatis以及与spring集成</li>
+<li>groovy</li>
+<li>spring-jdbc</li>
+<li>spring-boot</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.liuyehcf<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-tx<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">spring.boot.version</span>&gt;</span>2.0.4.RELEASE<span class="tag">&lt;/<span class="name">spring.boot.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>8.0.12<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.mybatis<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mybatis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.4.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.mybatis<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mybatis-spring<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.3.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.groovy<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>groovy-all<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.4.15<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.12<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.h2database<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>h2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.4.197<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spring.boot.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.6.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">compilerId</span>&gt;</span>groovy-eclipse-compiler<span class="tag">&lt;/<span class="name">compilerId</span>&gt;</span></span><br><span class="line"></span><br><span class="line">                    <span class="comment">&lt;!-- groovy与lombok并存需要以下两个配置，以及相应的dependency --&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">fork</span>&gt;</span>true<span class="tag">&lt;/<span class="name">fork</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">compilerArguments</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">javaAgentClass</span>&gt;</span>lombok.launch.Agent<span class="tag">&lt;/<span class="name">javaAgentClass</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">compilerArguments</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.groovy<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>groovy-eclipse-compiler<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.9.2-01<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.groovy<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>groovy-eclipse-batch<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.4.3-01<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.16.18<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spring.boot.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">fork</span>&gt;</span>true<span class="tag">&lt;/<span class="name">fork</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">mainClass</span>&gt;</span>org.liuyehcf.spring.tx.Application<span class="tag">&lt;/<span class="name">mainClass</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>repackage<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h1 id="4-java"><a class="markdownIt-Anchor" href="#4-java"></a> 4 Java</h1>
+<h2 id="41-application"><a class="markdownIt-Anchor" href="#41-application"></a> 4.1 Application</h2>
+<p>不多说，SpringBoot应用的启动方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.SpringApplication;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.SpringBootApplication;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/11</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@SpringBootApplication(scanBasePackages = &quot;org.liuyehcf.spring.tx&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(Application.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="42-dalconfig"><a class="markdownIt-Anchor" href="#42-dalconfig"></a> 4.2 DalConfig</h2>
+<p>数据层的SpringBoot方式的配置，包括如下注解</p>
+<ul>
+<li><strong><code>MapperScan</code></strong>：<code>Mapper</code>的扫描路径，通过<code>sqlSessionFactoryRef</code>参数指定sql会话工厂</li>
+<li><strong><code>EnableTransactionManagement</code></strong>：开启声明式事务</li>
+</ul>
+<p><strong>综上，一个数据层的完整配置包括如下几项</strong></p>
+<ol>
+<li><strong>Mapper映射器</strong>：通过<code>MapperScan</code>注解实现</li>
+<li><strong>声明式事务</strong>：通过<code>EnableTransactionManagement</code>注解开启</li>
+<li><strong>数据源</strong></li>
+<li><strong>事务管理器</strong></li>
+<li><strong>会话工厂</strong></li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.session.SqlSessionFactory;</span><br><span class="line"><span class="keyword">import</span> org.mybatis.spring.SqlSessionFactoryBean;</span><br><span class="line"><span class="keyword">import</span> org.mybatis.spring.annotation.MapperScan;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Value;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.jdbc.datasource.DataSourceTransactionManager;</span><br><span class="line"><span class="keyword">import</span> org.springframework.jdbc.datasource.DriverManagerDataSource;</span><br><span class="line"><span class="keyword">import</span> org.springframework.transaction.annotation.EnableTransactionManagement;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.sql.DataSource;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/11</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@MapperScan(basePackages = &quot;org.liuyehcf.spring.tx&quot;, sqlSessionFactoryRef = &quot;sqlSessionFactory&quot;)</span></span><br><span class="line"><span class="meta">@EnableTransactionManagement</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DalConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;db.url&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String url;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;db.username&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;db.password&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;dataSource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        DriverManagerDataSource dataSource = <span class="keyword">new</span> DriverManagerDataSource();</span><br><span class="line">        dataSource.setDriverClassName(<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>);</span><br><span class="line">        dataSource.setUrl(url);</span><br><span class="line">        dataSource.setUsername(username);</span><br><span class="line">        dataSource.setPassword(password);</span><br><span class="line">        <span class="keyword">return</span> dataSource;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;transactionManager&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSourceTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        DataSourceTransactionManager manager = <span class="keyword">new</span> DataSourceTransactionManager();</span><br><span class="line">        manager.setDataSource(dataSource());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> manager;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;sqlSessionFactory&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> SqlSessionFactory <span class="title">sqlSessionFactory</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        SqlSessionFactoryBean sqlSessionFactoryBean = <span class="keyword">new</span> SqlSessionFactoryBean();</span><br><span class="line">        sqlSessionFactoryBean.setDataSource(dataSource());</span><br><span class="line">        <span class="keyword">return</span> sqlSessionFactoryBean.getObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="43-usercontroller"><a class="markdownIt-Anchor" href="#43-usercontroller"></a> 4.3 UserController</h2>
+<p>一个非常普通的<code>Controller</code>，包含一个健康检查接口以及一个业务接口（插入一个User）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestParam;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.ResponseBody;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.annotation.Resource;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/11</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Resource</span></span><br><span class="line">    <span class="keyword">private</span> UserService userService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/insert&quot;)</span></span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">insert</span><span class="params">(<span class="meta">@RequestParam(&quot;name&quot;)</span> String name, <span class="meta">@RequestParam(&quot;age&quot;)</span> Integer age, <span class="meta">@RequestParam(&quot;ex&quot;)</span> Boolean ex)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            userService.insert(name, age, ex);</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;SUCCESS&quot;</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;FAILURE&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/check_health&quot;)</span></span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">checkHealth</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;OK&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="44-userdao"><a class="markdownIt-Anchor" href="#44-userdao"></a> 4.4 UserDAO</h2>
+<p>该类用<code>groovy</code>来编写，需要引入<code>org.codehaus.groovy:groovy-all</code>才能编译。使用<code>groovy</code>的好处是可以写整段的sql语句，而不需要进行字符串拼接</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.annotations.Insert</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.annotations.Mapper</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.annotations.SelectKey</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.mapping.StatementType</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @author hechenfeng</span></span><br><span class="line"><span class="comment"> * @date 2018/8/11</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Mapper</span></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">UserDAO</span> &#123;</span></span><br><span class="line">    <span class="meta">@Insert</span>(<span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        INSERT INTO user(</span></span><br><span class="line"><span class="string">        name,</span></span><br><span class="line"><span class="string">        age</span></span><br><span class="line"><span class="string">        )VALUES(</span></span><br><span class="line"><span class="string">        #&#123;name&#125;,</span></span><br><span class="line"><span class="string">        #&#123;age&#125;</span></span><br><span class="line"><span class="string">        )</span></span><br><span class="line"><span class="string">    &#x27;&#x27;&#x27;</span>)</span><br><span class="line">    <span class="meta">@SelectKey</span>(before = <span class="literal">false</span>, keyProperty = <span class="string">&quot;id&quot;</span>, resultType = Long.<span class="keyword">class</span>, statementType = StatementType.STATEMENT, statement = <span class="string">&quot;SELECT LAST_INSERT_ID()&quot;</span>)</span><br><span class="line">    <span class="keyword">int</span> insert(UserDO userDO)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="45-userdo"><a class="markdownIt-Anchor" href="#45-userdo"></a> 4.5 UserDO</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/11</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDO</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Long id;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> Integer age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Long <span class="title">getId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setId</span><span class="params">(Long id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(Integer age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;UserDO&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;id=&quot;</span> + id +</span><br><span class="line">                <span class="string">&quot;, name=&#x27;&quot;</span> + name + <span class="string">&#x27;\&#x27;&#x27;</span> +</span><br><span class="line">                <span class="string">&quot;, age=&quot;</span> + age +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="46-userservice"><a class="markdownIt-Anchor" href="#46-userservice"></a> 4.6 UserService</h2>
+<p>这里通过一个参数<code>ex</code>来控制是否抛出异常，便于校验<code>@Transactional</code>是否进行了回滚</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Service;</span><br><span class="line"><span class="keyword">import</span> org.springframework.transaction.annotation.Transactional;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.annotation.Resource;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/11</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Resource</span></span><br><span class="line">    <span class="keyword">private</span> UserDAO userDAO;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Transactional</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">insert</span><span class="params">(String name, Integer age, Boolean ex)</span> </span>&#123;</span><br><span class="line">        UserDO userDO = <span class="keyword">new</span> UserDO();</span><br><span class="line">        userDO.setName(name);</span><br><span class="line">        userDO.setAge(age);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> res = userDAO.insert(userDO);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (ex) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="5-resource"><a class="markdownIt-Anchor" href="#5-resource"></a> 5 Resource</h1>
+<h2 id="51-applicationproperties"><a class="markdownIt-Anchor" href="#51-applicationproperties"></a> 5.1 application.properties</h2>
+<p>配置项</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">server.port=7001</span><br><span class="line">db.url=jdbc:mysql://127.0.0.1:3306/mybatis?autoReconnect=true&amp;useSSL=false</span><br><span class="line">db.username=root</span><br><span class="line">db.password=xxx</span><br></pre></td></tr></table></figure>
+<h2 id="52-createsql"><a class="markdownIt-Anchor" href="#52-createsql"></a> 5.2 create.sql</h2>
+<p>上述工程用到的数据表的建表语句</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE mybatis;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE mybatis;</span><br><span class="line"></span><br><span class="line">USE mybatis;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="keyword">user</span>(</span><br><span class="line">id <span class="type">BIGINT</span> UNSIGNED <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">age <span class="type">INT</span> UNSIGNED <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id),</span><br><span class="line"><span class="keyword">UNIQUE</span> KEY(name)</span><br><span class="line">)ENGINE<span class="operator">=</span>InnoDB <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8 <span class="keyword">COLLATE</span><span class="operator">=</span>utf8_bin;</span><br></pre></td></tr></table></figure>
+<h2 id="53-测试步骤"><a class="markdownIt-Anchor" href="#53-测试步骤"></a> 5.3 测试步骤</h2>
+<p>将应用启动后，访问<a target="_blank" rel="noopener" href="http://localhost:7001/insert?name=liuyehcf&amp;age=10&amp;ex=true">http://localhost:7001/insert?name=liuyehcf&amp;age=10&amp;ex=true</a>，带上了<code>ex=true</code>参数时，<code>UserService.insert</code>方法将会抛出异常。<code>@Transactional</code>注解在不指定<code>rollbackFor</code>属性时，默认回滚<code>RuntimeException</code>以及<code>Error</code>，但是<code>Exception</code>不会回滚</p>
+<p>查看数据库，发现并没有插入数据，说明已经回滚了</p>
+<h1 id="6-集成测试"><a class="markdownIt-Anchor" href="#6-集成测试"></a> 6 集成测试</h1>
+<p>需要人肉访问url还是比较麻烦的，这里希望实现自动化的集成测试</p>
+<h2 id="61-baseconfig"><a class="markdownIt-Anchor" href="#61-baseconfig"></a> 6.1 BaseConfig</h2>
+<p>集成测试配置的基类，避免重复配置。集成测试类继承该基类即可</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx.test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.junit.runner.RunWith;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.test.context.SpringBootTest;</span><br><span class="line"><span class="keyword">import</span> org.springframework.test.context.junit4.SpringJUnit4ClassRunner;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/26</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="meta">@SpringBootTest(classes = TestApplication.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="62-testdalconfig"><a class="markdownIt-Anchor" href="#62-testdalconfig"></a> 6.2 TestDalConfig</h2>
+<p>集成测试数据源配置，这里选择的是<code>h2-database</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx.test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.session.SqlSessionFactory;</span><br><span class="line"><span class="keyword">import</span> org.mybatis.spring.SqlSessionFactoryBean;</span><br><span class="line"><span class="keyword">import</span> org.mybatis.spring.annotation.MapperScan;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.jdbc.datasource.DataSourceTransactionManager;</span><br><span class="line"><span class="keyword">import</span> org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;</span><br><span class="line"><span class="keyword">import</span> org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;</span><br><span class="line"><span class="keyword">import</span> org.springframework.transaction.annotation.EnableTransactionManagement;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.sql.DataSource;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/26</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@MapperScan(basePackages = &quot;org.liuyehcf.spring.tx&quot;, sqlSessionFactoryRef = &quot;sqlSessionFactory&quot;)</span></span><br><span class="line"><span class="meta">@EnableTransactionManagement</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestDalConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean(name = &quot;dataSource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> EmbeddedDatabaseBuilder()</span><br><span class="line">                .setType(EmbeddedDatabaseType.H2)</span><br><span class="line">                .addScript(<span class="string">&quot;db/create_h2.sql&quot;</span>)</span><br><span class="line">                .build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;transactionManager&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSourceTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        DataSourceTransactionManager manager = <span class="keyword">new</span> DataSourceTransactionManager();</span><br><span class="line">        manager.setDataSource(dataSource());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> manager;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;sqlSessionFactory&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> SqlSessionFactory <span class="title">sqlSessionFactory</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        SqlSessionFactoryBean sqlSessionFactoryBean = <span class="keyword">new</span> SqlSessionFactoryBean();</span><br><span class="line">        sqlSessionFactoryBean.setDataSource(dataSource());</span><br><span class="line">        <span class="keyword">return</span> sqlSessionFactoryBean.getObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="63-testapplication"><a class="markdownIt-Anchor" href="#63-testapplication"></a> 6.3 TestApplication</h2>
+<p>集成测试<code>SpringBoot</code>启动类。这里用到了<code>@ComponentScan</code>注解的excludeFilters属性，用于排除一些类，本例中排除了启动类<code>Application</code>以及数据源配置类<code>DalConfig</code>，这样一来，集成测试加载的数据源配置就只有<code>TestDalConfig</code>了</p>
+<p>为什么需要额外排除<code>Application</code>？如果只排除<code>DalConfig</code>的话，<code>Application</code>仍然在<code>TestApplication</code>配置的扫描路径下，且<code>excludeFilters</code>属性只对<code>TestApplication</code>有效，对<code>Application</code>无效，因此<code>Application</code>还是能够扫描到<code>DalConfig</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx.test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.liuyehcf.spring.tx.Application;</span><br><span class="line"><span class="keyword">import</span> org.liuyehcf.spring.tx.DalConfig;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.SpringBootApplication;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.ComponentScan;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.FilterType;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/26</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@SpringBootApplication(scanBasePackages = &quot;org.liuyehcf.spring.tx&quot;)</span></span><br><span class="line"><span class="meta">@ComponentScan(basePackages = &quot;org.liuyehcf.spring.tx&quot;,</span></span><br><span class="line"><span class="meta">        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = &#123;Application.class, DalConfig.class&#125;)</span></span><br><span class="line"><span class="meta">)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestApplication</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="64-testcontroller"><a class="markdownIt-Anchor" href="#64-testcontroller"></a> 6.4 TestController</h2>
+<p>普通测试类，继承<code>BaseConfig</code>来获取集成测试的相关配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.spring.tx.test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> org.liuyehcf.spring.tx.UserController;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line"><span class="keyword">import</span> org.springframework.transaction.annotation.Transactional;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/8/26</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> <span class="keyword">extends</span> <span class="title">BaseConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> UserController userController;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="meta">@Transactional</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        userController.insert(<span class="string">&quot;liuye&quot;</span>, <span class="number">10</span>, <span class="keyword">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="65-create_h2sql"><a class="markdownIt-Anchor" href="#65-create_h2sql"></a> 6.5 create_h2.sql</h2>
+<p><strong>注意，千万别忘了<code>SET mode MySQL;</code>这句</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> mode MySQL;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="keyword">user</span>(</span><br><span class="line">id <span class="type">BIGINT</span> UNSIGNED <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">age <span class="type">INT</span> UNSIGNED <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id),</span><br><span class="line"><span class="keyword">UNIQUE</span> KEY(name)</span><br><span class="line">)ENGINE<span class="operator">=</span>InnoDB;</span><br></pre></td></tr></table></figure>
+<h1 id="7-源码剖析"><a class="markdownIt-Anchor" href="#7-源码剖析"></a> 7 源码剖析</h1>
+<p><strong><code>Spring-tx</code>利用了<code>Spring-aop</code>，在目标方法上织入了一系列事务相关的逻辑。相关织入逻辑可以参考<a href="/2017/07/10/Spring-AOP-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" title="Spring-AOP-源码剖析">Spring-AOP-源码剖析</a>。这里仅介绍事务相关的增强逻辑</strong></p>
+<p><strong>分析的起点是<code>TransactionInterceptor.invoke</code>，该类是事务对应的增强类，或者说拦截器（Spring AOP的本质就是一系列的拦截器）</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(MethodInvocation invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    <span class="comment">// Work out the target class: may be &#123;@code null&#125;.</span></span><br><span class="line">    <span class="comment">// The TransactionAttributeSource should be passed the target class</span></span><br><span class="line">    <span class="comment">// as well as the method, which may be from an interface.</span></span><br><span class="line">    Class&lt;?&gt; targetClass = (invocation.getThis() != <span class="keyword">null</span> ? AopUtils.getTargetClass(invocation.getThis()) : <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Adapt to TransactionAspectSupport&#x27;s invokeWithinTransaction...</span></span><br><span class="line">    <span class="keyword">return</span> invokeWithinTransaction(invocation.getMethod(), targetClass, invocation::proceed);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>沿着调用链往下走，下面是<code>TransactionAspectSupport.invokeWithinTransaction</code>，主要关注三个方法调用</strong></p>
+<ol>
+<li><strong><code>createTransactionIfNecessary</code>方法</strong>：在必要时，创建一个事务。与事务传播方式等等有关系</li>
+<li><strong><code>completeTransactionAfterThrowing</code>方法</strong>：拦截到异常时，根据异常类型选择是否进行回滚操作</li>
+<li><strong><code>commitTransactionAfterReturning</code>方法</strong>：未拦截到异常时，提交本次事务</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> Object <span class="title">invokeWithinTransaction</span><span class="params">(Method method, <span class="meta">@Nullable</span> Class&lt;?&gt; targetClass,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="keyword">final</span> InvocationCallback invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If the transaction attribute is null, the method is non-transactional.</span></span><br><span class="line">    TransactionAttributeSource tas = getTransactionAttributeSource();</span><br><span class="line">    <span class="keyword">final</span> TransactionAttribute txAttr = (tas != <span class="keyword">null</span> ? tas.getTransactionAttribute(method, targetClass) : <span class="keyword">null</span>);</span><br><span class="line">    <span class="keyword">final</span> PlatformTransactionManager tm = determineTransactionManager(txAttr);</span><br><span class="line">    <span class="keyword">final</span> String joinpointIdentification = methodIdentification(method, targetClass, txAttr);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (txAttr == <span class="keyword">null</span> || !(tm <span class="keyword">instanceof</span> CallbackPreferringPlatformTransactionManager)) &#123;</span><br><span class="line">        <span class="comment">// Standard transaction demarcation with getTransaction and commit/rollback calls.</span></span><br><span class="line">        <span class="comment">// 有必要时，创建一个事务</span></span><br><span class="line">        TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);</span><br><span class="line">        Object retVal = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// This is an around advice: Invoke the next interceptor in the chain.</span></span><br><span class="line">            <span class="comment">// This will normally result in a target object being invoked.</span></span><br><span class="line">            retVal = invocation.proceedWithInvocation();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">            <span class="comment">// target invocation exception</span></span><br><span class="line">            <span class="comment">// 当拦截到异常时的处理逻辑，可能会回滚，也可能不会滚</span></span><br><span class="line">            completeTransactionAfterThrowing(txInfo, ex);</span><br><span class="line">            <span class="keyword">throw</span> ex;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">finally</span> &#123;</span><br><span class="line">            cleanupTransactionInfo(txInfo);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 正常的处理逻辑，即commit本次事务</span></span><br><span class="line">        commitTransactionAfterReturning(txInfo);</span><br><span class="line">        <span class="keyword">return</span> retVal;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> ThrowableHolder throwableHolder = <span class="keyword">new</span> ThrowableHolder();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// It&#x27;s a CallbackPreferringPlatformTransactionManager: pass a TransactionCallback in.</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Object result = ((CallbackPreferringPlatformTransactionManager) tm).execute(txAttr, status -&gt; &#123;</span><br><span class="line">                TransactionInfo txInfo = prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="keyword">return</span> invocation.proceedWithInvocation();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (txAttr.rollbackOn(ex)) &#123;</span><br><span class="line">                        <span class="comment">// A RuntimeException: will lead to a rollback.</span></span><br><span class="line">                        <span class="keyword">if</span> (ex <span class="keyword">instanceof</span> RuntimeException) &#123;</span><br><span class="line">                            <span class="keyword">throw</span> (RuntimeException) ex;</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">else</span> &#123;</span><br><span class="line">                            <span class="keyword">throw</span> <span class="keyword">new</span> ThrowableHolderException(ex);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">else</span> &#123;</span><br><span class="line">                        <span class="comment">// A normal return value: will lead to a commit.</span></span><br><span class="line">                        throwableHolder.throwable = ex;</span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">finally</span> &#123;</span><br><span class="line">                    cleanupTransactionInfo(txInfo);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Check result state: It might indicate a Throwable to rethrow.</span></span><br><span class="line">            <span class="keyword">if</span> (throwableHolder.throwable != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">throw</span> throwableHolder.throwable;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> result;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (ThrowableHolderException ex) &#123;</span><br><span class="line">            <span class="keyword">throw</span> ex.getCause();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (TransactionSystemException ex2) &#123;</span><br><span class="line">            <span class="keyword">if</span> (throwableHolder.throwable != <span class="keyword">null</span>) &#123;</span><br><span class="line">                logger.error(<span class="string">&quot;Application exception overridden by commit exception&quot;</span>, throwableHolder.throwable);</span><br><span class="line">                ex2.initApplicationException(throwableHolder.throwable);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">throw</span> ex2;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Throwable ex2) &#123;</span><br><span class="line">            <span class="keyword">if</span> (throwableHolder.throwable != <span class="keyword">null</span>) &#123;</span><br><span class="line">                logger.error(<span class="string">&quot;Application exception overridden by commit exception&quot;</span>, throwableHolder.throwable);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">throw</span> ex2;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="71-createtransactionifnecessary"><a class="markdownIt-Anchor" href="#71-createtransactionifnecessary"></a> 7.1 createTransactionIfNecessary</h2>
+<p>我们先来看一下<code>createTransactionIfNecessary</code>方法，该方法的核心逻辑就是</p>
+<ol>
+<li><strong><code>getTransaction</code></strong>：获取<code>TransactionStatus</code>对象（该对象包含了当前事务的一些状态信息，包括<code>是否是新事务</code>、<code>是否为rollback-only模式</code>、<code>是否有savepoint</code>），基本Spring事务的核心概念都在这个方法中有所体现，包括事务的传播方式等等</li>
+<li><strong><code>prepareTransactionInfo</code></strong>：创建一个<code>TransactionInfo</code>对象（该对象持有了一系列事务相关的对象，包括<code>PlatformTransactionManager</code>、<code>TransactionAttribute</code>、<code>TransactionStatus</code>等对象）</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> TransactionInfo <span class="title">createTransactionIfNecessary</span><span class="params">(<span class="meta">@Nullable</span> PlatformTransactionManager tm,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="meta">@Nullable</span> TransactionAttribute txAttr, <span class="keyword">final</span> String joinpointIdentification)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If no name specified, apply method identification as transaction name.</span></span><br><span class="line">    <span class="keyword">if</span> (txAttr != <span class="keyword">null</span> &amp;&amp; txAttr.getName() == <span class="keyword">null</span>) &#123;</span><br><span class="line">        txAttr = <span class="keyword">new</span> DelegatingTransactionAttribute(txAttr) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> joinpointIdentification;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    TransactionStatus status = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (txAttr != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (tm != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 获取TransactionStatus对象</span></span><br><span class="line">            status = tm.getTransaction(txAttr);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">                logger.debug(<span class="string">&quot;Skipping transactional joinpoint [&quot;</span> + joinpointIdentification +</span><br><span class="line">                        <span class="string">&quot;] because no transaction manager has been configured&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取TransactionInfo对象</span></span><br><span class="line">    <span class="keyword">return</span> prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="72-completetransactionafterthrowing"><a class="markdownIt-Anchor" href="#72-completetransactionafterthrowing"></a> 7.2 completeTransactionAfterThrowing</h2>
+<p><strong>继续跟踪<code>TransactionAspectSupport.completeTransactionAfterThrowing</code>方法。首先会根据异常类型以及事务配置的属性值来判断，本次是否进行回滚操作。主要的判断逻辑在<code>txInfo.transactionAttribute.rollbackOn</code>方法中，本Demo对应的<code>TransactionAttribute</code>接口的实现类是<br />
+<code>RuleBasedTransactionAttribute</code></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">completeTransactionAfterThrowing</span><span class="params">(<span class="meta">@Nullable</span> TransactionInfo txInfo, Throwable ex)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (txInfo != <span class="keyword">null</span> &amp;&amp; txInfo.getTransactionStatus() != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (logger.isTraceEnabled()) &#123;</span><br><span class="line">            logger.trace(<span class="string">&quot;Completing transaction for [&quot;</span> + txInfo.getJoinpointIdentification() +</span><br><span class="line">                    <span class="string">&quot;] after exception: &quot;</span> + ex);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (txInfo.transactionAttribute != <span class="keyword">null</span> &amp;&amp; txInfo.transactionAttribute.rollbackOn(ex)) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">catch</span> (TransactionSystemException ex2) &#123;</span><br><span class="line">                logger.error(<span class="string">&quot;Application exception overridden by rollback exception&quot;</span>, ex);</span><br><span class="line">                ex2.initApplicationException(ex);</span><br><span class="line">                <span class="keyword">throw</span> ex2;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">catch</span> (RuntimeException | Error ex2) &#123;</span><br><span class="line">                logger.error(<span class="string">&quot;Application exception overridden by rollback exception&quot;</span>, ex);</span><br><span class="line">                <span class="keyword">throw</span> ex2;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// We don&#x27;t roll back on this exception.</span></span><br><span class="line">            <span class="comment">// Will still roll back if TransactionStatus.isRollbackOnly() is true.</span></span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">catch</span> (TransactionSystemException ex2) &#123;</span><br><span class="line">                logger.error(<span class="string">&quot;Application exception overridden by commit exception&quot;</span>, ex);</span><br><span class="line">                ex2.initApplicationException(ex);</span><br><span class="line">                <span class="keyword">throw</span> ex2;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">catch</span> (RuntimeException | Error ex2) &#123;</span><br><span class="line">                logger.error(<span class="string">&quot;Application exception overridden by commit exception&quot;</span>, ex);</span><br><span class="line">                <span class="keyword">throw</span> ex2;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>我们接着来看一下<code>RuleBasedTransactionAttribute.rollbackOn</code>方法</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">rollbackOn</span><span class="params">(Throwable ex)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (logger.isTraceEnabled()) &#123;</span><br><span class="line">        logger.trace(<span class="string">&quot;Applying rules to determine whether transaction should rollback on &quot;</span> + ex);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    RollbackRuleAttribute winner = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">int</span> deepest = Integer.MAX_VALUE;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.rollbackRules != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (RollbackRuleAttribute rule : <span class="keyword">this</span>.rollbackRules) &#123;</span><br><span class="line">            <span class="keyword">int</span> depth = rule.getDepth(ex);</span><br><span class="line">            <span class="keyword">if</span> (depth &gt;= <span class="number">0</span> &amp;&amp; depth &lt; deepest) &#123;</span><br><span class="line">                deepest = depth;</span><br><span class="line">                winner = rule;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (logger.isTraceEnabled()) &#123;</span><br><span class="line">        logger.trace(<span class="string">&quot;Winning rollback rule is: &quot;</span> + winner);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// User superclass behavior (rollback on unchecked) if no rule matches.</span></span><br><span class="line">    <span class="keyword">if</span> (winner == <span class="keyword">null</span>) &#123;</span><br><span class="line">        logger.trace(<span class="string">&quot;No relevant rollback rule found: applying default rules&quot;</span>);</span><br><span class="line">        <span class="comment">// 默认的判断逻辑</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.rollbackOn(ex);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> !(winner <span class="keyword">instanceof</span> NoRollbackRuleAttribute);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><code>RuleBasedTransactionAttribute</code>的父类<code>DefaultTransactionAttribute</code>的<code>rollbackOn</code>方法如下，可以看到，默认的回滚异常类型就是<code>RuntimeException</code>以及<code>Error</code></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">rollbackOn</span><span class="params">(Throwable ex)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (ex <span class="keyword">instanceof</span> RuntimeException || ex <span class="keyword">instanceof</span> Error);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="8-小插曲"><a class="markdownIt-Anchor" href="#8-小插曲"></a> 8 小插曲</h1>
+<h2 id="81-忘记mysql密码"><a class="markdownIt-Anchor" href="#81-忘记mysql密码"></a> 8.1 忘记mysql密码</h2>
+<p>以<code>Mac OS(10.13.6)</code>、<code>mysql-5.7.22</code>为例</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 关闭mysql server</span></span><br><span class="line">mysql.server stop</span><br><span class="line"></span><br><span class="line"><span class="comment"># 以安全模式运行mysql</span></span><br><span class="line">mysqld_safe --skip-grant-tables &amp;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 无密码登录</span></span><br><span class="line">mysql -u root</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入数据库 mysql，并修改密码</span></span><br><span class="line"><span class="comment"># 这里修改的是authentication_string字段，不同的版本中，修改的字段名称可能不同，你可以看下user表的字段有哪些，大概就能知道代表密码的字段是哪个</span></span><br><span class="line">update mysql.user <span class="built_in">set</span> authentication_string=PASSWORD(<span class="string">&quot;xxx&quot;</span>) <span class="built_in">where</span> User=<span class="string">&#x27;root&#x27;</span>;</span><br><span class="line">flush privileges;</span><br></pre></td></tr></table></figure>
+<h1 id="9-todo"><a class="markdownIt-Anchor" href="#9-todo"></a> 9 todo</h1>
+<ol>
+<li>何时注入事务上下文</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.transaction.interceptor.TransactionInterceptor.invokeWithinTransaction</span><br><span class="line">* createTransactionIfNecessary</span><br><span class="line">* prepareTransactionInfo</span><br><span class="line">org.springframework.transaction.interceptor.TransactionAspectSupport#transactionInfoHolder</span><br></pre></td></tr></table></figure>
+<ol>
+<li>@Transactional with @Test</li>
+</ol>
+<p>@Transactional默认会在执行完测试方法后回滚</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks</span><br><span class="line">org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks</span><br><span class="line">org.springframework.test.context.transaction.TransactionalTestExecutionListener</span><br><span class="line">org.springframework.test.context.transaction.TransactionContext</span><br><span class="line"><span class="comment">// 注意flaggedForRollback字段</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>调用堆栈的时序图</li>
+<li><code>&lt;tx:annotation-driven transaction-manager=&quot;transactionManager&quot; order=&quot;0&quot;/&gt;</code> 好像无法改变实际的order值</li>
+<li><code>Establishing SSL connection without server's identity verification is not recommended.</code>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/34189756/warning-about-ssl-connection-when-connecting-to-mysql-database">Warning about SSL connection when connecting to MySQL database</a></li>
+</ul>
+</li>
+</ol>
+<h1 id="10-参考"><a class="markdownIt-Anchor" href="#10-参考"></a> 10 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/832375/is-there-a-way-to-force-a-transactional-rollback-without-encountering-an-excepti">is there a way to force a transactional rollback without encountering an exception?</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u013516966/article/details/46699165">Spring整合Junit测试，并且配置事务</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/35460436/can-order-be-applied-on-transactional">can @Order be applied on @Transactional?</a></li>
+<li><a target="_blank" rel="noopener" href="https://my.oschina.net/yugj/blog/615396">spring aop 和Transaction一起使用执行顺序问题</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/10/Java-SPI/" rel="prev" title="Java-SPI">
+      <i class="fa fa-chevron-left"></i> Java-SPI
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/08/21/H2-Database-Demo/" rel="next" title="H2-Database-Demo">
+      H2-Database-Demo <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%8E%AF%E5%A2%83"><span class="nav-text"> 1 环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-demo%E5%B7%A5%E7%A8%8B%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="nav-text"> 2 Demo工程目录结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-pom"><span class="nav-text"> 3 pom</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-java"><span class="nav-text"> 4 Java</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-application"><span class="nav-text"> 4.1 Application</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-dalconfig"><span class="nav-text"> 4.2 DalConfig</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-usercontroller"><span class="nav-text"> 4.3 UserController</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-userdao"><span class="nav-text"> 4.4 UserDAO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-userdo"><span class="nav-text"> 4.5 UserDO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#46-userservice"><span class="nav-text"> 4.6 UserService</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-resource"><span class="nav-text"> 5 Resource</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-applicationproperties"><span class="nav-text"> 5.1 application.properties</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-createsql"><span class="nav-text"> 5.2 create.sql</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E6%B5%8B%E8%AF%95%E6%AD%A5%E9%AA%A4"><span class="nav-text"> 5.3 测试步骤</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E9%9B%86%E6%88%90%E6%B5%8B%E8%AF%95"><span class="nav-text"> 6 集成测试</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-baseconfig"><span class="nav-text"> 6.1 BaseConfig</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-testdalconfig"><span class="nav-text"> 6.2 TestDalConfig</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-testapplication"><span class="nav-text"> 6.3 TestApplication</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#64-testcontroller"><span class="nav-text"> 6.4 TestController</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#65-create_h2sql"><span class="nav-text"> 6.5 create_h2.sql</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90"><span class="nav-text"> 7 源码剖析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-createtransactionifnecessary"><span class="nav-text"> 7.1 createTransactionIfNecessary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-completetransactionafterthrowing"><span class="nav-text"> 7.2 completeTransactionAfterThrowing</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%B0%8F%E6%8F%92%E6%9B%B2"><span class="nav-text"> 8 小插曲</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-%E5%BF%98%E8%AE%B0mysql%E5%AF%86%E7%A0%81"><span class="nav-text"> 8.1 忘记mysql密码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-todo"><span class="nav-text"> 9 todo</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-%E5%8F%82%E8%80%83"><span class="nav-text"> 10 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

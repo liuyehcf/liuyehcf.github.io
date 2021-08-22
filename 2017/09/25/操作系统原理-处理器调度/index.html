@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统原理-处理器调度">
+<meta property="og:url" content="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig1.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig2.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig3.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig4.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig5.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig6.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig7.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig8.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig9.jpg">
+<meta property="article:published_time" content="2017-09-25T07:23:11.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:52.820Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>操作系统原理-处理器调度 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          操作系统原理-处理器调度
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-25 15:23:11" itemprop="dateCreated datePublished" datetime="2017-09-25T15:23:11+08:00">2017-09-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:52" itemprop="dateModified" datetime="2021-02-23T22:19:52+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/" itemprop="url" rel="index"><span itemprop="name">Operating System</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/Principle/" itemprop="url" rel="index"><span itemprop="name">Principle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/" class="post-meta-item leancloud_visitors" data-flag-title="操作系统原理-处理器调度" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-cpu调度相关概念"><a class="markdownIt-Anchor" href="#1-cpu调度相关概念"></a> 1 CPU调度相关概念</h1>
+<h2 id="11-cpu调度"><a class="markdownIt-Anchor" href="#11-cpu调度"></a> 1.1 CPU调度</h2>
+<p>CPU调度——其任务是控制、协调进程对CPU的竞争</p>
+<ul>
+<li>即按一定的调度算法从就绪队列中选择一个进程，把CPU的使用权交给被选中的进程</li>
+<li>如果没有就绪进程，系统会安排一个系统空闲进程或idle进程</li>
+</ul>
+<h2 id="12-cpu调度要解决的三个问题"><a class="markdownIt-Anchor" href="#12-cpu调度要解决的三个问题"></a> 1.2 CPU调度要解决的三个问题</h2>
+<p>WHAT：按什么原则选择下一个要执行的进程</p>
+<ul>
+<li>调度算法</li>
+</ul>
+<p>WHEN：何时选择</p>
+<ul>
+<li>调度时机</li>
+</ul>
+<p>HOW：如何让被选中的进程上CPU运行</p>
+<ul>
+<li>调度过程（进程的上下文切换）</li>
+</ul>
+<h2 id="13-cpu调度的时机"><a class="markdownIt-Anchor" href="#13-cpu调度的时机"></a> 1.3 CPU调度的时机</h2>
+<p>事件发生 → 当前运行的进程暂停运行 → 硬件机制响应后 → 进入操作系统，处理相应的事件 → 结束处理后：<strong>某些进程的状态会发生变化，也可能又创建了一些新的进程</strong><br />
+→ 就绪队列有调整 → 需要进程调度根据预设的调度算法从就绪队列选一个进程</p>
+<p>典型的事件举例：</p>
+<ul>
+<li>创建、唤醒、退出等进程控制操作</li>
+<li>进程等待I/O、I/O中断</li>
+<li>时钟中断，如：时间片用完、计时器到时</li>
+<li>进程执行过程中出现abort异常</li>
+</ul>
+<p><strong>CPU调度可能发生在以下几个时刻</strong></p>
+<ul>
+<li>进程正常终止或由于某种错误而终止</li>
+<li>新进程创建或一个等待进程变成就绪</li>
+<li>当一个进程从运行态进入阻塞态</li>
+<li>当一个进程从运行态变为就绪态</li>
+<li><strong>其本质是：内核对中断/异常/系统调用处理后返回到用户态时</strong></li>
+</ul>
+<h2 id="14-调度过程进程切换"><a class="markdownIt-Anchor" href="#14-调度过程进程切换"></a> 1.4 调度过程–进程切换</h2>
+<p><strong>进程调度程序从就绪队列选择了要运行的进程：这个进程可以是刚刚被暂停执行的进程，也可能是另一个新的进程。</strong></p>
+<p><strong>进程切换：是指一个进程让出处理器，由另一个进程占用处理器的过程</strong></p>
+<p><strong>进程切换主要包括两部分工作：</strong></p>
+<ul>
+<li>切换全局页目录以加载一个新的地址空间</li>
+<li>切换<strong>内核栈和硬件上下文</strong>，其中硬件上下文包括了内核执行新进程需要的全部信息，如CPU相关寄存器</li>
+</ul>
+<p>切换过程包括了对原来运行进程各种状态的保存和对新的进程各种状态的恢复</p>
+<p><strong>上下文切换的具体步骤（进程A下CPU，进程B上CPU）</strong></p>
+<ol>
+<li>保存进程A的上下文环境（程序计数器、程序状态字、其他寄存器…）</li>
+<li>用新状态和其他相关信息更新进程A的PCB</li>
+<li>把进程A移至合适的队列（就绪、阻塞…）</li>
+<li>将进程B的状态设置为运行态</li>
+<li>从进程B的PCB中恢复上下文（程序计数器、程序状态字、其他寄存器…）</li>
+</ol>
+<p><strong>上下文切换的开销</strong></p>
+<ul>
+<li><strong>直接开销：内核完成切换所用的CPU时间</strong>
+<ul>
+<li>保存和恢复寄存器</li>
+<li>切换地址空间（相关指令比较昂贵）</li>
+</ul>
+</li>
+<li><strong>间接开销：缓存失效</strong>
+<ul>
+<li>高速缓存(Cache)、缓冲区缓存(Buffer Cache)和TLB(Translation Look-aside Buffer)失效</li>
+</ul>
+</li>
+</ul>
+<h2 id="15-cpu调度算法的设计"><a class="markdownIt-Anchor" href="#15-cpu调度算法的设计"></a> 1.5 CPU调度算法的设计</h2>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig1.jpg" alt="fig1" /></p>
+<p><strong>调度算法衡量指标</strong></p>
+<ul>
+<li>吞吐量Throughput：每单位时间完成的进程数目</li>
+<li>周转时间TT(Turnaround Time)：每个进程从提出请求到运行完成的时间</li>
+<li>响应时间RT(Response Time)：从提出请求到第一次回应的时间</li>
+<li>CPU 利用率(CPU Utilization)：CPU做有效工作的时间比例</li>
+<li>等待时间(Waiting time)：每个进程在就绪队列(ready queue)中等待的时间</li>
+</ul>
+<h1 id="2-设计调度算法前的要点讨论"><a class="markdownIt-Anchor" href="#2-设计调度算法前的要点讨论"></a> 2 设计调度算法前的要点讨论</h1>
+<p>设计调度算法时要考虑以下几个问题：</p>
+<ul>
+<li>进程控制块PCB中，需要记录哪些与CPU调度有关的信息</li>
+<li>进程优先级及就绪队列的组织</li>
+<li>抢占式调度与非抢占式调度</li>
+<li>I/O密集型与CPU密集型进程</li>
+<li>时间片</li>
+</ul>
+<h2 id="21-进程优先级"><a class="markdownIt-Anchor" href="#21-进程优先级"></a> 2.1 进程优先级</h2>
+<p><strong>静态优先级：</strong></p>
+<ul>
+<li>进程创建时指定，运行过程中不再改变</li>
+</ul>
+<p><strong>动态优先级：</strong></p>
+<ul>
+<li>进程创建时指定了一个优先级，运行过程中可以动态变化</li>
+<li>如：等待时间较长的进程可提升其优先级</li>
+</ul>
+<h2 id="22-进程就绪队列组织"><a class="markdownIt-Anchor" href="#22-进程就绪队列组织"></a> 2.2 进程就绪队列组织</h2>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig2.jpg" alt="fig2" /></p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig3.jpg" alt="fig3" /></p>
+<h2 id="23-抢占式与非抢占式"><a class="markdownIt-Anchor" href="#23-抢占式与非抢占式"></a> 2.3 抢占式与非抢占式</h2>
+<p><strong>抢占与非抢占指占用CPU的方式：</strong></p>
+<ul>
+<li><strong>可抢占式Preemptive（可剥夺式）</strong>：当有比正在运行的进程优先级更高的进程就绪时，系统可强行剥夺正在运行进程的CPU，提供给具有更高优先级的进程使用</li>
+<li><strong>不可抢占式Non-preemptive（不可剥夺式）</strong>：某一进程被调度运行后，除非由于它自身的原因不能运行，否则一直运行下去</li>
+</ul>
+<h2 id="24-io密集型进程与cpu密集型进程"><a class="markdownIt-Anchor" href="#24-io密集型进程与cpu密集型进程"></a> 2.4 I/O密集型进程与CPU密集型进程</h2>
+<p><strong>按进程执行过程中的行为划分：</strong></p>
+<ul>
+<li><strong>I/O密集型或I/O型(I/O-bound)</strong>：频繁的进行I/O，通常会花费很多时间等待I/O操作的完成</li>
+<li><strong>CPU密集型或CPU型或计算密集型(CPU-bound)</strong>：需要大量的CPU时间进行计算</li>
+</ul>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig4.jpg" alt="fig4" /></p>
+<h2 id="25-时间片"><a class="markdownIt-Anchor" href="#25-时间片"></a> 2.5 时间片</h2>
+<p><strong>时间片：一个时间段，分配给调度上CPU的进程，确定了允许该进程运行的时间长度</strong></p>
+<p><strong>设计时间片大小时，考虑因素：</strong></p>
+<ul>
+<li>进程切换的开销</li>
+<li>对响应时间的要求</li>
+<li>就绪进程个数</li>
+<li>CPU能力</li>
+<li>进程的行为</li>
+</ul>
+<h1 id="3-批处理系统的调度算法"><a class="markdownIt-Anchor" href="#3-批处理系统的调度算法"></a> 3 批处理系统的调度算法</h1>
+<p>批处理系统中可用的调度算法有</p>
+<ul>
+<li>先来先服务（FCFS-First Come First Serve）</li>
+<li>最短作业优先（SJF-Shortest Job First）</li>
+<li>最短剩余时间优先（SRTN-Shortest Remaining Time Next）</li>
+<li>最高响应比优先（HRRN-Highest Response Ratio Next）</li>
+</ul>
+<h2 id="31-先来先服务fcfs"><a class="markdownIt-Anchor" href="#31-先来先服务fcfs"></a> 3.1 先来先服务（FCFS)</h2>
+<p><strong>特点：</strong></p>
+<ul>
+<li>先进先出 First In First Out (FIFO)</li>
+<li>按照进程就绪的先后顺序使用CPU</li>
+<li>非抢占</li>
+</ul>
+<p><strong>优缺点：</strong></p>
+<ul>
+<li>公平</li>
+<li>实现简单</li>
+<li>长进程后面的短进程需要等很长时间，不利于用户体验</li>
+</ul>
+<h2 id="32-短作业优先sjf"><a class="markdownIt-Anchor" href="#32-短作业优先sjf"></a> 3.2 短作业优先（SJF)</h2>
+<p><strong>短作业优先的特点：</strong></p>
+<ul>
+<li>具有最短完成时间的进程优先执行</li>
+<li>非抢占式</li>
+</ul>
+<p><strong>最短剩余时间优先(Shortest Remaining Time Next(SRTN))的特点：</strong></p>
+<ul>
+<li>SJF抢占式版本，即当一个新就绪的进程比当前运行进程具有更短的完成时间时，系统抢占当前进程，选择新就绪的进程执行</li>
+</ul>
+<p><strong>优缺点：</strong></p>
+<ul>
+<li>最短的平均周转时间</li>
+<li>不公平，源源不断的短任务到来，可能使长的任务长时间得不到运行 → 产生 “饥饿”现象(starvation)</li>
+</ul>
+<h2 id="33-最高响应比优先hrrn"><a class="markdownIt-Anchor" href="#33-最高响应比优先hrrn"></a> 3.3 最高响应比优先（HRRN)</h2>
+<p><strong>特点：</strong></p>
+<ul>
+<li>是一个综合的算法</li>
+<li>调度时，首先计算每个进程的响应比R；之后，总是选择R最高的进程执行</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">响应比R = 周转时间 / 处理时间</span><br><span class="line">       =（处理时间 + 等待时间）/ 处理时间 </span><br><span class="line">       = 1 +（等待时间 / 处理时间）</span><br></pre></td></tr></table></figure>
+<h1 id="4-交互式系统的调度算法"><a class="markdownIt-Anchor" href="#4-交互式系统的调度算法"></a> 4 交互式系统的调度算法</h1>
+<p>交互式系统中可用的调度算法有</p>
+<ul>
+<li>轮转调度（RR-Round Robin）</li>
+<li>最高优先级调度（HPF—Highest Priority First）</li>
+<li>多级反馈队列（Multiple feedback queue）</li>
+<li>最短进程优先（Shortest Process Next）</li>
+</ul>
+<h2 id="41-时间片轮转调度算法"><a class="markdownIt-Anchor" href="#41-时间片轮转调度算法"></a> 4.1 时间片轮转调度算法</h2>
+<p>目标：为短任务改善平均响应时间</p>
+<p><strong>特点：</strong></p>
+<ul>
+<li>周期性切换</li>
+<li>每个进程分配一个时间片</li>
+<li>时钟中断 → 轮换</li>
+</ul>
+<p><strong>如何选择合适的时间片?</strong></p>
+<ul>
+<li>太长 --大于典型的交互时间
+<ul>
+<li>降级为先来先服务算法</li>
+<li>延长短进程的响应时间</li>
+</ul>
+</li>
+<li>太短 --小于典型的交互时间
+<ul>
+<li>进程切换浪费CPU时间</li>
+</ul>
+</li>
+</ul>
+<p><strong>优缺点：</strong></p>
+<ul>
+<li>公平</li>
+<li>有利于交互式计算，响应时间快</li>
+<li>由于进程切换，时间片轮转算法要花费较高的开销</li>
+<li>RR对不同大小的进程是有利的，但是对于相同大小的进程，会增加平均响应时间（因为几乎都在最后一些时间片中所有进程才完成）</li>
+</ul>
+<h2 id="42-虚拟轮转法virtual-rr"><a class="markdownIt-Anchor" href="#42-虚拟轮转法virtual-rr"></a> 4.2 虚拟轮转法（VIRTUAL RR）</h2>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig5.jpg" alt="fig5" /></p>
+<h2 id="43-最高优先级调度算法"><a class="markdownIt-Anchor" href="#43-最高优先级调度算法"></a> 4.3 最高优先级调度算法</h2>
+<p><strong>特点：</strong></p>
+<ul>
+<li>选择优先级最高的进程投入运行
+<ul>
+<li>通常：系统进程优先级&gt;用户进程</li>
+<li>前台进程优先级&gt;后台进程</li>
+</ul>
+</li>
+<li>操作系统更偏好I/O型进程</li>
+<li>优先级可以是静态不变的，也可以动态调整</li>
+<li>优先数可以决定优先级</li>
+<li>就绪队列可以按照优先级组织</li>
+<li>实现简单</li>
+<li>不公平</li>
+</ul>
+<h3 id="431-优先级反转"><a class="markdownIt-Anchor" href="#431-优先级反转"></a> 4.3.1 优先级反转</h3>
+<p><strong>优先级反转问题：一个低优先级进程持有一个高优先级进程所需要的资源，使得高优先级进程等待低优先级进程运行</strong></p>
+<ul>
+<li>设H是高优先级进程，L是低优先级进程，M是中优先级进程（CPU型）</li>
+<li>场景：L进入临界区执行，之后被抢占</li>
+<li>H也要进入临界区，失败，被阻塞</li>
+<li>M上CPU执行，L无法执行所以H也无法执行</li>
+</ul>
+<p><strong>影响</strong></p>
+<ul>
+<li>系统错误</li>
+<li>高优先级进程停滞不前，导致系统性能降低</li>
+</ul>
+<p><strong>解决方案</strong></p>
+<ul>
+<li>设置优先级上限</li>
+<li>优先级继承</li>
+<li>使用中断禁止</li>
+</ul>
+<h2 id="44-多级反馈队列调度算法"><a class="markdownIt-Anchor" href="#44-多级反馈队列调度算法"></a> 4.4 多级反馈队列调度算法</h2>
+<p>Multilevel Feedback是UNIX的一个分支BSD（加州大学伯克利分校开发和发布的）5.3版所采用的调度算法，是一个综合调度算法</p>
+<p><strong>算法详细描述</strong></p>
+<ul>
+<li>设置多个就绪队列，第一级队列优先级最高</li>
+<li>给不同就绪队列中的进程分配长度不同的时间片，第一级队列时间片最小；随着队列优先级别的降低，时间片增大</li>
+<li>当第一级队列为空时，在第二级队列调度，以此类推</li>
+<li>各级队列按照时间片轮转方式进行调度</li>
+<li>当一个新创建进程就绪后，进入第一级队列</li>
+<li>进程用完时间片而放弃CPU，进入下一级就绪队列</li>
+<li>由于阻塞而放弃CPU的进程进入相应的等待队列，一旦等待的事件发生，该进程回到原来一级就绪队列
+<ul>
+<li>若允许抢占：当有一个优先级更高的进程就绪时，可以抢占CPU。被抢占的进程回到原来一级就绪队列末尾</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig6.jpg" alt="fig6" /></p>
+<h1 id="5-各种调度算法比较"><a class="markdownIt-Anchor" href="#5-各种调度算法比较"></a> 5 各种调度算法比较</h1>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">调度算法</th>
+<th style="text-align:left">占用CPU方式</th>
+<th style="text-align:left">吞吐量</th>
+<th style="text-align:left">响应时间</th>
+<th style="text-align:left">开销</th>
+<th style="text-align:left">对进程的影响</th>
+<th style="text-align:left">饥饿问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">FCFS</td>
+<td style="text-align:left">非抢占</td>
+<td style="text-align:left">不强调</td>
+<td style="text-align:left">可能很慢，特别是当进程的执行时间差别很大时</td>
+<td style="text-align:left">最小</td>
+<td style="text-align:left">对短进程不利；对I/O型的进程不利</td>
+<td style="text-align:left">无</td>
+</tr>
+<tr>
+<td style="text-align:left">Round Robin</td>
+<td style="text-align:left">抢占(时间片用完时)</td>
+<td style="text-align:left">若时间片小，吞吐量会很低</td>
+<td style="text-align:left">为短进程提供好的响应时间</td>
+<td style="text-align:left">最小</td>
+<td style="text-align:left">公平对待</td>
+<td style="text-align:left">无</td>
+</tr>
+<tr>
+<td style="text-align:left">SJF</td>
+<td style="text-align:left">非抢占</td>
+<td style="text-align:left">高</td>
+<td style="text-align:left">为短进程提供好的响应时间</td>
+<td style="text-align:left">可能较大</td>
+<td style="text-align:left">对长进程不利</td>
+<td style="text-align:left">可能</td>
+</tr>
+<tr>
+<td style="text-align:left">SRTN</td>
+<td style="text-align:left">抢占(到达时)</td>
+<td style="text-align:left">高</td>
+<td style="text-align:left">提供好的响应时间</td>
+<td style="text-align:left">可能较大</td>
+<td style="text-align:left">对长进程不利</td>
+<td style="text-align:left">可能</td>
+</tr>
+<tr>
+<td style="text-align:left">HRRN</td>
+<td style="text-align:left">非抢占</td>
+<td style="text-align:left">高</td>
+<td style="text-align:left">提供好的响应时间</td>
+<td style="text-align:left">可能较大</td>
+<td style="text-align:left">很好的平衡</td>
+<td style="text-align:left">无</td>
+</tr>
+<tr>
+<td style="text-align:left">Feedback</td>
+<td style="text-align:left">抢占(时间片用完时)</td>
+<td style="text-align:left">不强调</td>
+<td style="text-align:left">不强调</td>
+<td style="text-align:left">可能较大</td>
+<td style="text-align:left">对I/O型进程有利</td>
+<td style="text-align:left">可能</td>
+</tr>
+</tbody>
+</table>
+<h1 id="6-多处理器调度算法需要考虑的问题"><a class="markdownIt-Anchor" href="#6-多处理器调度算法需要考虑的问题"></a> 6 多处理器调度算法需要考虑的问题</h1>
+<ol>
+<li>不仅要决定选择哪一个进程执行，还需要决定在哪一个CPU上执行</li>
+<li>要考虑进程在多个CPU之间迁移时的开销
+<ul>
+<li>高速缓存失效、TLB失效</li>
+<li>尽可能使进程总是在同一个CPU上执行
+<ul>
+<li>如果每个进程可以调度到所有CPU上，假如进程上次在CPU1上执行，本次被调度到CPU2，则会增加高速缓存失效、TLB失效；如果每个进程尽量调度到指定的CPU上，各种失效就会减少</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>考虑负载均衡问题</li>
+</ol>
+<h1 id="7-典型操作系统的调度算法"><a class="markdownIt-Anchor" href="#7-典型操作系统的调度算法"></a> 7 典型操作系统的调度算法</h1>
+<ul>
+<li>UNIX：动态优先数法</li>
+<li>5.3BSD：多级反馈队列法</li>
+<li>Linux：抢占式调度</li>
+<li>Windows：基于优先级的抢占式多任务调度</li>
+<li>Solaris：综合调度算法</li>
+</ul>
+<h2 id="71-windows线程调度"><a class="markdownIt-Anchor" href="#71-windows线程调度"></a> 7.1 Windows线程调度</h2>
+<p><strong>特点：</strong></p>
+<ul>
+<li>调度单位是线程</li>
+<li>采用基于动态优先级的、抢占式调度，结合时间配额的调整</li>
+<li>就绪线程按优先级进入相应队列</li>
+<li>系统总是选择优先级最高的就绪线程运行</li>
+<li>同一优先级的各线程按时间片轮转进行调度</li>
+<li>多CPU系统中允许多个线程并行运行</li>
+</ul>
+<p><strong>引发调度的条件：</strong></p>
+<ul>
+<li>一个线程的优先级改变了</li>
+<li>一个线程改变了它的亲和(Affinity)处理机集合</li>
+</ul>
+<p><strong>例如以下条件</strong></p>
+<ul>
+<li>线程正常终止 或 由于某种错误而终止</li>
+<li>新线程创建 或 一个等待线程变成就绪</li>
+<li>当一个线程从运行态进入阻塞态</li>
+<li>当一个线程从运行态变为就绪态</li>
+</ul>
+<h3 id="711-线程优先级"><a class="markdownIt-Anchor" href="#711-线程优先级"></a> 7.1.1 线程优先级</h3>
+<p><strong>Windows使用32个线程优先级，分成三类</strong></p>
+<ol>
+<li>实时优先级：
+<ul>
+<li>实时优先级线程不改变其优先级</li>
+</ul>
+</li>
+<li>可变优先级：
+<ul>
+<li>可变优先级线程：其优先级可以在一定范围内升高或降低</li>
+</ul>
+</li>
+<li>系统线程：
+<ul>
+<li>例如零页线程：用于对系统中空闲物理页面清零</li>
+</ul>
+</li>
+</ol>
+<h3 id="712-线程的时间配额"><a class="markdownIt-Anchor" href="#712-线程的时间配额"></a> 7.1.2 线程的时间配额</h3>
+<p>时间配额不是一个时间长度值，而一个称为配额单位(quantum unit)的整数。一个线程用完了自己的时间配额时，如果没有其他相同优先级的线程，Windows将重新给该线程分配一个新的时间配额，让它继续运行</p>
+<p><strong>时间配额的一种特殊作用</strong></p>
+<ul>
+<li>假设用户首先启动了一个运行时间很长的电子表格计算程序，然后切换到一个游戏程序(需要复杂图形计算并显示，CPU型)</li>
+<li>如果前台的游戏进程提高它的优先级，则后台的电子表格计算进程就几乎得不到CPU时间了</li>
+<li>但增加游戏进程的时间配额，则不会停止执行电子表格计算，只是给游戏进程的CPU时间多一些而已</li>
+</ul>
+<h3 id="713-调度策略"><a class="markdownIt-Anchor" href="#713-调度策略"></a> 7.1.3 调度策略</h3>
+<p><strong>主动切换</strong></p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig7.jpg" alt="fig7" /></p>
+<p><strong>抢占</strong></p>
+<ul>
+<li>当线程被抢占时，它被放回相应优先级的就绪队列的队首
+<ul>
+<li>处于实时优先级的线程在被抢占时，时间配额被重置为一个完整的时间配额</li>
+<li>处于可变优先级的线程在被抢占时，时间配额不变，重新得到CPU后将运行剩余的时间配额</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig8.jpg" alt="fig8" /></p>
+<p><strong>时间配额用完</strong></p>
+<ul>
+<li>A的优先级没有降低
+<ul>
+<li>如果队列中有其他就绪线程，选择下一个线程执行，A回到原来就绪队列末尾</li>
+<li>如果队列中没有其他就绪线程，系统给线程A分配一个新的时间配额，让它继续运行</li>
+</ul>
+</li>
+<li>A的优先级降低了，Windows将选择一个更高优先级的线程</li>
+</ul>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/fig9.jpg" alt="fig9" /></p>
+<h3 id="714-线程优先级提升与时间配额调整"><a class="markdownIt-Anchor" href="#714-线程优先级提升与时间配额调整"></a> 7.1.4 线程优先级提升与时间配额调整</h3>
+<p><strong>Windows的调度策略：</strong></p>
+<ul>
+<li>如何体现对某类线程具有倾向性？</li>
+<li>如何解决由于调度策略中潜在的不公平性而带来饥饿现象？</li>
+<li>如何改善系统吞吐量、响应时间等整体特征？</li>
+</ul>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>提升线程的优先级</li>
+<li>给线程分配一个很大的时间配额</li>
+</ul>
+<p><strong>下列5种情况，Windows会提升线程的当前优先级：</strong></p>
+<ol>
+<li><strong>I/O操作完成</strong>
+<ul>
+<li>在完成I/O操作后，Windows将临时提升等待该操作线程的优先级，保证该线程能更快上CPU运行进行数据处理</li>
+<li>优先级的提升值由设备驱动程序决定，提升建议值保存在系统文件“Wdm.h”或“Ntddk.h”中</li>
+<li>优先级的提升幅度与对I/O请求的响应时间要求是一致的，响应时间要求越高，优先级提升幅度越大</li>
+<li>设备驱动程序在完成I/O请求时通过内核函数IoCompleteRequest来指定优先级提升的幅度</li>
+<li>为避免不公平，在I/O操作完成唤醒等待线程时会将该线程的时间配额减1</li>
+</ul>
+</li>
+<li><strong>信号量或事件等待结束</strong></li>
+<li><strong>前台进程中的线程完成一个等待操作</strong></li>
+<li><strong>由于窗口活动而唤醒窗口线程</strong></li>
+<li><strong>线程处于就绪态超过了一定的时间还没有运行——“饥饿”现象</strong>
+<ul>
+<li>系统线程“平衡集管理器(balance set manager)”每秒钟扫描一次就绪队列，发现是否存在等待时间超过300个时钟中断间隔的线程</li>
+<li>平衡集管理器将这些线程的优先级提升到15，并分配给它一个长度为正常值4倍的时间配额</li>
+<li>当被提升的线程用完它的时间配额后，立即衰减到它原来的基本优先级</li>
+</ul>
+</li>
+</ol>
+<h1 id="8-参考"><a class="markdownIt-Anchor" href="#8-参考"></a> 8 参考</h1>
+<ul>
+<li>《MOOC-操作系统原理-陈向群》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/" rel="prev" title="操作系统原理-进程线程模型">
+      <i class="fa fa-chevron-left"></i> 操作系统原理-进程线程模型
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B61/" rel="next" title="操作系统原理-同步机制1">
+      操作系统原理-同步机制1 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-cpu%E8%B0%83%E5%BA%A6%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5"><span class="nav-text"> 1 CPU调度相关概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-cpu%E8%B0%83%E5%BA%A6"><span class="nav-text"> 1.1 CPU调度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-cpu%E8%B0%83%E5%BA%A6%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E4%B8%89%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="nav-text"> 1.2 CPU调度要解决的三个问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-cpu%E8%B0%83%E5%BA%A6%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="nav-text"> 1.3 CPU调度的时机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E8%B0%83%E5%BA%A6%E8%BF%87%E7%A8%8B%E8%BF%9B%E7%A8%8B%E5%88%87%E6%8D%A2"><span class="nav-text"> 1.4 调度过程–进程切换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#15-cpu%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 1.5 CPU调度算法的设计</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%AE%BE%E8%AE%A1%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95%E5%89%8D%E7%9A%84%E8%A6%81%E7%82%B9%E8%AE%A8%E8%AE%BA"><span class="nav-text"> 2 设计调度算法前的要点讨论</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E8%BF%9B%E7%A8%8B%E4%BC%98%E5%85%88%E7%BA%A7"><span class="nav-text"> 2.1 进程优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E8%BF%9B%E7%A8%8B%E5%B0%B1%E7%BB%AA%E9%98%9F%E5%88%97%E7%BB%84%E7%BB%87"><span class="nav-text"> 2.2 进程就绪队列组织</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-%E6%8A%A2%E5%8D%A0%E5%BC%8F%E4%B8%8E%E9%9D%9E%E6%8A%A2%E5%8D%A0%E5%BC%8F"><span class="nav-text"> 2.3 抢占式与非抢占式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-io%E5%AF%86%E9%9B%86%E5%9E%8B%E8%BF%9B%E7%A8%8B%E4%B8%8Ecpu%E5%AF%86%E9%9B%86%E5%9E%8B%E8%BF%9B%E7%A8%8B"><span class="nav-text"> 2.4 I&#x2F;O密集型进程与CPU密集型进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-%E6%97%B6%E9%97%B4%E7%89%87"><span class="nav-text"> 2.5 时间片</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%89%B9%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95"><span class="nav-text"> 3 批处理系统的调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%85%88%E6%9D%A5%E5%85%88%E6%9C%8D%E5%8A%A1fcfs"><span class="nav-text"> 3.1 先来先服务（FCFS)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E7%9F%AD%E4%BD%9C%E4%B8%9A%E4%BC%98%E5%85%88sjf"><span class="nav-text"> 3.2 短作业优先（SJF)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E6%9C%80%E9%AB%98%E5%93%8D%E5%BA%94%E6%AF%94%E4%BC%98%E5%85%88hrrn"><span class="nav-text"> 3.3 最高响应比优先（HRRN)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95"><span class="nav-text"> 4 交互式系统的调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E6%97%B6%E9%97%B4%E7%89%87%E8%BD%AE%E8%BD%AC%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95"><span class="nav-text"> 4.1 时间片轮转调度算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E8%99%9A%E6%8B%9F%E8%BD%AE%E8%BD%AC%E6%B3%95virtual-rr"><span class="nav-text"> 4.2 虚拟轮转法（VIRTUAL RR）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-%E6%9C%80%E9%AB%98%E4%BC%98%E5%85%88%E7%BA%A7%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95"><span class="nav-text"> 4.3 最高优先级调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-%E4%BC%98%E5%85%88%E7%BA%A7%E5%8F%8D%E8%BD%AC"><span class="nav-text"> 4.3.1 优先级反转</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-%E5%A4%9A%E7%BA%A7%E5%8F%8D%E9%A6%88%E9%98%9F%E5%88%97%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95"><span class="nav-text"> 4.4 多级反馈队列调度算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%90%84%E7%A7%8D%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95%E6%AF%94%E8%BE%83"><span class="nav-text"> 5 各种调度算法比较</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%A4%9A%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95%E9%9C%80%E8%A6%81%E8%80%83%E8%99%91%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text"> 6 多处理器调度算法需要考虑的问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%85%B8%E5%9E%8B%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95"><span class="nav-text"> 7 典型操作系统的调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-windows%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6"><span class="nav-text"> 7.1 Windows线程调度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#711-%E7%BA%BF%E7%A8%8B%E4%BC%98%E5%85%88%E7%BA%A7"><span class="nav-text"> 7.1.1 线程优先级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#712-%E7%BA%BF%E7%A8%8B%E7%9A%84%E6%97%B6%E9%97%B4%E9%85%8D%E9%A2%9D"><span class="nav-text"> 7.1.2 线程的时间配额</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#713-%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5"><span class="nav-text"> 7.1.3 调度策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#714-%E7%BA%BF%E7%A8%8B%E4%BC%98%E5%85%88%E7%BA%A7%E6%8F%90%E5%8D%87%E4%B8%8E%E6%97%B6%E9%97%B4%E9%85%8D%E9%A2%9D%E8%B0%83%E6%95%B4"><span class="nav-text"> 7.1.4 线程优先级提升与时间配额调整</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%8F%82%E8%80%83"><span class="nav-text"> 8 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

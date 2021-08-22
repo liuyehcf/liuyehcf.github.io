@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP-IP">
+<meta property="og:url" content="http://example.com/2017/07/10/TCP-IP/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/TCP-IP/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.png">
+<meta property="og:image" content="http://example.com/images/TCP-IP/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B1.png">
+<meta property="og:image" content="http://example.com/images/TCP-IP/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B2.png">
+<meta property="og:image" content="http://example.com/images/TCP-IP/flow_control.jpeg">
+<meta property="og:image" content="http://example.com/images/TCP-IP/cwnd.png">
+<meta property="article:published_time" content="2017-07-10T10:45:39.000Z">
+<meta property="article:modified_time" content="2021-08-22T10:47:55.908Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/TCP-IP/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.png">
+
+<link rel="canonical" href="http://example.com/2017/07/10/TCP-IP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>TCP-IP | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/10/TCP-IP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TCP-IP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-10 18:45:39" itemprop="dateCreated datePublished" datetime="2017-07-10T18:45:39+08:00">2017-07-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-22 18:47:55" itemprop="dateModified" datetime="2021-08-22T18:47:55+08:00">2021-08-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Network/" itemprop="url" rel="index"><span itemprop="name">Network</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/10/TCP-IP/" class="post-meta-item leancloud_visitors" data-flag-title="TCP-IP" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/10/TCP-IP/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/10/TCP-IP/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p>TCP（Transmission Control Protocol 传输控制协议）是一种<strong>面向连接的、可靠的、基于字节流</strong>的传输层通信协议，由IETF的RFC 793定义</p>
+<h1 id="2-tcp报文格式以及11种状态"><a class="markdownIt-Anchor" href="#2-tcp报文格式以及11种状态"></a> 2 TCP报文格式以及11种状态</h1>
+<p><strong>TCP报文中重要的字段：</strong></p>
+<ol>
+<li><strong>序号</strong>：Seq序号，占32位，用来标识从TCP源端向目的端发送的字节流，发起方发送数据时对此进行标记。</li>
+<li><strong>确认序号</strong>：Ack序号，占32位，只有ACK标志位为1时，确认序号字段才有效，Ack=Seq+1</li>
+<li><strong>标志位</strong>：共6个，即URG、ACK、PSH、RST、SYN、FIN等，具体含义如下：</li>
+<li><strong>URG</strong>：紧急指针（urgent pointer）有效</li>
+<li><strong>ACK</strong>：确认序号有效</li>
+<li><strong>PSH</strong>：接收方应该尽快将这个报文交给应用层</li>
+<li><strong>RST</strong>：重置连接</li>
+<li><strong>SYN</strong>：发起一个新连接</li>
+<li><strong>FIN</strong>：释放一个连接</li>
+</ol>
+<p><strong>需要注意的是：</strong></p>
+<ol>
+<li>不要将确认序号Ack与标志位中的ACK搞混了</li>
+<li>确认方Ack=发起方Req+1，两端配对</li>
+</ol>
+<p><strong>TCP连接中的11种状态：</strong></p>
+<ol>
+<li><strong><code>CLOSED</code></strong>：起始点，不在连接状态。可以主动打开连接，或者等待对端的连接
+<ul>
+<li>收到&quot;被动打开&quot;报文，进入LISTEN状态</li>
+<li>收到&quot;主动打开&quot;报文，进入SYN_SENT状态</li>
+<li>收到任何报文段，发送RST报文段</li>
+<li>收到其它任何报文段，发出差错报文</li>
+</ul>
+</li>
+<li><strong><code>LISTEN</code></strong>：被动打开，TCP正在等待对端的连接请求
+<ul>
+<li>收到&quot;发送数据&quot;报文，发送SYN报文段，进入SYN_SENT状态</li>
+<li>收到任何SYN报文段，发送SYN+ACK报文段，进入SYN_RECEIVED状态</li>
+<li>收到任何其它报文段或者报文，发送差错报文</li>
+</ul>
+</li>
+<li><strong><code>SYN_SENT</code></strong>：主动打开，发送完一个连接请求后等待回复
+<ul>
+<li>超时，进入CLOSED状态</li>
+<li>收到SYN报文段，发送SYN+ACK报文段，进入SYN_RECEIVED状态</li>
+<li>收到SYN+ACK报文段，发送ACK报文段，进入ESTABLISHED状态</li>
+<li>收到任何其它报文段或者报文，发送差错报文</li>
+</ul>
+</li>
+<li><strong><code>SYN_RECEIVED</code></strong>：被动打开，接受连接请求以后进行确认同时也向对端发送连接请求发送，等待对方的回复
+<ul>
+<li>超时，发送RST报文段，进入CLOSED状态</li>
+<li>收到ACK报文段，进入ESTABLISHED状态</li>
+<li>收到&quot;关闭&quot;报文，发送FIN报文段，进入FIN_WAIT_1状态</li>
+<li>收到RST报文段，进入LISTEN状态</li>
+<li>收到任何其它报文段或者报文，发送差错报文</li>
+</ul>
+</li>
+<li><strong><code>ESTABLISHED</code></strong>：三次握手完毕，TCP连接建立完成，可以传输数据
+<ul>
+<li>收到FIN报文段，进入CLOSED_WAIT状态</li>
+<li>收到&quot;关闭&quot;报文，发送FIN报文段，进入FIN_WAIT_1状态</li>
+<li>收到RST或SYN报文段，发出差错报文</li>
+<li>收到数据或ACK报文段，调用输入模块</li>
+<li>收到&quot;发送&quot;报文，调用输出模块</li>
+</ul>
+</li>
+<li><strong><code>FIN_WAIT_1</code></strong>：四次挥手开始，主动关闭，发送断开连接请求，等待对端确认
+<ul>
+<li>收到FIN报文段，发送ACK报文段，进入CLOSING状态（同时关闭）</li>
+<li>收到FIN+ACK报文段，发送ACK报文段，进入FIN_WAIT状态（？）</li>
+<li>收到ACK报文段，进入FIN_WAIT_2状态</li>
+<li>收到任何其它报文段或者报文，发送差错报文</li>
+</ul>
+</li>
+<li><strong><code>FIN_WAIT_2</code></strong>：接收对方确认，但未接受对方的断开连接请求
+<ul>
+<li>收到FIN报文段，发送ACK报文段，进入<code>TIME_WAIT</code>状态</li>
+</ul>
+</li>
+<li><strong><code>CLOSING</code></strong>：主动关闭的一方本希望收到对方的ACK却收到了对方的断开连接请求
+<ul>
+<li>收到ACK报文段，进入<code>TIME_WAIT</code>状态</li>
+<li>收到任何其它报文段或者报文，发送差错报文</li>
+</ul>
+</li>
+<li><strong><code>TIME_WAIT</code></strong>：对方确认后发起断开连接请求，需要等待2MSL保证正常关闭
+<ul>
+<li>超时，进入CLOSED状态</li>
+<li>收到任何其它报文段或者报文，发送差错报文</li>
+</ul>
+</li>
+<li><strong><code>CLOSE_WAIT</code></strong>：被动关闭，确认对端的连接终止请求，但是未向对端发送连接终止请求（可能数据没传完）
+<ul>
+<li>收到&quot;关闭&quot;报文，发送FIN报文段，进入LAST_ACK状态</li>
+<li>收到任何其它报文段或者报文，发送差错报文</li>
+</ul>
+</li>
+<li><strong><code>LAST_ACK</code></strong>：数据传完，向对端发起断开连接请求后等待确认
+<ul>
+<li>收到ACK报文段，进入CLOSED状态</li>
+<li>收到任何其它报文段或者报文，发送差错报文</li>
+</ul>
+</li>
+<li><strong><code>CLOSED</code></strong>：终点，不在连接状态。可以主动打开连接，或者等待对端的连接</li>
+</ol>
+<p><strong>MSL是Maximum Segment Lifetime英文的缩写</strong>，中文可以译为&quot;报文最大生存时间&quot;，他是任何报文在网络上存在的最长时间，超过这个时间报文将被丢弃。因为tcp报文（segment）是ip数据报（datagram）的数据部分，具体称谓请参见《数据在网络各层中的称呼》一文，而ip头中有一个TTL域，TTL是time to live的缩写，中文可以译为&quot;生存时间&quot;，这个生存时间是由源主机设置初始值但不是存的具体时间，而是存储了一个ip数据报可以经过的最大路由数，每经过一个处理他的路由器此值就减1，当此值为0则数据报将被丢弃，同时发送ICMP报文通知源主机。RFC 793中规定MSL为2分钟，实际应用中常用的是30秒，1分钟和2分钟等</p>
+<p>2MSL即两倍的MSL，TCP的<code>TIME_WAIT</code>状态也称为2MSL等待状态，当TCP的一端发起主动关闭，在发出最后一个ACK包后，即第3次握手完成后发送了第四次握手的ACK包后就进入了<code>TIME_WAIT</code>状态，必须在此状态上停留两倍的MSL时间，<strong>等待2MSL时间主要目的是怕最后一个ACK包对方没收到，那么对方在超时后将重发第三次握手的FIN包，主动关闭端接到重发的FIN包后可以再发一个ACK应答包</strong>。在<code>TIME_WAIT</code>状态时两端的端口不能使用，要等到2MSL时间结束才可继续使用。当连接处于2MSL等待阶段时任何迟到的报文段都将被丢弃。不过在实际应用中可以通过设置SO_REUSEADDR选项达到不必等待2MSL时间结束再使用此端口</p>
+<h2 id="21-time_wait状态"><a class="markdownIt-Anchor" href="#21-time_wait状态"></a> 2.1 TIME_WAIT状态</h2>
+<p><code>TIME_WAIT</code>状态存在的理由<br />
+TCP/IP协议就是这样设计的，是不可避免的。主要有两个原因:</p>
+<ol>
+<li><strong>可靠地实现TCP全双工连接的终止</strong>
+<ul>
+<li>TCP协议在关闭连接的四次握手过程中，最终的ACK是由主动关闭连接的一端（后面统称A端）发出的，<strong>如果这个ACK丢失，对方（后面统称B端）将重发出最终的FIN，因此A端必须维护状态信息（<code>TIME_WAIT</code>）允许它重发最终的ACK</strong>。如果A端不维持<code>TIME_WAIT</code>状态，而是处于CLOSED状态，那么A端在收到FIN后将会响应RST而不是ACK，B端收到RST后将此分节解释成一个错误</li>
+<li>因而，要实现TCP全双工连接的正常终止，必须处理终止过程中四个分节任何一个分节的丢失情况，主动关闭连接的A端必须维持<code>TIME_WAIT</code>状态</li>
+</ul>
+</li>
+<li><strong>允许老的重复分节在网络中消逝</strong>
+<ul>
+<li>TCP分节可能由于路由器异常而&quot;迷途&quot;，在迷途期间，TCP发送端可能因确认超时而重发这个分节，迷途的分节在路由器修复后也会被送到最终目的地，这个迟到的迷途分节到达时可能会引起问题。在关闭&quot;前一个连接&quot;之后，马上又重新建立起一个相同的IP和端口之间的&quot;新连接&quot;，<strong>&quot;前一个连接&quot;的迷途重复分组在&quot;前一个连接&quot;终止后到达，而被&quot;新连接&quot;收到了</strong>。为了避免这个情况，TCP协议不允许处于<code>TIME_WAIT</code>状态的连接启动一个新的可用连接，<strong>因为<code>TIME_WAIT</code>状态持续2MSL，就可以保证当成功建立一个新TCP连接的时候，来自旧连接重复分组已经在网络中消逝。</strong></li>
+</ul>
+</li>
+</ol>
+<p><strong>处于<code>TIME_WAIT</code>状态下的tcp连接，不会占用文件描述符</strong></p>
+<h2 id="22-close_wait状态"><a class="markdownIt-Anchor" href="#22-close_wait状态"></a> 2.2 CLOSE_WAIT状态</h2>
+<p><strong>处于<code>CLOSE_WAIT</code>状态下的tcp连接，会占用文件描述符。如果系统中出现了大量的<code>CLOSE_WAIT</code>状态，可能会导致新的连接无法正常建立</strong></p>
+<h1 id="3-三次握手"><a class="markdownIt-Anchor" href="#3-三次握手"></a> 3 三次握手</h1>
+<p>所谓三次握手（Three-Way Handshake）即建立TCP连接，就是指建立一个TCP连接时，需要客户端和服务端总共发送3个包以确认连接的建立。在socket编程中，这一过程由客户端执行connect来触发，整个流程如下图所示：</p>
+<p><img src="/images/TCP-IP/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.png" alt="三次握手" /></p>
+<p><strong>三次握手流程如下</strong></p>
+<ol>
+<li>第一次握手：Client将标志位SYN置为1，随机产生一个值seq=J，并将该数据包发送给Server，Client进入SYN_SENT状态，等待Server确认。</li>
+<li>第二次握手：Server收到数据包后由标志位SYN=1知道Client请求建立连接，Server将标志位SYN和ACK都置为1，ack=J+1，随机产生一个值seq=K，并将该数据包发送给Client以确认连接请求，Server进入SYN_RCVD状态。</li>
+<li>第三次握手：Client收到确认后，检查ack是否为J+1，ACK是否为1，如果正确则将标志位ACK置为1，ack=K+1，并将该数据包发送给Server，Server检查ack是否为K+1，ACK是否为1，如果正确则连接建立成功，Client和Server进入ESTABLISHED状态，完成三次握手，随后Client与Server之间可以开始传输数据了。</li>
+</ol>
+<p><strong>SYN攻击</strong>：</p>
+<blockquote>
+<p>在三次握手过程中，Server发送SYN-ACK之后，收到Client的ACK之前的TCP连接称为半连接（half-open connect），此时Server处于SYN_RCVD状态，当收到ACK后，Server转入ESTABLISHED状态。SYN攻击就是Client在短时间内伪造大量不存在的IP地址，并向Server不断地发送SYN包，Server回复确认包，并等待Client的确认，由于源地址是不存在的，因此，Server需要不断重发直至超时，这些伪造的SYN包将产时间占用未连接队列，导致正常的SYN请求因为队列满而被丢弃，从而引起网络堵塞甚至系统瘫痪。SYN攻击时一种典型的DDOS攻击，检测SYN攻击的方式非常简单，即当Server上有大量半连接状态且源IP地址是随机的，则可以断定遭到SYN攻击了，使用如下命令可以让之现行： <code>netstat -nap | grep SYN_RECV</code></p>
+</blockquote>
+<p><strong>为什么需要三次握手</strong>：</p>
+<blockquote>
+<p><strong>为了防止已失效的连接请求报文段突然又传送到了服务端，因而产生错误</strong>。举例来说，“已失效的连接请求报文段&quot;的产生在这样一种情况下：client发出的第一个连接请求报文段并没有丢失，而是在某个网络结点长时间的滞留了，以致延误到连接释放以后的某个时间才到达server。本来这是一个早已失效的报文段。但server收到此失效的连接请求报文段后，就误认为是client再次发出的一个新的连接请求。于是就向client发出确认报文段，同意建立连接。假设不采用&quot;三次握手”，那么只要server发出确认，新的连接就建立了。由于现在client并没有发出建立连接的请求，因此不会理睬server的确认，也不会向server发送数据。但server却以为新的运输连接已经建立，并一直等待client发来数据。这样，server的很多资源就白白浪费掉了。采用&quot;三次握手&quot;的办法可以防止上述现象发生。例如刚才那种情况，client不会向server的确认发出确认。server由于收不到确认，就知道client并没有要求建立连接。&quot;<br />
+这就很明白了，防止了服务器端的一直等待而浪费资源</p>
+</blockquote>
+<blockquote>
+<p>我们换一种说法。设想：如果只有两次握手，那么第二次握手后服务器只向客户端发送ACK包，此时客户端与服务器端建立连接。在这种握手规则下：假设：如果发送网络阻塞，由于TCP/IP协议定时重传机制，B向A发送了两次SYN请求，分别是<code>x1</code>和<code>x2</code>，且因为阻塞原因，导致<code>x1</code>连接请求和<code>x2</code>连接请求的TCP窗口大小和数据报文长度不一致，如果最终<code>x1</code>达到A，<code>x2</code>丢失，此时A同B建立了<code>x1</code>的连接，这个时候，因为AB已经连接，B无法知道是请求<code>x1</code>还是请求<code>x2</code>同B连接，如果B默认是最近的请求<code>x2</code>同A建立了连接，此时B开始向A发送数据，数据报文长度为<code>x2</code>定义的长度，窗口大小为<code>x2</code>定义的大小，而A建立的连接是<code>x1</code>，其数据包长度大小为<code>x1</code>，TCP窗口大小为<code>x1</code>定义，这就会导致A处理数据时出错。很显然，如果A接收到B的请求后，A向B发送SYN请求y3（y3的窗口大小和数据报长度等信息为<code>x1</code>所定义），确认了连接建立的窗口大小和数据报长度为<code>x1</code>所定义，A再次确认回答建立<code>x1</code>连接，然后开始相互传送数据，那么就不会导致数据处理出错了</p>
+</blockquote>
+<h1 id="4-四次挥手"><a class="markdownIt-Anchor" href="#4-四次挥手"></a> 4 四次挥手</h1>
+<p>所谓四次挥手（Four-Way Wavehand）即终止TCP连接，就是指断开一个TCP连接时，需要客户端和服务端总共发送4个包以确认连接的断开。在socket编程中，这一过程由客户端或服务端任一方执行close来触发，整个流程如下图所示：</p>
+<p><img src="/images/TCP-IP/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B1.png" alt="四次挥手1" /></p>
+<p><strong>由于TCP连接时全双工的，因此，每个方向都必须要单独进行关闭</strong>，这一原则是当一方完成数据发送任务后，发送一个FIN来终止这一方向的连接，<strong>收到一个FIN只是意味着这一方向上没有数据流动了，即不会再收到数据了，但是在这个TCP连接上仍然能够发送数据，直到这一方向也发送了FIN</strong>。首先进行关闭的一方将执行主动关闭，而另一方则执行被动关闭，上图描述的即是如此</p>
+<ol>
+<li>第一次挥手：Client发送一个FIN，用来关闭Client到Server的数据传送，Client进入<code>FIN_WAIT_1</code>状态。</li>
+<li>第二次挥手：Server收到FIN后，发送一个ACK给Client，确认序号为收到序号+1（与SYN相同，一个FIN占用一个序号），Server进入<code>CLOSE_WAIT</code>状态</li>
+<li>第三次挥手：Server发送一个FIN，用来关闭Server到Client的数据传送，Server进入<code>LAST_ACK</code>状态。</li>
+<li>第四次挥手：Client收到FIN后，Client进入<code>TIME_WAIT</code>状态，接着发送一个ACK给Server，确认序号为收到序号+1，Server进入CLOSED状态，完成四次挥手</li>
+</ol>
+<p>上面是一方主动关闭，另一方被动关闭的情况，实际中还会出现同时发起主动关闭的情况，具体流程如下图：</p>
+<p><img src="/images/TCP-IP/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B2.png" alt="四次挥手2" /></p>
+<h1 id="5-流量控制"><a class="markdownIt-Anchor" href="#5-流量控制"></a> 5 流量控制</h1>
+<p><img src="/images/TCP-IP/flow_control.jpeg" alt="flow_control" /></p>
+<p><strong>流量控制，是利用灵活可变的滑动窗口控制流量，是为了解决发送数据扩快导致接收方来不及接收的问题</strong></p>
+<p><strong>发送方缓存中的数据可以分成如下4类</strong></p>
+<ol>
+<li>已发送，并且收到ack</li>
+<li>已发送，未收到ack</li>
+<li>未发送，允许发送</li>
+<li>未发送，不允许发送</li>
+</ol>
+<ul>
+<li>其中<code>2</code>和<code>3</code>这两类属于滑动窗口的范围</li>
+</ul>
+<h1 id="6-拥塞控制"><a class="markdownIt-Anchor" href="#6-拥塞控制"></a> 6 拥塞控制</h1>
+<p><img src="/images/TCP-IP/cwnd.png" alt="cwnd" /></p>
+<p><strong>拥塞控制，是为了避免过多的流量注入网络使得网络过载。具体方法包括：慢开始、拥塞避免、快重传和快恢复</strong></p>
+<ul>
+<li><strong>慢开始</strong>：拥塞窗口从一个较小的值开始，指数增长</li>
+<li><strong>拥塞避免</strong>：拥塞窗口增长到指定阈值后，线性增长</li>
+<li><strong>快重传</strong>：同一个ack重复发3次，触发发送端的快速重传，避免等待超时浪费时间</li>
+<li><strong>快恢复</strong>：当触发快速重传时，可能仅发生了乱序，而网络实际上还是正常的，因此没必要将拥塞窗口调成最小值，而是将拥塞窗口调整到阈值附近</li>
+</ul>
+<h1 id="7-rst"><a class="markdownIt-Anchor" href="#7-rst"></a> 7 RST</h1>
+<p><strong>在TCP协议中RST(Reset the connection)表示复位，用来异常的关闭连接</strong>，在TCP的设计中它是不可或缺的。发送RST包关闭连接时，不必等缓冲区的包都发出去，直接就丢弃缓存区的包发送RST包。而接收端收到RST包后，也不必发送ACK包来确认</p>
+<p>其实在网络编程过程中，各种RST错误其实是比较难排查和找到原因的。下面我列出几种会出现RST的情况</p>
+<ol>
+<li>端口未打开</li>
+<li>请求超时</li>
+<li>提前关闭</li>
+<li>在一个已关闭的socket上收到数据</li>
+</ol>
+<h1 id="8-tcpip为什么是可靠的"><a class="markdownIt-Anchor" href="#8-tcpip为什么是可靠的"></a> 8 TCP/IP为什么是可靠的</h1>
+<p><strong>TCP提供一种面向连接的、可靠的（传输层保证可靠）字节流服务</strong>。虽然UDP是不可靠的，但是UDP配合应用层的重传机制也是能够实现可靠通信的</p>
+<p><strong>什么是字节流服务</strong>：</p>
+<ol>
+<li>两个应用程序通过TCP连接交换8bit字节构成的字节流。<strong>TCP不在字节流中插入记录标识符</strong>。我们将这称为字节流服务（bytestreamservice）</li>
+<li>TCP对字节流的内容不作任何解释，TCP不知道传输的数据字节流是二进制数据，还是ASCII字符、EBCDIC字符或者其他类型数据。<strong>对字节流的解释由TCP连接双方的应用层解释</strong></li>
+</ol>
+<p><strong>面向连接</strong>：意味着两个使用TCP的应用（通常是一个客户和一个服务器）在彼此交换数据之前必须先建立一个TCP连接。在一个TCP连接中，仅有两方进行彼此通信。广播和多播不能用于TCP</p>
+<p><strong>TCP通过下列方式来提供可靠性</strong></p>
+<ol>
+<li><strong>将数据截断为合理的长度</strong>：应用数据被分割成TCP认为最适合发送的数据块。这和UDP完全不同，应用程序产生的数据报长度将保持不变</li>
+<li><strong>超时重发</strong>：当TCP发出一个段后，它启动一个定时器，等待目的端确认收到这个报文段。如果不能及时收到一个确认，将重发这个报文段。存在这样一种情况，收端发送了确认信号，但是发端没有收到，于是发端重发了该数据包，产生了重复，因此TCP必须有相应的策略来解决重复的问题</li>
+<li><strong>对于收到的请求，给出确认响应</strong>：当TCP收到发自TCP连接另一端的数据，它将发送一个确认。这个确认不是立即发送，通常将推迟几分之一秒。之所以推迟，可能是要对包做完整校验</li>
+<li><strong>校验出包有错，丢弃报文段，不给出响应，TCP发送数据端，超时时会重发数据</strong>：TCP将保持它首部和数据的检验和。这是一个端到端的检验和，目的是检测数据在传输过程中的任何变化。如果收到段的检验和有差错，TCP将丢弃这个报文段和不确认收到此报文段</li>
+<li><strong>对失序数据进行重新排序，然后才交给应用层</strong>：既然TCP报文段作为IP数据报来传输，而IP数据报的到达可能会失序，因此TCP报文段的到达也可能会失序。如果必要，TCP将对收到的数据进行重新排序，将收到的数据以正确的顺序交给应用层</li>
+<li><strong>对于重复数据，能够丢弃重复数据</strong>：既然IP数据报会发生重复，TCP的接收端必须丢弃重复的数据</li>
+<li><strong>TCP可以进行流量控制，防止较快主机致使较慢主机的缓冲区溢出</strong>：TCP还能提供流量控制。TCP连接的每一方都有固定大小的缓冲空间。TCP的接收端只允许另一端发送接收端缓冲区所能接纳的数据。这将防止较快主机致使较慢主机的缓冲区溢出。TCP使用的流量控制协议是可变大小的滑动窗口协议</li>
+</ol>
+<hr />
+<h1 id="9-tcp-ip详解卷1协议"><a class="markdownIt-Anchor" href="#9-tcp-ip详解卷1协议"></a> 9 《TCP-IP详解卷1：协议》</h1>
+<ol>
+<li>socket
+<ul>
+<li>
+<blockquote>
+<p>一个IP地址和一个端口号也称为一个插口（socket），这个术语出现在最早的TCP规范（RFC793）中，后来它也作为表示伯克利版的编程接口。插口对（socket pair）（包含客户IP地址、客户端口号、服务器IP地址和服务器端口号的四元组）可唯一确定互联网络中每个TCP连接（或TCP/IP协议簇）的双方</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="10-参考"><a class="markdownIt-Anchor" href="#10-参考"></a> 10 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.2cto.com/net/201310/251896.html">TCP/IP协议三次握手与四次握手流程解析</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/zhushuai1221/article/details/51008950">TCP/IP为什么要进行三次握手？</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/a987073381/article/details/52206215">计算机网络——TCP协议中的三次握手四次挥手以及11种状态转换</a></li>
+<li><a target="_blank" rel="noopener" href="https://my.oschina.net/woyaoxue/blog/510669?p=1">TIME_WAIT状态作用!</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.huaweicloud.com/articles/ba31660f82bbdd3a3e8615ec68d85bc3.html">TCP流量控制和拥塞控制简述</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.huaweicloud.com/articles/912cb7c3b49f2a5bc792a140bb4d7a87.html">TCP的拥塞控制（详解）</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/32255109/answer/898371009">TCP协议的滑动窗口具体是怎样控制流量的？</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/102382380">TCP的拥塞避免</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/10/Java-NIO/" rel="prev" title="Java-NIO">
+      <i class="fa fa-chevron-left"></i> Java-NIO
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/10/Java-ThreadLocal-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" rel="next" title="Java-ThreadLocal-源码剖析">
+      Java-ThreadLocal-源码剖析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-tcp%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%E4%BB%A5%E5%8F%8A11%E7%A7%8D%E7%8A%B6%E6%80%81"><span class="nav-text"> 2 TCP报文格式以及11种状态</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-time_wait%E7%8A%B6%E6%80%81"><span class="nav-text"> 2.1 TIME_WAIT状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-close_wait%E7%8A%B6%E6%80%81"><span class="nav-text"> 2.2 CLOSE_WAIT状态</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="nav-text"> 3 三次握手</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B"><span class="nav-text"> 4 四次挥手</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="nav-text"> 5 流量控制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6"><span class="nav-text"> 6 拥塞控制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-rst"><span class="nav-text"> 7 RST</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-tcpip%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E5%8F%AF%E9%9D%A0%E7%9A%84"><span class="nav-text"> 8 TCP&#x2F;IP为什么是可靠的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-tcp-ip%E8%AF%A6%E8%A7%A3%E5%8D%B71%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 9 《TCP-IP详解卷1：协议》</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-%E5%8F%82%E8%80%83"><span class="nav-text"> 10 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

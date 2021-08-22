@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="单源最短路径">
+<meta property="og:url" content="http://example.com/2017/08/04/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/fig1.png">
+<meta property="article:published_time" content="2017-08-04T14:16:36.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.321Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/fig1.png">
+
+<link rel="canonical" href="http://example.com/2017/08/04/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>单源最短路径 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/08/04/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          单源最短路径
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-08-04 22:16:36" itemprop="dateCreated datePublished" datetime="2017-08-04T22:16:36+08:00">2017-08-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index"><span itemprop="name">Algorithm</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/Graph/" itemprop="url" rel="index"><span itemprop="name">Graph</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/08/04/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/" class="post-meta-item leancloud_visitors" data-flag-title="单源最短路径" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/08/04/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/08/04/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-dijkstra"><a class="markdownIt-Anchor" href="#1-dijkstra"></a> 1 Dijkstra</h1>
+<p>Dijkstra 算法（中文名：迪杰斯特拉算法）是由荷兰计算机科学家 Edsger Wybe Dijkstra 提出。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径</p>
+<p><strong>注意该算法要求图中不存在负权边。</strong></p>
+<h2 id="11-算法描述"><a class="markdownIt-Anchor" href="#11-算法描述"></a> 1.1 算法描述</h2>
+<p>设<code>G=(V,E)</code>是一个带权有向图，把图中顶点集合V分成两组，第一组为已求出最短路径的顶点集合（用S表示，初始时S中只有一个源点，以后每求得一条最短路径，就将加入到集合S中，直到全部顶点都加入到S中，算法就结束了）；第二组为其余未确定最短路径的顶点集合（用U表示），按最短路径长度的递增次序依次把第二组的顶点加入S中。在加入的过程中，总保持从源点v到S中各顶点的最短路径长度不大于从源点v到U中任何顶点的最短路径长度</p>
+<p>此外，每个顶点i对应一个距离D(i)</p>
+<ul>
+<li>S中的顶点的距离就是从v到此顶点的最短路径长度</li>
+<li>U中的顶点的距离，<strong>是从v到此顶点只包括S中的顶点为中间顶点的当前最短路径长度</strong>。即迭代过程中的当前时刻的最短路径，之后可能会被更新</li>
+</ul>
+<h2 id="12-流程"><a class="markdownIt-Anchor" href="#12-流程"></a> 1.2 流程</h2>
+<p>为了方便理解，给出以下流程图</p>
+<div id="flowchart-0" class="flow-chart"></div>
+<h2 id="13-java源码"><a class="markdownIt-Anchor" href="#13-java源码"></a> 1.3 Java源码</h2>
+<p>对应<a target="_blank" rel="noopener" href="https://hihocoder.com/problemset/problem/1081">HihoCode第1081题</a>。可自行验证正确性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.graph;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by t-chehe on 8/5/2017.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Dijkstra</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CANNOT_REACH = Integer.MAX_VALUE &gt;&gt; <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//edgeNum并不代表真正有效边的数量，因为相同的源节点和目的节点之间可能有多条道路，我们只需要保留最小的即可</span></span><br><span class="line">        <span class="keyword">int</span> vertexNum, edgeNum, source, dest;</span><br><span class="line"></span><br><span class="line">        Scanner scanner = <span class="keyword">new</span> Scanner(System.in);</span><br><span class="line"></span><br><span class="line">        vertexNum = scanner.nextInt();</span><br><span class="line">        edgeNum = scanner.nextInt();</span><br><span class="line">        source = scanner.nextInt();</span><br><span class="line">        dest = scanner.nextInt();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span>[][] graph = <span class="keyword">new</span> <span class="keyword">int</span>[vertexNum + <span class="number">1</span>][vertexNum + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">            Arrays.fill(graph[i], CANNOT_REACH);</span><br><span class="line">            graph[i][i] = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (--edgeNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">int</span> s = scanner.nextInt();</span><br><span class="line">            <span class="keyword">int</span> d = scanner.nextInt();</span><br><span class="line">            <span class="keyword">int</span> l = scanner.nextInt();</span><br><span class="line"></span><br><span class="line">            <span class="comment">//题意中的道路是双向都可通的，因此对于有向图来说两个方向都需要存</span></span><br><span class="line">            <span class="keyword">if</span> (l &lt; graph[s][d]) &#123;</span><br><span class="line">                graph[s][d] = l;</span><br><span class="line">                graph[d][s] = l;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(minPath(graph, vertexNum, source, dest));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">minPath</span><span class="params">(<span class="keyword">int</span>[][] graph, <span class="keyword">int</span> vertexNum, <span class="keyword">int</span> source, <span class="keyword">int</span> dest)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//visited将节点集合分为两部分，true代表已访问（记为集合S），false代表未访问(记为集合U)</span></span><br><span class="line">        <span class="keyword">boolean</span>[] visited = <span class="keyword">new</span> <span class="keyword">boolean</span>[vertexNum + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span>[] distance = <span class="keyword">new</span> <span class="keyword">int</span>[vertexNum + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">            distance[i] = graph[source][i];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        distance[source] = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">2</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">            <span class="keyword">int</span> minLength = CANNOT_REACH;</span><br><span class="line">            <span class="keyword">int</span> nextVertex = -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//在所有未访问的节点中找到距离source最近的节点</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt;= vertexNum; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!visited[j]</span><br><span class="line">                        &amp;&amp; distance[j] &lt; minLength) &#123;</span><br><span class="line">                    nextVertex = j;</span><br><span class="line">                    minLength = distance[j];</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            visited[nextVertex] = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//如果source与j(j在集合U中)可以通过节点nextNode相连，那么更新source与j的距离</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt;= vertexNum; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!visited[j]</span><br><span class="line">                        &amp;&amp; distance[nextVertex] + graph[nextVertex][j] &lt; distance[j]) &#123;</span><br><span class="line">                    distance[j] = distance[nextVertex] + graph[nextVertex][j];</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> distance[dest];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="2-floyd-warshall"><a class="markdownIt-Anchor" href="#2-floyd-warshall"></a> 2 Floyd-Warshall</h1>
+<p>Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最短路径的一种算法，可以正确处理有向图或负权的最短路径问题，同时也被用于计算有向图的传递闭包。Floyd-Warshall算法的时间复杂度为O(N3)，空间复杂度为O(N2)</p>
+<h2 id="21-算法描述"><a class="markdownIt-Anchor" href="#21-算法描述"></a> 2.1 算法描述</h2>
+<p>Floyd-Warshall算法本质上来说就是动态规划，我们首先从子问题的设计入手。令<code>F[k][i][j]</code>代表仅包含前k个节点作为中间节点的情况下，节点i到节点j的最短距离</p>
+<p>于是我们可以给出递推表达式：<code>F[k][i][j] = min(F[k-1][i][j], F[k-1][i][k] + F[k-1][k][j])</code>。其中<code>F[k-1][i][j]</code>代表当<strong>不选取第k个节点作为中间节点</strong>时的最短距离；<code>F[k-1][i][k] + F[k-1][k][j]</code>代表<strong>选取第k个节点作为中间节点</strong>时的最短距离</p>
+<h3 id="211-空间降维"><a class="markdownIt-Anchor" href="#211-空间降维"></a> 2.1.1 空间降维</h3>
+<p><strong>可以看出F[k][i][j]仅仅与F[k-1][?][?]有关，于是空间复杂度可以从O(N3)降低为O(N2)</strong>，此时递推表达式变为<code>F[i][j] = min(F[i][j], F[i][k] + F[k][j])</code></p>
+<p><strong>注意，最好对i和j降序遍历，否则可能得到错误的结果</strong>(对于Floyd算法，升序遍历可能得到正确的结果，但是对于其他DP问题，例如0-1背包问题就可能得到错误的结果)。因为<code>F[i][j]</code>依赖于<code>F[i][k]</code>和<code>F[k][j]</code>，因此必须保证在计算过程k的<code>F[i][j]</code>时，使用的是过程k-1的<code>F[i][k]</code>和<code>F[k][j]</code>。如果升序遍历，那么得到的<code>F[i][j]</code>可能经过了两次顶点k，因为<code>F[i][k]</code>和<code>F[k][j]</code>已经是过程k的最优解，因此可能经过顶点k，幸运的是，<code>F[k][k] = 0</code>，即<code>F[i][k]</code>和<code>F[k][j]</code>在过程k-1和过程k中的值必然是一样的，因此不会对结果造成影响</p>
+<h3 id="212-0-1背包的空间降维"><a class="markdownIt-Anchor" href="#212-0-1背包的空间降维"></a> 2.1.2 0-1背包的空间降维</h3>
+<p>类似地，0-1背包问题的空间复杂度也可以进行降维处理。0-1背包的子问题设计如下，令<code>M[k][i]</code>代表前k个物品在给定容量i时的最大收益。<code>P[i]</code>代表第i个物品的收益，<code>V[i]</code>代表第i个物品的容量</p>
+<p>于是我们可以给出递推表达式：<code>M[k][i] = min(M[k-1][i], V[i] + M[k-1][i - V[i]])</code>。其中<code>M[k-1][i]</code>代表当<strong>不选取第k个物品</strong>时的最大收益；<code>V[i] + M[k-1][i - V[i]]</code>代表不<strong>选取第k个物品</strong>时的最大收益</p>
+<p>可以看出M[k][i]仅仅与M[k-1][?]有关，于是空间复杂度可以从O(MN)降低为O(N)。此时递推表达式变为<code>M[i] = min(M[i], V[i] + M[i - V[i]])</code></p>
+<p><strong>注意，必须对容量i降序遍历，否则将得到错误结</strong>。因为<code>M[i]</code>依赖于<code>M[i - V[i]]</code>，因此必须保证在计算过程k的<code>M[i]</code>时，使用的是过程k-1的<code>M[i - V[i]]</code>。如果升序遍历，那么得到的<code>M[i]</code>可能包含两个物品k的受益，因为<code>M[i - V[i]]</code>已经是过程k的最优值，因此可能就包含了物品k</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.dp.backpack;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by liuye on 2017/4/10 0010.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestBaseBackPack</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Random random = <span class="keyword">new</span> Random(<span class="number">0</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> time = <span class="number">0</span>; time &lt; <span class="number">100</span>; time++) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> N = random.nextInt(<span class="number">100</span>) + <span class="number">1</span>, V = random.nextInt(<span class="number">1000</span>) + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">int</span> W = random.nextInt(<span class="number">50</span>) + <span class="number">1</span>, C = random.nextInt(<span class="number">50</span>) + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">int</span>[] weights = <span class="keyword">new</span> <span class="keyword">int</span>[N];</span><br><span class="line">            <span class="keyword">int</span>[] values = <span class="keyword">new</span> <span class="keyword">int</span>[N];</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">                weights[i] = random.nextInt(W) + <span class="number">1</span>;</span><br><span class="line">                values[i] = random.nextInt(C) + <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> res1, res2;</span><br><span class="line">            <span class="keyword">if</span> ((res1 = maxValue1(weights, values, V)) != (res2 = maxValue2(weights, values, V))) &#123;</span><br><span class="line">                System.err.println(time + <span class="string">&quot;: error &#123; res1: &quot;</span> + res1 + <span class="string">&quot;, res2: &quot;</span> + res2);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">maxValue1</span><span class="params">(<span class="keyword">int</span>[] weights, <span class="keyword">int</span>[] values, <span class="keyword">int</span> capacity)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[][] dp = <span class="keyword">new</span> <span class="keyword">int</span>[weights.length + <span class="number">1</span>][capacity + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= weights.length; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> v = <span class="number">1</span>; v &lt;= capacity; v++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (v &lt; weights[i - <span class="number">1</span>]) &#123;</span><br><span class="line">                    dp[i][v] = dp[i - <span class="number">1</span>][v];</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    dp[i][v] = Math.max(dp[i - <span class="number">1</span>][v], dp[i - <span class="number">1</span>][v - weights[i - <span class="number">1</span>]] + values[i - <span class="number">1</span>]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> dp[weights.length][capacity];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">maxValue2</span><span class="params">(<span class="keyword">int</span>[] weights, <span class="keyword">int</span>[] values, <span class="keyword">int</span> capacity)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] dp = <span class="keyword">new</span> <span class="keyword">int</span>[capacity + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= weights.length; i++) &#123;</span><br><span class="line">            <span class="comment">//这里必须降序遍历，否则将得到错误结果</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> v = capacity; v &gt;= <span class="number">1</span>; v--) &#123;</span><br><span class="line">                <span class="keyword">if</span> (v &lt; weights[i - <span class="number">1</span>]) <span class="keyword">break</span>;</span><br><span class="line">                dp[v] = Math.max(dp[v], dp[v - weights[i - <span class="number">1</span>]] + values[i - <span class="number">1</span>]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> dp[capacity];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="22-java源码"><a class="markdownIt-Anchor" href="#22-java源码"></a> 2.2 Java源码</h2>
+<p>对应<a target="_blank" rel="noopener" href="https://hihocoder.com/problemset/problem/1081">HihoCode第1081题</a>。可自行验证正确性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.graph;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by t-chehe on 8/5/2017.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FloydWarshall</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CANNOT_REACH = Integer.MAX_VALUE &gt;&gt; <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//edgeNum并不代表真正有效边的数量，因为相同的源节点和目的节点之间可能有多条道路，我们只需要保留最小的即可</span></span><br><span class="line">        <span class="keyword">int</span> vertexNum, edgeNum, source, dest;</span><br><span class="line"></span><br><span class="line">        Scanner scanner = <span class="keyword">new</span> Scanner(System.in);</span><br><span class="line"></span><br><span class="line">        vertexNum = scanner.nextInt();</span><br><span class="line">        edgeNum = scanner.nextInt();</span><br><span class="line">        source = scanner.nextInt();</span><br><span class="line">        dest = scanner.nextInt();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span>[][] graph = <span class="keyword">new</span> <span class="keyword">int</span>[vertexNum + <span class="number">1</span>][vertexNum + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">            Arrays.fill(graph[i], CANNOT_REACH);</span><br><span class="line">            graph[i][i] = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (--edgeNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">int</span> s = scanner.nextInt();</span><br><span class="line">            <span class="keyword">int</span> d = scanner.nextInt();</span><br><span class="line">            <span class="keyword">int</span> l = scanner.nextInt();</span><br><span class="line"></span><br><span class="line">            <span class="comment">//题意中的道路是双向都可通的，因此对于有向图来说两个方向都需要存</span></span><br><span class="line">            <span class="keyword">if</span> (l &lt; graph[s][d]) &#123;</span><br><span class="line">                graph[s][d] = l;</span><br><span class="line">                graph[d][s] = l;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(minPath2(graph, vertexNum, source, dest));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">minPath1</span><span class="params">(<span class="keyword">int</span>[][] graph, <span class="keyword">int</span> vertexNum, <span class="keyword">int</span> source, <span class="keyword">int</span> dest)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> dp[][][] = <span class="keyword">new</span> <span class="keyword">int</span>[vertexNum + <span class="number">1</span>][vertexNum + <span class="number">1</span>][vertexNum + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">            dp[<span class="number">0</span>][i] = graph[i].clone();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">1</span>; k &lt;= vertexNum; k++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt;= vertexNum; j++) &#123;</span><br><span class="line"></span><br><span class="line">                    dp[k][i][j] = Math.min(dp[k - <span class="number">1</span>][i][j], dp[k - <span class="number">1</span>][i][k] + dp[k - <span class="number">1</span>][k][j]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> dp[vertexNum][source][dest];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">minPath2</span><span class="params">(<span class="keyword">int</span>[][] graph, <span class="keyword">int</span> vertexNum, <span class="keyword">int</span> source, <span class="keyword">int</span> dest)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> dp[][] = <span class="keyword">new</span> <span class="keyword">int</span>[vertexNum + <span class="number">1</span>][vertexNum + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">            dp[i] = graph[i].clone();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//表示DP过程的迭代k必须置于最外层</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">1</span>; k &lt;= vertexNum; k++) &#123;</span><br><span class="line">            <span class="comment">//必须逆序</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = vertexNum; i &gt;= <span class="number">1</span>; i--) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> j = vertexNum; j &gt;= <span class="number">1</span>; j--) &#123;</span><br><span class="line"></span><br><span class="line">                    dp[i][j] = Math.min(dp[i][j], dp[i][k] + dp[k][j]);</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> dp[source][dest];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="3-bellman-ford"><a class="markdownIt-Anchor" href="#3-bellman-ford"></a> 3 Bellman-Ford</h1>
+<p>Dijkstra算法是处理单源最短路径的有效算法，但它对存在负权回路的图就会失效。这时候，就需要使用其他的算法来应对这个问题，Bellman-Ford（中文名：贝尔曼-福特）算法就是其中一个</p>
+<p>Bellman-Ford算法不仅可以求出最短路径，也可以检测负权回路的问题。该算法由美国数学家理查德-贝尔曼（Richard Bellman，动态规划的提出者）和小莱斯特-福特（Lester Ford）发明</p>
+<h2 id="31-算法描述"><a class="markdownIt-Anchor" href="#31-算法描述"></a> 3.1 算法描述</h2>
+<p>对于一个不存在负权回路的图，Bellman-Ford算法求解最短路径的方法如下：</p>
+<p>设其顶点数为<code>n</code>，边数为<code>m</code>。设其源点为<code>source</code>，数组<code>dist[i]</code>记录从源节点<code>source</code>到顶点<code>i</code>的最短路径，除了<code>dist[source]</code>初始化为0外，其它<code>dist[]</code>皆初始化为MAX。以下操作循环执行n-1次：</p>
+<ul>
+<li>对于每条有向边<code>(u,v)</code>，执行<code>dist[v] = min(dist[v], dist[u] + w(u,v))</code>。其含义就是对于某条有向边<code>(u,v)</code>，从源节点<code>source</code>到节点<code>v</code>的最短距离只有两种可能：一种是不经过有向边<code>(u,v)</code>；另一种是经过有向边<code>(u,v)</code>。如下图所示</li>
+</ul>
+<p><img src="/images/%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/fig1.png" alt="fig1" /></p>
+<p>n-1次循环，Bellman-Ford算法就是利用已经找到的最短路径去更新其它点的dist[]。<strong>每次循环能确定一个顶点的最短路径，因此n-1此循环后，<code>dist[]</code>保存的就是源节点到所有顶点的最短路径</strong></p>
+<p>此外，Bellman-Ford算法还可以检测是否存在负权边，只要再进行一次循环，如果发现<code>dist[v] &gt; dist[u] + w(u,v)</code>，那么说明存在负权边。因为对于一个不存在负权边的有向图来说，执行n-1次循环与执行m次(m &gt;= n-1)循环得到的dist是相同的</p>
+<h2 id="32-java源码"><a class="markdownIt-Anchor" href="#32-java源码"></a> 3.2 Java源码</h2>
+<p>对应<a target="_blank" rel="noopener" href="https://hihocoder.com/problemset/problem/1081">HihoCode第1081题</a>。可自行验证正确性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.graph;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.LinkedList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by HCF on 2017/8/6.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BellmanFord</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CANNOT_REACH = Integer.MAX_VALUE &gt;&gt; <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Edge</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> source;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> dest;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> length;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Edge</span><span class="params">(<span class="keyword">int</span> source, <span class="keyword">int</span> dest, <span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.source = source;</span><br><span class="line">            <span class="keyword">this</span>.dest = dest;</span><br><span class="line">            <span class="keyword">this</span>.length = length;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//edgeNum并不代表真正有效边的数量，因为相同的源节点和目的节点之间可能有多条道路，我们只需要保留最小的即可</span></span><br><span class="line">        <span class="keyword">int</span> vertexNum, edgeNum, source, dest;</span><br><span class="line"></span><br><span class="line">        Scanner scanner = <span class="keyword">new</span> Scanner(System.in);</span><br><span class="line"></span><br><span class="line">        vertexNum = scanner.nextInt();</span><br><span class="line">        edgeNum = scanner.nextInt();</span><br><span class="line">        source = scanner.nextInt();</span><br><span class="line">        dest = scanner.nextInt();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span>[][] graph = <span class="keyword">new</span> <span class="keyword">int</span>[vertexNum + <span class="number">1</span>][vertexNum + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">            Arrays.fill(graph[i], CANNOT_REACH);</span><br><span class="line">            graph[i][i] = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (--edgeNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">int</span> s = scanner.nextInt();</span><br><span class="line">            <span class="keyword">int</span> d = scanner.nextInt();</span><br><span class="line">            <span class="keyword">int</span> l = scanner.nextInt();</span><br><span class="line"></span><br><span class="line">            <span class="comment">//题意中的道路是双向都可通的，因此对于有向图来说两个方向都需要存</span></span><br><span class="line">            <span class="keyword">if</span> (l &lt; graph[s][d]) &#123;</span><br><span class="line">                graph[s][d] = l;</span><br><span class="line">                graph[d][s] = l;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        List&lt;Edge&gt; edges = <span class="keyword">new</span> LinkedList&lt;Edge&gt;();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= vertexNum; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt;= vertexNum; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (graph[i][j] &lt; CANNOT_REACH) &#123;</span><br><span class="line">                    edges.add(<span class="keyword">new</span> Edge(i, j, graph[i][j]));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(minPath(edges, vertexNum, source, dest));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">minPath</span><span class="params">(List&lt;Edge&gt; edges, <span class="keyword">int</span> num, <span class="keyword">int</span> source, <span class="keyword">int</span> dest)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] dp = <span class="keyword">new</span> <span class="keyword">int</span>[num + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        Arrays.fill(dp, CANNOT_REACH);</span><br><span class="line"></span><br><span class="line">        dp[source] = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">1</span>; k &lt; num; k++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (Edge e : edges) &#123;</span><br><span class="line">                <span class="keyword">if</span> (e == <span class="keyword">null</span>) <span class="keyword">continue</span>;</span><br><span class="line">                dp[e.dest] = Math.min(dp[e.dest], dp[e.source] + e.length);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> dp[dest];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="4-参考"><a class="markdownIt-Anchor" href="#4-参考"></a> 4 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/biyeymyhjob/archive/2012/07/31/2615833.html#3750339">最短路径—Dijkstra算法和Floyd算法</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.61mon.com/index.php/archives/194/">单源最短路径（1）：Dijkstra 算法</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/30955032">Floyd算法为什么把k放在最外层？</a></li>
+<li>百度百科</li>
+</ul>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.7/raphael.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script><textarea id="flowchart-0-code" style="display: none">st=>start: 开始
+op1=>operation: 将源节点v加入S集合
+并初始化D
+op2=>operation: 从集合U中找到D(i∈U)
+最小的顶点i，将其从集
+合U中删除，并添加到集
+合S中
+op3=>operation: 更新集合U中顶点j的距离
+D(j)=min(D(j),D(i)+path(i,j))
+cond1=>condition: 集合U为空?
+en=>end: 结束
+
+st->op1
+op1->op2
+op2->op3
+op3->cond1
+cond1(yes)->en
+cond1(no)->op2</textarea><textarea id="flowchart-0-options" style="display: none">{"theme":"simple","scale":1,"line-width":2,"line-length":50,"text-margin":10,"font-size":12}</textarea><script>  var code = document.getElementById("flowchart-0-code").value;  var options = JSON.parse(decodeURIComponent(document.getElementById("flowchart-0-options").value));  var diagram = flowchart.parse(code);  diagram.drawSVG("flowchart-0", options);</script>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/08/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/" rel="prev" title="Redis-持久化机制">
+      <i class="fa fa-chevron-left"></i> Redis-持久化机制
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/08/07/Zookeeper-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" rel="next" title="Zookeeper-应用场景">
+      Zookeeper-应用场景 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-dijkstra"><span class="nav-text"> 1 Dijkstra</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E7%AE%97%E6%B3%95%E6%8F%8F%E8%BF%B0"><span class="nav-text"> 1.1 算法描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E6%B5%81%E7%A8%8B"><span class="nav-text"> 1.2 流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-java%E6%BA%90%E7%A0%81"><span class="nav-text"> 1.3 Java源码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-floyd-warshall"><span class="nav-text"> 2 Floyd-Warshall</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E7%AE%97%E6%B3%95%E6%8F%8F%E8%BF%B0"><span class="nav-text"> 2.1 算法描述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#211-%E7%A9%BA%E9%97%B4%E9%99%8D%E7%BB%B4"><span class="nav-text"> 2.1.1 空间降维</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#212-0-1%E8%83%8C%E5%8C%85%E7%9A%84%E7%A9%BA%E9%97%B4%E9%99%8D%E7%BB%B4"><span class="nav-text"> 2.1.2 0-1背包的空间降维</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-java%E6%BA%90%E7%A0%81"><span class="nav-text"> 2.2 Java源码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-bellman-ford"><span class="nav-text"> 3 Bellman-Ford</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E7%AE%97%E6%B3%95%E6%8F%8F%E8%BF%B0"><span class="nav-text"> 3.1 算法描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-java%E6%BA%90%E7%A0%81"><span class="nav-text"> 3.2 Java源码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%8F%82%E8%80%83"><span class="nav-text"> 4 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

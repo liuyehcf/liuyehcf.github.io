@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zookeeper-Overview">
+<meta property="og:url" content="http://example.com/2018/07/13/Zookeeper-Overview/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-07-13T03:48:40.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:52.800Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/07/13/Zookeeper-Overview/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Zookeeper-Overview | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/07/13/Zookeeper-Overview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Zookeeper-Overview
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-07-13 11:48:40" itemprop="dateCreated datePublished" datetime="2018-07-13T11:48:40+08:00">2018-07-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:52" itemprop="dateModified" datetime="2021-02-23T22:19:52+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/" itemprop="url" rel="index"><span itemprop="name">Distributed</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/Zookeeper/" itemprop="url" rel="index"><span itemprop="name">Zookeeper</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/07/13/Zookeeper-Overview/" class="post-meta-item leancloud_visitors" data-flag-title="Zookeeper-Overview" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/07/13/Zookeeper-Overview/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/07/13/Zookeeper-Overview/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-下载"><a class="markdownIt-Anchor" href="#1-下载"></a> 1 下载</h1>
+<p><a target="_blank" rel="noopener" href="https://www.apache.org/dyn/closer.cgi/zookeeper/">传送门</a></p>
+<p>下载后，解压即可</p>
+<h1 id="2-启动server"><a class="markdownIt-Anchor" href="#2-启动server"></a> 2 启动Server</h1>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> &lt;zookeeper所在目录&gt;</span><br><span class="line"></span><br><span class="line">bin/zkServer.sh start</span><br></pre></td></tr></table></figure>
+<h1 id="3-启动client"><a class="markdownIt-Anchor" href="#3-启动client"></a> 3 启动Client</h1>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> &lt;zookeeper所在目录&gt;</span><br><span class="line"></span><br><span class="line">bin/zkCli.sh</span><br></pre></td></tr></table></figure>
+<h1 id="4-cmd-overview"><a class="markdownIt-Anchor" href="#4-cmd-overview"></a> 4 Cmd-Overview</h1>
+<p>Zookeeper客户端提供如下命令（可用<code>help</code>查看）</p>
+<ol>
+<li><strong><code>ls</code></strong>：列出指定节点的孩子节点列表</li>
+<li><strong><code>ls2</code></strong>：列出指定节点的孩子节点列表，以及该节点的状态信息</li>
+<li><strong><code>create</code></strong>：创建节点</li>
+<li><strong><code>get</code></strong>：获取节点的数据以及状态信息</li>
+<li><strong><code>set</code></strong>：设置节点的数据</li>
+<li><strong><code>rmr</code></strong>：移除指定的znode并递归其所有子节点</li>
+<li><strong><code>delete</code></strong>：移除指定的znode节点（该节点不能有孩子节点）</li>
+<li><strong><code>stat</code></strong>：获取节点的状态信息</li>
+<li><strong><code>listquota</code></strong>：查询节点的配额</li>
+<li><strong><code>setquota</code></strong>：设置节点的配额</li>
+<li><strong><code>delquota</code></strong>：删除节点的配额</li>
+<li><strong><code>getAcl</code></strong>：获取ACL权限</li>
+<li><strong><code>setAcl</code></strong>：设置ACL权限</li>
+<li><strong><code>history</code></strong>：列出命令历史</li>
+<li><strong><code>redo</code></strong>：重新执行指定命令</li>
+<li><strong><code>printwatches</code></strong>：开启/关闭在输出流打印watch触发的信息</li>
+<li><strong><code>sync</code></strong>：同步</li>
+<li><strong><code>addauth</code></strong>：添加授权用户信息</li>
+<li><strong><code>quit</code></strong>：关闭当前Zookeeper会话（连接），并退出客户端程序</li>
+<li><strong><code>close</code></strong>：仅关闭当前Zookeeper会话（连接）</li>
+<li><strong><code>connect</code></strong>：连接到指定Zookeeper服务器</li>
+</ol>
+<h1 id="5-znode-status"><a class="markdownIt-Anchor" href="#5-znode-status"></a> 5 Znode Status</h1>
+<p>znode包含如下状态</p>
+<ol>
+<li><strong>cZxid</strong>：创建节点时的zxid</li>
+<li><strong>mZxid</strong>：修改节点时的zxid</li>
+<li><strong>pZxid</strong>：修改节点的子节点列表的zxid</li>
+<li><strong>ctime</strong>：创建节点的时间</li>
+<li><strong>mtime</strong>：修改节点的时间</li>
+<li><strong>dataVersion</strong>：节点数据修改的次数</li>
+<li><strong>cversion</strong>：节点的子节点列表修改的次数</li>
+<li><strong>aclVersion</strong>：节点的ACL权限修改的次数</li>
+<li><strong>ephemeralOwner</strong>：临时节点的会话id，若不是临时节点，那么此id为0</li>
+<li><strong>dataLength</strong>：数据长度</li>
+<li><strong>numChildren</strong>：子节点数量</li>
+</ol>
+<h1 id="6-acl"><a class="markdownIt-Anchor" href="#6-acl"></a> 6 ACL</h1>
+<p><strong>Zookeeper使用ACL来控制访问znode</strong>。ACL的实现和UNIX的实现非常相似：它采用权限位来控制那些操作被允许，那些操作被禁止。但是和标准的UNIX权限不同的是，znode没有限制用户（user，即文件的所有者），组（group）和其他（world）。Zookeepr是没有所有者的概念的</p>
+<p><strong>每个znode的ACL是独立的，且子节点不会继承父节点的ACL</strong>。例如：znode <code>/app</code>对于ip为172.16.16.1只有只读权限，而<code>/app/status</code>是world可读，那么任何人都可以获取<code>/app/status</code>;所以在Zookeeper中权限是没有继承和传递关系的，每个znode的权限都是独立存在的</p>
+<p><strong>ACL权限是针对当前会话（连接）起作用的</strong>。例如，在当前会话中执行<code>addauth digest user1:password1</code>以及<code>setAcl /app auth:user1:password1:crwda</code>。那么此时开启另一个会话后，对<code>/app</code>节点是没有访问权限的，通过执行<code>addauth digest user1:password1</code>可以获取到<code>/app</code>节点的相关权限。<strong>因此<code>addauth digest &lt;username&gt;:&lt;password&gt;</code>命令，就是给当前会话增加了某个角色，从而能够获取到该角色的权限</strong></p>
+<p><strong>Zookeeper支持可插拔的权限认证方案，分为三个维度</strong>：</p>
+<ol>
+<li><strong><code>scheme</code></strong>：表示使用何种方式来进行访问控制</li>
+<li><strong><code>id</code></strong>：表示在指定scheme下的<strong>表达式</strong>（该表达式可能包含<code>:</code>）</li>
+<li><strong><code>permission</code></strong>：表示有什么权限</li>
+</ol>
+<ul>
+<li>通常表示为<code>&lt;scheme&gt;:&lt;id&gt;:&lt;permissions&gt;</code></li>
+</ul>
+<p><strong>Zookeeper支持如下几种permission</strong></p>
+<ol>
+<li><code>CREATE</code>：允许创建子节点</li>
+<li><code>READ</code>：允许获取节点元数据以及子节点列表</li>
+<li><code>WRITE</code>：允许设置Data</li>
+<li><code>DELETE</code>：允许删除子节点</li>
+<li><code>ADMIN</code>：允许设置权限</li>
+</ol>
+<p><strong>Zookeeper支持如下几种scheme</strong></p>
+<ol>
+<li><strong>world</strong>：只有一个id，即<code>anyone</code>
+<ul>
+<li><strong><code>ACL Exp</code></strong>：<code>world:anyone:&lt;permissions&gt;</code></li>
+</ul>
+</li>
+<li><strong>auth</strong>：可以指定id或不用id，只要是通过auth的user都有权限。<strong>当使用addauth命令添加多个认证用户后（作用域是当前会话，关闭会话后，添加的认证用户即被清除了），使用auth策略来设置acl，那么所有认证过的用户都被会加入到acl中</strong>
+<ul>
+<li><strong><code>ACL Exp</code></strong>：<code>auth::&lt;permissions&gt;</code></li>
+<li><strong><code>ACL Exp</code></strong>：<code>auth:&lt;username&gt;:&lt;password&gt;:&lt;permissions&gt;</code></li>
+</ul>
+</li>
+<li><strong>digest</strong>：使用用户名/密码的方式验证，采用<code>&lt;username&gt;:BASE64(SHA1(&lt;username&gt;:&lt;password&gt;))</code>的字符串作为ACL的<code>id</code>
+<ul>
+<li><strong><code>ACL Exp</code></strong>：<code>digest:&lt;username&gt;:&lt;encriedUserPassowrd&gt;:&lt;permissions&gt;</code></li>
+<li>其中，<code>&lt;encriedUserPassowrd&gt;=BASE64(SHA1(&lt;username&gt;:&lt;password&gt;))</code>，<strong>换言之，你得自己做加密操作</strong></li>
+<li><strong><code>echo -n &lt;username&gt;:&lt;password&gt; | openssl dgst -binary -sha1 | openssl base64</code>可以实现加密功能</strong></li>
+</ul>
+</li>
+<li><strong>ip</strong>：使用客户端的IP地址作为ACL的ID，设置的时候可以设置一个IP段，比如ip:192.168.1.0/16, 表示匹配前16个bit的IP段
+<ul>
+<li><strong><code>ACL Exp</code></strong>：<code>ip:192.168.0.1:&lt;permissions&gt;</code></li>
+<li><strong><code>ACL Exp</code></strong>：<code>ip:192.168.0.0/16:&lt;permissions&gt;</code></li>
+</ul>
+</li>
+</ol>
+<p><strong>设定ACL权限后，忘记密码怎么办</strong></p>
+<ol>
+<li>如果这个节点是<code>/</code>的子节点，由于我们有<code>/</code>目录的权限，所以我们还是可以通过<code>delete</code>来删除这个节点的</li>
+<li>如果这个节点不是<code>/</code>的子节点，且父节点也没有权限，那么只能通过<strong>设置配置文件<code>skipACL=yes</code>然后重启服务</strong>，这样就能跳过acl控制</li>
+</ol>
+<h1 id="7-watch"><a class="markdownIt-Anchor" href="#7-watch"></a> 7 Watch</h1>
+<p>我们可以为znode设置watch，<strong>znode的任何改变都会触发这个watch，watch一旦触发就被清除了</strong>。当一个watch被触发时，Zookeeper会给对应的Client发送一个通知（notification）</p>
+<p>Zookeeper中的所有读操作，都可以设置一个watch作为它的副作用（side effect）</p>
+<p><strong>以下是Zookeeper官方文档对watch的定义以及解释</strong></p>
+<blockquote>
+<p>All of the read operations in ZooKeeper - getData(), getChildren(), and exists() - have the option of setting a watch as a side effect. Here is ZooKeeper’s definition of a watch: a watch event is one-time trigger, sent to the client that set the watch, which occurs when the data for which the watch was set changes. There are three key points to consider in this definition of a watch:</p>
+<ul>
+<li><strong>One-time trigger</strong><br />
+One watch event will be sent to the client when the data has changed. For example, if a client does a getData(&quot;/znode1&quot;, true) and later the data for /znode1 is changed or deleted, the client will get a watch event for /znode1. If /znode1 changes again, no watch event will be sent unless the client has done another read that sets a new watch.</li>
+<li><strong>Sent to the client</strong><br />
+his implies that an event is on the way to the client, but may not reach the client before the successful return code to the change operation reaches the client that initiated the change. Watches are sent asynchronously to watchers. ZooKeeper provides an ordering guarantee: a client will never see a change for which it has set a watch until it first sees the watch event. Network delays or other factors may cause different clients to see watches and return codes from updates at different times. The key point is that everything seen by the different clients will have a consistent order.</li>
+<li><strong>The data for which the watch was set</strong><br />
+This refers to the different ways a node can change. It helps to think of ZooKeeper as maintaining two lists of watches: data watches and child watches. getData() and exists() set data watches. getChildren() sets child watches. Alternatively, it may help to think of watches being set according to the kind of data returned. getData() and exists() return information about the data of the node, whereas getChildren() returns a list of children. Thus, setData() will trigger data watches for the znode being set (assuming the set is successful). A successful create() will trigger a data watch for the znode being created and a child watch for the parent znode. A successful delete() will trigger both a data watch and a child watch (since there can be no more children) for a znode being deleted as well as a child watch for the parent znode.</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>Watches are maintained locally at the ZooKeeper server to which the client is connected. This allows watches to be lightweight to set, maintain, and dispatch. When a client connects to a new server, the watch will be triggered for any session events. Watches will not be received while disconnected from a server. When a client reconnects, any previously registered watches will be reregistered and triggered if needed. In general this all occurs transparently. There is one case where a watch may be missed: a watch for the existence of a znode not yet created will be missed if the znode is created and deleted while disconnected.</p>
+</blockquote>
+<h1 id="8-ls"><a class="markdownIt-Anchor" href="#8-ls"></a> 8 ls</h1>
+<p><strong>描述</strong>：列出指定节点的孩子节点列表</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>ls path [watch]</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+<li><code>watch</code>：选填参数，<strong>任意字符均表示设置一个watch</strong>。<strong>当节点的孩子列表发生变动时（仅当前路径的孩子列表，不包含孩子的孩子列表）</strong>，会触发该watch</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查询子节点列表</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 2] ls /</span><br><span class="line">[FirstNode0000000013, zookeeper, FirstNode]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询子节点列表，并设置一个watch</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 7] ls / myWatch</span><br><span class="line">[FirstNode0000000013, zookeeper, FirstNode]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 当另一个客户端在/路径下删除FirstNode0000000013节点时，该watch会被触发，在屏幕上会打印如下内容</span></span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected <span class="built_in">type</span>:NodeChildrenChanged path:/</span><br></pre></td></tr></table></figure>
+<h1 id="9-ls2"><a class="markdownIt-Anchor" href="#9-ls2"></a> 9 ls2</h1>
+<p><strong>描述</strong>：列出指定节点的孩子节点列表，以及该节点的状态信息</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>ls2 path [watch]</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+<li><code>watch</code>：选填参数，<strong>任意字符均表示设置一个watch</strong>。<strong>当节点的孩子列表发生变动时（仅当前路径的孩子列表，不包含孩子的孩子列表）</strong>，会触发该watch</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查询子节点列表及状态</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 9] ls2 /</span><br><span class="line">[zookeeper, FirstNode]</span><br><span class="line">cZxid = 0x0</span><br><span class="line">ctime = Thu Jan 01 08:00:00 CST 1970</span><br><span class="line">mZxid = 0x0</span><br><span class="line">mtime = Thu Jan 01 08:00:00 CST 1970</span><br><span class="line">pZxid = 0xca</span><br><span class="line">cversion = 32</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 0</span><br><span class="line">numChildren = 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询子节点列表及状态，并设置一个watch</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 10] ls2 / myWatch</span><br><span class="line">[zookeeper, FirstNode]</span><br><span class="line">cZxid = 0x0</span><br><span class="line">ctime = Thu Jan 01 08:00:00 CST 1970</span><br><span class="line">mZxid = 0x0</span><br><span class="line">mtime = Thu Jan 01 08:00:00 CST 1970</span><br><span class="line">pZxid = 0xca</span><br><span class="line">cversion = 32</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 0</span><br><span class="line">numChildren = 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 当另一个客户端在/路径下增加一个节点时，该watch会被触发，在屏幕上会打印如下内容</span></span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected <span class="built_in">type</span>:NodeChildrenChanged path:/</span><br></pre></td></tr></table></figure>
+<h1 id="10-create"><a class="markdownIt-Anchor" href="#10-create"></a> 10 create</h1>
+<p><strong>描述</strong>：创建节点</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>create [-s] [-e] path data acl</code></li>
+</ul>
+<p><strong>选项解释</strong></p>
+<ul>
+<li><code>-s</code>：创建一个顺序节点（每个节点都会维护一个严格递增的序列）</li>
+<li><code>-e</code>：创建一个临时节点，所谓临时节点，就是当前会话（连接）退出时，该节点就会被删除</li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+<li><code>data</code>：必填参数，节点数据</li>
+<li><code>acl</code>：必填参数，访问控制，默认值为<code>world:anyone:crwda</code></li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建永久节点</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 0] create /FirstNode myData</span><br><span class="line">Created /FirstNode</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建永久顺序节点</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 2] create -s  /FirstNode myData</span><br><span class="line">Created /FirstNode0000000013</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建临时节点</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 3] create -e /FirstTempNode myData</span><br><span class="line">Created /FirstTempNode</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建永久临时节点，并设置ACL</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 4] create -s -e /FirstNode myData world:anyone:crwd</span><br><span class="line">Created /FirstNode0000000015</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加授权用户，然后创建节点，并设置ACL</span></span><br><span class="line"><span class="comment"># 必须要先addauth，否则在当前会话中，如果没有授权用户，那么使用auth作为acl将会失败</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 11] addauth digest user1:password1</span><br><span class="line">[zk: localhost:2181(CONNECTED) 12] create /SecondNode myData auth::cr</span><br><span class="line">Created /SecondNode</span><br></pre></td></tr></table></figure>
+<h1 id="11-get"><a class="markdownIt-Anchor" href="#11-get"></a> 11 get</h1>
+<p><strong>描述</strong>：获取节点的数据以及状态信息</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>get path [watch]</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+<li><code>watch</code>：选填参数，<strong>任意字符均表示设置一个watch</strong>。<strong>当节点数据发生变动时</strong>，会触发该watch</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看节点元数据及状态信息</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 28] get /FirstNode</span><br><span class="line">1</span><br><span class="line">cZxid = 0xc6</span><br><span class="line">ctime = Sat Jul 14 18:28:57 CST 2018</span><br><span class="line">mZxid = 0xd3</span><br><span class="line">mtime = Sat Jul 14 18:38:15 CST 2018</span><br><span class="line">pZxid = 0xc7</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 3</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 1</span><br><span class="line">numChildren = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看节点元数据及状态信息并设置一个watch</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 29] get /FirstNode myWatch</span><br><span class="line">1</span><br><span class="line">cZxid = 0xc6</span><br><span class="line">ctime = Sat Jul 14 18:28:57 CST 2018</span><br><span class="line">mZxid = 0xd3</span><br><span class="line">mtime = Sat Jul 14 18:38:15 CST 2018</span><br><span class="line">pZxid = 0xc7</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 3</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 1</span><br><span class="line">numChildren = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 当另一个客户端修改 /FirstNode 节点的数据时，会触发该watch，在屏幕上打印如下内容</span></span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected <span class="built_in">type</span>:NodeDataChanged path:/FirstNode</span><br></pre></td></tr></table></figure>
+<h1 id="12-set"><a class="markdownIt-Anchor" href="#12-set"></a> 12 set</h1>
+<p><strong>描述</strong>：设置节点的数据</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>set path data [version]</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+<li><code>data</code>：必填参数，节点数据</li>
+<li><code>version</code>：选填参数，指定版本号，当且仅当版本号一致时修改成功</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置节点数据</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 30] <span class="built_in">set</span> /FirstNode 2</span><br><span class="line">cZxid = 0xc6</span><br><span class="line">ctime = Sat Jul 14 18:28:57 CST 2018</span><br><span class="line">mZxid = 0xd5</span><br><span class="line">mtime = Sat Jul 14 18:44:09 CST 2018</span><br><span class="line">pZxid = 0xc7</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 5</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 1</span><br><span class="line">numChildren = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置节点数据，并指定了版本号（版本号正确）</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 37] <span class="built_in">set</span> /FirstNode 2 8</span><br><span class="line">cZxid = 0xc6</span><br><span class="line">ctime = Sat Jul 14 18:28:57 CST 2018</span><br><span class="line">mZxid = 0xdd</span><br><span class="line">mtime = Sat Jul 14 18:45:43 CST 2018</span><br><span class="line">pZxid = 0xc7</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 9</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 1</span><br><span class="line">numChildren = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置节点数据，并指定了版本号（版本号错误，版本号大于当前版本号）</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 38] <span class="built_in">set</span> /FirstNode 2 100</span><br><span class="line">version No is not valid : /FirstNode</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置节点数据，并指定了版本号（版本号错误，版本号小于当前版本号）</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 39] <span class="built_in">set</span> /FirstNode 2 1</span><br><span class="line">version No is not valid : /FirstNode</span><br></pre></td></tr></table></figure>
+<h1 id="13-rmr"><a class="markdownIt-Anchor" href="#13-rmr"></a> 13 rmr</h1>
+<p><strong>描述</strong>：移除指定的znode并递归其所有子节点</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>rmr path</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 40] rmr /FirstNode</span><br></pre></td></tr></table></figure>
+<h1 id="14-delete"><a class="markdownIt-Anchor" href="#14-delete"></a> 14 delete</h1>
+<p><strong>描述</strong>：移除指定的znode节点（该节点不能有孩子节点）</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>delete path [version]</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+<li><code>version</code>：选填参数，当且仅当版本号一致时，才允许删除</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除节点</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 45] delete /FirstNode</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除节点（版本号正确）</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 47] delete /FirstNode 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除节点（版本号错误，大于正确版本号）</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 49] delete /FirstNode 100</span><br><span class="line">version No is not valid : /FirstNode</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除节点（版本号错误，小于正确版本号）</span></span><br><span class="line"><span class="comment"># 先创建节点，然后修改节点的值，使版本号增加，至少大于1</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 54] delete /FirstNode 1</span><br><span class="line">version No is not valid : /FirstNode</span><br></pre></td></tr></table></figure>
+<h1 id="15-stat"><a class="markdownIt-Anchor" href="#15-stat"></a> 15 stat</h1>
+<p><strong>描述</strong>：获取节点的状态信息</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>stat path [watch]</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+<li><code>watch</code>：选填参数，<strong>任意字符均表示设置一个watch</strong>。<strong>当节点数据发生变动时</strong>，会触发该watch</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看节点状态</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 55] <span class="built_in">stat</span> /FirstNode</span><br><span class="line">cZxid = 0xea</span><br><span class="line">ctime = Sat Jul 14 18:51:25 CST 2018</span><br><span class="line">mZxid = 0xec</span><br><span class="line">mtime = Sat Jul 14 18:51:29 CST 2018</span><br><span class="line">pZxid = 0xea</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 2</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 1</span><br><span class="line">numChildren = 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看节点状态，并设置一个watch</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 57] <span class="built_in">stat</span> /FirstNode myWatch</span><br><span class="line">cZxid = 0xea</span><br><span class="line">ctime = Sat Jul 14 18:51:25 CST 2018</span><br><span class="line">mZxid = 0xee</span><br><span class="line">mtime = Sat Jul 14 18:53:47 CST 2018</span><br><span class="line">pZxid = 0xea</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 3</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 1</span><br><span class="line">numChildren = 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 当另一个客户端修改 /FirstNode 节点的数据时，会触发该watch，在屏幕上打印如下内容</span></span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected <span class="built_in">type</span>:NodeDataChanged path:/FirstNode</span><br></pre></td></tr></table></figure>
+<h1 id="16-listquota"><a class="markdownIt-Anchor" href="#16-listquota"></a> 16 listquota</h1>
+<p><strong>描述</strong>：查询节点的配额，其中<code>-1</code>表示不限制</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>listquota path</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查询节点配额</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 26] listquota /app</span><br><span class="line">absolute path is /zookeeper/quota/app/zookeeper_limits</span><br><span class="line">Output quota <span class="keyword">for</span> /app count=-1,bytes=10000</span><br><span class="line">Output <span class="built_in">stat</span> <span class="keyword">for</span> /app count=1,bytes=4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 该结果表明，节点数量不限，大小限制为10000byte</span></span><br><span class="line"><span class="comment"># 当前节点数量为1，大小为4</span></span><br></pre></td></tr></table></figure>
+<h1 id="17-setquota"><a class="markdownIt-Anchor" href="#17-setquota"></a> 17 setquota</h1>
+<p><strong>描述</strong>：设置节点的配额（<strong>一旦节点配额被设定，便不能重写，只能删掉再设置</strong>）</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>setquota -n|-b val path</code></li>
+</ul>
+<p><strong>选项解释</strong></p>
+<ul>
+<li><code>-n</code>：设置节点个数（包括当前节点以及所有子节点，包括层层嵌套的子节点）</li>
+<li><code>-b</code>：设置节点的数据大小（包括当前节点以及所有子节点，包括层层嵌套的子节点）</li>
+<li><strong>只能选择其中之一进行设置</strong></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>val</code>：必填参数，设置的值</li>
+<li><code>path</code>：必填参数，节点路径</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 为节点 /app 设置配额，节点数量为100</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 23] setquota -n 100 /app</span><br><span class="line">Comment: the parts are option -n val 100 path /app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 为节点 /app 设置配额，节点大小为10000bytes</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 25] setquota -b 10000 /app</span><br><span class="line">Comment: the parts are option -b val 10000 path /app</span><br></pre></td></tr></table></figure>
+<h1 id="18-delquota"><a class="markdownIt-Anchor" href="#18-delquota"></a> 18 delquota</h1>
+<p><strong>描述</strong>：删除节点的配额</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>delquota [-n|-b] path</code></li>
+</ul>
+<p><strong>选项解释</strong></p>
+<ul>
+<li><code>-n</code>：删除节点数量限制，置为<code>-1</code></li>
+<li><code>-b</code>：删除节点大小限制，置为<code>-1</code></li>
+<li>不填选项代表删除配额设置，此时用<code>listquota</code>查询配额会报错</li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 38] delquota -b /app</span><br><span class="line">[zk: localhost:2181(CONNECTED) 39] delquota -n /app</span><br><span class="line">[zk: localhost:2181(CONNECTED) 40] delquota /app</span><br></pre></td></tr></table></figure>
+<h1 id="19-getacl"><a class="markdownIt-Anchor" href="#19-getacl"></a> 19 getAcl</h1>
+<p><strong>描述</strong>：获取ACL权限</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>getAcl path</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 获取节点的ACL权限</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 6] getAcl /FirstNode</span><br><span class="line"><span class="string">&#x27;world,&#x27;</span>anyone</span><br><span class="line">: cdrwa</span><br></pre></td></tr></table></figure>
+<h1 id="20-setacl"><a class="markdownIt-Anchor" href="#20-setacl"></a> 20 setAcl</h1>
+<p><strong>描述</strong>：设置ACL权限</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>setAcl path acl</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+<li><code>acl</code>：必填参数，ACL权限</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置节点ACL权限(world schema)</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 8] setAcl /FirstNode world:anyone:cr</span><br><span class="line">cZxid = 0xea</span><br><span class="line">ctime = Sat Jul 14 18:51:25 CST 2018</span><br><span class="line">mZxid = 0xf1</span><br><span class="line">mtime = Sat Jul 14 18:57:38 CST 2018</span><br><span class="line">pZxid = 0xea</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 6</span><br><span class="line">aclVersion = 1</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 1</span><br><span class="line">numChildren = 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加授权用户，然后设置节点的ACL权限(auth schema)</span></span><br><span class="line"><span class="comment"># 必须要先addauth，否则在当前会话中，如果没有授权用户，那么使用auth作为acl将会失败</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 27] addauth digest user1:passowrd1</span><br><span class="line">[zk: localhost:2181(CONNECTED) 28] setAcl /ThirdNode auth::crwda</span><br><span class="line">cZxid = 0x102</span><br><span class="line">ctime = Sat Jul 14 19:21:33 CST 2018</span><br><span class="line">mZxid = 0x102</span><br><span class="line">mtime = Sat Jul 14 19:21:33 CST 2018</span><br><span class="line">pZxid = 0x102</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 1</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 6</span><br><span class="line">numChildren = 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加授权用户，然后设置节点的ACL权限(auth schema)</span></span><br><span class="line"><span class="comment"># 必须要先addauth，否则在当前会话中，如果没有授权用户，那么使用auth作为acl将会失败</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 9] addauth digest user2:password2</span><br><span class="line">[zk: localhost:2181(CONNECTED) 10] setAcl /ThirdNode auth:user2:password:crwda</span><br><span class="line">cZxid = 0x29</span><br><span class="line">ctime = Sat Jul 14 22:34:23 CST 2018</span><br><span class="line">mZxid = 0x29</span><br><span class="line">mtime = Sat Jul 14 22:34:23 CST 2018</span><br><span class="line">pZxid = 0x29</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 3</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 4</span><br><span class="line">numChildren = 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置acl权限(digest schema)</span></span><br><span class="line"><span class="comment"># 其中&lt;password&gt;部分利用`echo -n user1:password1 | openssl dgst -binary -sha1 | openssl base64`命令计算得到</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 1] setAcl /ThirdNode digest:user1:XDkd2dsEuhc9ImU3q8pa8UOdtpI=:crwda</span><br><span class="line">cZxid = 0x29</span><br><span class="line">ctime = Sat Jul 14 22:34:23 CST 2018</span><br><span class="line">mZxid = 0x29</span><br><span class="line">mtime = Sat Jul 14 22:34:23 CST 2018</span><br><span class="line">pZxid = 0x29</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 1</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 4</span><br><span class="line">numChildren = 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置acl权限(ip schema)</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 11] setAcl /ThirdNode ip:192.168.1.1:crwda</span><br><span class="line">cZxid = 0x29</span><br><span class="line">ctime = Sat Jul 14 22:34:23 CST 2018</span><br><span class="line">mZxid = 0x29</span><br><span class="line">mtime = Sat Jul 14 22:34:23 CST 2018</span><br><span class="line">pZxid = 0x29</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 4</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 4</span><br><span class="line">numChildren = 0</span><br></pre></td></tr></table></figure>
+<h1 id="21-history"><a class="markdownIt-Anchor" href="#21-history"></a> 21 history</h1>
+<p><strong>描述</strong>：列出命令历史</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>history</code></li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出历史命令</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 59] <span class="built_in">history</span></span><br><span class="line">49 - delete /FirstNode 100</span><br><span class="line">50 - delete /FirstNode -1</span><br><span class="line">51 - create /FirstNode 1</span><br><span class="line">52 - <span class="built_in">set</span> /FirstNode 2</span><br><span class="line">53 - <span class="built_in">set</span> /FirstNode 3</span><br><span class="line">54 - delete /FirstNode 1</span><br><span class="line">55 - <span class="built_in">stat</span> /FirstNode</span><br><span class="line">56 - <span class="built_in">stat</span> /FirstNode myWatch</span><br><span class="line">57 - <span class="built_in">stat</span> /FirstNode myWatch</span><br><span class="line">58 - his</span><br><span class="line">59 - <span class="built_in">history</span></span><br></pre></td></tr></table></figure>
+<h1 id="22-redo"><a class="markdownIt-Anchor" href="#22-redo"></a> 22 redo</h1>
+<p><strong>描述</strong>：重新执行指定命令</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>redo cmdno</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>cmdno</code>：必填参数，命令编号</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 重新执行第61条命令</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 62] redo 61</span><br><span class="line">52 - <span class="built_in">set</span> /FirstNode 2</span><br><span class="line">53 - <span class="built_in">set</span> /FirstNode 3</span><br><span class="line">54 - delete /FirstNode 1</span><br><span class="line">55 - <span class="built_in">stat</span> /FirstNode</span><br><span class="line">56 - <span class="built_in">stat</span> /FirstNode myWatch</span><br><span class="line">57 - <span class="built_in">stat</span> /FirstNode myWatch</span><br><span class="line">58 - his</span><br><span class="line">59 - <span class="built_in">history</span></span><br><span class="line">60 - his</span><br><span class="line">61 - <span class="built_in">history</span></span><br><span class="line">62 - <span class="built_in">history</span></span><br></pre></td></tr></table></figure>
+<h1 id="23-printwatches"><a class="markdownIt-Anchor" href="#23-printwatches"></a> 23 printwatches</h1>
+<p><strong>描述</strong>：开启/关闭在输出流打印watch触发的信息</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>printwatches on|off</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>on</code>：开启</li>
+<li><code>off</code>：关闭</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 开启</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 70] printwatches on</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 71] printwatches off</span><br></pre></td></tr></table></figure>
+<h1 id="24-sync"><a class="markdownIt-Anchor" href="#24-sync"></a> 24 sync</h1>
+<p><strong>描述</strong>：同步</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>sync path</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>path</code>：必填参数，节点路径</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 强制同步 /app 的数据</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 45] sync /app</span><br><span class="line">[zk: localhost:2181(CONNECTED) 46] Sync returned 0</span><br></pre></td></tr></table></figure>
+<h1 id="25-addauth"><a class="markdownIt-Anchor" href="#25-addauth"></a> 25 addauth</h1>
+<p><strong>描述</strong>：添加授权用户信息</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>addauth scheme auth</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>scheme</code>：必填参数，策略</li>
+<li><code>auth</code>：授权用户信息，与scheme相关</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 添加scheme为digest的认证用户</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 11] addauth digest user1:password1</span><br></pre></td></tr></table></figure>
+<h1 id="26-quit"><a class="markdownIt-Anchor" href="#26-quit"></a> 26 quit</h1>
+<p><strong>描述</strong>：关闭当前Zookeeper会话（连接），并退出客户端程序</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>quit</code></li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 72] quit</span><br><span class="line">Quitting...</span><br><span class="line">2018-07-14 19:00:09,346 [myid:] - INFO  [main:ZooKeeper@687] - Session: 0x1000056482b0005 closed</span><br><span class="line">2018-07-14 19:00:09,348 [myid:] - INFO  [main-EventThread:ClientCnxn<span class="variable">$EventThread</span>@521] - EventThread shut down <span class="keyword">for</span> session: 0x1000056482b0005</span><br></pre></td></tr></table></figure>
+<h1 id="27-close"><a class="markdownIt-Anchor" href="#27-close"></a> 27 close</h1>
+<p><strong>描述</strong>：仅关闭当前Zookeeper会话（连接）</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>close</code></li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 关闭当前会话</span></span><br><span class="line">[zk: localhost:2181(CONNECTED) 0] close</span><br><span class="line">2018-07-14 19:00:29,350 [myid:] - INFO  [main:ZooKeeper@687] - Session: 0x1000056482b0006 closed</span><br><span class="line">[zk: localhost:2181(CLOSED) 1] 2018-07-14 19:00:29,351 [myid:] - INFO  [main-EventThread:ClientCnxn<span class="variable">$EventThread</span>@521] - EventThread shut down <span class="keyword">for</span> session: 0x1000056482b0006</span><br></pre></td></tr></table></figure>
+<h1 id="28-connect"><a class="markdownIt-Anchor" href="#28-connect"></a> 28 connect</h1>
+<p><strong>描述</strong>：连接到指定Zookeeper服务器</p>
+<p><strong>语法</strong></p>
+<ul>
+<li><code>connect host:port</code></li>
+</ul>
+<p><strong>参数解释</strong></p>
+<ul>
+<li><code>host</code>：主机名</li>
+<li><code>port</code>：端口号</li>
+</ul>
+<p><strong>示例</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 连接到 localhost:2181</span></span><br><span class="line">[zk: localhost:2181(CLOSED) 4] connect localhost:2181</span><br><span class="line">2018-07-14 19:04:17,738 [myid:] - INFO  [main:ZooKeeper@441] - Initiating client connection, connectString=localhost:2181 sessionTimeout=30000 watcher=org.apache.zookeeper.ZooKeeperMain<span class="variable">$MyWatcher</span>@e73f9ac</span><br><span class="line">[zk: localhost:2181(CONNECTING) 5] 2018-07-14 19:04:17,739 [myid:] - INFO  [main-SendThread(localhost:2181):ClientCnxn<span class="variable">$SendThread</span>@1028] - Opening socket connection to server localhost/0:0:0:0:0:0:0:1:2181. Will not attempt to authenticate using SASL (unknown error)</span><br><span class="line">2018-07-14 19:04:17,740 [myid:] - INFO  [main-SendThread(localhost:2181):ClientCnxn<span class="variable">$SendThread</span>@878] - Socket connection established to localhost/0:0:0:0:0:0:0:1:2181, initiating session</span><br><span class="line">2018-07-14 19:04:17,742 [myid:] - INFO  [main-SendThread(localhost:2181):ClientCnxn<span class="variable">$SendThread</span>@1302] - Session establishment complete on server localhost/0:0:0:0:0:0:0:1:2181, sessionid = 0x1000056482b0008, negotiated timeout = 30000</span><br><span class="line"></span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected <span class="built_in">type</span>:None path:null</span><br></pre></td></tr></table></figure>
+<h1 id="29-参考"><a class="markdownIt-Anchor" href="#29-参考"></a> 29 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://zookeeper.apache.org/">Zookeeper官网</a></li>
+<li><a target="_blank" rel="noopener" href="https://zookeeper.apache.org/doc/r3.4.12/zookeeperProgrammers.html">Zookeeper-官方Doc</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.tutorialspoint.com/zookeeper/zookeeper_cli.htm">Zookeeper教程-英文版</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.w3cschool.cn/zookeeper/">Zookeeper教程-中文版</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/hylexus/article/details/53352789">zookeeper-04-基本命令</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qianshangding0708/article/details/50114671">Zookeeper ACL权限控制</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.corejavaguru.com/bigdata/zookeeper/cli">ZooKeeper commands</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/cdu09/article/details/51637451">Zookeeper03 - Zookeeper之ACL</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/147ca2533aff">Zookeeper权限管理之坑</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/07/12/Spring-Cloud-Overview/" rel="prev" title="Spring-Cloud-Overview">
+      <i class="fa fa-chevron-left"></i> Spring-Cloud-Overview
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/07/13/Spring-Cloud-Zookeeper-Based-Demo/" rel="next" title="Spring-Cloud-Zookeeper-Based-Demo">
+      Spring-Cloud-Zookeeper-Based-Demo <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E4%B8%8B%E8%BD%BD"><span class="nav-text"> 1 下载</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%90%AF%E5%8A%A8server"><span class="nav-text"> 2 启动Server</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%90%AF%E5%8A%A8client"><span class="nav-text"> 3 启动Client</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-cmd-overview"><span class="nav-text"> 4 Cmd-Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-znode-status"><span class="nav-text"> 5 Znode Status</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-acl"><span class="nav-text"> 6 ACL</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-watch"><span class="nav-text"> 7 Watch</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-ls"><span class="nav-text"> 8 ls</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-ls2"><span class="nav-text"> 9 ls2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-create"><span class="nav-text"> 10 create</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-get"><span class="nav-text"> 11 get</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-set"><span class="nav-text"> 12 set</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-rmr"><span class="nav-text"> 13 rmr</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-delete"><span class="nav-text"> 14 delete</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-stat"><span class="nav-text"> 15 stat</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-listquota"><span class="nav-text"> 16 listquota</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-setquota"><span class="nav-text"> 17 setquota</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-delquota"><span class="nav-text"> 18 delquota</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-getacl"><span class="nav-text"> 19 getAcl</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-setacl"><span class="nav-text"> 20 setAcl</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-history"><span class="nav-text"> 21 history</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-redo"><span class="nav-text"> 22 redo</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-printwatches"><span class="nav-text"> 23 printwatches</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-sync"><span class="nav-text"> 24 sync</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#25-addauth"><span class="nav-text"> 25 addauth</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#26-quit"><span class="nav-text"> 26 quit</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#27-close"><span class="nav-text"> 27 close</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#28-connect"><span class="nav-text"> 28 connect</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#29-%E5%8F%82%E8%80%83"><span class="nav-text"> 29 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

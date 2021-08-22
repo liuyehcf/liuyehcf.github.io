@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库-性能监控">
+<meta property="og:url" content="http://example.com/2017/09/04/%E6%95%B0%E6%8D%AE%E5%BA%93-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-09-04T08:11:10.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.106Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/09/04/%E6%95%B0%E6%8D%AE%E5%BA%93-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据库-性能监控 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/09/04/%E6%95%B0%E6%8D%AE%E5%BA%93-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库-性能监控
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-04 16:11:10" itemprop="dateCreated datePublished" datetime="2017-09-04T16:11:10+08:00">2017-09-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Data-Base/" itemprop="url" rel="index"><span itemprop="name">Data Base</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Data-Base/Maintenance/" itemprop="url" rel="index"><span itemprop="name">Maintenance</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/09/04/%E6%95%B0%E6%8D%AE%E5%BA%93-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7/" class="post-meta-item leancloud_visitors" data-flag-title="数据库-性能监控" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/09/04/%E6%95%B0%E6%8D%AE%E5%BA%93-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/09/04/%E6%95%B0%E6%8D%AE%E5%BA%93-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-系统参数"><a class="markdownIt-Anchor" href="#1-系统参数"></a> 1 系统参数</h1>
+<h2 id="11-查看所有系统参数"><a class="markdownIt-Anchor" href="#11-查看所有系统参数"></a> 1.1 查看所有系统参数</h2>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="comment">-- 以数据表形式输出</span></span><br><span class="line"><span class="keyword">SHOW</span> VARIABLES\G <span class="comment">-- 以行形式输出</span></span><br><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;%isolation%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<h2 id="12-查看指定系统参数的值"><a class="markdownIt-Anchor" href="#12-查看指定系统参数的值"></a> 1.2 查看指定系统参数的值</h2>
+<p>以系统参数<code>tx_isolation</code>为例</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@global</span>.tx_isolation; <span class="comment">-- 全局</span></span><br><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 当前会话</span></span><br><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@tx</span>_isolation; <span class="comment">-- 默认当前会话</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">GLOBAL</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;tx_isolation&#x27;</span>; <span class="comment">-- 全局</span></span><br><span class="line"><span class="keyword">SHOW</span> SESSION VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;tx_isolation&#x27;</span>; <span class="comment">-- 当前会话</span></span><br><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;tx_isolation&#x27;</span>; <span class="comment">-- 默认当前会话</span></span><br></pre></td></tr></table></figure>
+<h2 id="13-修改系统参数的值"><a class="markdownIt-Anchor" href="#13-修改系统参数的值"></a> 1.3 修改系统参数的值</h2>
+<p>以系统参数<code>profiling_history_size</code>为例</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> profiling_history_size <span class="operator">=</span> <span class="number">10</span>;</span><br><span class="line"><span class="keyword">SET</span> SESSION profiling_history_size <span class="operator">=</span> <span class="number">15</span>;</span><br><span class="line"><span class="keyword">SET</span> profiling_history_size <span class="operator">=</span> <span class="number">15</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> @<span class="variable">@global</span>.profiling_history_size <span class="operator">=</span> <span class="number">10</span>;</span><br><span class="line"><span class="keyword">SET</span> @<span class="variable">@session</span>.profiling_history_size <span class="operator">=</span> <span class="number">15</span>;</span><br><span class="line"><span class="keyword">SET</span> @<span class="variable">@profiling</span>_history_size <span class="operator">=</span> <span class="number">15</span>;</span><br></pre></td></tr></table></figure>
+<p>以系统参数<code>tx_isolation</code>为例，这个参数比较特殊，需要用特殊的赋值语句</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> TRANSACTION ISOLATION LEVEL READ COMMITTED;</span><br><span class="line"><span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;</span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE;</span><br></pre></td></tr></table></figure>
+<h1 id="2-查看版本号"><a class="markdownIt-Anchor" href="#2-查看版本号"></a> 2 查看版本号</h1>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> VERSION();</span><br></pre></td></tr></table></figure>
+<h1 id="3-执行状态分析"><a class="markdownIt-Anchor" href="#3-执行状态分析"></a> 3 执行状态分析</h1>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> PROCESSLIST;</span><br></pre></td></tr></table></figure>
+<h1 id="4-profile工具"><a class="markdownIt-Anchor" href="#4-profile工具"></a> 4 profile工具</h1>
+<p><strong>查看profile相关的系统变量</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW VARIABLES LIKE &#x27;%profi%&#x27;;</span><br><span class="line">+------------------------+-------+</span><br><span class="line">| Variable_name          | Value |</span><br><span class="line">+------------------------+-------+</span><br><span class="line">| have_profiling         | YES   |</span><br><span class="line">| profiling              | OFF   |</span><br><span class="line">| profiling_history_size | 15    |</span><br><span class="line">+------------------------+-------+</span><br><span class="line">3 rows in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+<p><strong>开启profiling功能</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET SESSION profiling = 1;</span><br><span class="line">Query OK, 0 rows affected, 1 warning (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SHOW VARIABLES LIKE &#x27;%profi%&#x27;;</span><br><span class="line">+------------------------+-------+</span><br><span class="line">| Variable_name          | Value |</span><br><span class="line">+------------------------+-------+</span><br><span class="line">| have_profiling         | YES   |</span><br><span class="line">| profiling              | ON    |</span><br><span class="line">| profiling_history_size | 15    |</span><br><span class="line">+------------------------+-------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p><strong>查询所有语句的id以及执行时间</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW PROFILES;</span><br><span class="line">+----------+------------+-------------------------------------+</span><br><span class="line">| Query_ID | Duration   | Query                               |</span><br><span class="line">+----------+------------+-------------------------------------+</span><br><span class="line">|       10 | 0.00006000 | SET SESSION @@session.profiling = 1 |</span><br><span class="line">|       11 | 0.00005800 | SET SESSION @@profiling = 1         |</span><br><span class="line">|       12 | 0.00010100 | SET SESSION profiling = 1           |</span><br><span class="line">|       13 | 0.00190400 | SHOW VARIABLES LIKE &#x27;%profi%&#x27;       |</span><br><span class="line">|       14 | 0.00005800 | SHOW PROFIILES                      |</span><br><span class="line">+----------+------------+-------------------------------------+</span><br><span class="line">5 rows in set, 1 warning (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p><strong>查询某个特定的语句</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW PROFILE FOR QUERY 13;</span><br><span class="line">+----------------------+----------+</span><br><span class="line">| Status               | Duration |</span><br><span class="line">+----------------------+----------+</span><br><span class="line">| starting             | 0.000063 |</span><br><span class="line">| checking permissions | 0.000016 |</span><br><span class="line">| Opening tables       | 0.000016 |</span><br><span class="line">| init                 | 0.000052 |</span><br><span class="line">| System lock          | 0.000008 |</span><br><span class="line">| optimizing           | 0.000004 |</span><br><span class="line">| optimizing           | 0.000002 |</span><br><span class="line">| statistics           | 0.000013 |</span><br><span class="line">| preparing            | 0.000014 |</span><br><span class="line">| statistics           | 0.000007 |</span><br><span class="line">| preparing            | 0.000006 |</span><br><span class="line">| executing            | 0.000009 |</span><br><span class="line">| Sending data         | 0.000007 |</span><br><span class="line">| executing            | 0.000002 |</span><br><span class="line">| Sending data         | 0.001597 |</span><br><span class="line">| end                  | 0.000009 |</span><br><span class="line">| query end            | 0.000006 |</span><br><span class="line">| closing tables       | 0.000016 |</span><br><span class="line">| removing tmp table   | 0.000009 |</span><br><span class="line">| closing tables       | 0.000008 |</span><br><span class="line">| freeing items        | 0.000028 |</span><br><span class="line">| cleaning up          | 0.000012 |</span><br><span class="line">+----------------------+----------+</span><br><span class="line">22 rows in set, 1 warning (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p><strong>查询某个特定的语句的详细信息</strong></p>
+<ol>
+<li>ALL：显示所有性能信息
+<ul>
+<li><code>SHOW PROFILE ALL FOR QUERY 13;</code></li>
+</ul>
+</li>
+<li>CPU：CPU占用情况
+<ul>
+<li><code>SHOW PROFILE CPU FOR QUERY 13;</code></li>
+</ul>
+</li>
+<li>BLOCK IO：显示块IO的次数
+<ul>
+<li><code>SHOW PROFILE BLOCK IO FOR QUERY 13;</code></li>
+</ul>
+</li>
+<li>CONTEXT SWITCHES：显示自动和被动的上下文切换数量
+<ul>
+<li><code>SHOW PROFILE CONTEXT SWITCHES FOR QUERY 13;</code></li>
+</ul>
+</li>
+<li>IPC：显示发送和接受的消息数量
+<ul>
+<li><code>SHOW PROFILE IPC FOR QUERY 13;</code></li>
+</ul>
+</li>
+<li>MEMORY：显示内存占用情况
+<ul>
+<li><code>SHOW PROFILE MEMORY FOR QUERY 13;</code></li>
+</ul>
+</li>
+<li>SWAPS：显示swap的次数
+<ul>
+<li><code>SHOW PROFILE SWAPS FOR QUERY 13;</code></li>
+</ul>
+</li>
+<li>以上参数可以组合使用
+<ul>
+<li><code>SHOW PROFILE BLOCK IO, CPU FOR QUERY 13;</code></li>
+</ul>
+</li>
+</ol>
+<h1 id="5-explain-分析执行计划"><a class="markdownIt-Anchor" href="#5-explain-分析执行计划"></a> 5 EXPLAIN-分析执行计划</h1>
+<p><strong>语法</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">EXPLAIN + SQL</span><br><span class="line"></span><br><span class="line">mysql&gt; EXPLAIN SELECT * FROM test WHERE id = 1;</span><br><span class="line">+----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+</span><br><span class="line">| id | select_type | table | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |</span><br><span class="line">+----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+</span><br><span class="line">|  1 | SIMPLE      | test  | NULL       | const | PRIMARY       | PRIMARY | 4       | const |    1 |   100.00 | NULL  |</span><br><span class="line">+----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+</span><br><span class="line">1 row in set, 1 warning (0.00 sec)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong>参数解释</strong></p>
+<ol>
+<li><strong>select_type</strong>：</li>
+<li><strong>table</strong>：显示这一行的数据是关于哪张表的</li>
+<li><strong>partitions</strong>：</li>
+<li><strong>type</strong>：这是重要的列，显示连接使用了何种类型。<strong>从最好到最差的连接类型为const、eq_reg、ref、range、index和ALL</strong></li>
+<li><strong>possible_keys</strong>：<strong>显示可能应用在这张表中的索引</strong>。如果为空，没有可能的索引。可以为相关的域从WHERE语句中选择一个合适的语句</li>
+<li><strong>key</strong>： <strong>实际使用的索引</strong>。如果为NULL，则没有使用索引。很少的情况下，MYSQL会选择优化不足的索引。这种情况下，可以在SELECT语句中使用USE INDEX（indexname）来强制使用一个索引或者用IGNORE INDEX（indexname）来强制MYSQL忽略索引
+<ul>
+<li>NULL：表示没有使用索引</li>
+<li>PRIMARY：表示使用主键作为索引</li>
+<li>索引名字：表示使用的索引的名字</li>
+</ul>
+</li>
+<li><strong>key_len</strong>：使用的索引的长度。在不损失精确性的情况下，长度越短越好</li>
+<li><strong>ref</strong>：显示索引的哪一列被使用了，如果可能的话，是一个常数</li>
+<li><strong>rows</strong>：MYSQL认为必须检查的用来返回请求数据的行数</li>
+<li><strong>filtered</strong>：</li>
+<li><strong>Extra</strong>：关于MYSQL如何解析查询的额外信息。将在表4.3中讨论，但这里可以看到的坏的例子是Using temporary和Using filesort，意思MYSQL根本不能使用索引，结果是检索会很慢</li>
+</ol>
+<h1 id="6-参考"><a class="markdownIt-Anchor" href="#6-参考"></a> 6 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/awishfullyway/p/6485070.html">MYSQL的用户变量(@)和系统变量(@@)</a></li>
+<li><a target="_blank" rel="noopener" href="https://jingyan.baidu.com/article/c35dbcb085eb688916fcbc01.html">MySQL优化 profile工具</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/21aspnet/article/details/52938346">MySQL常用性能分析方法-profile，explain，索引</a></li>
+<li><a target="_blank" rel="noopener" href="http://database.51cto.com/art/200912/168453.htm">详解MySQL中EXPLAIN解释命令</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/u014453898/article/details/55004193">MYSQL 用 explain 语句判断select查询是否使用了索引</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/09/02/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="prev" title="数据库-事务隔离级别">
+      <i class="fa fa-chevron-left"></i> 数据库-事务隔离级别
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/09/23/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B4%A2%E5%BC%95/" rel="next" title="数据库-索引">
+      数据库-索引 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%B3%BB%E7%BB%9F%E5%8F%82%E6%95%B0"><span class="nav-text"> 1 系统参数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E6%9F%A5%E7%9C%8B%E6%89%80%E6%9C%89%E7%B3%BB%E7%BB%9F%E5%8F%82%E6%95%B0"><span class="nav-text"> 1.1 查看所有系统参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E6%9F%A5%E7%9C%8B%E6%8C%87%E5%AE%9A%E7%B3%BB%E7%BB%9F%E5%8F%82%E6%95%B0%E7%9A%84%E5%80%BC"><span class="nav-text"> 1.2 查看指定系统参数的值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E4%BF%AE%E6%94%B9%E7%B3%BB%E7%BB%9F%E5%8F%82%E6%95%B0%E7%9A%84%E5%80%BC"><span class="nav-text"> 1.3 修改系统参数的值</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%9F%A5%E7%9C%8B%E7%89%88%E6%9C%AC%E5%8F%B7"><span class="nav-text"> 2 查看版本号</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%89%A7%E8%A1%8C%E7%8A%B6%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-text"> 3 执行状态分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-profile%E5%B7%A5%E5%85%B7"><span class="nav-text"> 4 profile工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-explain-%E5%88%86%E6%9E%90%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92"><span class="nav-text"> 5 EXPLAIN-分析执行计划</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%8F%82%E8%80%83"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

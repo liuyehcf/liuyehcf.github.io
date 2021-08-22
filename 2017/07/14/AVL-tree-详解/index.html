@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AVL-tree-详解">
+<meta property="og:url" content="http://example.com/2017/07/14/AVL-tree-%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/AVL-tree-%E8%AF%A6%E8%A7%A3/1.png">
+<meta property="og:image" content="http://example.com/images/AVL-tree-%E8%AF%A6%E8%A7%A3/2.png">
+<meta property="og:image" content="http://example.com/images/AVL-tree-%E8%AF%A6%E8%A7%A3/3.png">
+<meta property="og:image" content="http://example.com/images/AVL-tree-%E8%AF%A6%E8%A7%A3/4.png">
+<meta property="og:image" content="http://example.com/images/AVL-tree-%E8%AF%A6%E8%A7%A3/5.png">
+<meta property="og:image" content="http://example.com/images/AVL-tree-%E8%AF%A6%E8%A7%A3/6.png">
+<meta property="article:published_time" content="2017-07-14T10:45:40.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:52.836Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/AVL-tree-%E8%AF%A6%E8%A7%A3/1.png">
+
+<link rel="canonical" href="http://example.com/2017/07/14/AVL-tree-%E8%AF%A6%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>AVL-tree-详解 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/14/AVL-tree-%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AVL-tree-详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-14 18:45:40" itemprop="dateCreated datePublished" datetime="2017-07-14T18:45:40+08:00">2017-07-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:52" itemprop="dateModified" datetime="2021-02-23T22:19:52+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Data-Structure/" itemprop="url" rel="index"><span itemprop="name">Data Structure</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Data-Structure/Tree/" itemprop="url" rel="index"><span itemprop="name">Tree</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/14/AVL-tree-%E8%AF%A6%E8%A7%A3/" class="post-meta-item leancloud_visitors" data-flag-title="AVL-tree-详解" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/14/AVL-tree-%E8%AF%A6%E8%A7%A3/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/14/AVL-tree-%E8%AF%A6%E8%A7%A3/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p>AVL-tree是一种平衡二叉树，搜索的平均复杂度是O(log n)。本篇博客将介绍AVL-tree的两种实现方式，其中第二种方式是参考&lt;STL源码剖析&gt;，较第一种方式更为简单高效，推荐第二种方式</p>
+<h1 id="2-定义"><a class="markdownIt-Anchor" href="#2-定义"></a> 2 定义</h1>
+<p>在计算机科学中，AVL树是最先发明的自平衡二叉查找树。在AVL树中任何节点的两个子树的高度最大差别为一，所以它也被称为高度平衡树。查找、插入和删除在平均和最坏情况下都是O（log n）。增加和删除可能需要通过一次或多次树旋转来重新平衡这个树</p>
+<p><strong>节点的属性</strong></p>
+<ol>
+<li><strong>val</strong>：节点的值</li>
+<li><strong>left</strong>：节点的左孩子</li>
+<li><strong>right</strong>：节点的右孩子</li>
+<li><strong>parent</strong>：节点的双亲</li>
+<li><strong>height</strong>：节点的高度</li>
+</ol>
+<ul>
+<li>相比于普通的搜索二叉树，AVL树额外维护了一个高度属性，因为AVL树通过该高度属性来判断树的平衡性</li>
+</ul>
+<p><strong>平衡性质</strong></p>
+<ol>
+<li>每个节点的左子树与右子树的高度最多不超过1
+<ul>
+<li><strong>节点的高度</strong>：从给定节点到其最深叶节点所经过的边的数量</li>
+</ul>
+</li>
+</ol>
+<h1 id="3-版本1"><a class="markdownIt-Anchor" href="#3-版本1"></a> 3 版本1</h1>
+<h2 id="31-平衡性破坏分析"><a class="markdownIt-Anchor" href="#31-平衡性破坏分析"></a> 3.1 平衡性破坏分析</h2>
+<p>为了方便描述，定义几个符号</p>
+<ol>
+<li>对于一个节点X，调整(这里的调整特指旋转)之前其高度记为H<sub>x</sub></li>
+<li>仍然对于上述节点X，调整一次后高度记为H<sub>x+</sub></li>
+</ol>
+<h3 id="311-可旋性分析"><a class="markdownIt-Anchor" href="#311-可旋性分析"></a> 3.1.1 可旋性分析</h3>
+<p>首先分析左旋，见如下示意图</p>
+<p><img src="/images/AVL-tree-%E8%AF%A6%E8%A7%A3/1.png" alt="fig1" /></p>
+<p><strong>问题1：何时我们会进行左旋操作</strong></p>
+<blockquote>
+<p>只有当右子树的高度大于左子树的高度才会有左旋的需求。以上图为例，即H<sub>D</sub>=H<sub>A</sub>-1或H<sub>D</sub>=H<sub>A</sub>-2</p>
+</blockquote>
+<p><strong>问题2：何时左旋后能够达到平衡状态</strong></p>
+<blockquote>
+<p>只有H<sub>C</sub> &gt;= H<sub>E</sub>时，旋转后该子树的所有节点才满足AVL树的性质</p>
+</blockquote>
+<p>下面对于问题2的结论进行分析</p>
+<ol>
+<li><strong>旋转前，各节点高度如下</strong>
+<ul>
+<li>H<sub>D</sub>=H<sub>A</sub>-1或H<sub>D</sub>=H<sub>A</sub>-2</li>
+<li>H<sub>C</sub>=H<sub>A</sub>-1</li>
+<li>H<sub>E</sub>=H<sub>A</sub>-1或H<sub>E</sub>=H<sub>A</sub>-2</li>
+</ul>
+</li>
+<li><strong>旋转后，各节点高度如下</strong>
+<ul>
+<li>H<sub>D+</sub>=H<sub>D</sub>=H<sub>A</sub>-1或H<sub>A</sub>-2</li>
+<li>H<sub>E+</sub>=H<sub>E</sub>=H<sub>A</sub>-1或H<sub>A</sub>-2</li>
+<li>H<sub>C+</sub>=H<sub>C</sub>=H<sub>A</sub>-1</li>
+<li>旋转后，B节点平衡，H<sub>B</sub>+=H<sub>A</sub>或H<sub>B+</sub>=H<sub>A</sub>-1</li>
+<li>旋转后，A节点平衡，H<sub>A</sub>+=H<sub>A</sub>或H<sub>A+</sub>=H<sub>A</sub>+1</li>
+</ul>
+</li>
+</ol>
+<p>然后分析右旋，见如下示意图</p>
+<p><img src="/images/AVL-tree-%E8%AF%A6%E8%A7%A3/2.png" alt="fig2" /></p>
+<p><strong>问题1：何时我们会进行右旋操作</strong></p>
+<blockquote>
+<p>只有当左子树的高度大于右子树的高度才会有右旋的需求。以上图为例，即H<sub>C</sub>=H<sub>B</sub>-1或H<sub>C</sub>=H<sub>B</sub>-2</p>
+</blockquote>
+<p><strong>问题2：何时右旋后能够达到平衡状态</strong></p>
+<blockquote>
+<p>只有H<sub>D</sub> &gt;= H<sub>E</sub>时，旋转后该子树的所有节点才满足AVL树的性质</p>
+</blockquote>
+<p>下面对于问题2的结论进行分析</p>
+<ol>
+<li><strong>旋转前，各节点高度如下</strong>
+<ul>
+<li>H<sub>C</sub>=H<sub>B</sub>-1或H<sub>C</sub>=H<sub>B</sub>-2</li>
+<li>H<sub>D</sub>=H<sub>B</sub>-1</li>
+<li>H<sub>E</sub>=H<sub>B</sub>-1或H<sub>E</sub>=H<sub>B</sub>-2</li>
+</ul>
+</li>
+<li><strong>旋转后，各节点高度如下</strong>
+<ul>
+<li>H<sub>D+</sub>=H<sub>D</sub>=H<sub>B</sub>-1</li>
+<li>H<sub>E+</sub>=H<sub>E</sub>=H<sub>B</sub>-1或H<sub>B</sub>-2</li>
+<li>H<sub>C+</sub>=H<sub>C</sub>=H<sub>B</sub>-1或H<sub>B</sub>-2</li>
+<li>旋转后，A节点平衡，且H<sub>A+</sub>=H<sub>B</sub>或H<sub>A+</sub>=H<sub>B</sub>-1</li>
+<li>旋转后，B节点平衡，且H<sub>B+</sub>=H<sub>B</sub>或H<sub>B+</sub>=H<sub>B</sub>+1</li>
+</ul>
+</li>
+</ol>
+<p><strong>注意：上述分析仅仅讨论了左旋或者右旋一棵子树时，旋转后该子树是否平衡，但是旋转后该子树的高度是可能变化的，也就是对于该子树的父节点而言，可能又会造成不平衡。因此在AVL性质维护函数中需要充分考虑到这一点</strong></p>
+<h3 id="312-平衡性的维护"><a class="markdownIt-Anchor" href="#312-平衡性的维护"></a> 3.1.2 平衡性的维护</h3>
+<p><strong>当平衡性质被破坏需要右旋来维护性质时</strong></p>
+<p>当C为平衡被破坏的节点，且C的左子树比右子树的高度大2，示意图如下</p>
+<p><img src="/images/AVL-tree-%E8%AF%A6%E8%A7%A3/3.png" alt="fig3" /></p>
+<ul>
+<li>需要对C进行一次右旋</li>
+<li>右旋的前提是H<sub>B</sub> &gt;= H<sub>D</sub></li>
+<li>若不满足H<sub>B</sub> &gt;= H<sub>D</sub>，则需要首先对A进行一次左旋，而左旋又存在前提</li>
+<li>一直往下递归，直至满足旋转条件</li>
+</ul>
+<p><strong>其实，以上的过程存在一个可以优化的点</strong>：</p>
+<blockquote>
+<p><strong>假设对C节点的右旋条件不满足，即H<sub>B</sub> &lt; H<sub>D</sub></strong>，那么此时需要对A节点进行一次左旋。<strong>但是A节点左旋后可能会导致A子树的高度发生变化(可能A节点的高度比旋转前少1)</strong>。如果A子树的高度少1，那么对于节点C就成为一个平衡节点了，就不需要再进行右旋操作了。但是对于下面将要讲的伪代码中，并没有进行这样的优化。也就意味着不管A子树的高度是否发生变化，C的右旋仍然会执行，这样做并不会破坏平衡性(旋转前后都会处于平衡状态)，只是复杂度增高了</p>
+</blockquote>
+<p><strong>当平衡性质被破坏需要左旋来维护性质时</strong></p>
+<p>当A为平衡被破坏的节点，且A的右子树比左子树的高度大2，示意图如下</p>
+<p><img src="/images/AVL-tree-%E8%AF%A6%E8%A7%A3/4.png" alt="fig4" /></p>
+<ul>
+<li>需要对A进行一次左旋</li>
+<li>左旋的前提是H<sub>E</sub> &gt;= H<sub>D</sub></li>
+<li>若不满足H<sub>E</sub> &gt;= H<sub>D</sub>，则需要首先对C进行一次右旋，而右旋又存在前提</li>
+<li>一直往下递归，直至满足旋转条件</li>
+</ul>
+<p><strong>这里存在一个相同的优化点，不再赘述</strong></p>
+<h2 id="32-伪代码"><a class="markdownIt-Anchor" href="#32-伪代码"></a> 3.2 伪代码</h2>
+<h3 id="321-基本操作"><a class="markdownIt-Anchor" href="#321-基本操作"></a> 3.2.1 基本操作</h3>
+<p>更新指定节点的高度，只有当该节点的左右孩子节点的高度都正确时，才能得到正确的结果</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-HEIGHT(T,x)</span><br><span class="line"><span class="keyword">if</span> x.left.height≥x.right.height   <span class="comment">//左右节点均存在</span></span><br><span class="line">    x.height=x.left.height+<span class="number">1</span></span><br><span class="line"><span class="keyword">else</span> x.height=x.right.height+<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>将一棵子树替换掉另一棵子树</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-TRANSPLANT(T,u,v)   <span class="comment">//该函数与红黑树完全一致(都含有哨兵节点)</span></span><br><span class="line"><span class="keyword">if</span> u.p==T.nil</span><br><span class="line">    T.root=v</span><br><span class="line">elseif u==u.p.left</span><br><span class="line">    u.p.left=v</span><br><span class="line"><span class="keyword">else</span> u.p.right=v</span><br><span class="line">    v.p=u.p</span><br></pre></td></tr></table></figure>
+<h3 id="322-左旋和右旋"><a class="markdownIt-Anchor" href="#322-左旋和右旋"></a> 3.2.2 左旋和右旋</h3>
+<p>左旋给定节点，更新旋转后节点的高度，并返回旋转后子树的根节点</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-LEFT-ROTATE(T,x)</span><br><span class="line">y=x.right</span><br><span class="line">x.right=y.left</span><br><span class="line"><span class="keyword">if</span> y.left≠T.nil</span><br><span class="line">    y.left.p=x</span><br><span class="line">y.p=x.p</span><br><span class="line"><span class="keyword">if</span> x.p== T.nil</span><br><span class="line">    T.root=y</span><br><span class="line">elseif x==x.p.left</span><br><span class="line">    x.p.left=y</span><br><span class="line"><span class="keyword">else</span> x.p.right=y</span><br><span class="line">y.left=x</span><br><span class="line">x.p=y</span><br><span class="line">AVL-TREE-HEIGHT(T,x)</span><br><span class="line">AVL-TREE-HEIGHT(T,y)</span><br><span class="line"><span class="comment">//以上两行顺序不得交换</span></span><br><span class="line"><span class="keyword">return</span> y   <span class="comment">//返回旋转后的子树根节点</span></span><br></pre></td></tr></table></figure>
+<p>右旋给定节点，更新旋转后节点的高度，并返回旋转后子树的根节点</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-RIGH-TROTATE(T,y)</span><br><span class="line">x=y.left</span><br><span class="line">y.left=x.right</span><br><span class="line"><span class="keyword">if</span> x.right≠T.nil</span><br><span class="line">    x.right.p=y</span><br><span class="line">x.p=y.p</span><br><span class="line"><span class="keyword">if</span> y.p==T.nil</span><br><span class="line">    root=x</span><br><span class="line">elseif y==y.p.left</span><br><span class="line">    y.p.left=x</span><br><span class="line"><span class="keyword">else</span> y.p.right=x</span><br><span class="line">x.right=y</span><br><span class="line">y.p=x</span><br><span class="line">AVL-TREE-HEIGHT(T,y)   </span><br><span class="line">AVL-TREE-HEIGHT(T,x)</span><br><span class="line"><span class="comment">//以上两行顺序不得交换</span></span><br><span class="line"><span class="keyword">return</span> x      <span class="comment">//返回旋转后的子树根节点</span></span><br></pre></td></tr></table></figure>
+<h3 id="323-性质维护"><a class="markdownIt-Anchor" href="#323-性质维护"></a> 3.2.3  性质维护</h3>
+<p>根据指定方向旋转给定节点，旋转后该子树满足平衡的性质，并且输入的节点必须满足如下性质</p>
+<blockquote>
+<p>X节点必定是以X为根节点的子树中<strong>唯一</strong>不满足平衡性的节点。意味着X节点的孩子子树的所有节点均满足平衡性。因此，必须从下往上找到第一个不平衡的节点来调用该方法</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-HOLD-ROTATE(T,x,orientation)</span><br><span class="line">let stack1,stack2 be two stacks<span class="comment">//不考虑实际用到的大小，直接用树的大小来分配堆栈空间大小</span></span><br><span class="line">stack1.push(x)</span><br><span class="line">stack2.push(orientation)</span><br><span class="line">cur=Nil</span><br><span class="line">rotateRoot=Nil <span class="comment">//对x尝试旋转后，返回最终旋转后的根节点</span></span><br><span class="line">curOrientation=INVALID;</span><br><span class="line"><span class="keyword">while</span>(!stack1.Empty())</span><br><span class="line">    cur=stack1.top()</span><br><span class="line">    curOrientation=stack2.top()</span><br><span class="line">    <span class="keyword">if</span> curOrientation==LEFT <span class="comment">//需要对cur尝试进行左旋</span></span><br><span class="line">        <span class="keyword">if</span> cur.right.right.height≥cur.right.left.height</span><br><span class="line">            stack1.pop()</span><br><span class="line">            stack2.pop()</span><br><span class="line">            rotateRoot=AVL-TREE-LEFT-ROTATE(T,cur)</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            stack1.push(cur.right)<span class="comment">//否则cur右孩子需要尝试进行右旋来调整</span></span><br><span class="line">            stack2.push(RIGHT);</span><br><span class="line">    elseif curOrientation ==RIGHT<span class="comment">//需要对cur尝试进行右旋</span></span><br><span class="line">        <span class="keyword">if</span> cur.left.left.height≥cur.left.right.height</span><br><span class="line">            stack1.pop()</span><br><span class="line">            stack2.pop()</span><br><span class="line">            rotateRoot=AVL-TREE-RIGHT-ROTATE(T,cur)</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            stack1.push(cur.left) <span class="comment">//否则cur左孩子需要尝试进行左旋来调整</span></span><br><span class="line">            stack2.push(LEFT)</span><br><span class="line"><span class="keyword">return</span> rotateRoot</span><br></pre></td></tr></table></figure>
+<h3 id="324-插入"><a class="markdownIt-Anchor" href="#324-插入"></a> 3.2.4 插入</h3>
+<p>插入一个节点</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-TREE-INSERT(T,z)</span><br><span class="line">y=T.nil</span><br><span class="line">x=T.root</span><br><span class="line"><span class="keyword">while</span> x≠T.nil<span class="comment">//循环结束时x指向空，y指向上一个x</span></span><br><span class="line">    y=x</span><br><span class="line">    <span class="keyword">if</span> z.key&lt;x.key</span><br><span class="line">        x=x.left</span><br><span class="line">    <span class="keyword">else</span> x=x.right</span><br><span class="line">z.p=y<span class="comment">//将这个叶节点作为z的父节点</span></span><br><span class="line"><span class="keyword">if</span> y==T.nil</span><br><span class="line">    T.root=z</span><br><span class="line">elseif z.key&lt;y.key</span><br><span class="line">    y.left=z</span><br><span class="line"><span class="keyword">else</span> y.right=z</span><br><span class="line">z.left=T.nil</span><br><span class="line">z.right=T.nil</span><br><span class="line">AVL-TREE-FIXUP(T,z)</span><br></pre></td></tr></table></figure>
+<p>从指定节点向上遍历查找不平衡的节点，并维护平衡树的性质</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-FIXUP(T,y) </span><br><span class="line"><span class="keyword">if</span> y==T.nil<span class="comment">//为了使删除函数也能调用该函数，因为删除函数传入的参数可能是哨兵</span></span><br><span class="line">    y=y.p</span><br><span class="line"><span class="keyword">while</span>(y≠T.nil) <span class="comment">//沿着y节点向上遍历该条路径</span></span><br><span class="line">    AVL-TREE-HEIGHT(y)</span><br><span class="line">    <span class="keyword">if</span> y.left.height==y.right.height+<span class="number">2</span> <span class="comment">//左子树比右子树高2</span></span><br><span class="line">        y= AVL-TREE-HOLD-ROTATE(T,y,<span class="number">2</span>)</span><br><span class="line">    elseif y.right.height=y.left.height+<span class="number">2</span>    </span><br><span class="line">        y= AVL-TREE-HOLD-ROTATE(T,y,<span class="number">1</span>)</span><br><span class="line">    y=y.p</span><br></pre></td></tr></table></figure>
+<h3 id="325-删除"><a class="markdownIt-Anchor" href="#325-删除"></a> 3.2.5 删除</h3>
+<p>删除一个节点</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-DELETE(T,z)</span><br><span class="line">y=z   <span class="comment">//x指向将要移动到y原本位置的节点，或者原本y节点的父节点</span></span><br><span class="line"><span class="keyword">if</span> z.left==T.nil</span><br><span class="line">    x=y.right</span><br><span class="line">    AVL-TREE-TRANSPLANT(T,z,z.right)</span><br><span class="line">elseif z.right==T.nil</span><br><span class="line">    x=y.left      </span><br><span class="line">    AVL-TREE-TRANSPLANT(T,z,z.left)</span><br><span class="line"> <span class="keyword">else</span> y=AVL-TREE-MINIMUM(z.right) <span class="comment">//找到z的后继，由于z存在左右孩子，故后继为右子树中的最小值</span></span><br><span class="line">    x=y.right</span><br><span class="line">    <span class="keyword">if</span> y.p==z<span class="comment">//如果y是z的右孩子，需要将x的parent指向y(使得x为哨兵节点也满足)</span></span><br><span class="line">        x.p=y</span><br><span class="line">    <span class="keyword">else</span> AVL-TREE-TRANSPLANT (T,y,y.right)</span><br><span class="line">        y.right=z.right</span><br><span class="line">        y.right.p=y</span><br><span class="line">    AVL-TREE-TRANSPLANT (T,z,y)</span><br><span class="line">    y.left=z.left</span><br><span class="line">    y.left.p=y</span><br><span class="line">AVL-TREE-FIXUP(T,x)</span><br></pre></td></tr></table></figure>
+<h1 id="4-版本2"><a class="markdownIt-Anchor" href="#4-版本2"></a> 4 版本2</h1>
+<p>与版本1的实现不同，这个版本的分析将会更加简单，实现效率也会更高</p>
+<h2 id="41-几类不平衡情况"><a class="markdownIt-Anchor" href="#41-几类不平衡情况"></a> 4.1 几类不平衡情况</h2>
+<p>当插入一个节点后，某节点A为从插入节点往上找到的第一个平衡性被破坏的节点，<strong>可以分为如下四种情况，又可分为两大类</strong></p>
+<ol>
+<li><strong>第一类：外侧</strong>
+<ul>
+<li>插入点位于A的左子节点的左子树–左左</li>
+<li>插入点位于A的右子节点的右子树–右右</li>
+</ul>
+</li>
+<li><strong>第二类：内侧</strong>
+<ul>
+<li>插入点位于A的左子节点的右子树–左右</li>
+<li>插入点位于A的右子节点的左子树–右左</li>
+</ul>
+</li>
+</ol>
+<h3 id="411-第一类不平衡以左左为例"><a class="markdownIt-Anchor" href="#411-第一类不平衡以左左为例"></a> 4.1.1 第一类不平衡(以左左为例)</h3>
+<p>为了方便描述，定义几个符号</p>
+<ol>
+<li>对于一个节点X，调整(这里的调整特指旋转)之前其高度记为H<sub>x</sub></li>
+<li>仍然对于上述节点X，调整一次后高度记为H<sub>x+</sub></li>
+</ol>
+<p>插入点位于A的左子节点的左子树–左左，见如下示意图</p>
+<p><img src="/images/AVL-tree-%E8%AF%A6%E8%A7%A3/5.png" alt="fig5" /></p>
+<p><strong>调整前，各节点的高度如下</strong></p>
+<ul>
+<li>H<sub>B</sub>=H<sub>C</sub>+2</li>
+<li>H<sub>A</sub>=H<sub>C</sub>+2(为什么A和B高度相同，因为B的高度已经更新过了，而A仍然是是插入新节点之前的高度，即尚未维护A节点的height字段)</li>
+<li>H<sub>D</sub>=H<sub>B</sub>-1=H<sub>C</sub>+1</li>
+<li>H<sub>E</sub>必定小于H<sub>D</sub>(否则在新节点插入到节点D为根节点的子树之前，A节点就是不平衡的)，因此H<sub>E</sub>=H<sub>C</sub></li>
+</ul>
+<p><strong>右旋调整后，各节点的高度如下</strong></p>
+<ul>
+<li>H<sub>D+</sub>=H<sub>D</sub>=H<sub>C</sub>+1</li>
+<li>H<sub>E+</sub>=H<sub>E</sub>=H<sub>C</sub></li>
+<li>H<sub>C+</sub>=H<sub>C</sub></li>
+<li>由于H<sub>E+</sub>=H<sub>C+</sub>，于是A节点平衡，且H<sub>A+</sub>=H<sub>C</sub>+1</li>
+<li>B节点也是平衡的，且H<sub>B+</sub>=H<sub>C</sub>+2</li>
+</ul>
+<p><strong>可以发现，调整前后子树根节点的高度都是HC+2，因此该节点上层的节点的平衡性不会被破坏，于是通过一次右旋，不平衡性即被消除</strong></p>
+<h3 id="412-第二类不平衡以左右为例"><a class="markdownIt-Anchor" href="#412-第二类不平衡以左右为例"></a> 4.1.2 第二类不平衡(以左右为例)</h3>
+<p>为了方便描述，定义几个符号</p>
+<ol>
+<li>对于一个节点X，调整(这里的调整特指旋转)之前其高度记为H<sub>x</sub></li>
+<li>仍然对于上述节点X，调整一次后高度记为H<sub>x+</sub></li>
+<li>仍然对于上述节点X，调整二次后高度记为H<sub>x++</sub></li>
+</ol>
+<p>插入点位于A的左子节点的右子树–左右，见如下示意图</p>
+<p><img src="/images/AVL-tree-%E8%AF%A6%E8%A7%A3/6.png" alt="fig6" /></p>
+<p><strong>调整前，各节点的高度如下</strong></p>
+<ul>
+<li>H<sub>B</sub>=H<sub>C</sub>+2</li>
+<li>H<sub>A</sub>=H<sub>C</sub>+2(为什么A和B高度相同，因为B的高度已经更新过了，而A仍然是是插入新节点之前的高度，即尚未维护A节点的height字段)</li>
+<li>H<sub>E</sub>=H<sub>B</sub>-1=H<sub>C</sub>+1</li>
+<li>H<sub>D</sub>必定小于H<sub>E</sub>，因此H<sub>D</sub>=H<sub>C</sub></li>
+<li>H<sub>H</sub>与H<sub>I</sub>至少有一个是H<sub>C</sub>，另一个可以是H<sub>C</sub>或H<sub>C</sub>-1</li>
+</ul>
+<p><strong>对B节点进行一次左旋后，各节点高度如下</strong></p>
+<ul>
+<li>H<sub>D+</sub>=H<sub>D</sub>=H<sub>C</sub></li>
+<li>H<sub>H+</sub>=H<sub>H</sub>=H<sub>C</sub> or H<sub>C</sub>-1</li>
+<li>H<sub>I+</sub>=H<sub>I</sub>=H<sub>C</sub> or H<sub>C</sub>-1</li>
+<li>H<sub>C+</sub>=H<sub>C</sub></li>
+<li>H<sub>A+</sub>=H<sub>A</sub>=H<sub>C</sub>+2</li>
+<li>H<sub>B+</sub>=H<sub>C</sub>+1</li>
+<li>当H<sub>I+</sub>=H<sub>C</sub>-1时，节点E可能是不平衡的，但是没关系，这只是个中间状态，H<sub>E</sub>=H<sub>C</sub>+2</li>
+</ul>
+<p><strong>对A节点进行一次右旋，各节点高度如下</strong></p>
+<ul>
+<li>H<sub>D++</sub>=H<sub>D+</sub>=H<sub>C</sub></li>
+<li>H<sub>H++</sub>=H<sub>H+</sub>= H<sub>C</sub> or H<sub>C</sub>-1</li>
+<li>H<sub>I++</sub>=H<sub>I+</sub>=H<sub>C</sub> or H<sub>C</sub>-1</li>
+<li>H<sub>C++</sub>=H<sub>C+</sub>=H<sub>C</sub></li>
+<li>旋转后，B节点平衡，H<sub>B++</sub>=H<sub>C</sub>+1</li>
+<li>旋转后，A节点平衡，H<sub>A++</sub>=H<sub>C</sub>+1</li>
+<li>因此旋转后，E节点平衡，H<sub>E++</sub>=H<sub>C</sub>+2</li>
+</ul>
+<p><strong>可以发现，调整前后子树根节点的高度都是HC+2，因此该节点上层的节点的平衡性不会被破坏，于是通过一次左旋和一次右旋，不平衡性即被消除</strong></p>
+<h2 id="42-伪代码"><a class="markdownIt-Anchor" href="#42-伪代码"></a> 4.2 伪代码</h2>
+<h3 id="421-基本操作"><a class="markdownIt-Anchor" href="#421-基本操作"></a> 4.2.1 基本操作</h3>
+<p>更新指定节点的高度，只有当该节点的左右孩子节点的高度都正确时，才能得到正确的结果</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-HEIGHT(T,x)</span><br><span class="line"><span class="keyword">if</span> x.left.height≥x.right.height   <span class="comment">//左右节点均存在</span></span><br><span class="line">    x.height=x.left.height+<span class="number">1</span></span><br><span class="line"><span class="keyword">else</span> x.height=x.right.height+<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>将一棵子树替换掉另一棵子树</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-TRANSPLANT(T,u,v)   <span class="comment">//该函数与红黑树完全一致(都含有哨兵节点)</span></span><br><span class="line"><span class="keyword">if</span> u.p==T.nil</span><br><span class="line">    T.root=v</span><br><span class="line">elseif u==u.p.left</span><br><span class="line">    u.p.left=v</span><br><span class="line"><span class="keyword">else</span> u.p.right=v</span><br><span class="line">    v.p=u.p</span><br></pre></td></tr></table></figure>
+<h3 id="422-左旋和右旋"><a class="markdownIt-Anchor" href="#422-左旋和右旋"></a> 4.2.2 左旋和右旋</h3>
+<p>左旋给定节点，更新旋转后节点的高度，并返回旋转后子树的根节点</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-LEFT-ROTATE(T,x)</span><br><span class="line">y=x.right</span><br><span class="line">x.right=y.left</span><br><span class="line"><span class="keyword">if</span> y.left≠T.nil</span><br><span class="line">    y.left.p=x</span><br><span class="line">y.p=x.p</span><br><span class="line"><span class="keyword">if</span> x.p== T.nil</span><br><span class="line">    T.root=y</span><br><span class="line">elseif x==x.p.left</span><br><span class="line">    x.p.left=y</span><br><span class="line"><span class="keyword">else</span> x.p.right=y</span><br><span class="line">y.left=x</span><br><span class="line">x.p=y</span><br><span class="line">AVL-TREE-HEIGHT(T,x)</span><br><span class="line">AVL-TREE-HEIGHT(T,y)</span><br><span class="line"><span class="comment">//以上两行顺序不得交换</span></span><br><span class="line"><span class="keyword">return</span> y   <span class="comment">//返回旋转后的子树根节点</span></span><br></pre></td></tr></table></figure>
+<p>右旋给定节点，更新旋转后节点的高度，并返回旋转后子树的根节点</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-RIGHT-ROTATE(T,y)</span><br><span class="line">x=y.left</span><br><span class="line">y.left=x.right</span><br><span class="line"><span class="keyword">if</span> x.right≠T.nil</span><br><span class="line">    x.right.p=y</span><br><span class="line">x.p=y.p</span><br><span class="line"><span class="keyword">if</span> y.p==T.nil</span><br><span class="line">    root=x</span><br><span class="line">elseif y==y.p.left</span><br><span class="line">    y.p.left=x</span><br><span class="line"><span class="keyword">else</span> y.p.right=x</span><br><span class="line">x.right=y</span><br><span class="line">y.p=x</span><br><span class="line">AVL-TREE-HEIGHT(T,y)   </span><br><span class="line">AVL-TREE-HEIGHT(T,x)</span><br><span class="line"><span class="comment">//以上两行顺序不得交换</span></span><br><span class="line"><span class="keyword">return</span> x      <span class="comment">//返回旋转后的子树根节点</span></span><br></pre></td></tr></table></figure>
+<h3 id="423-插入"><a class="markdownIt-Anchor" href="#423-插入"></a> 4.2.3 插入</h3>
+<p>插入一个节点</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-INSERT(T,z)</span><br><span class="line">y=T.nil</span><br><span class="line">x=T.root</span><br><span class="line"><span class="keyword">while</span> x≠T.nil<span class="comment">//循环结束时x指向空，y指向上一个x</span></span><br><span class="line">    y=x</span><br><span class="line">    <span class="keyword">if</span> z.key&lt;x.key</span><br><span class="line">        x=x.left</span><br><span class="line">    <span class="keyword">else</span> x=x.right</span><br><span class="line">z.p=y<span class="comment">//将这个叶节点作为z的父节点</span></span><br><span class="line"><span class="keyword">if</span> y==T.nil</span><br><span class="line">    T.root=z</span><br><span class="line">elseif z.key&lt;y.key</span><br><span class="line">    y.left=z</span><br><span class="line"><span class="keyword">else</span> y.right=z</span><br><span class="line">z.left=T.nil</span><br><span class="line">z.right=T.nil</span><br><span class="line">AVL-TREE-BALANCE-FIX (T,z)</span><br></pre></td></tr></table></figure>
+<p>维护平衡性质，分别讨论第一类第二类的四种不平衡情况</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE--BALANCE-FIX(T,z)</span><br><span class="line">originHigh=z.h</span><br><span class="line">AVL-TREE-HEIGHT(z)</span><br><span class="line">r=z</span><br><span class="line"><span class="keyword">if</span> z.left.h==z.right.h+<span class="number">2</span></span><br><span class="line">    <span class="keyword">if</span> z.left.left.h&gt;=z.left.right.h   <span class="comment">//第一类，等号在插入过程中不可能取到，删除过程中能取到</span></span><br><span class="line">        r=AVL-TREE-RIGHT-ROTATE(z)</span><br><span class="line">    elseif z.left.left.h&lt;z.left.right.h     <span class="comment">//第二类</span></span><br><span class="line">        AVL-TREE-LEFT-ROTATE(z.left)</span><br><span class="line">        r=AVL-TREE-RIGHT-ROTATE(z)</span><br><span class="line">    <span class="comment">//不可能出现左右子树高度相同的情况，但是DELETE-FIX中可能出现，注意</span></span><br><span class="line">elseif z.right.h==z.left.h+<span class="number">2</span></span><br><span class="line">    <span class="keyword">if</span> z.right.right.h&gt;=z.right.left.h   <span class="comment">//第一类，等号在插入过程中不可能取到，删除过程中能取到</span></span><br><span class="line">        r=AVL-TREE-LEFT-ROTATE(z)</span><br><span class="line">    elseif z.right.right.h&lt;z.right.left.h      <span class="comment">//第二类</span></span><br><span class="line">        AVL-TREE-RIGHT-ROTATE(z.right)</span><br><span class="line">        r=AVL-TREE-LEFT-ROTATE(z)</span><br><span class="line">    <span class="comment">//不可能出现左右子树高度相同的情况，但是DELETE-FIX中可能出现，注意</span></span><br><span class="line"><span class="keyword">if</span> r.h!=originHigh <span class="keyword">and</span> r!=root</span><br><span class="line">    AVL-TREE--BALANCE-FIX(r.parent)</span><br></pre></td></tr></table></figure>
+<h3 id="424-删除"><a class="markdownIt-Anchor" href="#424-删除"></a> 4.2.4 删除</h3>
+<p>删除给定关键字</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">AVL-TREE-DELETE(T,z)</span><br><span class="line">y=z   <span class="comment">//x指向将要移动到y原本位置的节点，或者原本y节点的父节点</span></span><br><span class="line">p=y.parent   <span class="comment">//p为被删除节点的父节点</span></span><br><span class="line"><span class="keyword">if</span> z.left==T.nil</span><br><span class="line">    AVL-TREE-TRANSPLANT(T,z,z.right)</span><br><span class="line">elseif z.right==T.nil</span><br><span class="line">    AVL-TREE-TRANSPLANT(T,z,z.left)</span><br><span class="line"><span class="keyword">else</span> y=AVL-TREE-MINIMUM(z.right) <span class="comment">//找到z的后继，由于z存在左右孩子，故后继为右子树中的最小值</span></span><br><span class="line">    <span class="keyword">if</span> y==z.right    <span class="comment">//这个边界判断必须，因为p必须定位到被删除节点的父节点</span></span><br><span class="line">        p=y</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        p=y.parent</span><br><span class="line">    AVL-TREE-TRANSPLANT(y,y.right)</span><br><span class="line">    y.right=z.right</span><br><span class="line">    y.right.parent=y</span><br><span class="line">    y.left=z.left</span><br><span class="line">    y.left.parent=y</span><br><span class="line">    AVL-TREE-TRANSPLANT (T,z,y)</span><br><span class="line">    y.height=z.height</span><br><span class="line"><span class="keyword">if</span> p!=nil</span><br><span class="line">    AVL-TREE--BALANCE-FIX(p)</span><br></pre></td></tr></table></figure>
+<h1 id="5-java源码"><a class="markdownIt-Anchor" href="#5-java源码"></a> 5 Java源码</h1>
+<h2 id="51-节点定义"><a class="markdownIt-Anchor" href="#51-节点定义"></a> 5.1 节点定义</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AVLTreeNode</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 该节点的高度(从该节点到叶节点的最多边数)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span> h;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 节点的值</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span> val;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 该节点的左孩子节点，右孩子节点，父节点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    AVLTreeNode left, right, parent;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">AVLTreeNode</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        h = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">this</span>.val = val;</span><br><span class="line">        left = <span class="keyword">null</span>;</span><br><span class="line">        right = <span class="keyword">null</span>;</span><br><span class="line">        parent = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="52-版本1"><a class="markdownIt-Anchor" href="#52-版本1"></a> 5.2 版本1</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.algorithm.datastructure.tree.avltree;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by Liuye on 2017/4/27.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AVLTree1</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">enum</span> <span class="title">RotateOrientation</span> </span>&#123;</span><br><span class="line">        INVALID,</span><br><span class="line">        LEFT,</span><br><span class="line">        RIGHT</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> AVLTreeNode root;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> AVLTreeNode nil;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;AVLTreeNode, Integer&gt; highMap;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">AVLTree1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        nil = <span class="keyword">new</span> AVLTreeNode(<span class="number">0</span>);</span><br><span class="line">        nil.left = nil;</span><br><span class="line">        nil.right = nil;</span><br><span class="line">        nil.parent = nil;</span><br><span class="line">        root = nil;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">insert</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        AVLTreeNode x = root;</span><br><span class="line">        AVLTreeNode y = nil;</span><br><span class="line">        AVLTreeNode z = <span class="keyword">new</span> AVLTreeNode(val);</span><br><span class="line">        <span class="keyword">while</span> (x != nil) &#123;</span><br><span class="line">            y = x;</span><br><span class="line">            <span class="keyword">if</span> (val &lt; x.val) &#123;</span><br><span class="line">                x = x.left;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                x = x.right;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        z.parent = y;</span><br><span class="line">        <span class="keyword">if</span> (y == nil) &#123;</span><br><span class="line">            root = z;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (z.val &lt; y.val) &#123;</span><br><span class="line">            y.left = z;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            y.right = z;</span><br><span class="line">        &#125;</span><br><span class="line">        z.left = nil;</span><br><span class="line">        z.right = nil;</span><br><span class="line">        fixUp(z);</span><br><span class="line">        <span class="keyword">if</span> (!check())</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">fixUp</span><span class="params">(AVLTreeNode y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (y == nil) &#123;</span><br><span class="line">            y = y.parent;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (y != nil) &#123;</span><br><span class="line">            updateHigh(y);</span><br><span class="line">            <span class="keyword">if</span> (y.left.h == y.right.h + <span class="number">2</span>)</span><br><span class="line">                y = holdRotate(y, RotateOrientation.RIGHT);</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (y.right.h == y.left.h + <span class="number">2</span>)</span><br><span class="line">                y = holdRotate(y, RotateOrientation.LEFT);</span><br><span class="line">            y = y.parent;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">holdRotate</span><span class="params">(AVLTreeNode x, RotateOrientation orientation)</span> </span>&#123;</span><br><span class="line">        LinkedList&lt;AVLTreeNode&gt; stack1 = <span class="keyword">new</span> LinkedList&lt;AVLTreeNode&gt;();</span><br><span class="line">        LinkedList&lt;RotateOrientation&gt; stack2 = <span class="keyword">new</span> LinkedList&lt;RotateOrientation&gt;();</span><br><span class="line">        stack1.push(x);</span><br><span class="line">        stack2.push(orientation);</span><br><span class="line">        AVLTreeNode cur = nil;</span><br><span class="line">        AVLTreeNode rotateRoot = nil;</span><br><span class="line">        RotateOrientation curOrientation = RotateOrientation.INVALID;</span><br><span class="line">        <span class="keyword">while</span> (!stack1.isEmpty()) &#123;</span><br><span class="line">            cur = stack1.peek();</span><br><span class="line">            curOrientation = stack2.peek();</span><br><span class="line">            <span class="keyword">if</span> (curOrientation == RotateOrientation.LEFT) &#123;</span><br><span class="line">                <span class="keyword">if</span> (cur.right.right.h &gt;= cur.right.left.h) &#123;</span><br><span class="line">                    stack1.pop();</span><br><span class="line">                    stack2.pop();</span><br><span class="line">                    rotateRoot = leftRotate(cur);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    stack1.push(cur.right);</span><br><span class="line">                    stack2.push(RotateOrientation.RIGHT);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (curOrientation == RotateOrientation.RIGHT) &#123;</span><br><span class="line">                <span class="keyword">if</span> (cur.left.left.h &gt;= cur.left.right.h) &#123;</span><br><span class="line">                    stack1.pop();</span><br><span class="line">                    stack2.pop();</span><br><span class="line">                    rotateRoot = rightRotate(cur);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    stack1.push(cur.left);</span><br><span class="line">                    stack2.push(RotateOrientation.LEFT);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> rotateRoot;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updateHigh</span><span class="params">(AVLTreeNode z)</span> </span>&#123;</span><br><span class="line">        z.h = Math.max(z.left.h, z.right.h) + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 左旋</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> x</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 返回旋转后的根节点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">leftRotate</span><span class="params">(AVLTreeNode x)</span> </span>&#123;</span><br><span class="line">        AVLTreeNode y = x.right;</span><br><span class="line">        x.right = y.left;</span><br><span class="line">        <span class="keyword">if</span> (y.left != nil) &#123;</span><br><span class="line">            y.left.parent = x;</span><br><span class="line">        &#125;</span><br><span class="line">        y.parent = x.parent;</span><br><span class="line">        <span class="keyword">if</span> (x.parent == nil) &#123;</span><br><span class="line">            root = y;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (x == x.parent.left) &#123;</span><br><span class="line">            x.parent.left = y;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            x.parent.right = y;</span><br><span class="line">        &#125;</span><br><span class="line">        y.left = x;</span><br><span class="line">        x.parent = y;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//更新高度</span></span><br><span class="line">        updateHigh(x);</span><br><span class="line">        updateHigh(y);</span><br><span class="line">        <span class="keyword">return</span> y;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 右旋</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> y</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 返回旋转后的根节点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">rightRotate</span><span class="params">(AVLTreeNode y)</span> </span>&#123;</span><br><span class="line">        AVLTreeNode x = y.left;</span><br><span class="line">        y.left = x.right;</span><br><span class="line">        <span class="keyword">if</span> (x.right != nil) &#123;</span><br><span class="line">            x.right.parent = y;</span><br><span class="line">        &#125;</span><br><span class="line">        x.parent = y.parent;</span><br><span class="line">        <span class="keyword">if</span> (y.parent == nil) &#123;</span><br><span class="line">            root = x;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (y == y.parent.left) &#123;</span><br><span class="line">            y.parent.left = x;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            y.parent.right = x;</span><br><span class="line">        &#125;</span><br><span class="line">        x.right = y;</span><br><span class="line">        y.parent = x;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//更新高度</span></span><br><span class="line">        updateHigh(y);</span><br><span class="line">        updateHigh(x);</span><br><span class="line">        <span class="keyword">return</span> x;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">check</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        highMap = <span class="keyword">new</span> HashMap&lt;AVLTreeNode, Integer&gt;();</span><br><span class="line">        <span class="keyword">return</span> checkHigh(root) &amp;&amp; checkBalance(root);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">checkHigh</span><span class="params">(AVLTreeNode root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == nil) <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">return</span> checkHigh(root.left) &amp;&amp; checkHigh(root.right) &amp;&amp; root.h == high(root);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">high</span><span class="params">(AVLTreeNode root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == nil) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (highMap.containsKey(root)) <span class="keyword">return</span> highMap.get(root);</span><br><span class="line">        <span class="keyword">int</span> leftHigh = high(root.left);</span><br><span class="line">        <span class="keyword">int</span> rightHigh = high(root.right);</span><br><span class="line">        highMap.put(root, Math.max(leftHigh, rightHigh) + <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">return</span> highMap.get(root);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">checkBalance</span><span class="params">(AVLTreeNode root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == nil) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> leftHigh = root.left.h;</span><br><span class="line">        <span class="keyword">int</span> rightHigh = root.right.h;</span><br><span class="line">        <span class="keyword">if</span> (Math.abs(leftHigh - rightHigh) == <span class="number">2</span>) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">return</span> checkBalance(root.left) &amp;&amp; checkBalance(root.right);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">search</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> search(root, val) != nil;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">search</span><span class="params">(AVLTreeNode x, <span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (x != nil) &#123;</span><br><span class="line">            <span class="keyword">if</span> (x.val == val) <span class="keyword">return</span> x;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (val &lt; x.val) &#123;</span><br><span class="line">                x = x.left;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                x = x.right;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> nil;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">delete</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        AVLTreeNode z = search(root, val);</span><br><span class="line">        <span class="keyword">if</span> (z == nil) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">        &#125;</span><br><span class="line">        AVLTreeNode y = z;</span><br><span class="line">        AVLTreeNode x = nil;</span><br><span class="line">        <span class="keyword">if</span> (z.left == nil) &#123;</span><br><span class="line">            x = y.right;</span><br><span class="line">            transplant(z, z.right);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (z.right == nil) &#123;</span><br><span class="line">            x = y.left;</span><br><span class="line">            transplant(z, z.left);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            y = min(z.right);</span><br><span class="line">            x = y.right;</span><br><span class="line">            <span class="keyword">if</span> (y.parent == z) &#123;</span><br><span class="line">                x.parent = y;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                transplant(y, y.right);</span><br><span class="line">                y.right = z.right;</span><br><span class="line">                y.right.parent = y;</span><br><span class="line">            &#125;</span><br><span class="line">            transplant(z, y);</span><br><span class="line"></span><br><span class="line">            y.left = z.left;</span><br><span class="line">            y.left.parent = y;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//todo 这里不需要更新p的高度,因为p的子树的高度此时并不知道是否正确,因此更新也没有意义,这也是deleteFixBalance必须遍历到root的原因</span></span><br><span class="line">        &#125;</span><br><span class="line">        fixUp(x);</span><br><span class="line">        <span class="keyword">if</span> (!check())</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">transplant</span><span class="params">(AVLTreeNode u, AVLTreeNode v)</span> </span>&#123;</span><br><span class="line">        v.parent = u.parent;</span><br><span class="line">        <span class="keyword">if</span> (u.parent == nil) &#123;</span><br><span class="line">            root = v;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (u == u.parent.left) &#123;</span><br><span class="line">            u.parent.left = v;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            u.parent.right = v;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">min</span><span class="params">(AVLTreeNode x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (x.left != nil) &#123;</span><br><span class="line">            x = x.left;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> x;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inOrderTraverse</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        inOrderTraverse(root);</span><br><span class="line">        System.out.println();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">levelOrderTraversal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Queue&lt;AVLTreeNode&gt; queue = <span class="keyword">new</span> LinkedList&lt;AVLTreeNode&gt;();</span><br><span class="line">        queue.offer(root);</span><br><span class="line">        <span class="keyword">while</span> (!queue.isEmpty()) &#123;</span><br><span class="line">            <span class="keyword">int</span> len = queue.size();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">                AVLTreeNode peek = queue.poll();</span><br><span class="line">                System.out.print(<span class="string">&quot;[&quot;</span> + peek.val + <span class="string">&quot;,&quot;</span> + peek.h + <span class="string">&quot;], &quot;</span>);</span><br><span class="line">                <span class="keyword">if</span> (peek.left != nil) queue.offer(peek.left);</span><br><span class="line">                <span class="keyword">if</span> (peek.right != nil) queue.offer(peek.right);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">inOrderTraverse</span><span class="params">(AVLTreeNode root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root != nil) &#123;</span><br><span class="line">            inOrderTraverse(root.left);</span><br><span class="line">            System.out.print(root.val + <span class="string">&quot;, &quot;</span>);</span><br><span class="line">            inOrderTraverse(root.right);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">        Random random = <span class="keyword">new</span> Random();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> TIMES = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (--TIMES &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;剩余测试次数: &quot;</span> + TIMES);</span><br><span class="line">            AVLTree1 avlTree2 = <span class="keyword">new</span> AVLTree1();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> N = <span class="number">1000</span>;</span><br><span class="line">            <span class="keyword">int</span> M = N / <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">            Set&lt;Integer&gt; set = <span class="keyword">new</span> HashSet&lt;Integer&gt;();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">                set.add(random.nextInt());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;Integer&gt;(set);</span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line">            <span class="comment">//插入N个数据</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i : list) &#123;</span><br><span class="line">                avlTree2.insert(i);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//删除M个数据</span></span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; M; i++) &#123;</span><br><span class="line">                set.remove(list.get(i));</span><br><span class="line">                avlTree2.delete(list.get(i));</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//再插入M个数据</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; M; i++) &#123;</span><br><span class="line">                <span class="keyword">int</span> k = random.nextInt();</span><br><span class="line">                set.add(k);</span><br><span class="line">                avlTree2.insert(k);</span><br><span class="line">            &#125;</span><br><span class="line">            list.clear();</span><br><span class="line">            list.addAll(set);</span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//再删除所有元素</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i : list) &#123;</span><br><span class="line">                avlTree2.delete(i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> end = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;Run time: &quot;</span> + (end - start) / <span class="number">1000</span> + <span class="string">&quot;s&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="53-版本2"><a class="markdownIt-Anchor" href="#53-版本2"></a> 5.3 版本2</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.algorithm.datastructure.tree.avltree;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by liuye on 2017/4/24 0024.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AVLTree2</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> AVLTreeNode root;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> AVLTreeNode nil;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;AVLTreeNode, Integer&gt; highMap;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">AVLTree2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        nil = <span class="keyword">new</span> AVLTreeNode(<span class="number">0</span>);</span><br><span class="line">        nil.left = nil;</span><br><span class="line">        nil.right = nil;</span><br><span class="line">        nil.parent = nil;</span><br><span class="line">        root = nil;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">insert</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        AVLTreeNode x = root;</span><br><span class="line">        AVLTreeNode y = nil;</span><br><span class="line">        AVLTreeNode z = <span class="keyword">new</span> AVLTreeNode(val);</span><br><span class="line">        <span class="keyword">while</span> (x != nil) &#123;</span><br><span class="line">            y = x;</span><br><span class="line">            <span class="keyword">if</span> (val &lt; x.val) &#123;</span><br><span class="line">                x = x.left;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                x = x.right;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        z.parent = y;</span><br><span class="line">        <span class="keyword">if</span> (y == nil) &#123;</span><br><span class="line">            root = z;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (z.val &lt; y.val) &#123;</span><br><span class="line">            y.left = z;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            y.right = z;</span><br><span class="line">        &#125;</span><br><span class="line">        z.left = nil;</span><br><span class="line">        z.right = nil;</span><br><span class="line">        balanceFix(z);</span><br><span class="line">        <span class="keyword">if</span> (!check())</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">balanceFix</span><span class="params">(AVLTreeNode z)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//当前节点的初始高度</span></span><br><span class="line">        <span class="keyword">int</span> originHigh = z.h;</span><br><span class="line"></span><br><span class="line">        updateHigh(z);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//经过调整后的子树根节点(调整之前子树根节点为z)</span></span><br><span class="line">        AVLTreeNode r = z;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (z.left.h == z.right.h + <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="comment">//todo 这里的等号非常重要(插入过程时不可能取等号，删除过程可能取等号)</span></span><br><span class="line">            <span class="keyword">if</span> (z.left.left.h &gt;= z.left.right.h) &#123;</span><br><span class="line">                r = rightRotate(z);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (z.left.left.h &lt; z.left.right.h) &#123;</span><br><span class="line">                leftRotate(z.left);</span><br><span class="line">                r = rightRotate(z);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (z.right.h == z.left.h + <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="comment">//todo 这里的等号非常重要(插入过程时不可能取等号，删除过程可能取等号)</span></span><br><span class="line">            <span class="keyword">if</span> (z.right.right.h &gt;= z.right.left.h) &#123;</span><br><span class="line">                r = leftRotate(z);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (z.right.right.h &lt; z.right.left.h) &#123;</span><br><span class="line">                rightRotate(z.right);</span><br><span class="line">                r = leftRotate(z);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//递归其父节点</span></span><br><span class="line">        <span class="keyword">if</span> (r.h != originHigh &amp;&amp; r != root)</span><br><span class="line">            balanceFix(r.parent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updateHigh</span><span class="params">(AVLTreeNode z)</span> </span>&#123;</span><br><span class="line">        z.h = Math.max(z.left.h, z.right.h) + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 左旋</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> x</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 返回旋转后的根节点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">leftRotate</span><span class="params">(AVLTreeNode x)</span> </span>&#123;</span><br><span class="line">        AVLTreeNode y = x.right;</span><br><span class="line">        x.right = y.left;</span><br><span class="line">        <span class="keyword">if</span> (y.left != nil) &#123;</span><br><span class="line">            y.left.parent = x;</span><br><span class="line">        &#125;</span><br><span class="line">        y.parent = x.parent;</span><br><span class="line">        <span class="keyword">if</span> (x.parent == nil) &#123;</span><br><span class="line">            root = y;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (x == x.parent.left) &#123;</span><br><span class="line">            x.parent.left = y;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            x.parent.right = y;</span><br><span class="line">        &#125;</span><br><span class="line">        y.left = x;</span><br><span class="line">        x.parent = y;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//更新高度</span></span><br><span class="line">        updateHigh(x);</span><br><span class="line">        updateHigh(y);</span><br><span class="line">        <span class="keyword">return</span> y;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 右旋</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> y</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 返回旋转后的根节点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">rightRotate</span><span class="params">(AVLTreeNode y)</span> </span>&#123;</span><br><span class="line">        AVLTreeNode x = y.left;</span><br><span class="line">        y.left = x.right;</span><br><span class="line">        <span class="keyword">if</span> (x.right != nil) &#123;</span><br><span class="line">            x.right.parent = y;</span><br><span class="line">        &#125;</span><br><span class="line">        x.parent = y.parent;</span><br><span class="line">        <span class="keyword">if</span> (y.parent == nil) &#123;</span><br><span class="line">            root = x;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (y == y.parent.left) &#123;</span><br><span class="line">            y.parent.left = x;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            y.parent.right = x;</span><br><span class="line">        &#125;</span><br><span class="line">        x.right = y;</span><br><span class="line">        y.parent = x;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//更新高度</span></span><br><span class="line">        updateHigh(y);</span><br><span class="line">        updateHigh(x);</span><br><span class="line">        <span class="keyword">return</span> x;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">check</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        highMap = <span class="keyword">new</span> HashMap&lt;AVLTreeNode, Integer&gt;();</span><br><span class="line">        <span class="keyword">return</span> checkHigh(root) &amp;&amp; checkBalance(root);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">checkHigh</span><span class="params">(AVLTreeNode root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == nil) <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">return</span> checkHigh(root.left) &amp;&amp; checkHigh(root.right) &amp;&amp; root.h == high(root);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">high</span><span class="params">(AVLTreeNode root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == nil) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (highMap.containsKey(root)) <span class="keyword">return</span> highMap.get(root);</span><br><span class="line">        <span class="keyword">int</span> leftHigh = high(root.left);</span><br><span class="line">        <span class="keyword">int</span> rightHigh = high(root.right);</span><br><span class="line">        highMap.put(root, Math.max(leftHigh, rightHigh) + <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">return</span> highMap.get(root);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">checkBalance</span><span class="params">(AVLTreeNode root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == nil) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> leftHigh = root.left.h;</span><br><span class="line">        <span class="keyword">int</span> rightHigh = root.right.h;</span><br><span class="line">        <span class="keyword">if</span> (Math.abs(leftHigh - rightHigh) == <span class="number">2</span>) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">return</span> checkBalance(root.left) &amp;&amp; checkBalance(root.right);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">search</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> search(root, val) != nil;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">search</span><span class="params">(AVLTreeNode x, <span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (x != nil) &#123;</span><br><span class="line">            <span class="keyword">if</span> (x.val == val) <span class="keyword">return</span> x;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (val &lt; x.val) &#123;</span><br><span class="line">                x = x.left;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                x = x.right;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> nil;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">delete</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        AVLTreeNode z = search(root, val);</span><br><span class="line">        <span class="keyword">if</span> (z == nil) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//y代表真正被删除的节点</span></span><br><span class="line">        AVLTreeNode y = z;</span><br><span class="line">        <span class="comment">//x为被删除节点的父节点，如果平衡被破坏，从该节点开始</span></span><br><span class="line">        AVLTreeNode p = y.parent;</span><br><span class="line">        <span class="keyword">if</span> (z.left == nil) &#123;</span><br><span class="line">            transplant(z, z.right);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (z.right == nil) &#123;</span><br><span class="line">            transplant(z, z.left);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            y = min(z.right);</span><br><span class="line">            <span class="comment">//todo 这里的分类讨论非常重要,否则将会定位到错误的父节点</span></span><br><span class="line">            <span class="keyword">if</span> (y == z.right) &#123;</span><br><span class="line">                p = y;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                p = y.parent;</span><br><span class="line">            &#125;</span><br><span class="line">            transplant(y, y.right);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//todo 下面六句可以用z.val=y.val来代替,效果一样</span></span><br><span class="line">            y.right = z.right;</span><br><span class="line">            y.right.parent = y;</span><br><span class="line"></span><br><span class="line">            y.left = z.left;</span><br><span class="line">            y.left.parent = y;</span><br><span class="line"></span><br><span class="line">            transplant(z, y);</span><br><span class="line">            y.h = z.h;<span class="comment">//todo 这里高度必须维护</span></span><br><span class="line">            <span class="comment">//todo 这里不需要更新p的高度,因为p的子树的高度此时并不知道是否正确,因此更新也没有意义,这也是deleteFixBalance必须遍历到root的原因</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (p != nil)</span><br><span class="line">            balanceFix(p);</span><br><span class="line">        <span class="keyword">if</span> (!check())</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">transplant</span><span class="params">(AVLTreeNode u, AVLTreeNode v)</span> </span>&#123;</span><br><span class="line">        v.parent = u.parent;</span><br><span class="line">        <span class="keyword">if</span> (u.parent == nil) &#123;</span><br><span class="line">            root = v;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (u == u.parent.left) &#123;</span><br><span class="line">            u.parent.left = v;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            u.parent.right = v;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> AVLTreeNode <span class="title">min</span><span class="params">(AVLTreeNode x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (x.left != nil) &#123;</span><br><span class="line">            x = x.left;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> x;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inOrderTraverse</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        inOrderTraverse(root);</span><br><span class="line">        System.out.println();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">levelOrderTraversal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Queue&lt;AVLTreeNode&gt; queue = <span class="keyword">new</span> LinkedList&lt;AVLTreeNode&gt;();</span><br><span class="line">        queue.offer(root);</span><br><span class="line">        <span class="keyword">while</span> (!queue.isEmpty()) &#123;</span><br><span class="line">            <span class="keyword">int</span> len = queue.size();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">                AVLTreeNode peek = queue.poll();</span><br><span class="line">                System.out.print(<span class="string">&quot;[&quot;</span> + peek.val + <span class="string">&quot;,&quot;</span> + peek.h + <span class="string">&quot;], &quot;</span>);</span><br><span class="line">                <span class="keyword">if</span> (peek.left != nil) queue.offer(peek.left);</span><br><span class="line">                <span class="keyword">if</span> (peek.right != nil) queue.offer(peek.right);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">inOrderTraverse</span><span class="params">(AVLTreeNode root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root != nil) &#123;</span><br><span class="line">            inOrderTraverse(root.left);</span><br><span class="line">            System.out.print(root.val + <span class="string">&quot;, &quot;</span>);</span><br><span class="line">            inOrderTraverse(root.right);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">        Random random = <span class="keyword">new</span> Random();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> TIMES = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (--TIMES &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;剩余测试次数: &quot;</span> + TIMES);</span><br><span class="line">            AVLTree2 avlTree = <span class="keyword">new</span> AVLTree2();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> N = <span class="number">10000</span>;</span><br><span class="line">            <span class="keyword">int</span> M = N / <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">            List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;Integer&gt;();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">                list.add(random.nextInt());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line">            <span class="comment">//插入N个数据</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i : list) &#123;</span><br><span class="line">                avlTree.insert(i);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//删除M个数据</span></span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; M; i++) &#123;</span><br><span class="line">                <span class="keyword">int</span> k = list.get(list.size() - <span class="number">1</span>);</span><br><span class="line">                list.remove(list.size() - <span class="number">1</span>);</span><br><span class="line">                avlTree.delete(k);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//再插入M个数据</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; M; i++) &#123;</span><br><span class="line">                <span class="keyword">int</span> k = random.nextInt();</span><br><span class="line">                list.add(k);</span><br><span class="line">                avlTree.insert(k);</span><br><span class="line">            &#125;</span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//再删除所有元素</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i : list) &#123;</span><br><span class="line">                avlTree.delete(i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> end = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;Run time: &quot;</span> + (end - start) / <span class="number">1000</span> + <span class="string">&quot;s&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/13/Java-concurrent-Exchanger-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" rel="prev" title="Java-concurrent-Exchanger-源码剖析">
+      <i class="fa fa-chevron-left"></i> Java-concurrent-Exchanger-源码剖析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/14/RB-tree-%E8%AF%A6%E8%A7%A3/" rel="next" title="RB-tree-详解">
+      RB-tree-详解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%AE%9A%E4%B9%89"><span class="nav-text"> 2 定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%89%88%E6%9C%AC1"><span class="nav-text"> 3 版本1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%B9%B3%E8%A1%A1%E6%80%A7%E7%A0%B4%E5%9D%8F%E5%88%86%E6%9E%90"><span class="nav-text"> 3.1 平衡性破坏分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#311-%E5%8F%AF%E6%97%8B%E6%80%A7%E5%88%86%E6%9E%90"><span class="nav-text"> 3.1.1 可旋性分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#312-%E5%B9%B3%E8%A1%A1%E6%80%A7%E7%9A%84%E7%BB%B4%E6%8A%A4"><span class="nav-text"> 3.1.2 平衡性的维护</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="nav-text"> 3.2 伪代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="nav-text"> 3.2.1 基本操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#322-%E5%B7%A6%E6%97%8B%E5%92%8C%E5%8F%B3%E6%97%8B"><span class="nav-text"> 3.2.2 左旋和右旋</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#323-%E6%80%A7%E8%B4%A8%E7%BB%B4%E6%8A%A4"><span class="nav-text"> 3.2.3  性质维护</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#324-%E6%8F%92%E5%85%A5"><span class="nav-text"> 3.2.4 插入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#325-%E5%88%A0%E9%99%A4"><span class="nav-text"> 3.2.5 删除</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E7%89%88%E6%9C%AC2"><span class="nav-text"> 4 版本2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E5%87%A0%E7%B1%BB%E4%B8%8D%E5%B9%B3%E8%A1%A1%E6%83%85%E5%86%B5"><span class="nav-text"> 4.1 几类不平衡情况</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#411-%E7%AC%AC%E4%B8%80%E7%B1%BB%E4%B8%8D%E5%B9%B3%E8%A1%A1%E4%BB%A5%E5%B7%A6%E5%B7%A6%E4%B8%BA%E4%BE%8B"><span class="nav-text"> 4.1.1 第一类不平衡(以左左为例)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#412-%E7%AC%AC%E4%BA%8C%E7%B1%BB%E4%B8%8D%E5%B9%B3%E8%A1%A1%E4%BB%A5%E5%B7%A6%E5%8F%B3%E4%B8%BA%E4%BE%8B"><span class="nav-text"> 4.1.2 第二类不平衡(以左右为例)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="nav-text"> 4.2 伪代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#421-%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="nav-text"> 4.2.1 基本操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#422-%E5%B7%A6%E6%97%8B%E5%92%8C%E5%8F%B3%E6%97%8B"><span class="nav-text"> 4.2.2 左旋和右旋</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#423-%E6%8F%92%E5%85%A5"><span class="nav-text"> 4.2.3 插入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#424-%E5%88%A0%E9%99%A4"><span class="nav-text"> 4.2.4 删除</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-java%E6%BA%90%E7%A0%81"><span class="nav-text"> 5 Java源码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E8%8A%82%E7%82%B9%E5%AE%9A%E4%B9%89"><span class="nav-text"> 5.1 节点定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-%E7%89%88%E6%9C%AC1"><span class="nav-text"> 5.2 版本1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E7%89%88%E6%9C%AC2"><span class="nav-text"> 5.3 版本2</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

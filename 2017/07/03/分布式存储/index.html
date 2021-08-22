@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式存储">
+<meta property="og:url" content="http://example.com/2017/07/03/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig1.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig2.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig3.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig4.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig5.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig6.png">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig7.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig8.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig9.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig10.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig11.jpg">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig12.jpg">
+<meta property="article:published_time" content="2017-07-03T03:25:23.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:20:23.019Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/07/03/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>分布式存储 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/03/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式存储
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-03 11:25:23" itemprop="dateCreated datePublished" datetime="2017-07-03T11:25:23+08:00">2017-07-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:20:23" itemprop="dateModified" datetime="2021-02-23T22:20:23+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/" itemprop="url" rel="index"><span itemprop="name">Distributed</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/Storage/" itemprop="url" rel="index"><span itemprop="name">Storage</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/03/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" class="post-meta-item leancloud_visitors" data-flag-title="分布式存储" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/03/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/03/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p>分布式存储存在的风险，其实就是因为“共享”、“大数据量”、“高性能”和X86服务器+廉价的磁盘为载体之间的矛盾所产生的，不是有些读者说的“数据架构”的问题。其实任何存储都存在这个问题，只是分布式存储更严重</p>
+<h1 id="2-存储类型"><a class="markdownIt-Anchor" href="#2-存储类型"></a> 2 存储类型</h1>
+<p>一般情况下，我们将存储分成了4种类型，基于本机的DAS和网络的NAS存储、SAN存储、对象存储。对象存储是SAN存储和NAS存储结合后的产物，汲取了SAN存储和NAS存储的优点</p>
+<ul>
+<li>DAS：Direct-Attached Storage，开放系统的直连式存储</li>
+<li>NAS：Network Attached Storage，网络附属存储</li>
+<li>SAN：Storage Area Network，存储区域网络</li>
+</ul>
+<h2 id="21-das"><a class="markdownIt-Anchor" href="#21-das"></a> 2.1 DAS</h2>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig1.jpg" alt="fig1" /></p>
+<p>我们来了解一下应用是怎么样获取它想要的存在存储里的某个文件信息，并用大家熟悉的Windows来举例，如上图</p>
+<ol>
+<li>应用会发出一个指令“读取本目录下的readme.txt 文件的前1K数据”</li>
+<li>通过内存通信到目录层，将相对目录转换为实际目录，“读取C:\ test\readme.txt文件前1K数据”</li>
+<li>通过文件系统，比如FAT32，通过查询文件分配表和目录项，获取文件存储的LBA地址位置、权限等信息
+<ul>
+<li>文件系统先查询缓存中有没有数据，如果有直接返回数据</li>
+<li>没有，文件系统通过内存通信传递到下一环节命令“读取起始位置LBA1000,长度1024的信息”</li>
+</ul>
+</li>
+<li>卷（LUN）管理层将LBA地址翻译成为存储的物理地址，并封装协议，如SCSI协议，传递给下一环节</li>
+<li>磁盘控制器根据命令从磁盘中获取相应的信息
+<ul>
+<li>如果磁盘扇区大小是4K,实际一次I/O读取的数据是4K，磁头读取的4K数据到达服务器上的内容后，有文件系统截取前1K的数据传递给应用，如果下次应用再发起同样的请求，文件系统就可以从服务器的内存中直接读取</li>
+</ul>
+</li>
+</ol>
+<p>不管是DAS、NAS还是SAN，数据访问的流程都是差不多的。DAS将计算、存储能力一把抓，封装在一个服务器里。大家日常用的电脑，就是一个DAS系统</p>
+<h2 id="22-nas"><a class="markdownIt-Anchor" href="#22-nas"></a> 2.2 NAS</h2>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig2.jpg" alt="fig2" /></p>
+<p>如果将计算和存储分离了，存储成为一个独立的设备，并且存储有自己的文件系统，可以自己管理数据，就是NAS，如上图</p>
+<p>计算和存储间一般采用以太网络连接，走的是CIFS或NFS协议。服务器们可以共享一个文件系统，也就是说，不管服务器讲的是上海话还是杭州话，通过网络到达NAS的文件系统，都被翻译成为普通话</p>
+<p>所以NAS存储可以被不同的主机共享。服务器只要提需求，不需要进行大量的计算，将很多工作交给了存储完成，省下的CPU资源可以干更多服务器想干的事情，<strong>即计算密集型适合使用NAS。</strong></p>
+<h2 id="23-san"><a class="markdownIt-Anchor" href="#23-san"></a> 2.3 SAN</h2>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig3.jpg" alt="fig3" /></p>
+<p>计算和存储分离了，存储成为一个独立的设备，存储只是接受命令不再做复杂的计算，只干读取或者写入文件2件事情，叫SAN，如上图</p>
+<p>因为不带文件系统，所以也叫“裸存储”，有些应用就需要裸设备，如数据库。存储只接受简单明了的命令，其他复杂的事情，有服务器端干了。再配合FC网络，这种存储数据读取/写入的速度很高</p>
+<p>但是每个服务器都有自己的文件系统进行管理，对于存储来说是不挑食的只要来数据我就存，不需要知道来的是什么，不管是英语还是法语，都忠实记录下来的</p>
+<p>但是只有懂英语的才能看懂英语的数据，懂法语的看懂法语的数据。所以，一般服务器和SAN存储区域是一夫一妻制的，SAN的共享性不好。当然，有些装了集群文件系统的主机是可以共享同一个存储区域的</p>
+<p>从上面分析，我们知道，决定存储的快慢是由网络和命令的复杂程度决定的</p>
+<h2 id="24-总结"><a class="markdownIt-Anchor" href="#24-总结"></a> 2.4 总结</h2>
+<p>就通信速度而言：<strong>内存通信速度&gt;总线通信&gt;网络通信</strong></p>
+<p>对存储的操作，除了熟悉的读/写以外，其实还有创建、打开、获取属性、设置属性、查找等等</p>
+<ul>
+<li>对于有大脑的SAN存储来说，除了读/写以外的命令，都可以在本地内存中完成，速度极快</li>
+<li>而NAS存储缺乏大脑，每次向存储传递命令，都需要IP封装并通过以太网络传递到NAS服务器上，这个速度就远远低于内存通信了</li>
+</ul>
+<p>比较</p>
+<ul>
+<li>DAS特点是速度最快，但只能自己用</li>
+<li>NAS的特点速度慢点但共享性好</li>
+<li>SAN的特点是速度快，但共享性差</li>
+</ul>
+<p>总体上来讲，对象存储同兼具SAN高速直接访问磁盘特点及NAS的分布式共享特点</p>
+<p>NAS存储的基本单位是文件，SAN存储的基本单位是数据块，而对象存储的基本单位是对象，对象可以认为是文件的数据+一组属性信息的组合，这些属性信息可以定义基于文件的RAID参数、数据分布和服务质量等</p>
+<p>采取的是“控制信息”和“数据存储”分离的模式，客户端用对象ID+偏移量作为读写的依据，客户端先从“控制信息”获取数据存储的真实地址，再直接从“数据存储”中访问</p>
+<p>对象存储大量使用在互联网上，大家使用的网盘就是典型的对象存储。对象存储有很好的扩展性，可以线性扩容。并可以通过接口封装，还可以提供NAS存储服务和SAN存储服务</p>
+<p>VMware的vSAN本质就是一个对象存储。分布式对象存储就是SRVSAN的一种，也存在安全隐患。因为这个隐患是X86服务器带来的</p>
+<h1 id="3-文件系统"><a class="markdownIt-Anchor" href="#3-文件系统"></a> 3 文件系统</h1>
+<p>计算机的文件系统是管理文件的“账房先生”</p>
+<ul>
+<li>首先他要管理仓库，要知道各种货物都放在哪里</li>
+<li>然后要控制货物的进出，并要确保货物的安全</li>
+</ul>
+<p>如果没有这个“账房先生”，让每个“伙计”自由的出入仓库，就会导致仓库杂乱无章、货物遗失</p>
+<p>就像那年轻纺城机房刚启用的时候，大家的货物都堆在机房里，没有人统一管理，设备需要上架的时候，到一大堆货物中自行寻找，安装后的垃圾也没有人打扫，最后连堆积的地方都找不到，有时自己的货物找不到了，找到别人的就使用了</p>
+<p>大家都怨声载道，后来建立了一个仓库，请来了仓库管理员，用一本本子记录了货物的归宿和存储的位置，建立货物的出入库制度，问题都解决了，这就是文件系统要做的事情</p>
+<p>文件系统管理存取文件的接口、文件的存储组织和分配、文件属性的管理（比如文件的归属、权限、创建事件等）</p>
+<h2 id="31-windows文件系统"><a class="markdownIt-Anchor" href="#31-windows文件系统"></a> 3.1 Windows文件系统</h2>
+<p>每个操作系统都有自己的文件系统。比如windows就有常用的FAT、FAT32、NTFS等，Linux用ext1-4的等</p>
+<p>存储文件的仓库有很多中形式，现在主要用的是（机械）磁盘、SSD、光盘、磁带等等</p>
+<p>拿到这些介质后，首先需要的是“格式化”，格式化就是建立文件存储组织架构和“账本”的过程。比如将U盘用FAT32格式化，我们可以看到是这样架构和账本，见如下示意图</p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig4.jpg" alt="fig4" /></p>
+<ul>
+<li><strong>主引导区</strong>：记录了这个存储设备的总体信息和基本信息。比如扇区的大小，每簇的大小、磁头数、磁盘扇区总数、FAT表份数、分区引导代码等等信息</li>
+<li><strong>分区表(FAT1/FAT2)</strong>：即此存储的账本，如果分区表丢失了，就意味着数据的丢失，所以一般就保留2份，即FAT1和FAT2。分区表主要记录每簇使用情况，当这位置的簇是空的，就代表还没有使用，有特殊标记的代表是坏簇，位置上有数据的，是指示文件块的下一个位置</li>
+<li><strong>目录区</strong>：目录和记录文件所在的位置信息</li>
+<li><strong>数据区</strong>：记录文件具体信息的区域</li>
+</ul>
+<p>通过以下的例子来帮助理解什么是FAT文件系统。假设每簇8个扇区组成一个簇，大小是512*8=4K。根目录下的readme.txt文件大小是10K，如下图</p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig5.jpg" alt="fig5" /></p>
+<ol>
+<li>在目录区找到根目录下文件readme.txt在FAT表中的位置是0004</li>
+<li>在0004位置对应簇的8个扇区读取相应文件块readme（1）保存在内存，并获取下一个数据块的位置0005</li>
+<li>在0005位置对应簇的8个扇区读取相应文件块readme（2）保存在内存，并获取下一个数据块的位置0008</li>
+<li>在0005位置对应簇的4个扇区读取相应文件块readme（3）保存在内存，并获得结束标志</li>
+<li>将readme（1）、readme（2）、readme（3）组合成为readme文件</li>
+</ol>
+<p>在这个例子中，我们看到在FAT文件系统，是通过查询FAT表和目录项来确定文件的存储位置，文件分布是以簇为单位的数据块，通过“链条”的方式来指示文件数据保存的文字。<strong>当要读取文件时，必须从文件头开始读取。这样的方式，读取的效率不高。</strong></p>
+<h2 id="32-linux文件系统"><a class="markdownIt-Anchor" href="#32-linux文件系统"></a> 3.2 Linux文件系统</h2>
+<p>不同的Linux文件系统大同小异，一般都采取ext文件系统，如下图所示</p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig6.png" alt="fig6" /></p>
+<ul>
+<li><strong>启动块</strong>：启动块内是服务器开机启动使用的，即使这个分区不是启动分区，也保留</li>
+<li><strong>超级块</strong>：超级块存储了文件系统的相关信息，包括文件系统的类型，inode的数目，数据块的数目</li>
+<li><strong>Inodes块</strong>：Inodes块是存储文件的inode信息，每个文件对应一个inode。包含文件的元信息，具体来说有以下内容：
+<ul>
+<li>文件的字节数</li>
+<li>文件拥有者的User ID</li>
+<li>文件的Group ID</li>
+<li>文件的读、写、执行权限</li>
+<li>文件的时间戳，共有三个：ctime指inode上一次变动的时间，mtime指文件内容上一次变动的时间，atime指文件上一次打开的时间</li>
+<li>链接数，即有多少文件名指向这个inode</li>
+<li>文件数据block的位置</li>
+</ul>
+</li>
+</ul>
+<p>当查看某个目录或文件时，会先从inode table中查出文件属性及数据存放点，再从数据块中读取数据</p>
+<p>通过读取\var\readme.txt文件流程，来理解ext文件系统，如下图所示</p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig7.jpg" alt="fig7" /></p>
+<ol>
+<li>根目录A所对应的inode节点是2，inode1对应的数据块是d1</li>
+<li>在检索d1内容发现，目录var对应的inode=28，对应的数据块是d5</li>
+<li>检索d5内容发现readme.txt对应的是inode=70</li>
+<li>Inode70指向数据区d2、d3、d6块。读取这些数据块，在内存中组合d2、d3、d6数据块</li>
+</ol>
+<p>硬盘格式化的时候，操作系统自动将硬盘分成两个区域</p>
+<ol>
+<li>一个是数据区，存放文件数据</li>
+<li>另一个是inode区，存放inode所包含的信息。当inode资源消耗完了，尽管数据区域还有空余空间，都不能再写入新文件</li>
+</ol>
+<p><strong>总结：Windows的文件系统往往是“串行”的，而linux的文件系统是“并行”的。</strong></p>
+<h2 id="33-分布式文件系统"><a class="markdownIt-Anchor" href="#33-分布式文件系统"></a> 3.3 分布式文件系统</h2>
+<p>再来看分布式的文件系统</p>
+<p>如果提供持久化层的存储空间不是一台设备，而是多台，每台之间通过网络连接，数据是打散保存在多台存储设备上。也就是说元数据记录的不仅仅记录在哪块数据块的编号，还要记录是哪个数据节点的</p>
+<p>这样，元数据需要保存在每个数据节点上，而且必须实时同步。做到这一点其实很困难。如果把元数据服务器独立出来，做成“主从”架构，就不需要在每个数据节点维护元数据表，简化了数据维护的难度，提高了效率</p>
+<p>Hadoop的文件系统HDFS就是一个典型的分布式文件系统</p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig8.jpg" alt="fig8" /></p>
+<ol>
+<li>Client将FileA按64M分块。分成两块，block1和Block2</li>
+<li>Client向nameNode发送写数据请求，如图紫色虚线1</li>
+<li>NameNode节点，记录block信息。并返回可用的DataNode给客户端，如图红色虚线2
+<ul>
+<li>Block1: host11，host22，host31</li>
+<li>Block2: host11，host21，host32</li>
+</ul>
+</li>
+<li>client向DataNode发送block1；发送过程是以流式写入</li>
+</ol>
+<p>流式写入过程：</p>
+<ol>
+<li>将64M的block1按64k的package划分;</li>
+<li>然后将第一个package发送给host11;</li>
+<li>host11接收完后，将第一个package发送给host22，同时client想host11发送第二个package</li>
+<li>host22接收完第一个package后，发送给host31，同时接收host11发来的第二个package</li>
+<li>以此类推，如图黑色虚线3所示，直到将block1发送完毕</li>
+<li>host11,host22,host31向NameNode和 Client发送通知，说“消息发送完了”</li>
+<li>client收到发来的消息后，向namenode发送消息，说我写完了。这样就真完成了</li>
+<li>发送完block1后，再向host11，host21，host32发送block2，如图蓝色虚线4所示</li>
+</ol>
+<h1 id="4-存储介质"><a class="markdownIt-Anchor" href="#4-存储介质"></a> 4 存储介质</h1>
+<p>仓库有很多种存储的介质，现在最常用的是磁盘和SSD盘，还有光盘、磁带等等。磁盘一直以性价比的优势占据了霸主的地位</p>
+<p>圆形的磁性盘片装在一个方的密封盒子里，运行起来吱吱的响，这就是我们常见的磁盘。磁片是真正存放数据的介质，每个磁片正面和背面上都“悬浮”着磁头</p>
+<p>磁盘上分割为很多个同心圆，每个同心圆叫做磁道，每个磁道又被分割成为一个个小扇区，每个扇区可以存储512B的数据。当磁头在磁片上高速转动和不停换道，来读取或者写入数据</p>
+<p>其实磁片负责高速转动，而磁头只负责在磁片上横向移动。决定磁盘性能的主要是磁片的转速、磁头的换道、磁盘、每片磁片的容量和接口速度决定的。转速越高、换道时间越短、单片容量越高，磁盘性能就越好</p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig9.jpg" alt="fig9" /></p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig10.jpg" alt="fig10" /></p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig11.jpg" alt="fig11" /></p>
+<p>衡量磁盘性能主要参考 IOPS 和吞吐量两个参数</p>
+<ol>
+<li>IOPS就是一秒钟内磁盘进行了多少次的读写</li>
+<li>吞吐量就是读出了多少数据</li>
+</ol>
+<p>其实这些指标应该有前提，即是大包（块）还是小包（块），是读还是写，是随机的还是连续的。一般我们看到厂家给的磁盘IOPS性能一般是指小包、顺序读下的测试指标。这个指标一般就是最大值</p>
+<p>目前在X86服务器上我们常使用的 SATA、SAS磁盘性能：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">磁盘类型</th>
+<th style="text-align:left">IOPS（4K）</th>
+<th style="text-align:left">吞吐量（1M）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">SATA 7200</td>
+<td style="text-align:left"><code>&lt;100</code></td>
+<td style="text-align:left"><code>&lt;100M</code></td>
+</tr>
+<tr>
+<td style="text-align:left">SAS 10000</td>
+<td style="text-align:left"><code>&lt;150</code></td>
+<td style="text-align:left"><code>&lt;150M</code></td>
+</tr>
+<tr>
+<td style="text-align:left">SAS 15000</td>
+<td style="text-align:left"><code>&lt;210</code></td>
+<td style="text-align:left"><code>&lt;200M</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>实际生产中估算，SATA 7200转的磁盘，提供的IOPS为60次左右，吞吐量在70MB/s</li>
+</ul>
+<p>这些指标显然是不能满足存储需要的，需要想办法“加速”</p>
+<p>机械磁盘其实也做了很多优化，比如扇区地址的编号不是连续的</p>
+<p>因为磁片转的够快（7200转/分钟即1秒钟转120转，转一圈是8.3毫秒，也就是在读写同一个磁道最大时延是8.3秒），防止磁头的读写取错过了，所以扇区的地址并不是连续的，而是跳跃编号的，比如2:1的交叉因子（1、10、2、11、3、12……）</p>
+<p>同时磁盘也有缓存，具有队列，并不是来一个I/O就读写一个，而是积累到一定I/O，根据磁头的位置和算法完成的。I/O并不是一定是“先到先处理”，而是遵守效率</p>
+<p>加速最好的办法就是使用SSD盘。磁盘的控制部分是由机械部分+控制电路来构成，机械部分的速度限制，使磁盘的性能不可能有大的突破。而SSD采用了全电子控制可以获得很好的性能</p>
+<p>SSD是以闪存作为存储介质再配合适当的控制芯片组成的存储设备。目前用来生产固态硬盘的NAND Flash有三种:</p>
+<ol>
+<li>单层式存储（SLC，存储1bit数据）</li>
+<li>二层式存储（MLC，存储4bit数据）</li>
+<li>三层式存储（TLC，存储8bit数据）</li>
+</ol>
+<p>SLC成本最高、寿命最长、但访问速度最快，TLC成本最低、寿命最短但访问速度最慢。为了降低成本，用于服务器的企业级SSD都用了MLC，TLC可以用来做U盘</p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/fig12.jpg" alt="fig12" /></p>
+<p>SSD普及起来还有一点的障碍,比如成本较高、写入次数限制、损坏时的不可挽救性及当随着写入次数增加或接近写满时候速度会下降等缺点</p>
+<p>对应磁盘的最小IO单位扇区，page是SSD的最小单位</p>
+<p>比如每个page存储512B的数据和218b的纠错码，128个page组成一个块（64KB），2048个块，组成一个区域，一个闪存芯片有2个区域组成。Page的尺寸越大，这个闪讯芯片的容量就越大</p>
+<p>但是SSD有一个坏习惯，就是在修改某1个page的数据，会波及到整块。需要将这个page所在的整块数据读到缓存中，然后再将这个块初始化为1，再从缓存中读取数据写入</p>
+<p>对于SSD来说，速度可能不是问题，但是写的次数是有限制的，所以块也不是越大越好。当然对于机械磁盘来说也存在类似问题，块越大，读写的速度就越快，但浪费也越严重，因为写不满一块也要占一块的位置</p>
+<p>不同型号不同厂家的SSD性能差异很大，下面是我们的分布式块存储作为缓存使用的SSD参数：</p>
+<blockquote>
+<p>采用PCIe 2.0接口，容量是1.2T，综合读写IOPS（4k小包）是260000次，读吞吐量1.55GB/s，写吞吐量1GB/s</p>
+</blockquote>
+<p>在1台SRVSAN的服务器配置了一块SSD作为缓存和12块7200转 3T SATA盘，磁盘只提供1200次、1200M的吞出量</p>
+<p>远远小于缓存SSD提供的能力，所以直接访问缓存可以提供很高的存储性能，SRVSAN的关键是计算出热点数据的算法，提高热点数据的命中率</p>
+<p>用高成本的SSD做为缓存，用廉价的SATA磁盘作为容量层</p>
+<h1 id="5-参考"><a class="markdownIt-Anchor" href="#5-参考"></a> 5 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.yunweipai.com/archives/8732.html">关于分布式存储，这是你应该知道的</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/02/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/" rel="prev" title="设计模式-访问者模式">
+      <i class="fa fa-chevron-left"></i> 设计模式-访问者模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/03/%E5%88%86%E5%B8%83%E5%BC%8F%E6%A6%82%E8%BF%B0/" rel="next" title="分布式概述">
+      分布式概述 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%AD%98%E5%82%A8%E7%B1%BB%E5%9E%8B"><span class="nav-text"> 2 存储类型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-das"><span class="nav-text"> 2.1 DAS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-nas"><span class="nav-text"> 2.2 NAS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-san"><span class="nav-text"> 2.3 SAN</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E6%80%BB%E7%BB%93"><span class="nav-text"> 2.4 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text"> 3 文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-windows%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text"> 3.1 Windows文件系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-linux%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text"> 3.2 Linux文件系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E5%88%86%E5%B8%83%E5%BC%8F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text"> 3.3 分布式文件系统</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%AD%98%E5%82%A8%E4%BB%8B%E8%B4%A8"><span class="nav-text"> 4 存储介质</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8F%82%E8%80%83"><span class="nav-text"> 5 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

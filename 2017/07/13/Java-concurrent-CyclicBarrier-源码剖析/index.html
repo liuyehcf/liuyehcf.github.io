@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java-concurrent-CyclicBarrier-源码剖析">
+<meta property="og:url" content="http://example.com/2017/07/13/Java-concurrent-CyclicBarrier-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-07-13T08:30:27.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.334Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/07/13/Java-concurrent-CyclicBarrier-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java-concurrent-CyclicBarrier-源码剖析 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/13/Java-concurrent-CyclicBarrier-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java-concurrent-CyclicBarrier-源码剖析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-13 16:30:27" itemprop="dateCreated datePublished" datetime="2017-07-13T16:30:27+08:00">2017-07-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Concurrent/" itemprop="url" rel="index"><span itemprop="name">Java Concurrent</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Concurrent/Source-Code-Analysis/" itemprop="url" rel="index"><span itemprop="name">Source Code Analysis</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/13/Java-concurrent-CyclicBarrier-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="post-meta-item leancloud_visitors" data-flag-title="Java-concurrent-CyclicBarrier-源码剖析" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/13/Java-concurrent-CyclicBarrier-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/13/Java-concurrent-CyclicBarrier-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p>CyclicBarrier是一个同步辅助类，它允许一组线程互相等待，直到到达某个公共屏障点(common barrier point)。在涉及一组固定大小的线程的程序中，这些线程必须不时地互相等待，此时CyclicBarrier很有用。因为该barrier在释放等待线程后可以重用，所以称它为循环的barrier</p>
+<h1 id="2-内部类"><a class="markdownIt-Anchor" href="#2-内部类"></a> 2 内部类</h1>
+<p>该内部类用于标记一次Barrier生命周期的状态</p>
+<ol>
+<li>true：Barrier被打断，调用await()方法将会抛出BrokenBarrierException异常</li>
+<li>false：Barrier有效</li>
+</ol>
+<p>一次Barrier生命周期中Barrier的状态不会影响到下一次生命周期</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Each use of the barrier is represented as a generation instance.</span></span><br><span class="line"><span class="comment"> * The generation changes whenever the barrier is tripped, or</span></span><br><span class="line"><span class="comment"> * is reset. There can be many generations associated with threads</span></span><br><span class="line"><span class="comment"> * using the barrier - due to the non-deterministic way the lock</span></span><br><span class="line"><span class="comment"> * may be allocated to waiting threads - but only one of these</span></span><br><span class="line"><span class="comment"> * can be active at a time (the one to which &#123;<span class="doctag">@code</span> count&#125; applies)</span></span><br><span class="line"><span class="comment"> * and all the rest are either broken or tripped.</span></span><br><span class="line"><span class="comment"> * There need not be an active generation if there has been a break</span></span><br><span class="line"><span class="comment"> * but no subsequent reset.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Generation</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> broken = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="3-字段"><a class="markdownIt-Anchor" href="#3-字段"></a> 3 字段</h1>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** The lock for guarding barrier entry */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">new</span> ReentrantLock();</span><br><span class="line"><span class="comment">/** Condition to wait on until tripped */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Condition trip = lock.newCondition();</span><br><span class="line"><span class="comment">/** The number of parties */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> parties;</span><br><span class="line"><span class="comment">/* The command to run when tripped */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Runnable barrierCommand;</span><br><span class="line"><span class="comment">/** The current generation */</span></span><br><span class="line"><span class="keyword">private</span> Generation generation = <span class="keyword">new</span> Generation();</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Number of parties still waiting. Counts down from parties to 0</span></span><br><span class="line"><span class="comment"> * on each generation.  It is reset to parties on each new</span></span><br><span class="line"><span class="comment"> * generation or when broken.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> count;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>lock</strong>：重入锁</li>
+<li><strong>trip</strong>：条件对象，是AQS-ConditionObject内部类</li>
+<li><strong>parties</strong></li>
+<li><strong>barrierCommand</strong>：为了增加CyclicBarrier的生命周期，当足够多的线程通过屏障时，调用相应的处理逻辑，可由构造方法传入</li>
+<li><strong>generation</strong>：标记本次生命周期的Barrier的状态，如果为true，则Barrier失效。到了next Generation后，又会重新指向一个新的Generation对象</li>
+<li><strong>count</strong>：计数值</li>
+</ul>
+<h1 id="4-重要方法"><a class="markdownIt-Anchor" href="#4-重要方法"></a> 4 重要方法</h1>
+<h2 id="41-构造方法"><a class="markdownIt-Anchor" href="#41-构造方法"></a> 4.1 构造方法</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Creates a new &#123;<span class="doctag">@code</span> CyclicBarrier&#125; that will trip when the</span></span><br><span class="line"><span class="comment"> * given number of parties (threads) are waiting upon it, and</span></span><br><span class="line"><span class="comment"> * does not perform a predefined action when the barrier is tripped.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> parties the number of threads that must invoke &#123;<span class="doctag">@link</span> #await&#125;</span></span><br><span class="line"><span class="comment"> *        before the barrier is tripped</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> IllegalArgumentException if &#123;<span class="doctag">@code</span> parties&#125; is less than 1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CyclicBarrier</span><span class="params">(<span class="keyword">int</span> parties)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(parties, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Creates a new &#123;<span class="doctag">@code</span> CyclicBarrier&#125; that will trip when the</span></span><br><span class="line"><span class="comment"> * given number of parties (threads) are waiting upon it, and which</span></span><br><span class="line"><span class="comment"> * will execute the given barrier action when the barrier is tripped,</span></span><br><span class="line"><span class="comment"> * performed by the last thread entering the barrier.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> parties the number of threads that must invoke &#123;<span class="doctag">@link</span> #await&#125;</span></span><br><span class="line"><span class="comment"> *        before the barrier is tripped</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> barrierAction the command to execute when the barrier is</span></span><br><span class="line"><span class="comment"> *        tripped, or &#123;<span class="doctag">@code</span> null&#125; if there is no action</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> IllegalArgumentException if &#123;<span class="doctag">@code</span> parties&#125; is less than 1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CyclicBarrier</span><span class="params">(<span class="keyword">int</span> parties, Runnable barrierAction)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (parties &lt;= <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="keyword">this</span>.parties = parties;</span><br><span class="line">    <span class="keyword">this</span>.count = parties;</span><br><span class="line">    <span class="keyword">this</span>.barrierCommand = barrierAction;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="42-await"><a class="markdownIt-Anchor" href="#42-await"></a> 4.2 await</h2>
+<p>await方法阻塞当前线程直至累计有count（构造方法的参数）个线程阻塞在了await方法上</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Waits until all &#123;<span class="doctag">@linkplain</span> #getParties parties&#125; have invoked</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@code</span> await&#125; on this barrier.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;If the current thread is not the last to arrive then it is</span></span><br><span class="line"><span class="comment"> * disabled for thread scheduling purposes and lies dormant until</span></span><br><span class="line"><span class="comment"> * one of the following things happens:</span></span><br><span class="line"><span class="comment"> * &lt;ul&gt;</span></span><br><span class="line"><span class="comment"> * &lt;li&gt;The last thread arrives; or</span></span><br><span class="line"><span class="comment"> * &lt;li&gt;Some other thread &#123;<span class="doctag">@linkplain</span> Thread#interrupt interrupts&#125;</span></span><br><span class="line"><span class="comment"> * the current thread; or</span></span><br><span class="line"><span class="comment"> * &lt;li&gt;Some other thread &#123;<span class="doctag">@linkplain</span> Thread#interrupt interrupts&#125;</span></span><br><span class="line"><span class="comment"> * one of the other waiting threads; or</span></span><br><span class="line"><span class="comment"> * &lt;li&gt;Some other thread times out while waiting for barrier; or</span></span><br><span class="line"><span class="comment"> * &lt;li&gt;Some other thread invokes &#123;<span class="doctag">@link</span> #reset&#125; on this barrier.</span></span><br><span class="line"><span class="comment"> * &lt;/ul&gt;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;If the current thread:</span></span><br><span class="line"><span class="comment"> * &lt;ul&gt;</span></span><br><span class="line"><span class="comment"> * &lt;li&gt;has its interrupted status set on entry to this method; or</span></span><br><span class="line"><span class="comment"> * &lt;li&gt;is &#123;<span class="doctag">@linkplain</span> Thread#interrupt interrupted&#125; while waiting</span></span><br><span class="line"><span class="comment"> * &lt;/ul&gt;</span></span><br><span class="line"><span class="comment"> * then &#123;<span class="doctag">@link</span> InterruptedException&#125; is thrown and the current thread&#x27;s</span></span><br><span class="line"><span class="comment"> * interrupted status is cleared.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;If the barrier is &#123;<span class="doctag">@link</span> #reset&#125; while any thread is waiting,</span></span><br><span class="line"><span class="comment"> * or if the barrier &#123;<span class="doctag">@linkplain</span> #isBroken is broken&#125; when</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@code</span> await&#125; is invoked, or while any thread is waiting, then</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> BrokenBarrierException&#125; is thrown.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;If any thread is &#123;<span class="doctag">@linkplain</span> Thread#interrupt interrupted&#125; while waiting,</span></span><br><span class="line"><span class="comment"> * then all other waiting threads will throw</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> BrokenBarrierException&#125; and the barrier is placed in the broken</span></span><br><span class="line"><span class="comment"> * state.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;If the current thread is the last thread to arrive, and a</span></span><br><span class="line"><span class="comment"> * non-null barrier action was supplied in the constructor, then the</span></span><br><span class="line"><span class="comment"> * current thread runs the action before allowing the other threads to</span></span><br><span class="line"><span class="comment"> * continue.</span></span><br><span class="line"><span class="comment"> * If an exception occurs during the barrier action then that exception</span></span><br><span class="line"><span class="comment"> * will be propagated in the current thread and the barrier is placed in</span></span><br><span class="line"><span class="comment"> * the broken state.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> the arrival index of the current thread, where index</span></span><br><span class="line"><span class="comment"> *         &#123;<span class="doctag">@code</span> getParties() - 1&#125; indicates the first</span></span><br><span class="line"><span class="comment"> *         to arrive and zero indicates the last to arrive</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> InterruptedException if the current thread was interrupted</span></span><br><span class="line"><span class="comment"> *         while waiting</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> BrokenBarrierException if &lt;em&gt;another&lt;/em&gt; thread was</span></span><br><span class="line"><span class="comment"> *         interrupted or timed out while the current thread was</span></span><br><span class="line"><span class="comment"> *         waiting, or the barrier was reset, or the barrier was</span></span><br><span class="line"><span class="comment"> *         broken when &#123;<span class="doctag">@code</span> await&#125; was called, or the barrier</span></span><br><span class="line"><span class="comment"> *         action (if present) failed due to an exception</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException, BrokenBarrierException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> dowait(<span class="keyword">false</span>, <span class="number">0L</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (TimeoutException toe) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> Error(toe); <span class="comment">//cannot happen</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="421-dowait"><a class="markdownIt-Anchor" href="#421-dowait"></a> 4.2.1 dowait</h3>
+<p>dowait方法是实现CyclicBarrier语义的主要方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Main barrier code, covering the various policies.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">dowait</span><span class="params">(<span class="keyword">boolean</span> timed, <span class="keyword">long</span> nanos)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> InterruptedException, BrokenBarrierException,</span></span><br><span class="line"><span class="function">           TimeoutException </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> Generation g = generation;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//如果是broken状态，则抛出BrokenBarrierException异常。该bool值在breakBarrier方法中被设置为true</span></span><br><span class="line">        <span class="keyword">if</span> (g.broken)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> BrokenBarrierException();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//如果被中断了则设置broken为true，然后抛出InterruptedException异常</span></span><br><span class="line">        <span class="keyword">if</span> (Thread.interrupted()) &#123;</span><br><span class="line">            breakBarrier();</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//递减count</span></span><br><span class="line">        <span class="keyword">int</span> index = --count;</span><br><span class="line">        <span class="comment">//如果index为0，说明有足够多的线程调用了await方法，此时应该放行所有线程</span></span><br><span class="line">        <span class="keyword">if</span> (index == <span class="number">0</span>) &#123;  <span class="comment">//tripped</span></span><br><span class="line">            <span class="keyword">boolean</span> ranAction = <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">final</span> Runnable command = barrierCommand;</span><br><span class="line">                <span class="comment">//执行一些额外的逻辑</span></span><br><span class="line">                <span class="keyword">if</span> (command != <span class="keyword">null</span>)</span><br><span class="line">                    command.run();</span><br><span class="line">                <span class="comment">//如果在执行run方法中抛出了任何异常，则ranAction为false状态</span></span><br><span class="line">                ranAction = <span class="keyword">true</span>;</span><br><span class="line">                <span class="comment">//进入下一个生命周期</span></span><br><span class="line">                nextGeneration();</span><br><span class="line">                <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (!ranAction)</span><br><span class="line">                    <span class="comment">//将Barrier的当前生命周期的状态标记为不可用</span></span><br><span class="line">                    breakBarrier();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//阻塞当前线程直至被中断，打断或者超时</span></span><br><span class="line">        <span class="comment">//loop until tripped, broken, interrupted, or timed out</span></span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">//如果不允许超时，将当前线程直接挂起，阻塞在条件对象trip的condition queue(ConditionObject中维护的等待队列)中</span></span><br><span class="line">                <span class="keyword">if</span> (!timed)</span><br><span class="line">                    trip.await();</span><br><span class="line">                <span class="comment">//如果允许超时，阻塞在条件对象trip的condition queue中一段时间</span></span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (nanos &gt; <span class="number">0L</span>)</span><br><span class="line">                    nanos = trip.awaitNanos(nanos);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException ie) &#123;</span><br><span class="line">                <span class="comment">//当Barrier处于有效状态</span></span><br><span class="line">                <span class="keyword">if</span> (g == generation &amp;&amp; ! g.broken) &#123;</span><br><span class="line">                    <span class="comment">//设置为打断状态</span></span><br><span class="line">                    breakBarrier();</span><br><span class="line">                    <span class="keyword">throw</span> ie;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">//We&#x27;re about to finish waiting even if we had not</span></span><br><span class="line">                    <span class="comment">//been interrupted, so this interrupt is deemed to</span></span><br><span class="line">                    <span class="comment">//&quot;belong&quot; to subsequent execution.</span></span><br><span class="line">                    Thread.currentThread().interrupt();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//如果Barrier被打断，则抛出BrokenBarrierException异常</span></span><br><span class="line">            <span class="keyword">if</span> (g.broken)</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> BrokenBarrierException();</span><br><span class="line"></span><br><span class="line">            <span class="comment">//意味着调用await时处于上一个生命周期，而此时却进入了下一个生命周期中</span></span><br><span class="line">            <span class="keyword">if</span> (g != generation)</span><br><span class="line">                <span class="keyword">return</span> index;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//允许超时，并且已经超时</span></span><br><span class="line">            <span class="keyword">if</span> (timed &amp;&amp; nanos &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">                breakBarrier();</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> TimeoutException();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="422-nextgeneration"><a class="markdownIt-Anchor" href="#422-nextgeneration"></a> 4.2.2 nextGeneration</h3>
+<p>该方法使得CyclicBarrier进入下一次生命周期，唤醒阻塞在trip上的线程，并且重置所有状态</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Updates state on barrier trip and wakes up everyone.</span></span><br><span class="line"><span class="comment"> * Called only while holding lock.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">nextGeneration</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//signal completion of last generation</span></span><br><span class="line">    <span class="comment">//唤醒所有阻塞在condition queue中的线程，即那些阻塞在await方法上的线程</span></span><br><span class="line">    trip.signalAll();</span><br><span class="line">    <span class="comment">//set up next generation</span></span><br><span class="line">    <span class="comment">//这就是CyclicBarrier可重用的原因</span></span><br><span class="line">    count = parties;</span><br><span class="line">    <span class="comment">//重新生成Generation</span></span><br><span class="line">    generation = <span class="keyword">new</span> Generation();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="43-isbroken"><a class="markdownIt-Anchor" href="#43-isbroken"></a> 4.3 isBroken</h2>
+<p>检查当前Barrier生命周期是否有效</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Queries if this barrier is in a broken state.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if one or more parties broke out of this</span></span><br><span class="line"><span class="comment"> *         barrier due to interruption or timeout since</span></span><br><span class="line"><span class="comment"> *         construction or the last reset, or a barrier action</span></span><br><span class="line"><span class="comment"> *         failed due to an exception; &#123;<span class="doctag">@code</span> false&#125; otherwise.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isBroken</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> generation.broken;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="44-reset"><a class="markdownIt-Anchor" href="#44-reset"></a> 4.4 reset</h2>
+<p>重置Barrier，使其进入下一个生命周期。对于那些阻塞在上一个生命周期中的线程，会通过nextGeneration方法进行唤醒</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Resets the barrier to its initial state.  If any parties are</span></span><br><span class="line"><span class="comment"> * currently waiting at the barrier, they will return with a</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> BrokenBarrierException&#125;. Note that resets &lt;em&gt;after&lt;/em&gt;</span></span><br><span class="line"><span class="comment"> * a breakage has occurred for other reasons can be complicated to</span></span><br><span class="line"><span class="comment"> * carry out; threads need to re-synchronize in some other way,</span></span><br><span class="line"><span class="comment"> * and choose one to perform the reset.  It may be preferable to</span></span><br><span class="line"><span class="comment"> * instead create a new barrier for subsequent use.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">reset</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        breakBarrier();   <span class="comment">//break the current generation</span></span><br><span class="line">        nextGeneration(); <span class="comment">//start a new generation</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="45-getnumberwaiting"><a class="markdownIt-Anchor" href="#45-getnumberwaiting"></a> 4.5 getNumberWaiting</h2>
+<p>检查有多少个线程阻塞在await方法的调用中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the number of parties currently waiting at the barrier.</span></span><br><span class="line"><span class="comment"> * This method is primarily useful for debugging and assertions.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> the number of parties currently blocked in &#123;<span class="doctag">@link</span> #await&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getNumberWaiting</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> parties - count;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/13/Java-concurrent-CountDownLatch-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" rel="prev" title="Java-concurrent-CountDownLatch-源码剖析">
+      <i class="fa fa-chevron-left"></i> Java-concurrent-CountDownLatch-源码剖析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/13/Java-concurrent-Semaphore-%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" rel="next" title="Java-concurrent-Semaphore-源码剖析">
+      Java-concurrent-Semaphore-源码剖析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%86%85%E9%83%A8%E7%B1%BB"><span class="nav-text"> 2 内部类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%AD%97%E6%AE%B5"><span class="nav-text"> 3 字段</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E9%87%8D%E8%A6%81%E6%96%B9%E6%B3%95"><span class="nav-text"> 4 重要方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.1 构造方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-await"><span class="nav-text"> 4.2 await</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#421-dowait"><span class="nav-text"> 4.2.1 dowait</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#422-nextgeneration"><span class="nav-text"> 4.2.2 nextGeneration</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-isbroken"><span class="nav-text"> 4.3 isBroken</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-reset"><span class="nav-text"> 4.4 reset</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-getnumberwaiting"><span class="nav-text"> 4.5 getNumberWaiting</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

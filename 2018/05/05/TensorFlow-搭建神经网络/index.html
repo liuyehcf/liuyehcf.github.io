@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TensorFlow-搭建神经网络">
+<meta property="og:url" content="http://example.com/2018/05/05/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig1.png">
+<meta property="og:image" content="http://example.com/images/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig2.png">
+<meta property="article:published_time" content="2018-05-05T09:49:39.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.323Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig1.png">
+
+<link rel="canonical" href="http://example.com/2018/05/05/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>TensorFlow-搭建神经网络 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/05/05/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TensorFlow-搭建神经网络
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-05 17:49:39" itemprop="dateCreated datePublished" datetime="2018-05-05T17:49:39+08:00">2018-05-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/05/05/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="post-meta-item leancloud_visitors" data-flag-title="TensorFlow-搭建神经网络" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/05/05/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/05/05/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-基本概念"><a class="markdownIt-Anchor" href="#1-基本概念"></a> 1 基本概念</h1>
+<p>基于TensorFlow的神经网络（Neural Network，NN）</p>
+<ol>
+<li>用<strong>张量</strong>表示数据</li>
+<li>用<strong>计算图</strong>搭建神经网络</li>
+<li>用<strong>会话</strong>执行计算图，优化线上的权重(参数)，得到模型</li>
+</ol>
+<h2 id="11-张量"><a class="markdownIt-Anchor" href="#11-张量"></a> 1.1 张量</h2>
+<p>张量就是多维数组（列表），用“阶”表示张量的维度</p>
+<ol>
+<li><code>0阶</code>张量<strong>称作标量</strong>，表示一个单独的数
+<ul>
+<li>
+$S = 123$
+</li>
+</ul>
+</li>
+<li><code>1阶</code>张量<strong>称作向量</strong>，表示一个一维数组
+<ul>
+<li>
+$V = [1,2,3]$
+</li>
+</ul>
+</li>
+<li><code>2阶</code>张量<strong>称作矩阵</strong>，表示一个二维数组，它可以有<code>i</code>行<code>j</code>列个元素，每个元素可以用行号和列号共同索引到
+<ul>
+<li>
+$m = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]$
+</li>
+</ul>
+</li>
+<li>判断张量是几阶的，就通过张量右边的方括号数</li>
+</ol>
+<h2 id="12-数据类型"><a class="markdownIt-Anchor" href="#12-数据类型"></a> 1.2 数据类型</h2>
+<p>TensorFlow的数据类型有</p>
+<ol>
+<li><code>tf.int8</code></li>
+<li><code>tf.int16</code></li>
+<li><code>tf.int32</code></li>
+<li><code>tf.int64</code></li>
+<li><code>tf.float32</code></li>
+<li><code>tf.double</code></li>
+<li>…</li>
+</ol>
+<h2 id="13-计算图"><a class="markdownIt-Anchor" href="#13-计算图"></a> 1.3 计算图</h2>
+<p>计算图(Graph)是搭建神经网络的计算过程，是承载一个或多个计算节点的一张图，<strong>只搭建网络，不运算</strong></p>
+<p>神经网络的基本模型是神经元，神经元的基本模型其实就是数学中的乘、加运算。神经元的形式化定义如下$$f(\sum_{i}{x_{i}w_{i}}+b)$$</p>
+<ol>
+<li>
+$f$为激活函数，引入非线性激活因素，提高模型的表达能力
+</li>
+</ol>
+<p>举个简单的例子，给定如下计算图</p>
+<p><img src="/images/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig1.png" alt="fig1" /></p>
+<p>我们用TensorFlow实现上述计算图</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> TensorFlow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义张量</span></span><br><span class="line">x = tf.constant([[<span class="number">1.0</span>, <span class="number">2.0</span>]])</span><br><span class="line">w = tf.constant([[<span class="number">3.0</span>], [<span class="number">4.0</span>]])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算图</span></span><br><span class="line">y = tf.matmul(x, w)</span><br><span class="line"><span class="built_in">print</span>(y)</span><br></pre></td></tr></table></figure>
+<h2 id="14-会话"><a class="markdownIt-Anchor" href="#14-会话"></a> 1.4 会话</h2>
+<p>会话(Session)用于执行计算图中的节点运算</p>
+<p>继续上一小节的例子，我们用会话执行计算图中的节点运算</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 执行计算图中的节点运算</span></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">    <span class="built_in">print</span>(sess.run(y))</span><br></pre></td></tr></table></figure>
+<h1 id="2-神经网络的参数"><a class="markdownIt-Anchor" href="#2-神经网络的参数"></a> 2 神经网络的参数</h1>
+<p>神经网络的参数是指神经元线上的权重w，用变量表示，<strong>一般会先随机生成这些参数</strong>。生成参数的方法是让w等于<code>tf.Variable</code>，把生成的方式写在括号里</p>
+<p>神经网络中常用的生成随机数/数组的函数有：</p>
+<ol>
+<li><code>tf.random_normal()</code>：生成正态分布随机数
+<ul>
+<li><code>w = tf.Variable(tf.random_normal([2,3], stddev=2, mean=0, seed=1))</code></li>
+<li>stddev表示标准差</li>
+<li>mean表示均值</li>
+<li>seed表示随机数种子</li>
+</ul>
+</li>
+<li><code>tf.truncated_normal()</code>：生成去掉过大偏离点的正态分布随机数
+<ul>
+<li><code>w = tf.Variable(tf.Truncated_normal([2,3], stddev=2, mean=0, seed=1))</code></li>
+<li>如果随机出来的数据偏离平均值超过<strong>两个</strong>标准差，这个数据将重新生成</li>
+</ul>
+</li>
+<li><code>tf.random_uniform()</code>：生成均匀分布随机数
+<ul>
+<li><code>w = random_uniform(shape=7, minval=0, maxval=1, dtype=tf.int32，seed=1</code></li>
+<li>表示从一个均匀分布<code>[minval maxval)</code>中随机采样</li>
+</ul>
+</li>
+<li><code>tf.zeros</code>：表示生成全0数组</li>
+<li><code>tf.ones</code>：表示生成全1数组</li>
+<li><code>tf.fill</code>：表示生成全定值数组</li>
+<li><code>tf.constant</code>：表示生成直接给定值的数组</li>
+</ol>
+<h1 id="3-神经网络的实现过程综述"><a class="markdownIt-Anchor" href="#3-神经网络的实现过程综述"></a> 3 神经网络的实现过程综述</h1>
+<p>神经网络的搭建一般按照如下过程进行</p>
+<ol>
+<li>准备数据集，提取特征，作为输入喂给神经网络（Neural Network，NN）</li>
+<li>搭建NN结构，从输入到输出（先搭建计算图，再用会话执行）
+<ul>
+<li>NN前向传播算法–&gt;计算输出</li>
+</ul>
+</li>
+<li>大量特征数据喂给NN，迭代优化NN参数
+<ul>
+<li>NN反向传播算法 优化参数训练模型</li>
+</ul>
+</li>
+<li>使用训练好的模型预测和分类</li>
+</ol>
+<h1 id="4-前向传播"><a class="markdownIt-Anchor" href="#4-前向传播"></a> 4 前向传播</h1>
+<p>前向传播是指<strong>搭建模型的计算过程</strong>，让模型具有推理能力，可以针对一组输入给出相应的输出</p>
+<p>举个简单的例子，给出如下神经网络。由<strong>输入$\vec{X}$经过神经网络计算得到$\vec{Y}$的过程就称为前向传播过程</strong></p>
+<p><img src="/images/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig2.png" alt="fig2" /></p>
+<p>该神经网络可表示成如下形式</p>
+$$
+\vec{Y} = \vec{X} \cdot \vec{W^{1}} \cdot \vec{W^{2}}
+$$
+<ol>
+<li>
+$\vec{X}$是输入向量
+</li>
+<li>
+$\vec{W^{1}}$是2行3列的参数矩阵
+</li>
+<li>
+$\vec{W^{2}}$是3行1列的参数矩阵
+</li>
+<li>
+$\vec{Y}$是输出向量
+</li>
+</ol>
+<p>上述例子的前向传播过程的TensorFlow描述（<strong>变量初始化</strong>、<strong>计算图节点运算</strong>都要用<strong>会话</strong>实现）</p>
+<ul>
+<li><strong>变量初始化</strong>：在<code>sess.run</code>函数中用<code>tf.global_variables_initializer()</code>汇总所有待优化变量</li>
+</ul>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">init_op = tf.global_variables_initializer()</span><br><span class="line">sess.run(init_op)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>计算图节点运算</strong>：在<code>sess.run</code>函数中写入待运算的节点</li>
+</ul>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sess.run(y)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>喂数据</strong>：用<code>tf.placeholder</code>占位，在<code>sess.run</code>函数中用<code>feed_dict</code>喂数据（以这种方式实现<strong>计算图</strong>与<strong>运算</strong>的分离）</li>
+</ul>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 一组数据</span></span><br><span class="line">x = tf.placeholder(tf.float32, shape=(<span class="number">1</span>, <span class="number">2</span>))</span><br><span class="line">sess.run(y, feed_dict=&#123;x: [[<span class="number">0.5</span>,<span class="number">0.6</span>]]&#125;)</span><br></pre></td></tr></table></figure>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 多组数据</span></span><br><span class="line">x = tf.placeholder(tf.float32, shape=(<span class="literal">None</span>, <span class="number">2</span>))</span><br><span class="line">sess.run(y, feed_dict=&#123;x: [[<span class="number">0.1</span>,<span class="number">0.2</span>],[<span class="number">0.2</span>,<span class="number">0.3</span>],[<span class="number">0.3</span>,<span class="number">0.4</span>],[<span class="number">0.4</span>,<span class="number">0.5</span>]]&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="41-完整程序"><a class="markdownIt-Anchor" href="#41-完整程序"></a> 4.1 完整程序</h2>
+<p><strong>喂一组数据</strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="keyword">import</span> TensorFlow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义输入和参数</span></span><br><span class="line">x = tf.placeholder(tf.float32, shape=(<span class="number">1</span>, <span class="number">2</span>))</span><br><span class="line">w1 = tf.Variable(tf.random_normal([<span class="number">2</span>, <span class="number">3</span>], stddev=<span class="number">1</span>, seed=<span class="number">1</span>))</span><br><span class="line">w2 = tf.Variable(tf.random_normal([<span class="number">3</span>, <span class="number">1</span>], stddev=<span class="number">1</span>, seed=<span class="number">1</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义前向传播过程</span></span><br><span class="line">a = tf.matmul(x, w1)</span><br><span class="line">y = tf.matmul(a, w2)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用会话计算结果</span></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">    init_op = tf.global_variables_initializer()</span><br><span class="line">    sess.run(init_op)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;y in tf3_3.py is:\n&quot;</span>, sess.run(y, feed_dict=&#123;x: [[<span class="number">0.7</span>, <span class="number">0.5</span>]]&#125;))</span><br></pre></td></tr></table></figure>
+<p><strong>喂多组数据</strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="keyword">import</span> TensorFlow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义输入和参数</span></span><br><span class="line">x = tf.placeholder(tf.float32, shape=(<span class="literal">None</span>, <span class="number">2</span>))</span><br><span class="line">w1 = tf.Variable(tf.random_normal([<span class="number">2</span>, <span class="number">3</span>], stddev=<span class="number">1</span>, seed=<span class="number">1</span>))</span><br><span class="line">w2 = tf.Variable(tf.random_normal([<span class="number">3</span>, <span class="number">1</span>], stddev=<span class="number">1</span>, seed=<span class="number">1</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义前向传播过程</span></span><br><span class="line">a = tf.matmul(x, w1)</span><br><span class="line">y = tf.matmul(a, w2)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用会话计算结果</span></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">    init_op = tf.global_variables_initializer()</span><br><span class="line">    sess.run(init_op)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;y in tf3_3.py is:\n&quot;</span>, sess.run(y, feed_dict=&#123;x: [[<span class="number">0.1</span>,<span class="number">0.2</span>],[<span class="number">0.2</span>,<span class="number">0.3</span>],[<span class="number">0.3</span>,<span class="number">0.4</span>],[<span class="number">0.4</span>,<span class="number">0.5</span>]]&#125;))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="5-反向传播"><a class="markdownIt-Anchor" href="#5-反向传播"></a> 5 反向传播</h1>
+<p>反向传播是指<strong>训练模型参数</strong>，在所有参数上用梯度下降，使NN模型在训练数据上的<strong>损失函数</strong>最小</p>
+<h2 id="51-损失函数"><a class="markdownIt-Anchor" href="#51-损失函数"></a> 5.1 损失函数</h2>
+<p>损失函数(loss)：计算得到的预测值<code>y</code>与已知答案<code>y_</code>的差距</p>
+<p>损失函数的计算有很多方法，均方误差MSE是比较常用的方法之一</p>
+$$
+MSE(y\_, y)=\frac{\sum_{i=1}^{n}{(y-y\_)^2}}{n}
+$$
+<p>在TensorFlow中可以表示为<code>loss_mse = tf.reduce_mean(tf.square(y_ - y))</code></p>
+<h2 id="52-反向传播训练方法"><a class="markdownIt-Anchor" href="#52-反向传播训练方法"></a> 5.2 反向传播训练方法</h2>
+<p>反向传播训练方法是指，<strong>以减小loss值为优化目标</strong>。有梯度下降、momentum优化器、adam优化器等优化方法。这三种优化方法用TensorFlow的函数可以表示为</p>
+<ol>
+<li><code>train_step=tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)</code></li>
+<li><code>train_step=tf.train.MomentumOptimizer(learning_rate, momentum).minimize(loss)</code></li>
+<li><code>train_step=tf.train.AdamOptimizer(learning_rate).minimize(loss)</code></li>
+</ol>
+<h3 id="521-学习率"><a class="markdownIt-Anchor" href="#521-学习率"></a> 5.2.1 学习率</h3>
+<p>优化器中都需要一个叫做学习率的参数，使用时，如果学习率选择过大会出现震荡不收敛的情况，如果学习率选择过小，会出现收敛速度慢的情况</p>
+<h3 id="522-随机梯度下降算法"><a class="markdownIt-Anchor" href="#522-随机梯度下降算法"></a> 5.2.2 随机梯度下降算法</h3>
+<p>随机梯度下降算法，使参数沿着梯度的反方向，即总损失减小的方向移动，实现更新参数</p>
+$$
+\theta_{n+1} = \theta_{n} - \alpha \frac{\partial{J(\theta_{n})}}{\theta_{n}}
+$$
+<ul>
+<li>
+$J(\theta_{n})$表示损失函数
+</li>
+<li>
+$\theta$表示参数，其下标表示迭代次数
+</li>
+<li>
+$\alpha$表示学习率
+</li>
+</ul>
+<h3 id="523-momentum算法"><a class="markdownIt-Anchor" href="#523-momentum算法"></a> 5.2.3 Momentum算法</h3>
+<p>该算法在更新参数时，利用了超参数，参数更新公式如下</p>
+$$
+d_{i} = \beta d_{i-1} + g(\theta_{i-1}) \\
+\theta_{i} = \theta_{i-1} - \alpha d_{i}
+$$
+<ul>
+<li>
+$\alpha$表示学习率
+</li>
+<li>
+$\beta$表示超参数
+</li>
+<li>
+$g(\theta_{i-1}) $表示损失函数的梯度
+</li>
+</ul>
+<h3 id="524-自适应学习率的优化算法"><a class="markdownIt-Anchor" href="#524-自适应学习率的优化算法"></a> 5.2.4 自适应学习率的优化算法</h3>
+<p>Adam算法和随机梯度下降算法不同。随机梯度下降算法保持单一的学习率更新所有的参数，学习率在训练过程中并不会改变。而Adam算法通过计算梯度的一阶矩估计和二阶矩估计而为不同的参数设计独立的自适应性学习率</p>
+<h2 id="53-完整程序"><a class="markdownIt-Anchor" href="#53-完整程序"></a> 5.3 完整程序</h2>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> TensorFlow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">BATCH_SIZE = <span class="number">8</span></span><br><span class="line">seed = <span class="number">23455</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 基于seed产生随机数</span></span><br><span class="line">rng = np.random.RandomState(seed)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 随机数返回32行2列的矩阵，表示32组体积和重量作为输入数据集</span></span><br><span class="line">X = rng.rand(<span class="number">32</span>, <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 产生数据标签</span></span><br><span class="line">Y = [[<span class="built_in">int</span>(x0 + x1 &lt; <span class="number">1</span>)] <span class="keyword">for</span> (x0, x1) <span class="keyword">in</span> X]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;X:\n&quot;</span>, X)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Y:\n&quot;</span>, Y)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1 定义神经网络的输入、参数和输出，定义前向传播过程</span></span><br><span class="line">x = tf.placeholder(tf.float32, shape=(<span class="literal">None</span>, <span class="number">2</span>))</span><br><span class="line">y_ = tf.placeholder(tf.float32, shape=(<span class="literal">None</span>, <span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">w1 = tf.Variable(tf.random_normal([<span class="number">2</span>, <span class="number">3</span>], stddev=<span class="number">1</span>, seed=<span class="number">1</span>))</span><br><span class="line">w2 = tf.Variable(tf.random_normal([<span class="number">3</span>, <span class="number">1</span>], stddev=<span class="number">1</span>, seed=<span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">a = tf.matmul(x, w1)</span><br><span class="line">y = tf.matmul(a, w2)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2 定义损失函数及反向传播方法</span></span><br><span class="line">loss = tf.reduce_mean(tf.square(y - y_))</span><br><span class="line">train_step = tf.train.GradientDescentOptimizer(<span class="number">0.001</span>).minimize(loss)</span><br><span class="line"><span class="comment"># train_step = tf.train.MomentumOptimizer(0.001).minimize(loss)</span></span><br><span class="line"><span class="comment"># train_step = tf.train.AdamOptimizer(0.001).minimize(loss)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3 生成会话，训练STEPS轮</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">    init_op = tf.global_variables_initializer()</span><br><span class="line">    sess.run(init_op)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 输出目前（未经训练）的参数取值</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;w1:\n&quot;</span>, sess.run(w1))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;w1:\n&quot;</span>, sess.run(w2))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 训练模型</span></span><br><span class="line">    STEPS = <span class="number">3000</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(STEPS):</span><br><span class="line">        start = (i * BATCH_SIZE) % <span class="number">32</span></span><br><span class="line">        end = start + BATCH_SIZE</span><br><span class="line">        sess.run(train_step, feed_dict=&#123;x: X[start:end], y_: Y[start:end]&#125;)</span><br><span class="line">        <span class="keyword">if</span> i % <span class="number">500</span> == <span class="number">0</span>:</span><br><span class="line">            total_loss = sess.run(loss, feed_dict=&#123;x: X, y_: Y&#125;)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;After %d training step(s), loss on all data is %g&quot;</span> % (i, total_loss))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 输出训练后的参数取值</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;w1:\n&quot;</span>, sess.run(w1))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;w1:\n&quot;</span>, sess.run(w2))</span><br></pre></td></tr></table></figure>
+<h1 id="6-参考"><a class="markdownIt-Anchor" href="#6-参考"></a> 6 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.icourse163.org/course/PKU-1002536002">人工智能实践：TensorFlow笔记-曹健</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/23/Python%E5%9F%BA%E7%A1%80/" rel="prev" title="Python基础">
+      <i class="fa fa-chevron-left"></i> Python基础
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/05/07/TensorFlow-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/" rel="next" title="TensorFlow-神经网络优化">
+      TensorFlow-神经网络优化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 1 基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%BC%A0%E9%87%8F"><span class="nav-text"> 1.1 张量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-text"> 1.2 数据类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E8%AE%A1%E7%AE%97%E5%9B%BE"><span class="nav-text"> 1.3 计算图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E4%BC%9A%E8%AF%9D"><span class="nav-text"> 1.4 会话</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E5%8F%82%E6%95%B0"><span class="nav-text"> 2 神经网络的参数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B%E7%BB%BC%E8%BF%B0"><span class="nav-text"> 3 神经网络的实现过程综述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD"><span class="nav-text"> 4 前向传播</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E5%AE%8C%E6%95%B4%E7%A8%8B%E5%BA%8F"><span class="nav-text"> 4.1 完整程序</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD"><span class="nav-text"> 5 反向传播</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-text"> 5.1 损失函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD%E8%AE%AD%E7%BB%83%E6%96%B9%E6%B3%95"><span class="nav-text"> 5.2 反向传播训练方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-%E5%AD%A6%E4%B9%A0%E7%8E%87"><span class="nav-text"> 5.2.1 学习率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-%E9%9A%8F%E6%9C%BA%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E7%AE%97%E6%B3%95"><span class="nav-text"> 5.2.2 随机梯度下降算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#523-momentum%E7%AE%97%E6%B3%95"><span class="nav-text"> 5.2.3 Momentum算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#524-%E8%87%AA%E9%80%82%E5%BA%94%E5%AD%A6%E4%B9%A0%E7%8E%87%E7%9A%84%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%95"><span class="nav-text"> 5.2.4 自适应学习率的优化算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E5%AE%8C%E6%95%B4%E7%A8%8B%E5%BA%8F"><span class="nav-text"> 5.3 完整程序</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%8F%82%E8%80%83"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

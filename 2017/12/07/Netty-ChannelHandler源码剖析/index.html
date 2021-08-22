@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty-ChannelHandler源码剖析">
+<meta property="og:url" content="http://example.com/2017/12/07/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelInboundHandlerAdapter.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelHandler.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelInboundHandler.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelHandlerAdapter.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelOutboundHandlerAdapter.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelOutboundHandler.png">
+<meta property="article:published_time" content="2017-12-07T08:10:14.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:20:23.009Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelInboundHandlerAdapter.png">
+
+<link rel="canonical" href="http://example.com/2017/12/07/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Netty-ChannelHandler源码剖析 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/12/07/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Netty-ChannelHandler源码剖析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-07 16:10:14" itemprop="dateCreated datePublished" datetime="2017-12-07T16:10:14+08:00">2017-12-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:20:23" itemprop="dateModified" datetime="2021-02-23T22:20:23+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/" itemprop="url" rel="index"><span itemprop="name">Framework</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/Netty/" itemprop="url" rel="index"><span itemprop="name">Netty</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/12/07/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="post-meta-item leancloud_visitors" data-flag-title="Netty-ChannelHandler源码剖析" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/12/07/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/12/07/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p>本篇博文主要以ChannelInboundHandlerAdapter以及ChannelOutboundHandlerAdapter为例，对ChannelHandler的组成结构进行分析</p>
+<h1 id="2-channelinboundhandleradapter"><a class="markdownIt-Anchor" href="#2-channelinboundhandleradapter"></a> 2 ChannelInboundHandlerAdapter</h1>
+<h2 id="21-继承结构"><a class="markdownIt-Anchor" href="#21-继承结构"></a> 2.1 继承结构</h2>
+<p><img src="/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelInboundHandlerAdapter.png" alt="ChannelInboundHandlerAdapter" /></p>
+<h2 id="22-channelhandler"><a class="markdownIt-Anchor" href="#22-channelhandler"></a> 2.2 ChannelHandler</h2>
+<p>ChannelHandler定义了最近本的Handler的功能，即添加或删除Handler</p>
+<p><img src="/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelHandler.png" alt="ChannelHandler" /></p>
+<h2 id="23-channelinboundhandler"><a class="markdownIt-Anchor" href="#23-channelinboundhandler"></a> 2.3 ChannelInboundHandler</h2>
+<p>ChannelInboundHandler接口定义了与Inbound operations相关的一些方法</p>
+<p><img src="/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelInboundHandler.png" alt="ChannelInboundHandler" /></p>
+<h2 id="24-channelhandleradapter"><a class="markdownIt-Anchor" href="#24-channelhandleradapter"></a> 2.4 ChannelHandlerAdapter</h2>
+<p>ChannelHandlerAdapter为ChannelHandler接口提供的方法提供了一个<strong>空的实现</strong>，并且增加了用于判断是否是共享Handler的方法。如果是共享的Handler，则Netty可以为所有的Pipeline都注入同一个Handler，从而避免创建Handler对象的开销</p>
+<p>由于添加或删除Handler的方法仅仅在非常特定的时刻会被触发（例如第一次register的时候），因此这里提供了一个空的实现。常见的实现该方法的类有ChannelInitializer</p>
+<p><img src="/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelHandlerAdapter.png" alt="ChannelHandlerAdapter" /></p>
+<h2 id="25-channelinboundhandleradapter的实现"><a class="markdownIt-Anchor" href="#25-channelinboundhandleradapter的实现"></a> 2.5 ChannelInboundHandlerAdapter的实现</h2>
+<p>ChannelInboundHandlerAdapter为ChannelInboundHandler接口提供了基础的实现</p>
+<p>可以看到，ChannelInboundHandlerAdapter对于ChannelInboundHandler接口的实现非常简单。仅仅调用ChannelHandlerContext的实例ctx执行相应的方法，即将该操作的执行权传递给后面的ChannelInboundHandler</p>
+<p>因此，我们在自定义ChannelInboundHandler的时候，仅需要继承该ChannelInboundHandlerAdapter类，并且重写我们需要的方法即可，如果需要将操作向后传递，则务必记得加上形如<code>ctx.fireChannelRegistered();</code>的语句。对于其他不需要重写的方法，使用ChannelInboundHandlerAdapter提供的默认版本即可，即保证操作的传递性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChannelInboundHandlerAdapter</span> <span class="keyword">extends</span> <span class="title">ChannelHandlerAdapter</span> <span class="keyword">implements</span> <span class="title">ChannelInboundHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRegistered</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireChannelRegistered();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelUnregistered</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireChannelUnregistered();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelActive</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireChannelActive();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelInactive</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireChannelInactive();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead</span><span class="params">(ChannelHandlerContext ctx, Object msg)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireChannelRead(msg);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelReadComplete</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireChannelReadComplete();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">userEventTriggered</span><span class="params">(ChannelHandlerContext ctx, Object evt)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireUserEventTriggered(evt);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelWritabilityChanged</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireChannelWritabilityChanged();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">exceptionCaught</span><span class="params">(ChannelHandlerContext ctx, Throwable cause)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.fireExceptionCaught(cause);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="3-channeloutboundhandleradapter"><a class="markdownIt-Anchor" href="#3-channeloutboundhandleradapter"></a> 3 ChannelOutboundHandlerAdapter</h1>
+<h2 id="31-继承结构"><a class="markdownIt-Anchor" href="#31-继承结构"></a> 3.1 继承结构</h2>
+<p><img src="/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelOutboundHandlerAdapter.png" alt="ChannelOutboundHandlerAdapter" /></p>
+<h2 id="32-channeloutboundhandler"><a class="markdownIt-Anchor" href="#32-channeloutboundhandler"></a> 3.2 ChannelOutboundHandler</h2>
+<p>ChannelOutboundHandler接口定义了与Outbound operations相关的一些方法</p>
+<p><img src="/images/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelOutboundHandler.png" alt="ChannelOutboundHandler" /></p>
+<h2 id="33-channeloutboundhandleradapter的实现"><a class="markdownIt-Anchor" href="#33-channeloutboundhandleradapter的实现"></a> 3.3 ChannelOutboundHandlerAdapter的实现</h2>
+<p>ChannelOutboundHandlerAdapter为ChannelOutboundHandler接口提供了基础实现</p>
+<p>与ChannelInboundHandlerAdapter的实现类似，ChannelOutboundHandlerAdapter的实现也仅仅保证了操作的传递性</p>
+<p>用户在自定义ChannelOutboundHandler的时候，只需要继承该类，并且重写关注的方法即可</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChannelOutboundHandlerAdapter</span> <span class="keyword">extends</span> <span class="title">ChannelHandlerAdapter</span> <span class="keyword">implements</span> <span class="title">ChannelOutboundHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bind</span><span class="params">(ChannelHandlerContext ctx, SocketAddress localAddress,</span></span></span><br><span class="line"><span class="params"><span class="function">            ChannelPromise promise)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.bind(localAddress, promise);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">connect</span><span class="params">(ChannelHandlerContext ctx, SocketAddress remoteAddress,</span></span></span><br><span class="line"><span class="params"><span class="function">            SocketAddress localAddress, ChannelPromise promise)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.connect(remoteAddress, localAddress, promise);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">disconnect</span><span class="params">(ChannelHandlerContext ctx, ChannelPromise promise)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.disconnect(promise);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">(ChannelHandlerContext ctx, ChannelPromise promise)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.close(promise);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(ChannelHandlerContext ctx, ChannelPromise promise)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.deregister(promise);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">read</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.read();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(ChannelHandlerContext ctx, Object msg, ChannelPromise promise)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.write(msg, promise);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">flush</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ctx.flush();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="4-特殊的channelinboundhandleradapterchannelinitializer"><a class="markdownIt-Anchor" href="#4-特殊的channelinboundhandleradapterchannelinitializer"></a> 4 特殊的ChannelInboundHandlerAdapter:ChannelInitializer</h1>
+<p>ChannelInitializer是一个非常特殊的ChannelInboundHandlerAdapter，它通常被用来添加自定义的ChannelHandler</p>
+<p>由于Pipeline与Channel是一一对应的关系，而在Channel被创建出来之前，比如我们在配置参数的时候，是无法添加到Pipeline中的，因为这时候连Channel都没有创建，何来Pipeline。于是，我们需要有一个“容器”来搜集我们自定义的Handler，然后在“适当”的时候，帮助我们将自定义的Handler添加到相应Channel的Pipeline中。ChannelInitializer就起到这样一个作用</p>
+<p>通常，Handler注入的起点是在Netty处理逻辑的某处显式调用handlerAdded方法，具体的位置在<code>DefaultChannelPipeline#callHandlerAdded0</code>方法中。具体的调用流程可以参考<a href="/2017/12/05/Netty-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" title="Netty-服务端启动源码剖析">Netty-服务端启动源码剖析</a>以及<a href="/2017/12/05/Netty-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%93%8D%E5%BA%94%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" title="Netty-服务端响应源码剖析">Netty-服务端响应源码剖析</a>中的Channel注册部分。handlerAdded方法具体逻辑如下</p>
+<ol>
+<li>如果当前Channel已经完成了注册，则调用initChannel方法</li>
+<li>initChannel方法作为一个模板，调用同名的initChannel方法执行子类处理逻辑（通常逻辑就是添加Handler）后，从当前Pipeline中移除该ChannelHandlerContext</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">C</span> <span class="keyword">extends</span> <span class="title">Channel</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> InternalLogger logger = InternalLoggerFactory.getInstance(ChannelInitializer.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ConcurrentMap&lt;ChannelHandlerContext, Boolean&gt; initMap = PlatformDependent.newConcurrentHashMap();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(C ch)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">channelRegistered</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//Normally this method will never be called as handlerAdded(...) should call initChannel(...) and remove</span></span><br><span class="line">        <span class="comment">//the handler.</span></span><br><span class="line">        <span class="keyword">if</span> (initChannel(ctx)) &#123;</span><br><span class="line">            <span class="comment">//we called initChannel(...) so we need to call now pipeline.fireChannelRegistered() to ensure we not</span></span><br><span class="line">            <span class="comment">//miss an event.</span></span><br><span class="line">            ctx.pipeline().fireChannelRegistered();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//Called initChannel(...) before which is the expected behavior, so just forward the event.</span></span><br><span class="line">            ctx.fireChannelRegistered();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">exceptionCaught</span><span class="params">(ChannelHandlerContext ctx, Throwable cause)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        logger.warn(<span class="string">&quot;Failed to initialize a channel. Closing: &quot;</span> + ctx.channel(), cause);</span><br><span class="line">        ctx.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//通常在Netty的处理流程中，会显式调用该方法，从而激活注入工作</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handlerAdded</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (ctx.channel().isRegistered()) &#123;</span><br><span class="line">            <span class="comment">//This should always be true with our current DefaultChannelPipeline implementation.</span></span><br><span class="line">            <span class="comment">//The good thing about calling initChannel(...) in handlerAdded(...) is that there will be no ordering</span></span><br><span class="line">            <span class="comment">//surprises if a ChannelInitializer will add another ChannelInitializer. This is as all handlers</span></span><br><span class="line">            <span class="comment">//will be added in the expected order.</span></span><br><span class="line">            initChannel(ctx);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//该方法作为一个模板，在调用结束后，当前Handler会被移除</span></span><br><span class="line">    <span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">initChannel</span><span class="params">(ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (initMap.putIfAbsent(ctx, Boolean.TRUE) == <span class="keyword">null</span>) &#123; <span class="comment">//Guard against re-entrance.</span></span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">//触发protected方法，该方法的逻辑由子类定义</span></span><br><span class="line">                initChannel((C) ctx.channel());</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable cause) &#123;</span><br><span class="line">                <span class="comment">//Explicitly call exceptionCaught(...) as we removed the handler before calling initChannel(...).</span></span><br><span class="line">                <span class="comment">//We do so to prevent multiple calls to initChannel(...).</span></span><br><span class="line">                exceptionCaught(ctx, cause);</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="comment">//从Pipeline中移除该Context</span></span><br><span class="line">                remove(ctx);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(ChannelHandlerContext ctx)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ChannelPipeline pipeline = ctx.pipeline();</span><br><span class="line">            <span class="keyword">if</span> (pipeline.context(<span class="keyword">this</span>) != <span class="keyword">null</span>) &#123;</span><br><span class="line">                pipeline.remove(<span class="keyword">this</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            initMap.remove(ctx);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="5-传递性的实现"><a class="markdownIt-Anchor" href="#5-传递性的实现"></a> 5 传递性的实现</h1>
+<p>关于这部分内容，请参考<a href="/2017/12/07/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" title="Netty-ChannelHandlerContext源码剖析">Netty-ChannelHandlerContext源码剖析</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/12/07/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" rel="prev" title="Netty-ChannelHandlerContext源码剖析">
+      <i class="fa fa-chevron-left"></i> Netty-ChannelHandlerContext源码剖析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/12/08/JetBrains-Developer-Tools/" rel="next" title="JetBrains-Developer-Tools">
+      JetBrains-Developer-Tools <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-channelinboundhandleradapter"><span class="nav-text"> 2 ChannelInboundHandlerAdapter</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E7%BB%A7%E6%89%BF%E7%BB%93%E6%9E%84"><span class="nav-text"> 2.1 继承结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-channelhandler"><span class="nav-text"> 2.2 ChannelHandler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-channelinboundhandler"><span class="nav-text"> 2.3 ChannelInboundHandler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-channelhandleradapter"><span class="nav-text"> 2.4 ChannelHandlerAdapter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-channelinboundhandleradapter%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 2.5 ChannelInboundHandlerAdapter的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-channeloutboundhandleradapter"><span class="nav-text"> 3 ChannelOutboundHandlerAdapter</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E7%BB%A7%E6%89%BF%E7%BB%93%E6%9E%84"><span class="nav-text"> 3.1 继承结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-channeloutboundhandler"><span class="nav-text"> 3.2 ChannelOutboundHandler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-channeloutboundhandleradapter%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 3.3 ChannelOutboundHandlerAdapter的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E7%89%B9%E6%AE%8A%E7%9A%84channelinboundhandleradapterchannelinitializer"><span class="nav-text"> 4 特殊的ChannelInboundHandlerAdapter:ChannelInitializer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E4%BC%A0%E9%80%92%E6%80%A7%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 5 传递性的实现</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

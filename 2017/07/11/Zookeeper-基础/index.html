@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zookeeper-基础">
+<meta property="og:url" content="http://example.com/2017/07/11/Zookeeper-%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig1.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig2.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig3.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig4.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig5.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig6.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig7.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig8.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig9.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig10.png">
+<meta property="og:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig10.png">
+<meta property="article:published_time" content="2017-07-11T10:49:23.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.560Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig1.png">
+
+<link rel="canonical" href="http://example.com/2017/07/11/Zookeeper-%E5%9F%BA%E7%A1%80/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Zookeeper-基础 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/11/Zookeeper-%E5%9F%BA%E7%A1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Zookeeper-基础
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-11 18:49:23" itemprop="dateCreated datePublished" datetime="2017-07-11T18:49:23+08:00">2017-07-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/" itemprop="url" rel="index"><span itemprop="name">Distributed</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/Zookeeper/" itemprop="url" rel="index"><span itemprop="name">Zookeeper</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/11/Zookeeper-%E5%9F%BA%E7%A1%80/" class="post-meta-item leancloud_visitors" data-flag-title="Zookeeper-基础" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/11/Zookeeper-%E5%9F%BA%E7%A1%80/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/11/Zookeeper-%E5%9F%BA%E7%A1%80/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-分布式协调技术"><a class="markdownIt-Anchor" href="#1-分布式协调技术"></a> 1 分布式协调技术</h1>
+<p>在给大家介绍ZooKeeper之前先来给大家介绍一种技术——<strong>分布式协调技术</strong>。那么什么是分布式协调技术？那么我来告诉大家，其实分布式协调技术主要用来解决分布式环境当中<strong>多个进程之间的同步控制，让他们有序的去访问某种临界资源，防止造成&quot;脏数据&quot;的后果</strong>。这时，有人可能会说这个简单，写一个调度算法就轻松解决了。说这句话的人，可能对分布式系统不是很了解，所以才会出现这种误解。如果这些进程全部是跑在一台机上的话，相对来说确实就好办了，问题就在于他是在一个分布式的环境下，这时问题又来了，那什么是分布式呢？这个一两句话我也说不清楚，但我给大家画了一张图希望能帮助大家理解这方面的内容，如果觉得不对尽可拍砖，来咱们看一下这张图</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig1.png" alt="fig1" /></p>
+<p>给大家分析一下这张图，在这图中有三台机器，每台机器各跑一个应用程序。然后我们将这三台机器通过网络将其连接起来，构成一个系统来为用户提供服务，对用户来说这个系统的架构是透明的，他感觉不到我这个系统是一个什么样的架构。那么我们就可以把这种系统称作一个分布式系统</p>
+<p>那我们接下来再分析一下，在这个分布式系统中如何对进程进行调度，我假设在第一台机器上挂载了一个资源，然后这三个物理分布的进程都要竞争这个资源，但我们又不希望他们同时进行访问，这时候我们就需要一个协调器，来让他们有序的来访问这个资源。这个协调器就是我们经常提到的那个锁，比如说&quot;进程1&quot;在使用该资源的时候，会先去获得锁，&quot;进程1&quot;获得锁以后会对该资源保持独占，这样其他进程就无法访问该资源，&quot;进程1&quot;用完该资源以后就将锁释放掉，让其他进程来获得锁，那么通过这个锁机制，我们就能保证了分布式系统中多个进程能够有序的访问该临界资源。那么我们把这个分布式环境下的这个锁叫作分布式锁。这个分布式锁也就是我们分布式协调技术实现的核心内容，那么如何实现这个分布式呢，那就是我们后面要讲的内容</p>
+<h1 id="2-分布式锁的实现"><a class="markdownIt-Anchor" href="#2-分布式锁的实现"></a> 2 分布式锁的实现</h1>
+<p>好我们知道，为了防止分布式系统中的多个进程之间相互干扰，我们需要一种分布式协调技术来对这些进程进行调度。而这个分布式协调技术的核心就是来实现这个分布式锁。那么这个锁怎么实现呢？这实现起来确实相对来说比较困难的</p>
+<h2 id="21-面临的问题"><a class="markdownIt-Anchor" href="#21-面临的问题"></a> 2.1 面临的问题</h2>
+<p>在看了上图所示的分布式环境之后，有人可能会感觉这不是很难。<strong>无非是将原来在同一台机器上对进程调度的原语，通过网络实现在分布式环境中</strong>。是的，表面上是可以这么说。<strong>但是问题就在网络这，在分布式系统中，所有在同一台机器上的假设都不存在：因为网络是不可靠的</strong></p>
+<p>比如，在同一台机器上，你对一个服务的调用如果成功，那就是成功，如果调用失败，比如抛出异常那就是调用失败。但是在分布式环境中，由于网络的不可靠，你对一个服务的调用失败了并不表示一定是失败的，可能是执行成功了，但是响应返回的时候失败了。还有，A和B都去调用C服务，在时间上A还先调用一些，B后调用，那么最后的结果是不是一定A的请求就先于B到达呢？这些在同一台机器上的种种假设，我们都要重新思考，我们还要思考这些问题给我们的设计和编码带来了哪些影响。还有，在分布式环境中为了提升可靠性，我们往往会部署多套服务，但是如何在多套服务中达到一致性，这在同一台机器上多个进程之间的同步相对来说比较容易办到，但在分布式环境中确实一个大难题</p>
+<p>所以分布式协调远比在同一台机器上对多个进程的调度要难得多，而且如果为每一个分布式应用都开发一个独立的协调程序。一方面，协调程序的反复编写浪费，且难以形成通用、伸缩性好的协调器。另一方面，协调程序开销比较大，会影响系统原有的性能。所以，急需一种高可靠、高可用的通用协调机制来用以协调分布式应用</p>
+<h2 id="22-分布式锁的实现者"><a class="markdownIt-Anchor" href="#22-分布式锁的实现者"></a> 2.2 分布式锁的实现者</h2>
+<p>目前，在分布式协调技术方面做得比较好的就是Google的Chubby还有Apache的ZooKeeper他们都是分布式锁的实现者。有人会问既然有了Chubby为什么还要弄一个ZooKeeper，难道Chubby做得不够好吗？不是这样的，主要是Chbby是非开源的，Google自家用。后来雅虎模仿Chubby开发出了ZooKeeper，也实现了类似的分布式锁的功能，并且将ZooKeeper作为一种开源的程序捐献给了Apache，那么这样就可以使用ZooKeeper所提供锁服务。而且在分布式领域久经考验，它的可靠性，可用性都是经过理论和实践的验证的。所以我们在构建一些分布式系统的时候，就可以以这类系统为起点来构建我们的系统，这将节省不少成本，而且bug也将更少</p>
+<h1 id="3-zookeeper概述"><a class="markdownIt-Anchor" href="#3-zookeeper概述"></a> 3 ZooKeeper概述</h1>
+<p>ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务，<strong>它提供了一项基本服务：分布式锁服务</strong>。由于ZooKeeper的开源特性，后来我们的开发者在分布式锁的基础上，摸索了出了其他的使用方法：配置维护、组服务、分布式消息队列、分布式通知/协调等</p>
+<p>注意：ZooKeeper性能上的特点决定了它能够用在大型的、分布式的系统当中。从可靠性方面来说，它并不会因为一个节点的错误而崩溃。除此之外，它严格的序列访问控制意味着复杂的控制原语可以应用在客户端上。ZooKeeper在一致性、可用性、容错性的保证，也是ZooKeeper的成功之处，它获得的一切成功都与它采用的协议——Zab协议是密不可分的，这些内容将会在后面介绍</p>
+<p>前面提到了那么多的服务，比如分布式锁、配置维护、组服务等，那它们是如何实现的呢，我相信这才是大家关心的东西。ZooKeeper在实现这些服务时，首先它设计一种新的数据结构——Znode，然后在该数据结构的基础上定义了一些原语，也就是一些关于该数据结构的一些操作。有了这些数据结构和原语还不够，因为我们的ZooKeeper是工作在一个分布式的环境下，我们的服务是通过消息以网络的形式发送给我们的分布式应用程序，<strong>所以还需要一个通知机制——Watcher机制</strong>。那么总结一下，ZooKeeper所提供的服务主要是通过：数据结构+原语+watcher机制，三个部分来实现的。那么我就从这三个方面，给大家介绍一下ZooKeeper</p>
+<h1 id="4-zookeeper数据模型"><a class="markdownIt-Anchor" href="#4-zookeeper数据模型"></a> 4 ZooKeeper数据模型</h1>
+<h2 id="41-zookeeper数据模型znode"><a class="markdownIt-Anchor" href="#41-zookeeper数据模型znode"></a> 4.1 ZooKeeper数据模型Znode</h2>
+<p>ZooKeeper拥有一个层次的命名空间，这个和标准的文件系统非常相似，如下图所示</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig2.png" alt="fig2" /></p>
+<p>从图中我们可以看出ZooKeeper的数据模型，在结构上和标准文件系统的非常相似，都是采用这种树形层次结构，ZooKeeper树中的每个节点被称为—Znode。和文件系统的目录树一样，ZooKeeper树中的每个节点可以拥有子节点。但也有不同之处：</p>
+<h3 id="411-引用方式"><a class="markdownIt-Anchor" href="#411-引用方式"></a> 4.1.1 引用方式</h3>
+<p>Zonde通过路径引用，如同Unix中的文件路径。路径必须是绝对的，因此他们必须由斜杠字符来开头。除此以外，他们必须是唯一的，也就是说每一个路径只有一个表示，因此这些路径不能改变。在ZooKeeper中，路径由Unicode字符串组成，并且有一些限制。字符串&quot;/zookeeper&quot;用以保存管理信息，比如关键配额信息</p>
+<h3 id="412-znode结构"><a class="markdownIt-Anchor" href="#412-znode结构"></a> 4.1.2 Znode结构</h3>
+<p>ZooKeeper命名空间中的Znode，兼具文件和目录两种特点。既像文件一样维护着数据、元信息、ACL、时间戳等数据结构，又像目录一样可以作为路径标识的一部分。图中的每个节点称为一个Znode。每个Znode由3部分组成:</p>
+<ol>
+<li>stat：此为状态信息，描述该Znode的版本，权限等信息</li>
+<li>data：与该Znode关联的数据</li>
+<li>children：该Znode下的子节点</li>
+</ol>
+<p>ZooKeeper虽然可以关联一些数据，但并没有被设计为常规的数据库或者大数据存储。<strong>相反的是，它用来管理调度数据，比如分布式应用中的配置文件信息、状态信息、汇集位置等等</strong>。这些数据的共同特性就是它们都是很小的数据，通常以KB为大小单位。ZooKeeper的服务器和客户端都被设计为严格检查并限制每个Znode的数据大小至多1M，但常规使用中应该远小于此值</p>
+<h3 id="413-数据访问"><a class="markdownIt-Anchor" href="#413-数据访问"></a> 4.1.3 数据访问</h3>
+<p>ZooKeeper中的每个节点存储的数据要被原子性的操作。也就是说读操作将获取与节点相关的所有数据，写操作也将替换掉节点的所有数据。另外，每一个节点都拥有自己的ACL(访问控制列表)，这个列表规定了用户的权限，即限定了特定用户对目标节点可以执行的操作</p>
+<h3 id="414-节点类型"><a class="markdownIt-Anchor" href="#414-节点类型"></a> 4.1.4 节点类型</h3>
+<p>ZooKeeper中的节点有两种，分别为临时节点和永久节点。节点的类型在创建时即被确定，并且不能改变</p>
+<ol>
+<li>临时节点：该节点的生命周期依赖于创建它们的会话。一旦会话(Session)结束，临时节点将被自动删除，当然可以也可以手动删除。虽然每个临时的Znode都会绑定到一个客户端会话，但他们对所有的客户端还是可见的。另外，ZooKeeper的临时节点不允许拥有子节点</li>
+<li>永久节点：该节点的生命周期不依赖于会话，并且只有在客户端显示执行删除操作的时候，他们才能被删除</li>
+</ol>
+<h3 id="415-顺序节点"><a class="markdownIt-Anchor" href="#415-顺序节点"></a> 4.1.5 顺序节点</h3>
+<p>当创建Znode的时候，用户可以请求在ZooKeeper的路径结尾添加一个递增的计数。这个计数对于此节点的父节点来说是唯一的，它的格式为&quot;%10d&quot;(10位数字，没有数值的数位用0补充，例如&quot;0000000001&quot;)。当计数值大于2^32-1时，计数器将溢出</p>
+<h3 id="416-观察"><a class="markdownIt-Anchor" href="#416-观察"></a> 4.1.6 观察</h3>
+<p>客户端可以在节点上设置watch，我们称之为监视器。<strong>当节点状态发生改变时(Znode的增、删、改)将会触发watch所对应的操作。当watch被触发时，ZooKeeper将会向客户端发送且仅发送一条通知，因为watch只能被触发一次，这样可以减少网络流量</strong></p>
+<h2 id="42-zookeeper中的时间"><a class="markdownIt-Anchor" href="#42-zookeeper中的时间"></a> 4.2 ZooKeeper中的时间</h2>
+<p>ZooKeeper有多种记录时间的形式，其中包含以下几个主要属性：</p>
+<h3 id="421-zxid"><a class="markdownIt-Anchor" href="#421-zxid"></a> 4.2.1 Zxid</h3>
+<p>致使ZooKeeper节点状态改变的每一个操作都将使节点接收到一个Zxid格式的时间戳，并且这个时间戳全局有序。也就是说，也就是说，每个对节点的改变都将产生一个唯一的Zxid。如果Zxid1的值小于Zxid2的值，那么Zxid1所对应的事件发生在Zxid2所对应的事件之前。实际上，ZooKeeper的每个节点维护者三个Zxid值，为别为：cZxid、mZxid、pZxid</p>
+<ol>
+<li>cZxid：是节点的创建时间所对应的Zxid格式时间戳</li>
+<li>mZxid：是节点的修改时间所对应的Zxid格式时间戳</li>
+</ol>
+<p>实现中Zxid是一个64为的数字，它高32位是epoch用来标识leader关系是否改变，每次一个leader被选出来，它都会有一个新的epoch。低32位是个递增计数</p>
+<h3 id="422-版本号"><a class="markdownIt-Anchor" href="#422-版本号"></a> 4.2.2 版本号</h3>
+<p>对节点的每一个操作都将致使这个节点的版本号增加。每个节点维护着三个版本号，他们分别为：</p>
+<ol>
+<li>version：节点数据版本号</li>
+<li>cversion：子节点版本号</li>
+<li>aversion：节点所拥有的ACL版本号</li>
+</ol>
+<h2 id="43-zookeeper节点属性"><a class="markdownIt-Anchor" href="#43-zookeeper节点属性"></a> 4.3 ZooKeeper节点属性</h2>
+<p>通过前面的介绍，我们可以了解到，一个节点自身拥有表示其状态的许多重要属性，如下表所示</p>
+<style>
+table th:nth-of-type(1) {
+    width: 50px;
+}
+table th:nth-of-type(2) {
+    width: 150px;
+}
+</style>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">czxid</td>
+<td style="text-align:left">节点被创建的zxid</td>
+</tr>
+<tr>
+<td style="text-align:left">mzxid</td>
+<td style="text-align:left">节点被修改的zxid</td>
+</tr>
+<tr>
+<td style="text-align:left">ctime</td>
+<td style="text-align:left">节点被创建的时间</td>
+</tr>
+<tr>
+<td style="text-align:left">mtime</td>
+<td style="text-align:left">节点被修改的zxid</td>
+</tr>
+<tr>
+<td style="text-align:left">version</td>
+<td style="text-align:left">节点被修改的版本号</td>
+</tr>
+<tr>
+<td style="text-align:left">cversion</td>
+<td style="text-align:left">节点所拥有的子节点被修改的版本号</td>
+</tr>
+<tr>
+<td style="text-align:left">aversion</td>
+<td style="text-align:left">节点的ACL被修改的版本号</td>
+</tr>
+<tr>
+<td style="text-align:left">ephemeralOwner</td>
+<td style="text-align:left">如果此节点为临时节点，那么他的值为这个节点拥有者的会话ID；否则值为0</td>
+</tr>
+<tr>
+<td style="text-align:left">dataLength</td>
+<td style="text-align:left">节点数组长度</td>
+</tr>
+<tr>
+<td style="text-align:left">numChildren</td>
+<td style="text-align:left">节点用的子节点长度</td>
+</tr>
+<tr>
+<td style="text-align:left">pzxid</td>
+<td style="text-align:left">最新修改的zxid，貌似与mzxid重合了</td>
+</tr>
+</tbody>
+</table>
+<p>更新ZooKeeper操作是有限制的。delete或setData必须明确要更新的Znode的版本号，我们可以调用exists找到。如果版本号不匹配，更新将会失败</p>
+<p>更新ZooKeeper操作是非阻塞式的。因此客户端如果失去了一个更新(由于另一个进程在同时更新这个Znode)，他可以在不阻塞其他进程执行的情况下，选择重新尝试或进行其他操作</p>
+<p>尽管ZooKeeper可以被看做是一个文件系统，但是处于便利，摒弃了一些文件系统地操作原语。因为文件非常的小并且使整体读写的，所以不需要打开、关闭或是寻地的操作</p>
+<h2 id="44-watch触发器"><a class="markdownIt-Anchor" href="#44-watch触发器"></a> 4.4 Watch触发器</h2>
+<h3 id="441-watch概述"><a class="markdownIt-Anchor" href="#441-watch概述"></a> 4.4.1 watch概述</h3>
+<p>ZooKeeper可以为所有的读操作设置watch，这些读操作包括：exists()、getChildren()及getData()。watch事件是一次性的触发器，当watch的对象状态发生改变时，将会触发此对象上watch所对应的事件。watch事件将被异步地发送给客户端，并且ZooKeeper为watch机制提供了有序的一致性保证。理论上，客户端接收watch事件的时间要快于其看到watch对象状态变化的时间</p>
+<h3 id="442-watch类型"><a class="markdownIt-Anchor" href="#442-watch类型"></a> 4.4.2 watch类型</h3>
+<p>ZooKeeper所管理的watch可以分为两类：</p>
+<ol>
+<li>数据watch(data watches)：getData和exists负责设置数据watch</li>
+<li>孩子watch(child watches)：getChildren负责设置孩子watch</li>
+</ol>
+<p>我们可以通过操作返回的数据来设置不同的watch：</p>
+<ol>
+<li>getData和exists：返回关于节点的数据信息</li>
+<li>getChildren：返回孩子列表</li>
+</ol>
+<p>因此</p>
+<ol>
+<li>一个成功的setData操作将触发Znode的数据watch</li>
+<li>一个成功的create操作将触发Znode的数据watch以及孩子watch</li>
+<li>一个成功的delete操作将触发Znode的数据watch以及孩子watch</li>
+</ol>
+<h3 id="443-watch注册与处触发"><a class="markdownIt-Anchor" href="#443-watch注册与处触发"></a> 4.4.3 watch注册与处触发</h3>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig3.png" alt="fig3" /></p>
+<ol>
+<li>exists操作上的watch，在被监视的Znode创建、删除或数据更新时被触发</li>
+<li>getData操作上的watch，在被监视的Znode删除或数据更新时被触发。在被创建时不能被触发，因为只有Znode一定存在，getData操作才会成功</li>
+<li>getChildren操作上的watch，在被监视的Znode的子节点创建或删除，或是这个Znode自身被删除时被触发。可以通过查看watch事件类型来区分是Znode，还是他的子节点被删除：NodeDelete表示Znode被删除，NodeDeletedChanged表示子节点被删除</li>
+</ol>
+<p>Watch由客户端所连接的ZooKeeper服务器在本地维护，因此watch可以非常容易地设置、管理和分派。当客户端连接到一个新的服务器时，任何的会话事件都将可能触发watch。另外，当从服务器断开连接的时候，watch将不会被接收。但是，当一个客户端重新建立连接的时候，任何先前注册过的watch都会被重新注册</p>
+<h3 id="444-需要注意的几点"><a class="markdownIt-Anchor" href="#444-需要注意的几点"></a> 4.4.4 需要注意的几点</h3>
+<p>Zookeeper的watch实际上要处理两类事件：</p>
+<ol>
+<li>连接状态事件(type=None, path=null)：这类事件不需要注册，也不需要我们连续触发，我们只要处理就行了</li>
+<li>节点事件：节点的建立，删除，数据的修改。它是one time trigger，我们需要不停的注册触发，还可能发生事件丢失的情况</li>
+</ol>
+<p>上面2类事件都在Watch中处理，也就是重载的process(Event event)</p>
+<p>节点事件的触发，通过函数exists，getData或getChildren来处理这类函数，有双重作用：</p>
+<ol>
+<li>注册触发事件</li>
+<li>函数本身的功能</li>
+</ol>
+<p>函数的本身的功能又可以用异步的回调函数来实现,重载processResult()过程中处理函数本身的的功能</p>
+<h1 id="5-zookeeper应用举例"><a class="markdownIt-Anchor" href="#5-zookeeper应用举例"></a> 5 ZooKeeper应用举例</h1>
+<p>为了方便大家理解ZooKeeper，在此就给大家举个例子，看看ZooKeeper是如何实现的他的服务的，我以ZooKeeper提供的基本服务分布式锁为例</p>
+<h2 id="51-分布式锁应用场景"><a class="markdownIt-Anchor" href="#51-分布式锁应用场景"></a> 5.1 分布式锁应用场景</h2>
+<p>在分布式锁服务中，有一种最典型应用场景，就是通过对集群进行Master选举，来解决分布式系统中的单点故障。什么是分布式系统中的单点故障：通常分布式系统采用主从模式，就是一个主控机连接多个处理节点。主节点负责分发任务，从节点负责处理任务，当我们的主节点发生故障时，那么整个系统就都瘫痪了，那么我们把这种故障叫作单点故障</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig4.png" alt="fig4" /></p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig5.png" alt="fig5" /></p>
+<h2 id="52-传统解决方案"><a class="markdownIt-Anchor" href="#52-传统解决方案"></a> 5.2 传统解决方案</h2>
+<p>传统方式是采用一个备用节点，这个备用节点定期给当前主节点发送ping包，主节点收到ping包以后向备用节点发送回复Ack，当备用节点收到回复的时候就会认为当前主节点还活着，让他继续提供服务。如下图所示</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig6.png" alt="fig6" /></p>
+<p>当主节点挂了，这时候备用节点收不到回复了，然后他就认为主节点挂了接替他成为主节点，如下图所示</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig7.png" alt="fig7" /></p>
+<p>但是这种方式就是有一个隐患，就是网络问题，来看一网络问题会造成什么后果，如下图所示</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig8.png" alt="fig8" /></p>
+<p>也就是说我们的主节点的并没有挂，只是在回复的时候网络发生故障，这样我们的备用节点同样收不到回复，就会认为主节点挂了，然后备用节点将他的Master实例启动起来，这样我们的分布式系统当中就有了两个主节点也就是—双Master，出现Master以后我们的从节点就会将它所做的事一部分汇报给了主节点，一部分汇报给了从节点，这样服务就全乱了。为了防止出现这种情况，<strong>我们引入了ZooKeeper，它虽然不能避免网络故障，但它能够保证每时每刻只有一个Master</strong>。我么来看一下ZooKeeper是如何实现的</p>
+<h2 id="53-zookeeper解决方案"><a class="markdownIt-Anchor" href="#53-zookeeper解决方案"></a> 5.3 ZooKeeper解决方案</h2>
+<h3 id="531-master启动"><a class="markdownIt-Anchor" href="#531-master启动"></a> 5.3.1 Master启动</h3>
+<p>在引入了Zookeeper以后我们启动了两个主节点，“主节点-A&quot;和&quot;主节点-B&quot;他们启动以后，都向ZooKeeper去注册一个节点。我们假设&quot;主节点-A&quot;锁注册地节点是&quot;master-00001”，“主节点-B&quot;注册的节点是&quot;master-00002”，注册完以后进行选举，编号最小的节点将在选举中获胜获得锁成为主节点，也就是我们的&quot;主节点-A&quot;将会获得锁成为主节点，然后&quot;主节点-B&quot;将被阻塞成为一个备用节点。那么，通过这种方式就完成了对两个Master进程的调度</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig9.png" alt="fig9" /></p>
+<h3 id="532-master故障"><a class="markdownIt-Anchor" href="#532-master故障"></a> 5.3.2 Master故障</h3>
+<p>如果&quot;主节点-A&quot;挂了，这时候他所注册的节点将被自动删除，ZooKeeper会自动感知节点的变化，然后再次发出选举，这时候&quot;主节点-B&quot;将在选举中获胜，替代&quot;主节点-A&quot;成为主节点</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig10.png" alt="fig10" /></p>
+<h3 id="533-master-恢复"><a class="markdownIt-Anchor" href="#533-master-恢复"></a> 5.3.3 Master 恢复</h3>
+<p>如果主节点恢复了，他会再次向ZooKeeper注册一个节点，这时候他注册的节点将会是&quot;master-00003&quot;，ZooKeeper会感知节点的变化再次发动选举，这时候&quot;主节点-B&quot;在选举中会再次获胜继续担任&quot;主节点&quot;，&quot;主节点-A&quot;会担任备用节点</p>
+<p><img src="/images/Zookeeper-%E5%9F%BA%E7%A1%80/fig10.png" alt="fig11" /></p>
+<p>为什么Zookeeper能在网络故障时始终保持只有一个master在服务呢？在传统解决方案中，主从服务器是处于一种互相观望的状况，这种方式在发生网络故障的时候会产生信息不一致的情况，即可能我们都认为对面挂了。但是在Zookeeper的解决方案中，是由另一个中介者(Zookeeper服务器)来进行判断的，即便是由于网络故障导致Zookeeper认为服务器A宕机，此时Zookeeper将会主动切换到服务器B上，不会存在两台服务器同时服务的情况</p>
+<h1 id="6-参考"><a class="markdownIt-Anchor" href="#6-参考"></a> 6 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/wuxl360/p/5817471.html">ZooKeeper学习第一期—Zookeeper简单介绍</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/11/Zookeeper-%E6%A6%82%E8%AE%BA/" rel="prev" title="Zookeeper-概论">
+      <i class="fa fa-chevron-left"></i> Zookeeper-概论
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/11/Zookeeper-%E5%8E%9F%E7%90%86/" rel="next" title="Zookeeper-原理">
+      Zookeeper-原理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%8F%E8%B0%83%E6%8A%80%E6%9C%AF"><span class="nav-text"> 1 分布式协调技术</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 2 分布式锁的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E9%9D%A2%E4%B8%B4%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text"> 2.1 面临的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0%E8%80%85"><span class="nav-text"> 2.2 分布式锁的实现者</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-zookeeper%E6%A6%82%E8%BF%B0"><span class="nav-text"> 3 ZooKeeper概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-zookeeper%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 4 ZooKeeper数据模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-zookeeper%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8Bznode"><span class="nav-text"> 4.1 ZooKeeper数据模型Znode</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#411-%E5%BC%95%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-text"> 4.1.1 引用方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#412-znode%E7%BB%93%E6%9E%84"><span class="nav-text"> 4.1.2 Znode结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#413-%E6%95%B0%E6%8D%AE%E8%AE%BF%E9%97%AE"><span class="nav-text"> 4.1.3 数据访问</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#414-%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B"><span class="nav-text"> 4.1.4 节点类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#415-%E9%A1%BA%E5%BA%8F%E8%8A%82%E7%82%B9"><span class="nav-text"> 4.1.5 顺序节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#416-%E8%A7%82%E5%AF%9F"><span class="nav-text"> 4.1.6 观察</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-zookeeper%E4%B8%AD%E7%9A%84%E6%97%B6%E9%97%B4"><span class="nav-text"> 4.2 ZooKeeper中的时间</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#421-zxid"><span class="nav-text"> 4.2.1 Zxid</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#422-%E7%89%88%E6%9C%AC%E5%8F%B7"><span class="nav-text"> 4.2.2 版本号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-zookeeper%E8%8A%82%E7%82%B9%E5%B1%9E%E6%80%A7"><span class="nav-text"> 4.3 ZooKeeper节点属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-watch%E8%A7%A6%E5%8F%91%E5%99%A8"><span class="nav-text"> 4.4 Watch触发器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#441-watch%E6%A6%82%E8%BF%B0"><span class="nav-text"> 4.4.1 watch概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#442-watch%E7%B1%BB%E5%9E%8B"><span class="nav-text"> 4.4.2 watch类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#443-watch%E6%B3%A8%E5%86%8C%E4%B8%8E%E5%A4%84%E8%A7%A6%E5%8F%91"><span class="nav-text"> 4.4.3 watch注册与处触发</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#444-%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E5%87%A0%E7%82%B9"><span class="nav-text"> 4.4.4 需要注意的几点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-zookeeper%E5%BA%94%E7%94%A8%E4%B8%BE%E4%BE%8B"><span class="nav-text"> 5 ZooKeeper应用举例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text"> 5.1 分布式锁应用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-%E4%BC%A0%E7%BB%9F%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text"> 5.2 传统解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-zookeeper%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text"> 5.3 ZooKeeper解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#531-master%E5%90%AF%E5%8A%A8"><span class="nav-text"> 5.3.1 Master启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#532-master%E6%95%85%E9%9A%9C"><span class="nav-text"> 5.3.2 Master故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#533-master-%E6%81%A2%E5%A4%8D"><span class="nav-text"> 5.3.3 Master 恢复</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%8F%82%E8%80%83"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

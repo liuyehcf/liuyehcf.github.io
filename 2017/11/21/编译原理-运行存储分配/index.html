@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译原理-运行存储分配">
+<meta property="og:url" content="http://example.com/2017/11/21/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig1.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig2.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig3.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig4.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig5.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig6.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig7.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig8.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig9.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig10.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig11.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig12.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig13.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig14.jpg">
+<meta property="article:published_time" content="2017-11-21T05:26:43.000Z">
+<meta property="article:modified_time" content="2021-08-22T10:09:13.639Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/11/21/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>编译原理-运行存储分配 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/11/21/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          编译原理-运行存储分配
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-11-21 13:26:43" itemprop="dateCreated datePublished" datetime="2017-11-21T13:26:43+08:00">2017-11-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-22 18:09:13" itemprop="dateModified" datetime="2021-08-22T18:09:13+08:00">2021-08-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Compile-Principle/" itemprop="url" rel="index"><span itemprop="name">Compile Principle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/11/21/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/" class="post-meta-item leancloud_visitors" data-flag-title="编译原理-运行存储分配" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/11/21/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/11/21/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-运行存储分配概述"><a class="markdownIt-Anchor" href="#1-运行存储分配概述"></a> 1 运行存储分配概述</h1>
+<h2 id="11-运行存储分配策略"><a class="markdownIt-Anchor" href="#11-运行存储分配策略"></a> 1.1 运行存储分配策略</h2>
+<p>编译器在工作过程中，必须为源程序中出现的一些<strong>数据对象</strong>分配<strong>运行时的存储空间</strong></p>
+<ul>
+<li>对于那些在<strong>编译时刻</strong>就可以确定大小的数据对象，可以在编译时刻就为它们分配存储空间，这样的分配策略称为<strong>静态存储分配</strong></li>
+<li>反之，如果不能在编译时完全确定数据对象的大小，就要采用<strong>动态存储分配</strong>的策略。即在编译时仅产生各种必要的信息，而在<strong>运行时刻</strong>，再动态地分配数据对象的存储空间
+<ul>
+<li>栈式存储分配</li>
+<li>堆式存储分配</li>
+</ul>
+</li>
+<li>其中，<strong>静态</strong>和<strong>动态</strong>分别对应<strong>编译时刻</strong>和<strong>运行时刻</strong></li>
+</ul>
+<h2 id="12-运行时内存的划分"><a class="markdownIt-Anchor" href="#12-运行时内存的划分"></a> 1.2 运行时内存的划分</h2>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig1.jpg" alt="fig1" /></p>
+<h2 id="13-活动记录"><a class="markdownIt-Anchor" href="#13-活动记录"></a> 1.3 活动记录</h2>
+<p>使用<strong>过程(或函数、方法)<strong>作为用户自定义动作的单元的语言，其编译器通常</strong>以过程为单位分配存储空间</strong></p>
+<p>过程体的每次执行称为该过程的一个<strong>活动</strong>(activation)</p>
+<p>过程每执行一次，就为它分配一块连续存储区，用来管理过程一次执行所需的信息，这块连续存储区称为<strong>活动记录</strong>(activation record)</p>
+<h2 id="14-活动记录的一般形式"><a class="markdownIt-Anchor" href="#14-活动记录的一般形式"></a> 1.4 活动记录的一般形式</h2>
+<p>活动记录一般包括以下内容</p>
+<ol>
+<li>实参</li>
+<li>返回值</li>
+<li>控制链：指向调用者的活动记录</li>
+<li>访问链：用来访问存放于其它活动记录中的非局部数据</li>
+<li>保存的机器状态</li>
+<li>局部数据</li>
+<li>临时变量</li>
+</ol>
+<h1 id="2-静态存储分配"><a class="markdownIt-Anchor" href="#2-静态存储分配"></a> 2 静态存储分配</h1>
+<p>在静态存储分配中，编译器为每个过程确定其活动记录在目标程序中的位置</p>
+<ul>
+<li>这样，过程中每个名字的存储位置就确定了</li>
+<li>因此，这些名字的存储地址可以被编译到目标代码中</li>
+<li>过程每次执行时，它的名字都绑定到同样的存储单元</li>
+</ul>
+<h2 id="21-静态存储分配的限制条件"><a class="markdownIt-Anchor" href="#21-静态存储分配的限制条件"></a> 2.1 静态存储分配的限制条件</h2>
+<p>适合静态存储分配的语言必须满足以下条件</p>
+<ul>
+<li>数组上下界必须是常数</li>
+<li>不允许过程的递归调用</li>
+<li>不允许动态建立数据实体</li>
+</ul>
+<p>满足这些条件的语言有<code>BASIC</code>和<code>FORTRAN</code>等</p>
+<h2 id="22-常用的静态存储分配方法"><a class="markdownIt-Anchor" href="#22-常用的静态存储分配方法"></a> 2.2 常用的静态存储分配方法</h2>
+<p>常用的静态存储分配方法有如下两种</p>
+<ol>
+<li>顺序分配法</li>
+<li>层次分配法</li>
+</ol>
+<h3 id="221-顺序分配法"><a class="markdownIt-Anchor" href="#221-顺序分配法"></a> 2.2.1 顺序分配法</h3>
+<p>按照过程出现的先后顺序逐段分配存储空间，各过程的活动记录占用互不相交的存储空间</p>
+<p>优点：处理上简单<br />
+缺点：对内存空间的使用不够经济合理</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig2.jpg" alt="fig2" /></p>
+<h3 id="222-层次分配法"><a class="markdownIt-Anchor" href="#222-层次分配法"></a> 2.2.2 层次分配法</h3>
+<p>通过对过程间的调用关系进行分析，凡属无相互调用关系的并列过程，尽量使其局部数据<strong>共享</strong>存储空间。(<strong>类似操作系统内存管理中的覆盖技术</strong>)</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig3.jpg" alt="fig3" /></p>
+<p><strong>层次分配算法</strong></p>
+<ol>
+<li>
+$B[n][n]$：过程调用关系矩阵
+<ul>
+<li>
+$B[ i ][ j ] = 1$： 表示第$i$个过程调用第$j$个过程
+</li>
+<li>
+$B[ i ][ j ] = 0$：表示第$i$个过程不调用第$j$个过程
+</li>
+</ul>
+</li>
+<li>
+$Units[n]$：过程所需内存量矩阵
+</li>
+<li>
+$base[ i ]$:第$i$个过程局部数据区的基地址
+</li>
+<li>
+$allocated[ i ]$:第$i$个过程局部数据区是否分配的标志
+</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//NoOfBlocks indicating how many blocks there are</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">MakeFortranBlockAllocated</span><span class="params">( <span class="keyword">int</span> *Units, <span class="keyword">int</span> *base, <span class="keyword">int</span> NoOfBlocks )</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span>    i, j, k, Sum;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//used to indicate if the block is allocated</span></span><br><span class="line">    <span class="keyword">int</span>    *allocated; </span><br><span class="line">    </span><br><span class="line">    allocated = (<span class="keyword">int</span> *) <span class="built_in">malloc</span>( <span class="keyword">sizeof</span>(<span class="keyword">int</span>) * NoOfBlocks );</span><br><span class="line"></span><br><span class="line">    <span class="comment">//Initial arrays base and allocated</span></span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i ＜ NoOfBlocks; i++ ) &#123;</span><br><span class="line">        base[i]    = <span class="number">0</span>;</span><br><span class="line">        allocated[i] = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j ＜ NoOfBlocks; j++ ) &#123;</span><br><span class="line">        <span class="keyword">for</span> ( i = <span class="number">0</span>; i ＜ NoOfBlocks; i++ ) &#123;</span><br><span class="line">            Sum = <span class="number">0</span>;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">//to check out if block i calls some block which has not been allocated</span></span><br><span class="line">            <span class="keyword">for</span> ( k = <span class="number">0</span>; k ＜ NoOfBlocks; k++ ) &#123;</span><br><span class="line">                Sum += B[i][k];  </span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//Sum=0 means block i calls no block which has not been allocated; allocated[i]=0; means block i is not allocated</span></span><br><span class="line">            <span class="keyword">if</span> ( !Sum &amp;&amp; !allocated[i] ) &#123;</span><br><span class="line">                allocated[i] = <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">for</span> ( k = <span class="number">0</span>; k ＜ NoOfBlocks; k++ ) &#123;</span><br><span class="line">                    </span><br><span class="line">                    <span class="comment">//b[k][i]!=0 maens block k calls block i</span></span><br><span class="line">                    <span class="keyword">if</span> ( B[k][i] ) &#123;</span><br><span class="line">                        <span class="comment">//Since block k calls i , it must be allocated after block i. It means the base of block k must be greater than base of block i</span></span><br><span class="line">                        <span class="keyword">if</span> ( base[k] ＜ base[i] + Units[i] ) &#123;</span><br><span class="line">                            base[k] = base[i] - Units[i];</span><br><span class="line">                        &#125;</span><br><span class="line"></span><br><span class="line">                        <span class="comment">//Since block in has been allocated B[k][i] should be modified</span></span><br><span class="line">                        B[k][i] = <span class="number">0</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">free</span>(allocated);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="3-栈式存储分配"><a class="markdownIt-Anchor" href="#3-栈式存储分配"></a> 3 栈式存储分配</h1>
+<p>有些语言使用过程、函数或方法作为用户自定义动作的单元，几乎所有针对这些语言的编译器都把它们的(至少一部分的)运行时刻存储<strong>以栈的形式</strong>进行管理，称为<strong>栈式存储分配</strong></p>
+<ul>
+<li>当一个过程被<strong>调用</strong>时，该过程的活动记录被<strong>压入</strong>栈；当过程<strong>结束</strong>时，该活动记录被<strong>弹出</strong>栈</li>
+<li>这种安排不仅允许活跃时段不交叠的多个过程调用之间<strong>共享空间</strong>，而且允许以如下方式为一个过程编译代码：它的非局部变量的<strong>相对地址总是固定的</strong>，和过程调用序列无关</li>
+</ul>
+<h2 id="31-活动树"><a class="markdownIt-Anchor" href="#31-活动树"></a> 3.1 活动树</h2>
+<p>用来描述程序<strong>运行</strong>期间控制进入和离开各个活动的情况的树称为<strong>活动树</strong></p>
+<ul>
+<li>树中的每个<strong>结点</strong>对应于一个<strong>活动</strong>。<strong>根结点</strong>是启动程序执行的<strong>main过程的活动</strong></li>
+<li>在表示过程p的某个活动的结点上，其<strong>子结点</strong>对应于被p的这次活动<strong>调用</strong>的各个过程的活动。按照这些<strong>活动被调用的顺序</strong>，自左向右地显示它们。<strong>一个子结点必须在其右兄弟结点的活动开始之前结束。</strong></li>
+</ul>
+<p><strong>控制栈</strong></p>
+<ul>
+<li>每个<strong>活跃的活动</strong>都有一个位于<strong>控制栈</strong>中的<strong>活动记录</strong></li>
+<li>活动树的<strong>根</strong>的活动记录位于<strong>栈底</strong></li>
+<li><strong>程序控制所在的活动的记录（即当前活动）<strong>位于</strong>栈顶</strong></li>
+<li>栈中<strong>全部活动记录的序列</strong>对应于在活动树中<strong>到达当前控制所在的活动结点的路径</strong></li>
+</ul>
+<h2 id="32-设计活动记录的一些原则"><a class="markdownIt-Anchor" href="#32-设计活动记录的一些原则"></a> 3.2 设计活动记录的一些原则</h2>
+<p>在调用者和被调用者之间传递的值一般被放在被调用者的活动记录的开始位置，这样它们可以尽可能地靠近调用者的活动记录</p>
+<p>固定长度的项被放置在中间位置：控制连、访问链、机器状态字</p>
+<p>在早期不知道大小的项被放置在活动记录的尾部</p>
+<p>栈顶指针寄存器<code>top_sp</code>指向活动记录中局部数据开始的位置，以该位置作为基地址</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig4.jpg" alt="fig4" /></p>
+<h1 id="4-调用序列和返回序列"><a class="markdownIt-Anchor" href="#4-调用序列和返回序列"></a> 4 调用序列和返回序列</h1>
+<p>过程<strong>调用</strong>和过程<strong>返回</strong>都需要执行一些<strong>代码</strong>来管理活动记录栈，保存或恢复机器状态等</p>
+<ul>
+<li>调用序列：实现过程调用的代码段。为一个活动记录在栈中分配空间，并在此记录的字段中填写信息</li>
+<li>返回序列：恢复机器状态，使得调用过程能够在调用结束之后继续执行</li>
+<li>一个调用代码序列中的代码通常被分割到调用过程（调用者）和被调用过程（被调用者）中。返回序列也是如此</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig5.jpg" alt="fig5" /></p>
+<h2 id="41-调用序列"><a class="markdownIt-Anchor" href="#41-调用序列"></a> 4.1 调用序列</h2>
+<ul>
+<li><strong>调用者</strong>计算实际参数的值</li>
+<li><strong>调用者</strong>将<strong>返回地址</strong>（程序计数器的值）放到被调用者的机器状态字段中。将<strong>原来的<code>top-sp</code>值</strong>放到被调用者的控制链中。然后，<strong>增加<code>top-sp</code>的值</strong>，使其指向被调用者<strong>局部数据开始的位置</strong></li>
+<li><strong>被调用者</strong>保存<strong>寄存器值</strong>和<strong>其它状态信息</strong></li>
+<li><strong>被调用者</strong>初始化其局部数据并开始执行</li>
+</ul>
+<h2 id="42-返回序列"><a class="markdownIt-Anchor" href="#42-返回序列"></a> 4.2 返回序列</h2>
+<ul>
+<li><strong>被调用者</strong>将<strong>返回值</strong>放到与参数相邻的位置</li>
+<li>使用机器状态字段中的信息，<strong>被调用者</strong>将<strong>恢复<code>top-sp</code>和其它寄存器</strong>，然后<strong>跳转到</strong>由调用者放在机器状态字段中的返回地址</li>
+<li>尽管<code>top-sp</code>已经被减小（已恢复），但<strong>调用者</strong>仍然知道返回值相对于当前<code>top-sp</code>值的位置（位于下一个活动记录中，<strong>虽然此时已经弹出，但数据仍然有效</strong>）。因此，调用者可以使用那个返回值</li>
+</ul>
+<h2 id="43-变长数据的存储分配"><a class="markdownIt-Anchor" href="#43-变长数据的存储分配"></a> 4.3 变长数据的存储分配</h2>
+<p>在<strong>现代程序设计语言</strong>中，在<strong>编译时刻不能确定大小的对象</strong>将被分配在<strong>堆</strong>区。但是，如果它们是<strong>过程的局部对象</strong>，也可以将它们分配在<strong>运行时刻栈</strong>中。尽量将对象放置在栈区的原因：可以<strong>避免</strong>对它们的空间进行<strong>垃圾回收</strong>，也就<strong>减少</strong>了相应的<strong>开销</strong></p>
+<p>只有一个数据对象<strong>局部于某个过程</strong>，且<strong>当此过程结束时它变得不可访问</strong>，才可以使用栈为这个对象分配空间</p>
+<h1 id="5-非局部数据的访问"><a class="markdownIt-Anchor" href="#5-非局部数据的访问"></a> 5 非局部数据的访问</h1>
+<p>一个过程除了可以使用过程自身定义的<strong>局部数据</strong>以外，还可以使用过程外定义的非局部数据</p>
+<p>语言可以分为两种类型</p>
+<ul>
+<li>支持过程嵌套声明的语言
+<ul>
+<li>可以在一个过程中声明另一个过程</li>
+<li>一个过程除自身定义的<strong>局部数据</strong>和<strong>全局定义</strong>的数据以外，还可以使用<strong>外围过程</strong>中声明的对象</li>
+<li>例: Pascal</li>
+</ul>
+</li>
+<li>不支持过程嵌套声明的语言
+<ul>
+<li>不可以在一个过程中声明另一个过程</li>
+<li>过程中使用的数据要么是自身定义的<strong>局部数据</strong>，要么是在所有过程之外定义的<strong>全局数据</strong></li>
+<li>例：C</li>
+</ul>
+</li>
+</ul>
+<h2 id="51-无过程嵌套声明时的数据访问"><a class="markdownIt-Anchor" href="#51-无过程嵌套声明时的数据访问"></a> 5.1 无过程嵌套声明时的数据访问</h2>
+<p>变量的存储分配和访问</p>
+<ul>
+<li>全局变量被分配在静态区，使用<strong>静态确定的地址</strong>访问它们</li>
+<li>其它变量一定是栈顶活动的局部变量。可以通过运行时刻栈的<code>top_sp</code>指针访问它们</li>
+</ul>
+<h2 id="52-有过程嵌套声明时的数据访问"><a class="markdownIt-Anchor" href="#52-有过程嵌套声明时的数据访问"></a> 5.2 有过程嵌套声明时的数据访问</h2>
+<p><strong>嵌套深度</strong></p>
+<ul>
+<li>过程的嵌套深度
+<ul>
+<li>不内嵌在任何其它过程中的过程，设其嵌套深度为1</li>
+<li>如果一个过程p在一个嵌套深度为i的过程中定义，则设定p的嵌套深度为i +1</li>
+</ul>
+</li>
+<li>变量的嵌套深度
+<ul>
+<li>将变量声明所在过程的嵌套深度作为该变量的嵌套深度</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig6.jpg" alt="fig6" /></p>
+<h2 id="53-访问链access-links"><a class="markdownIt-Anchor" href="#53-访问链access-links"></a> 5.3 访问链(Access Links)</h2>
+<p>静态作用域规则：只要过程b的声明嵌套在过程a的声明中，过程b就可以访问过程a中声明的对象</p>
+<p>可以在相互嵌套的过程的活动记录之间建立一种称为<strong>访问链(Access link)的指针</strong>，使得内嵌的过程可以访问外层过程中声明的对象</p>
+<ul>
+<li>如果过程b在源代码中直接嵌套在过程a中(b的嵌套深度比a的嵌套深度多1)，那么b的任何活动中的访问链都指向最近的a的活动</li>
+</ul>
+<h3 id="531-访问链的建立"><a class="markdownIt-Anchor" href="#531-访问链的建立"></a> 5.3.1 访问链的建立</h3>
+<p>建立访问链的代码属于<strong>调用序列</strong>的一部分</p>
+<p>假设嵌套深度为$n_x$的过程$x$调用嵌套深度为$n_y$的过程$y(x \to y)$</p>
+<ul>
+<li>
+$n_x \lt n_y$的情况(外层调用内层)
+<ul>
+<li>y一定是<strong>直接</strong>在$x$中定义的(例如：$s \to q$, $q \to p$)，因此，$n_y = n_x +1$</li>
+<li>在调用代码序列中增加一个步骤：在$y$的访问链中放置一个指向$x$的活动记录的指针</li>
+</ul>
+</li>
+<li>
+$n_x = n_y$的情况(本层调用本层)
+<ul>
+<li>递归调用(例如： $q \to q$ )</li>
+<li>被调用者的活动记录的访问链与调用者的活动记录的访问链是相同的，可以直接复制</li>
+</ul>
+</li>
+<li>
+$n_x > n_y$的情况(内层调用外层，如： $p \to e$ )
+<ul>
+<li>过程$x$必定嵌套在某个过程$z$中，而$z$中直接定义了过程$y$</li>
+<li>从$x$的活动记录开始，沿着访问链经过$n_x - n_y + 1$步就可以找到离栈顶最近的$z$的活动记录。$y$的访问链必须指向$z$的这个活动记录</li>
+</ul>
+</li>
+</ul>
+<h1 id="6-堆式存储分配"><a class="markdownIt-Anchor" href="#6-堆式存储分配"></a> 6 堆式存储分配</h1>
+<p>堆式存储分配是把连续存储区域分<strong>成块</strong>，当活动记录或其它对象需要时就分配</p>
+<p>块的释放可以按任意次序进行，所以经过一段时间后，对可能包含交错的<strong>正在使用</strong>和<strong>已经释放</strong>的区域</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig7.jpg" alt="fig7" /></p>
+<h2 id="61-申请"><a class="markdownIt-Anchor" href="#61-申请"></a> 6.1 申请</h2>
+<p>设当前自由块总长为M，欲申请长度为n</p>
+<ul>
+<li>如果存在若干个长度大于或等于n的存储块，可按以下策略之一进行存储分配
+<ul>
+<li>取长度m满足需求的第1个自由块，将长度为m-n的剩余部分仍放在自由链中</li>
+<li>取长度m满足需求的最小的自由块</li>
+<li>取长度m满足需求的最大的自由块</li>
+</ul>
+</li>
+<li>如果不存在长度大于或等于n的存储块
+<ul>
+<li>如果$M \ge n$，将自由块在堆中进行移位和重组（对各有关部分都需作相应的修改，是一件十分复杂和困难的工作）</li>
+<li>如果$M \lt n$，则应采用更复杂的策略来解决堆的管理问题</li>
+</ul>
+</li>
+</ul>
+<h2 id="62-释放"><a class="markdownIt-Anchor" href="#62-释放"></a> 6.2 释放</h2>
+<p>只需将被释放的存储块作为新的自由块插入自由链中，并删除已占块记录表中相应的记录即可</p>
+<h2 id="63-小结"><a class="markdownIt-Anchor" href="#63-小结"></a> 6.3 小结</h2>
+<p>为实现堆式存储管理，须完成大量的辅助操作。如排序、查表、填表、插入、删除、…。其空间和时间的开销较大</p>
+<h1 id="7-符号表"><a class="markdownIt-Anchor" href="#7-符号表"></a> 7 符号表</h1>
+<p>符号表的组织：为每个作用域（程序块）建立一个独立的符号表</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig8.jpg" alt="fig8" /></p>
+<h2 id="71-根据符号表进行数据访问"><a class="markdownIt-Anchor" href="#71-根据符号表进行数据访问"></a> 7.1 根据符号表进行数据访问</h2>
+<p>实际上，这种<strong>为每个过程或作用域建立的符号表</strong>与编译时的<strong>活动记录</strong>是<strong>对应</strong>的。一个过程的<strong>非局部名字的信息</strong>可以通过扫描<strong>外围过程的符号表</strong>而得到</p>
+<h2 id="72-标识符的基本处理方法"><a class="markdownIt-Anchor" href="#72-标识符的基本处理方法"></a> 7.2 标识符的基本处理方法</h2>
+<p>当在某一层的<strong>声明语句</strong>中识别出一个标识符(id的<strong>定义性出现</strong>)时，以此标识符查相应于本层的符号表</p>
+<ul>
+<li>如果查到，则报错并发出诊断信息“id<strong>重复声明</strong>”</li>
+<li>否则，在符号表中加入新登记项，将标识符及有关信息填入</li>
+</ul>
+<p>当在<strong>可执行语句</strong>部分扫视到标识符时(id的<strong>应用性出现</strong>)</p>
+<ul>
+<li>首先在该层符号表中查找该id，如果找不到，则到直接外层符号表中去查，如此等等，一旦找到，则在表中取出有关信息并作相应处理</li>
+<li>如果查遍所有外层符号表均未找到该id，则报错并发出诊断信息“id<strong>未声明</strong>”</li>
+</ul>
+<h1 id="8-符号表的建立"><a class="markdownIt-Anchor" href="#8-符号表的建立"></a> 8 符号表的建立</h1>
+<p>嵌套过程声明语句的文法</p>
+$$
+P \to D \\
+D \to D\;D| proc\;id ;D\;S| id : T ;
+$$
+<h2 id="81-嵌套过程声明语句的sdt"><a class="markdownIt-Anchor" href="#81-嵌套过程声明语句的sdt"></a> 8.1 嵌套过程声明语句的SDT</h2>
+<p>涉及到的语义动作函数</p>
+<ol>
+<li>
+$mktable(previous)$：创建一个新的符号表，并返回指向新表的指针。参数$previous$指向先前创建的符号表(外围过程的符号表)
+</li>
+<li>
+$addwidth(table, width)$：将$table$指向的符号表中所有表项的宽度之和$width$记录在符号表的表头中
+</li>
+<li>
+$enterproc(table, name, newtable)$：在$table$指向的符号表中为过程$name$建立一条记录，$newtable$指向过程$name$的符号表
+</li>
+<li>
+$enter(table, name, type, offset)$：在$table$指向的符号表中为名字$name$建立一个新表项
+</li>
+</ol>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig9.jpg" alt="fig9" /></p>
+<h2 id="82-例子"><a class="markdownIt-Anchor" href="#82-例子"></a> 8.2 例子</h2>
+<ul>
+<li>根据产生式$P \to M\;D$，执行$M$的语义动作
+<ul>
+<li>创建符号表$nil$</li>
+<li>将新创建的符号表$t$压入$tblptr$</li>
+<li>将偏移量0压入$offset$</li>
+</ul>
+</li>
+<li>读入字符串<code>program sort;</code>，根据产生式$D_p \to proc\;id ; N\;D_1\;S$，执行$N$的语义动作
+<ul>
+<li>创建符号表$sort$</li>
+<li>将新创建的符号表$t$压入$tblptr$</li>
+<li>将偏移量0压入$offset$</li>
+</ul>
+</li>
+<li>读入字符串<code>var a:int[11]; x:int;</code>，根据产生式$D_v \to id: T ;$进行归约，然后执行归约后的语义动作
+<ul>
+<li>在栈顶符号表$sort$中，创建一条记录：$a\;array\;0$</li>
+<li>修改$offset$栈顶元素的值：$0 \to 44$</li>
+<li>在栈顶符号表$sort$中，创建一条记录：$x\;int\;44$</li>
+<li>修改$offset$栈顶元素的值：$44 \to 48$</li>
+</ul>
+</li>
+<li>读入字符串<code>proc readarray;</code>，根据产生式$D_p \to proc\;id ; N\;D_1\;S$，执行$N$的语义动作
+<ul>
+<li>创建符号表$readarrary$</li>
+<li>将新创建的符号表$t$压入$tblptr$</li>
+<li>将偏移量0压入$offset$</li>
+</ul>
+</li>
+<li>读入字符串<code>var i:int;</code>，根据产生式$D_v \to id: T ;$进行归约，然后执行归约后的语义动作
+<ul>
+<li>在栈顶符号表$readarrary$中，创建一条记录：$i\;int\;0$</li>
+<li>修改$offset$栈顶元素的值：$0 \to 4$</li>
+</ul>
+</li>
+<li>读入<code>readarray</code>的代码段字符串，根据产生式$D_p \to proc\;id ; N\;D_1\;S$进行归约，然后执行归约后的语义动作
+<ul>
+<li>将$offset$栈顶记录的偏移量（4）记录到符号表$readarrary$中的<code>header</code>部分</li>
+<li>
+$offset$与$tblptr$各自弹出栈顶元素
+</li>
+<li>在$tblptr$栈顶指针指向的符号表（$sort$）中建立一条记录$readarray$，存放指向符号表$readarray$的指针</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig10.jpg" alt="fig10" /></p>
+<ul>
+<li>读入字符串<code>proc exchange;</code>，根据产生式$D_p \to proc\;id ; N\;D_1\;S$，执行$N$的语义动作
+<ul>
+<li>创建符号表$exchange$</li>
+<li>将新创建的符号表$t$压入$tblptr$</li>
+<li>将偏移量0压入$offset$</li>
+</ul>
+</li>
+<li>读入<code>exchange</code>的代码段字符串，根据产生式$D_p \to proc\;id ; N\;D_1\;S$进行归约，然后执行归约后的语义动作
+<ul>
+<li>将$offset$栈顶记录的偏移量（0）记录到符号表$exchange$中的<code>header</code>部分</li>
+<li>
+$offset$与$tblptr$各自弹出栈顶元素
+</li>
+<li>在$tblptr$栈顶指针指向的符号表（$sort$）中建立一条记录$exchange$，存放指向符号表$exchange$的指针</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig11.jpg" alt="fig11" /></p>
+<ul>
+<li>读入字符串<code>proc quicksort;</code>，根据产生式$D_p \to proc\;id ; N\;D_1\;S$，执行$N$的语义动作
+<ul>
+<li>创建符号表$quicksort$</li>
+<li>将新创建的符号表$t$压入$tblptr$</li>
+<li>将偏移量0压入$offset$</li>
+</ul>
+</li>
+<li>读入字符串<code>var k, v:int;</code>，根据产生式$D_v \to id: T ;$进行归约，然后执行归约后的语义动作
+<ul>
+<li>在栈顶符号表$quicksort$中，创建一条记录：$k\;int\;0$</li>
+<li>修改$offset$栈顶元素的值：$0 \to 4$</li>
+<li>在栈顶符号表$quicksort$中，创建一条记录：$v\;int\;4$</li>
+<li>修改$offset$栈顶元素的值：$4 \to 8$</li>
+</ul>
+</li>
+<li>读入字符串<code>func partition</code>，根据产生式$D_p \to proc\;id ; N\;D_1\;S$，执行$N$的语义动作
+<ul>
+<li>创建符号表$partition$</li>
+<li>将新创建的符号表$t$压入$tblptr$</li>
+<li>将偏移量0压入$offset$</li>
+</ul>
+</li>
+<li>读入字符串<code>var i, j:int;</code>，根据产生式$D_v \to id: T ;$进行归约，然后执行归约后的语义动作
+<ul>
+<li>在栈顶符号表$partition$中，创建一条记录：$i\;int\;0$</li>
+<li>修改$offset$栈顶元素的值：$0 \to 4$</li>
+<li>在栈顶符号表$partition$中，创建一条记录：$j\;int\;4$</li>
+<li>修改$offset$栈顶元素的值：$4 \to 8$</li>
+</ul>
+</li>
+<li>读入<code>partition</code>的代码段字符串，根据产生式$D_p \to proc\;id ; N\;D_1\;S$进行归约，然后执行归约后的语义动作
+<ul>
+<li>将$offset$栈顶记录的偏移量（8）记录到符号表$partition$中的<code>header</code>部分</li>
+<li>
+$offset$与$tblptr$各自弹出栈顶元素
+</li>
+<li>在$tblptr$栈顶指针指向的符号表（$quicksort$）中建立一条记录$partition$，存放指向符号表$partition$的指针</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig12.jpg" alt="fig12" /></p>
+<ul>
+<li>读入<code>quicksort</code>的代码段字符串，根据产生式$D_p \to proc\;id ; N\;D_1\;S$进行归约，然后执行归约后的语义动作
+<ul>
+<li>将$offset$栈顶记录的偏移量（8）记录到符号表$quicksort$中的<code>header</code>部分</li>
+<li>
+$offset$与$tblptr$各自弹出栈顶元素
+</li>
+<li>在$tblptr$栈顶指针指向的符号表（$sort$）中建立一条记录$quicksort$，存放指向符号表$quicksort$的指针</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig13.jpg" alt="fig13" /></p>
+<ul>
+<li>读入<code>sort</code>的代码段字符串，根据产生式$D_p \to proc\;id ; N\;D_1\;S$进行归约，然后执行归约后的语义动作
+<ul>
+<li>将$offset$栈顶记录的偏移量（48）记录到符号表$sort$中的<code>header</code>部分</li>
+<li>
+$offset$与$tblptr$各自弹出栈顶元素
+</li>
+<li>在$tblptr$栈顶指针指向的符号表（$nil$）中建立一条记录$sort$，存放指向符号表$sort$的指针</li>
+</ul>
+</li>
+<li>根据产生式$P \to M\;D$进行归约，然后执行归约后的语义动作
+<ul>
+<li>将$offset$栈顶记录的偏移量（0）记录到符号表$nil$中的<code>header</code>部分</li>
+<li>
+$offset$与$tblptr$各自弹出栈顶元素
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D/fig14.jpg" alt="fig14" /></p>
+<h1 id="9-参考"><a class="markdownIt-Anchor" href="#9-参考"></a> 9 参考</h1>
+<ul>
+<li>《MOOC-编译原理-陈鄞》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/16/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%B8%AD%E9%97%B4%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%904/" rel="prev" title="编译原理-中间代码生成4">
+      <i class="fa fa-chevron-left"></i> 编译原理-中间代码生成4
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/11/22/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%961/" rel="next" title="编译原理-代码优化1">
+      编译原理-代码优化1 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D%E6%A6%82%E8%BF%B0"><span class="nav-text"> 1 运行存储分配概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E8%BF%90%E8%A1%8C%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5"><span class="nav-text"> 1.1 运行存储分配策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E8%BF%90%E8%A1%8C%E6%97%B6%E5%86%85%E5%AD%98%E7%9A%84%E5%88%92%E5%88%86"><span class="nav-text"> 1.2 运行时内存的划分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E6%B4%BB%E5%8A%A8%E8%AE%B0%E5%BD%95"><span class="nav-text"> 1.3 活动记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E6%B4%BB%E5%8A%A8%E8%AE%B0%E5%BD%95%E7%9A%84%E4%B8%80%E8%88%AC%E5%BD%A2%E5%BC%8F"><span class="nav-text"> 1.4 活动记录的一般形式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%9D%99%E6%80%81%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D"><span class="nav-text"> 2 静态存储分配</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E9%9D%99%E6%80%81%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D%E7%9A%84%E9%99%90%E5%88%B6%E6%9D%A1%E4%BB%B6"><span class="nav-text"> 2.1 静态存储分配的限制条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E5%B8%B8%E7%94%A8%E7%9A%84%E9%9D%99%E6%80%81%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D%E6%96%B9%E6%B3%95"><span class="nav-text"> 2.2 常用的静态存储分配方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-%E9%A1%BA%E5%BA%8F%E5%88%86%E9%85%8D%E6%B3%95"><span class="nav-text"> 2.2.1 顺序分配法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-%E5%B1%82%E6%AC%A1%E5%88%86%E9%85%8D%E6%B3%95"><span class="nav-text"> 2.2.2 层次分配法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%A0%88%E5%BC%8F%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D"><span class="nav-text"> 3 栈式存储分配</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E6%B4%BB%E5%8A%A8%E6%A0%91"><span class="nav-text"> 3.1 活动树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E8%AE%BE%E8%AE%A1%E6%B4%BB%E5%8A%A8%E8%AE%B0%E5%BD%95%E7%9A%84%E4%B8%80%E4%BA%9B%E5%8E%9F%E5%88%99"><span class="nav-text"> 3.2 设计活动记录的一些原则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E8%B0%83%E7%94%A8%E5%BA%8F%E5%88%97%E5%92%8C%E8%BF%94%E5%9B%9E%E5%BA%8F%E5%88%97"><span class="nav-text"> 4 调用序列和返回序列</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E8%B0%83%E7%94%A8%E5%BA%8F%E5%88%97"><span class="nav-text"> 4.1 调用序列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E8%BF%94%E5%9B%9E%E5%BA%8F%E5%88%97"><span class="nav-text"> 4.2 返回序列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-%E5%8F%98%E9%95%BF%E6%95%B0%E6%8D%AE%E7%9A%84%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D"><span class="nav-text"> 4.3 变长数据的存储分配</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E9%9D%9E%E5%B1%80%E9%83%A8%E6%95%B0%E6%8D%AE%E7%9A%84%E8%AE%BF%E9%97%AE"><span class="nav-text"> 5 非局部数据的访问</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E6%97%A0%E8%BF%87%E7%A8%8B%E5%B5%8C%E5%A5%97%E5%A3%B0%E6%98%8E%E6%97%B6%E7%9A%84%E6%95%B0%E6%8D%AE%E8%AE%BF%E9%97%AE"><span class="nav-text"> 5.1 无过程嵌套声明时的数据访问</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-%E6%9C%89%E8%BF%87%E7%A8%8B%E5%B5%8C%E5%A5%97%E5%A3%B0%E6%98%8E%E6%97%B6%E7%9A%84%E6%95%B0%E6%8D%AE%E8%AE%BF%E9%97%AE"><span class="nav-text"> 5.2 有过程嵌套声明时的数据访问</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E8%AE%BF%E9%97%AE%E9%93%BEaccess-links"><span class="nav-text"> 5.3 访问链(Access Links)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#531-%E8%AE%BF%E9%97%AE%E9%93%BE%E7%9A%84%E5%BB%BA%E7%AB%8B"><span class="nav-text"> 5.3.1 访问链的建立</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%A0%86%E5%BC%8F%E5%AD%98%E5%82%A8%E5%88%86%E9%85%8D"><span class="nav-text"> 6 堆式存储分配</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-%E7%94%B3%E8%AF%B7"><span class="nav-text"> 6.1 申请</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-%E9%87%8A%E6%94%BE"><span class="nav-text"> 6.2 释放</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 6.3 小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E7%AC%A6%E5%8F%B7%E8%A1%A8"><span class="nav-text"> 7 符号表</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E6%A0%B9%E6%8D%AE%E7%AC%A6%E5%8F%B7%E8%A1%A8%E8%BF%9B%E8%A1%8C%E6%95%B0%E6%8D%AE%E8%AE%BF%E9%97%AE"><span class="nav-text"> 7.1 根据符号表进行数据访问</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-%E6%A0%87%E8%AF%86%E7%AC%A6%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95"><span class="nav-text"> 7.2 标识符的基本处理方法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E7%AC%A6%E5%8F%B7%E8%A1%A8%E7%9A%84%E5%BB%BA%E7%AB%8B"><span class="nav-text"> 8 符号表的建立</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-%E5%B5%8C%E5%A5%97%E8%BF%87%E7%A8%8B%E5%A3%B0%E6%98%8E%E8%AF%AD%E5%8F%A5%E7%9A%84sdt"><span class="nav-text"> 8.1 嵌套过程声明语句的SDT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-%E4%BE%8B%E5%AD%90"><span class="nav-text"> 8.2 例子</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%8F%82%E8%80%83"><span class="nav-text"> 9 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

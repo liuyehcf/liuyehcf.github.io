@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java-垃圾收集器">
+<meta property="og:url" content="http://example.com/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E5%85%B3%E7%B3%BB%E5%9B%BE.png">
+<meta property="article:published_time" content="2017-07-10T06:45:48.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:52.821Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E5%85%B3%E7%B3%BB%E5%9B%BE.png">
+
+<link rel="canonical" href="http://example.com/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java-垃圾收集器 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java-垃圾收集器
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-10 14:45:48" itemprop="dateCreated datePublished" datetime="2017-07-10T14:45:48+08:00">2017-07-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:52" itemprop="dateModified" datetime="2021-02-23T22:19:52+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/" itemprop="url" rel="index"><span itemprop="name">Java Virtual Machine</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/Garbage-Collection/" itemprop="url" rel="index"><span itemprop="name">Garbage Collection</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/" class="post-meta-item leancloud_visitors" data-flag-title="Java-垃圾收集器" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p>垃圾收集算法是内存回收的方法论 <a href="/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95/" title="Java-垃圾收集算法">Java-垃圾收集算法</a>，而垃圾收集器就是内存回收的具体实现。Java虚拟机规范中对垃圾收集器应该如何实现并没有任何规定，因此不同厂商、不同版本的虚拟机所提供的垃圾收集器可能会有很大差别，并且一般都会提供参数供用户根据自己的应用特点和要求组合出各个年代所使用的收集器</p>
+<p>我们对各个收集器进行比较，但并非为了挑选一个最好的收集器，因为直到现在还没有最好的收集器出现，更加没有万能的收集器</p>
+<p><img src="/images/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E5%85%B3%E7%B3%BB%E5%9B%BE.png" alt="垃圾收集器关系图" /></p>
+<ul>
+<li>两个收集器之间存在连线，就说明它们可以搭配使用</li>
+</ul>
+<h1 id="2-名词解释"><a class="markdownIt-Anchor" href="#2-名词解释"></a> 2 名词解释</h1>
+<p><strong>并行和并发</strong></p>
+<ul>
+<li><strong>并行(Parallel)</strong>：指多条垃圾收集线程并行工作，但此时用户线程仍然处于等待状态</li>
+<li><strong>并发(Concurrent)</strong>：用户线程与垃圾收集线程同时执行(但不一定是并行的，可能交替执行)，用户程序在继续运行，而垃圾收集程序运行于另一个CPU上</li>
+</ul>
+<p>GC方式</p>
+<ul>
+<li><strong>新生代 GC(Minor GC)</strong>：指发生在新生代的垃圾收集动作，因为Java对象大多都具备朝生夕灭的特性，所以 Minor GC 非常频繁，一般回收速度也比较快</li>
+<li><strong>老年代 GC(Major GC/Full GC)</strong>：指发生在老年代的GC，出现了Major GC，经常会伴随至少一次的Minor GC(但非绝对的，在ParallelScavenge收集器的收集策略里就有直接进行Major GC的策略选择过程)。MajorGC的速度一般会比Minor GC慢10倍以上</li>
+</ul>
+<p>JVM模式</p>
+<ul>
+<li>JVM Server模式与JVM Client模式启动，最主要的差别在于：-Server模式启动时，速度较慢，但是一旦运行起来后，性能将会有很大的提升。JVM如果不显式指定是-Server模式还是-Client模式，JVM能够进行自动判断(适用于Java5版本或者Java以上版本)</li>
+<li>VM工作在Server模式可以大大提高性能，但应用的启动会比Client模式慢大概10%。当该参数不指定时，虚拟机启动检测主机是否为服务器。如果是，则以Server模式启动，否则以Client模式启动，J2SE5.0检测的根据是至少2个CPU和最低2GB内存</li>
+<li>当JVM用于启动GUI界面的交互应用时适合于使用Client模式，当JVM用于运行服务器后台程序时建议用Server模式</li>
+<li>JVM在Client模式默认-Xms是1M，-Xmx是64M；JVM在Server模式默认-Xms是128M，-Xmx是1024M。我们可以通过运行:java -version来查看jvm默认工作在什么模式</li>
+</ul>
+<h1 id="3-serial-收集器"><a class="markdownIt-Anchor" href="#3-serial-收集器"></a> 3 Serial 收集器</h1>
+<p>Serial收集器是最基本，发展历史最悠久的收集器，在JDK 1.3.1之前是虚拟机<strong>新生代</strong>收集的唯一选择</p>
+<p>这个收集器是一个单线程的收集器，这里单线程的意义并不仅仅说明它只会使用一个CPU或一条收集线程去完成垃圾收集工作，更重要的是在它进行垃圾收集时，必须暂停其他所有的工作线程，直到它收集结束，可以戏称为&quot;Stop the World&quot;</p>
+<p>这项收集工作实际上由虚拟机在后台自动发起和自动完成的，在用户不可见的情况下把用户正常工作的线程全部停掉，这对很多应用来说是难以接受的</p>
+<p>对于&quot;Stop the World&quot;带给用户的不良体验，虚拟机的设计者们表示完全理解，但也表示非常委屈，“你妈妈在给你打扫房间的时候，肯定也会让你老老实实在椅子上或者房间外待着，如果你一边打扫，一边乱扔纸屑，这房间还能打扫完?”</p>
+<p>从JDK 1.3开始，一直到现在JDK 1.7，HotSpot虚拟机开发团队为消除或者减少工作线程因内存回收而导致停顿的努力一直在进行着。从Serial到Parallel，再到Concurrent Mark Sweep(CMS)乃至GC收集器的最前沿成果Garbage First(G1)收集器，用户线程的停顿时间在不断缩短，但是仍然没有办法完全消除</p>
+<p>到目前为止，Serial收集器依然是虚拟机运行在Client模式下的默认新生代收集器，它优于其他收集器的地方：简单而高效</p>
+<h1 id="4-parnew-收集器"><a class="markdownIt-Anchor" href="#4-parnew-收集器"></a> 4 ParNew 收集器</h1>
+<p>ParNew收集器其实就是Serial收集器的多线程版本，使用多条线程进行垃圾收集</p>
+<p>ParNew收集器除了多线程收集之外，其他与Serial收集器相比并没有太多创新之处，但它却是许多运行在Server模式下的虚拟机中首选的新生代收集器，其中有一个与性能无关的重要原因：除了Serial外，只有它能与CMS收集器配合</p>
+<p>ParNew收集器在单CPU的环境中绝对不会比Serial收集器有更好的效果，甚至由于线程交互的开销，在两个CPU的环境下也不能保证比Serial更好，但是随着CPU数量继续上升，ParNew的优势会逐渐明显起来</p>
+<h1 id="5-parallel-scavenge-收集器"><a class="markdownIt-Anchor" href="#5-parallel-scavenge-收集器"></a> 5 Parallel Scavenge 收集器</h1>
+<p>Parallel Scavenge收集器是一个<strong>新生代</strong>收集器，它也是使用复制算法的收集器，又是并行的多线程收集器</p>
+<p>Parallel Scavenge收集器的特点是它的关注点与其他收集器不同</p>
+<ul>
+<li>CMS等收集器的关注点是<strong>尽可能地缩短垃圾收集时用户线程的停顿时间</strong></li>
+<li>Parallel Scavenge收集器的目标则是<strong>达到一个可控制的吞吐量</strong>。所谓吞吐量就是：CPU用于运行用户代码的时间与CPU总消耗时间的比值，即吞吐量=运行用户代码时间/(运行用户代码时间+垃圾收集时间)</li>
+</ul>
+<p>Parallel Scavenge收集器提供两个参数用于精确控制吞吐量</p>
+<ul>
+<li>控制最大垃圾收集停顿时间的-XX:MaxGCPauseMillis参数。MaxGCPauseMillis参数允许设置一个大于0的毫秒数，收集器将尽可能地保证内存回收花费的时间不超过设定值，不要认为把这个参数设置得小一点就能使系统的垃圾收集速度变快，因为GC停顿时间缩短是以牺牲吞吐量和新生代空间来换取的。例如收集300MB新生代肯定比收集500MB快，这也导致垃圾收集发生的更频繁一点，原来10秒收集一次，每次停顿100ms，现在5秒收集一次，每次停顿70ms，导致吞吐量下降</li>
+<li>直接设置吞吐量大小的-XX:GCTimeRatio参数。该参数的值应当是一个大于0且小于100的整数。若设置为19，则允许的最大GC时间就占总时间的%5=1/(1+19)，默认为99，即1%=1/(1+99)</li>
+</ul>
+<p>由于与吞吐量关系密切，Parallel Scavenge收集器也经常称为&quot;吞吐量优先&quot;收集器，除上述两个参数之外，Parallel Scavenge收集器还有一个参数-XX:+UseAdaptiveSizePolicy值得关注。这是一个开关参数，当打开这个参数后，就不需要手工指定新生代的大小、Eden(-Xmn)与Survivor区的比例(-XX:SurvivorRatio)，晋升老年代对象大小等细节参数了，虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量，这种调节方式称为GC自适应的调节策略(GC Ergonomics)</p>
+<p>自适应调节策略也是Parallel Scavenge收集器与ParNew收集器的一个重要区别</p>
+<h1 id="6-serial-old-收集器"><a class="markdownIt-Anchor" href="#6-serial-old-收集器"></a> 6 Serial Old 收集器</h1>
+<p>Serial Old是Serial收集器的老年代版本，它同样是一个单线程收集器，使用&quot;标记-整理&quot;算法</p>
+<p>这个收集器的主要意义也是在给Client模式下的虚拟机使用</p>
+<p>在Server模式下，那么它主要还有两大用途：一种用途是在JDK 1.5以及之前的版本中与Parallel Scavenge收集器搭配使用，另一种用途就是作为CMS收集器的后备方案，在并发收集发生Concurrent Mode Failure时使用</p>
+<h1 id="7-parallel-old-收集器"><a class="markdownIt-Anchor" href="#7-parallel-old-收集器"></a> 7 Parallel Old 收集器</h1>
+<p>Parallel Old是Parallel Scavenge收集器的老年代版本，使用多线程和&quot;标记-整理&quot;算法</p>
+<p>这个收集器在JDK 1.6中才开始提供，在此之前，新生代的Parallel Scavenge收集器一直处于比较尴尬的状态，原因是：如果选择了Parallel Scavenge收集器，老年代除了Serial Old(PS MarkSweep)收集器外别无选择，Parallel Scavenge收集器无法与CMS收集器配合工作</p>
+<p>由于老年代Serial Old收集器在服务端应用性能上的拖累，使用了Parallel Scavenge收集器也未必能在整体应用上获得吞吐量最大化的效果，由于单线程的老年代收集无法充分利用服务器多CPU的处理能力，在老年代很大而且硬件比较高级的环境中，这种组合的吞吐量甚至还不一定有ParNew加CMS的组合&quot;给力&quot;</p>
+<p>直到Parallel Old收集器出现后，&quot;吞吐量优先&quot;收集器终于有了比较名副其实的应用组合，在注重吞吐量以及CPU资源敏感的场合，都可以优先考虑Parallel Scavenge加Parallel Old收集器</p>
+<h1 id="8-cms-收集器"><a class="markdownIt-Anchor" href="#8-cms-收集器"></a> 8 CMS 收集器</h1>
+<p>在JDK 1.5时期，HotSpot推出了一款在强交互应用中几乎可认为有划时代意义的垃圾收集器–CMS(Concurrent Mark Sweep)。这款收集器是HotSpot虚拟机中第一款真正意义上的并发(Concurrent)收集器，第一次实现了让垃圾收集线程与用户线程(基本上)同时工作</p>
+<ul>
+<li><strong>使用CMS来收集老年代的时候，新生代只能选择ParNew或者Serial收集器中的一个，因为CMS无法与新生代收集器Parallel Scavenge配合工作</strong></li>
+</ul>
+<p>CMS(Concurrent Mark Sweep)收集器是一种<strong>以获取最短回收停顿时间为目标</strong>的收集器，目前很大一部分的Java应用集中在互联网或者B/S系统的服务端上，这类应用尤其重视服务的响应速度，希望系统停顿时间最短，以给用户带来较好的体验，CMS收集器就非常符合这类应用的需求</p>
+<p>从名字&quot;Mark Sweep&quot;上就可以看出，<strong>CMS收集器是基于&quot;标记-清除&quot;算法实现的</strong>，它的运作过程相对于前面集中收集器来说更复杂一点，过程分为4个步骤</p>
+<ol>
+<li><strong>初始标记(CMS initial mark)</strong></li>
+<li><strong>并发标记(CMS concurrent mark)</strong></li>
+<li><strong>重新标记(CMS remark)</strong></li>
+<li><strong>并发清除(CMS concurrent sweep)</strong></li>
+</ol>
+<ul>
+<li>初始标记，重新标记这两个步骤仍然需要&quot;Stop The World&quot;</li>
+<li>初始标记仅仅只是标记一下GC Roots能直接关联到的对象，速度很快</li>
+<li>并发标记阶段就是进行GC Roots Tracing的过程</li>
+<li>重新标记阶段则则是为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段稍长一些，但远比并发标记的时间更短</li>
+</ul>
+<p>整个过程中耗时最长的并发标记和并发清除过程收集器线程都可以与用户线程一起工作，所以，从总体上来说，CMS收集器的内存回收过程是与用户一起并发执行的</p>
+<p>CMS是一款优秀的收集器，它的主要优点在名字上已经体现出来了：并发收集、低停顿</p>
+<p>CMS的缺点</p>
+<ul>
+<li><strong>CMS收集器对CPU资源非常敏感</strong>。面向并发设计的程序都对CPU资源比较敏感。在并发阶段，虽然不会导致用户线程停顿，但是因为占用了一部分线程(或者说CPU资源)而导致应用程序变慢，总吞吐量会降低。CMS默认启动的回收线程数是(CPU数量+3)/4，也就是当CPU在4个以上时，并发回收垃圾收集线程不少于25%的CPU资源，并且随着CPU数量的增加而下降，当CPU不足4个时，CMS对用户程序的影响可能就很大。虚拟机提供了一种称为&quot;增量式并发收集器&quot;(Incremental Concurrent Mark Sweep/i-CMS)的CMS收集器变种，在并发标记、并发清理的时候让GC线程用户线程交替运行，尽量减少GC线程的独占资源时间，这样整个垃圾收集过程会更长，但对用户程序的影响就会显得少一些，即速度下降没有那么明显，实践证明，增量式的CMS收集器效果一般，现在不再提倡使用</li>
+<li><strong>CMS收集器无法处理浮动垃圾(Floating Garbage)，可能出现&quot;Concurrent Mode Failure&quot;失败而导致另一次Full GC的产生</strong>。由于CMS并发清理阶段用户线程还在运行着，伴随程序运行自然就还会有新的垃圾不断产生，这一部分垃圾出现在标记过程之后，CMS无法在当次收集中处理掉他们，只要留待下次以GC时再清理掉，这一部分垃圾就被称为浮动垃圾。由于在垃圾收集阶段用户线程还需要运行，也就是需要预留足够的内存空间给用户线程使用，因此CMS收集器不能像其他收集器那样等到老年代几乎完全被填满了再进行收集，需要预留一部分空间提供并发收集时的程序运作使用。在JDK 1.5的默认设置下，CMS收集器当老年代使用了68%的空间后就会被激活，这是一个偏保守的设置，如果在应用中，老年代增长不是太快，可以适当调高参数-XX:CMSInitiatingOccupancyFraction的值来提高触发百分比，以降低内存回收次数从而获取更好的性能。在JDK 1.6中，CMS收集器的启动阈值提高到了92%，要是CMS运行期间预留的内存无法满足程序需要，就会出现一次&quot;Concurrent Mode Failure&quot;失败，这时虚拟机将启动后备方案：临时启用Serial Old收集器来重新进行老年代的垃圾收集(因此参数不宜设置过高，会导致大量&quot;Concurrent Mode Failure&quot;失败，性能反而降低)</li>
+<li><strong>CMS是一款基于&quot;标记-清除&quot;算法实现的收集器。这意味着收集结束会有大量的空间碎片产生</strong>。空间碎片过多，将会给大对象分配带来很大的麻烦。往往会出现老年代还有很大空间剩余，但是无法找到足够大的连续空间来分配当前对象，不得不提前触发一次Full GC。为了解决这个问题，CMS收集器提供了一个-XX:+UseCMSCompactAtFullCollection开关参数(默认开启)，用于在CMS收集器顶不住要进行FullGC时开启内存碎片的合并整理过程，内存整理是无法并发的，空间碎片问题没有了，但停顿时间不得不变长。此外虚拟机还提供另一个参数-XX:CMSFullGCsBeforeCompaction，这个参数用于设置执行多少次不压缩的Full GC后，跟着来一次带压缩的(默认值0，表示每次进入Full GC时都进行碎片整理)</li>
+</ul>
+<h1 id="9-g1-收集器"><a class="markdownIt-Anchor" href="#9-g1-收集器"></a> 9 G1 收集器</h1>
+<p>G1(Gargabe-First)收集器是当今收集器计数发展的最前沿成果之一。G1是一款面向服务端应用的垃圾收集器，HotSpot开发团队赋予它的使命是(在比较长期的)未来可以替换掉JDK 1.5中发布的CMS收集器，与其他GC收集器相比，G1具备如下特点：</p>
+<ul>
+<li><strong>并行与并发</strong>：G1能充分利用多CPU，多核环境下的硬件优势，使用多个CPU(或CPU核心)来缩短Stop-The-World停顿的时间(并行)，部分其他收集器原本需要停顿Java线程执行的GC动作，G1收集器仍然可以通过并发的方式让Java程序继续执行</li>
+<li><strong>分代收集</strong>：与其他收集器一样，分代的概念在G1中仍然保留，虽然G1可以不需要其他收集器配合就能独立管理整个GC堆，但它能够采用不同的方式去处理新创建的对象和已经存活了一段时间的、熬过多次GC的旧对象以获取更好的收集效果</li>
+<li><strong>空间整合</strong>：与CMS的&quot;标记-清理&quot;算法不同，G1从<strong>整体来看是基于&quot;标记-清理&quot;算法实现</strong>的收集器，<strong>从局部(两个Region之间)上来看是基于&quot;复制&quot;算法实现的</strong>收集器，这两种算法都意味着G1运作期间不会产生内存空间碎片，收集后能提供规整的可用内存</li>
+<li><strong>可预测的停顿</strong>：这是G1相对于CMS的另一大优势，降低停顿时间是G1和CMS共同的关注点，但G1除了追求低停顿外，还能建立可预测的停顿时间模型，能让使用者明确指定在一个长度为M毫秒的时间片段内，消耗在垃圾收集上的时间不得超过N毫秒</li>
+</ul>
+<p>在G1之前的其他收集器进行收集的范围都是整个新生代或者老年代，而G1不再是这样，使用G1收集器时，Java堆的内存布局就与其他收集器有很大差别，它将整个Java堆规划为多个大小相等的独立区域(Region)，虽然还保留有新生代和老年代的概念，但新生代和老年代不再是物理隔离的了，它们都是一部分Region(不需要连续)的集合</p>
+<p>G1收集器之所以能建立可预测的停顿时间模型，是因为它可以有计划地避免在整个Java堆中进行全区域的垃圾收集。<strong>G1跟踪各个Region里面的垃圾堆积的价值大小，在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的Region(这也是Garbage-First名称的由来)</strong>。这种使用Region划分内存空间以及有优先级的区域回收方式，保证了G1收集器在有限时间内可以获取尽可能高的收集效率</p>
+<p>G1把内存&quot;化整为零&quot;的思路，理解起来似乎很容易，但是实现的细节却远远没有那么简单，从第一篇G1论文发表到G1商用，用了整整10年。把Java堆分为多个Region后，垃圾收集是否就真的能以Region为单位进行了?Region不可能是孤立的，一个对象分配在某个Region中，它并非只能被本Region中的其他对象引用，而是可以与整个Java堆任意的对象发生引用关系。这个问题并非G1中才有，只是G1中更加突出，在以前的分代收集中，新生代的规模一般都比老年代要小许多，新生代的收集也比老年代要频繁许多，回收新生代对象也面临同样的问题，如果回收新生代时也不得不扫描老年代的话，那么Minor GC的效率可能下降不少</p>
+<p>在G1收集器中，Region之间的对象引用以及其他收集器中的新生代与老年代之间的对象引用，虚拟机都是使用Remembered Set来避免全堆扫描的。G1中每个Region都有一个与之对应的Remembered Set，虚拟机发现程序在对Reference类型的数据进行写操作时，会产生一个Write Barrier暂时中断操作，检查Reference引用的对象是否处于不同的Region之中(在分代的例子中就是检查是否老年代中的对象引用了新生代中的对象)，如果是，便通过CardTable把相关引用信息记录到被引用对象(指红色部分的新生代还是老年代对象???)所属的Region的Remembered Set之中。当进行内存回收时在GC根节点的枚举范围中加入Remembered Set即可保证不对全堆扫描也不会有遗漏</p>
+<p>如果不计算维护Remembered Set的操作，G1收集器的运作大致可划分为以下几个步骤</p>
+<ol>
+<li><strong>初始标记(Initial Marking)</strong>：仅仅只是标记一下GC Roots能直接关联到的对象，并修改TAMS(Next Top at Mark Start)的值，让下一阶段用户程序并发运行时，能在正确可用的Region中创建新对象，这阶段需要停顿线程，但耗时很短</li>
+<li><strong>并发标记(Concurrent Marking)</strong>：从GC Root开始对堆中对象进行可达性分析，找出存活的对象，这阶段耗时长，但可与用户程序并发执行</li>
+<li><strong>最终标记(Final Marking)</strong>：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程Remembered Set Logs里面，最终标记阶段需要把Remembered Set Logs的数据合并到Remembered Set中，这阶段需要停顿线程，但可并行(多个GC线程)执行</li>
+<li><strong>筛选回收(Live Data Counting and Evacuation)</strong>：首先对各个Region的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定回收计划，这个阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分Region，时间是用户可控制的，而且停顿用户线程将大幅度提高收集效率，因此该阶段设置为停顿的</li>
+</ol>
+<h1 id="10-参考"><a class="markdownIt-Anchor" href="#10-参考"></a> 10 参考</h1>
+<ul>
+<li>《深入理解Java虚拟机》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95/" rel="prev" title="Java-垃圾收集算法">
+      <i class="fa fa-chevron-left"></i> Java-垃圾收集算法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/10/Java-NIO/" rel="next" title="Java-NIO">
+      Java-NIO <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A"><span class="nav-text"> 2 名词解释</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-serial-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 3 Serial 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-parnew-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 4 ParNew 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-parallel-scavenge-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 5 Parallel Scavenge 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-serial-old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 6 Serial Old 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-parallel-old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 7 Parallel Old 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-cms-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 8 CMS 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-g1-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 9 G1 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-%E5%8F%82%E8%80%83"><span class="nav-text"> 10 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

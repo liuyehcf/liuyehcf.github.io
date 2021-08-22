@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译原理-代码优化4">
+<meta property="og:url" content="http://example.com/2017/11/25/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig1.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig2.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig3.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig4.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig5.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig6.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig7.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig8.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig9.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig10.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig11.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig12.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig13.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig14.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig15.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig16.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig17.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig18.jpg">
+<meta property="article:published_time" content="2017-11-25T04:22:33.000Z">
+<meta property="article:modified_time" content="2021-08-22T10:24:33.536Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/11/25/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>编译原理-代码优化4 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/11/25/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          编译原理-代码优化4
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-11-25 12:22:33" itemprop="dateCreated datePublished" datetime="2017-11-25T12:22:33+08:00">2017-11-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-22 18:24:33" itemprop="dateModified" datetime="2021-08-22T18:24:33+08:00">2021-08-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Compile-Principle/" itemprop="url" rel="index"><span itemprop="name">Compile Principle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/11/25/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/" class="post-meta-item leancloud_visitors" data-flag-title="编译原理-代码优化4" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/11/25/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/11/25/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-支配结点和回边"><a class="markdownIt-Anchor" href="#1-支配结点和回边"></a> 1 支配结点和回边</h1>
+<h2 id="11-支配结点dominators"><a class="markdownIt-Anchor" href="#11-支配结点dominators"></a> 1.1 支配结点(Dominators)</h2>
+<p>如果从流图的<strong>入口结点</strong>到结点$n$的<strong>每条路径</strong>都经过结点$d$，则称结点$d$<strong>支配</strong>(dominate)结点$n$，记为$d\;dom\;n$</p>
+<ul>
+<li>每个节点都支配它自己</li>
+</ul>
+<p><strong>直接支配结点(Immediate Dominator)</strong>：从入口结点到达$n$的所有路径上，结点$n$的最后一个支配结点称为直接支配结点</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig1.jpg" alt="fig1" /></p>
+<h2 id="12-寻找支配结点-支配结点的数据流方程"><a class="markdownIt-Anchor" href="#12-寻找支配结点-支配结点的数据流方程"></a> 1.2 寻找支配结点-支配结点的数据流方程</h2>
+<p><strong>符号及其说明</strong></p>
+<ol>
+<li>
+$IN[B]$：在基本块B入口处的支配结点集合
+</li>
+<li>
+$OUT[B]$：在基本块B出口处的支配结点集合
+</li>
+</ol>
+<p><strong>方程</strong></p>
+<ul>
+<li>
+$OUT[ENTRY] = \{ ENTRY \}$
+</li>
+<li>
+$OUT[B] = IN[B] \cup \{ B \}, ( B \ne ENTRY )$
+</li>
+<li>
+$IN[B] = \cap_{P是B的一个前驱}\;\;\;\;\;\;\;\;OUT[P], ( B \ne ENTRY )$
+</li>
+</ul>
+<h2 id="13-计算支配结点的迭代算法"><a class="markdownIt-Anchor" href="#13-计算支配结点的迭代算法"></a> 1.3 计算支配结点的迭代算法</h2>
+<p>输入：流图$G$，$G$的结点集是$N$，边集是$E$，入口结点是ENTRY</p>
+<p>输出：对于$N$中的各个结点$n$，给出$D(n)$，即支配n的所有结点的集合</p>
+<p>方法：</p>
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig2.jpg" alt="fig2" /></li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig3.jpg" alt="fig3" /></p>
+<h2 id="14-回边back-edges"><a class="markdownIt-Anchor" href="#14-回边back-edges"></a> 1.4 回边(Back Edges)</h2>
+<p>假定流图中存在两个结点$d$和$n$满足$d\;dom\;n$。如果存在从结点$n$到$d$的有向边$n \to d$，那么这条边称为回边</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig4.jpg" alt="fig4" /></p>
+<h1 id="2-自然循环及其识别"><a class="markdownIt-Anchor" href="#2-自然循环及其识别"></a> 2 自然循环及其识别</h1>
+<p>从程序分析的角度来看，<strong>循环在代码中以什么形式出现并不重要</strong>，重要的是它<strong>是否具有易于优化的性质</strong></p>
+<p><strong>自然循环</strong>是满足以下性质的循环</p>
+<ul>
+<li><strong>有唯一的入口结点，称为首结点(header)</strong>。<strong>首结点支配循环中的所有结点</strong>，否则，它就不会成为循环的唯一入口</li>
+<li>循环中<strong>至少有一条返回首结点的路径</strong>，否则，控制就不可能从“循环”中直接回到循环头，也就无法构成循环</li>
+</ul>
+<p>非自然循环的例子</p>
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig5.jpg" alt="fig5" /></li>
+</ul>
+<h2 id="21-自然循环的识别"><a class="markdownIt-Anchor" href="#21-自然循环的识别"></a> 2.1 自然循环的识别</h2>
+<p>给定一个回边$n \to d$，该<strong>回边的自然循环</strong>为：$d$，以及所有可以<strong>不经过$d$而到达$n$的结点</strong>。$d$为该循环的首结点</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig6.jpg" alt="fig6" /></p>
+<p>自然循环的一个重要性质</p>
+<ul>
+<li>除非两个自然循环的首结点相同，否则，它们或者<strong>互不相交</strong>，或者一个<strong>完全包含(嵌入)在另外一个里面</strong></li>
+<li>如果两个循环具有相同的首结点，那么很难说哪个是最内循环。此时把两个循环合并</li>
+</ul>
+<p>最内循环(Innermost Loops)：不包含其它循环的循环</p>
+<h2 id="22-算法构造一条回边的自然循环"><a class="markdownIt-Anchor" href="#22-算法构造一条回边的自然循环"></a> 2.2 算法：构造一条回边的自然循环</h2>
+<p>输入：流图$G$和回边$n \to d$</p>
+<p>输出：由回边$n \to d$的自然循环中的所有结点组成的集合</p>
+<p>方法：</p>
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig7.jpg" alt="fig7" /></li>
+</ul>
+<h1 id="3-删除全局公共子表达式和复制语句"><a class="markdownIt-Anchor" href="#3-删除全局公共子表达式和复制语句"></a> 3 删除全局公共子表达式和复制语句</h1>
+<p><strong>可用表达式</strong>的数据流问题可以帮助确定位于流图中$p$点的表达式是否为<strong>全局公共子表达式</strong></p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig8.jpg" alt="fig8" /></p>
+<h2 id="31-全局公共子表达式删除算法"><a class="markdownIt-Anchor" href="#31-全局公共子表达式删除算法"></a> 3.1 全局公共子表达式删除算法</h2>
+<p>输入：带有可用表达式信息的流图</p>
+<p>输出：修正后的流图</p>
+<p>方法：</p>
+<ol>
+<li>对于语句$s:z = x\;op\;y$，如果$x\;op\;y$在$s$之前可用，那么执行如下步骤：
+<ul>
+<li>① 从$s$开始逆向搜索，但不穿过任何计算了$x\;op\;y$的块，找到所有离$s$最近的计算了$x\;op\;y$的语句</li>
+<li>② 建立新的临时变量$u$</li>
+<li>③ 把步骤①中找到的语句$w = x\;op\;y$用下列语句代替：
+<ul>
+<li>
+$u = x\;op\;y$
+</li>
+<li>
+$w = u$
+</li>
+</ul>
+</li>
+<li>④ 用$z = u$替代$s$</li>
+</ul>
+</li>
+<li>对于<strong>复制语句</strong>$s:x=y$，如果在$x$的<strong>所有</strong>引用点都可以用对$y$的引用代替对$x$的引用(复制传播)，那么可以删除复制语句$x=y$
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig9.jpg" alt="fig9" /></li>
+</ul>
+</li>
+<li>在$x$的引用点$u$用$y$代替$x$ (复制传播)的条件
+<ul>
+<li>复制语句$s:x=y$在$u$点“可用”</li>
+</ul>
+</li>
+</ol>
+<h2 id="32-删除复制语句的算法"><a class="markdownIt-Anchor" href="#32-删除复制语句的算法"></a> 3.2 删除复制语句的算法</h2>
+<p>输入：流图$G$ 、$du$链、各基本块B入口处的<strong>可用复制语句集合</strong></p>
+<p>输出：修改后的流图</p>
+<p>方法：</p>
+<ul>
+<li>对于每个复制语句$x=y$，执行下列步骤
+<ul>
+<li>① 根据du链找出该定值所能够到达的那些对x的引用</li>
+<li>② 确定是否对于<strong>每个</strong>这样的引用，$x=y$都在$IN[B]$中(B是包含这个引用的基本块) ，并且B中该引用的前面没有$x$或者$y$的定值</li>
+<li>③ 如果$x=y$满足第②步的条件，删除$x=y$，且把步骤①中找到的对$x$的引用用$y$代替</li>
+</ul>
+</li>
+</ul>
+<h1 id="4-代码移动"><a class="markdownIt-Anchor" href="#4-代码移动"></a> 4 代码移动</h1>
+<p>代码移动包含以下两个步骤</p>
+<ol>
+<li><strong>循环不变计算的检测</strong></li>
+<li><strong>代码外提</strong></li>
+</ol>
+<h2 id="41-循环不变计算检测算法"><a class="markdownIt-Anchor" href="#41-循环不变计算检测算法"></a> 4.1 循环不变计算检测算法</h2>
+<p>输入：循环$L$，每个三地址指令的$ud$链</p>
+<p>输出：$L$的循环不变计算语句</p>
+<p>方法：</p>
+<ol>
+<li>将下面这样的语句标记为“不变”：语句的运算分量或者是<strong>常数</strong>，或者其<strong>所有定值点都在循环L外部</strong></li>
+<li>重复执行步骤(3)，直到某次没有新的语句可标记为“不变”为止</li>
+<li>将下面这样的语句标记为“不变”：先前没有被标记过，且所有运算分量或者是<strong>常数</strong>，或者其<strong>所有定值点都在循环$L$外部</strong>，或者<strong>只有一个到达定值，该定值是循环中已经被标记为“不变”的语句</strong></li>
+</ol>
+<h2 id="42-代码外提"><a class="markdownIt-Anchor" href="#42-代码外提"></a> 4.2 代码外提</h2>
+<p>前置首结点(preheader)</p>
+<ul>
+<li>循环不变计算将被移至首结点之前，为此创建一个称为<strong>前置首结点</strong>的新块。前置首结点的<strong>唯一后继</strong>是<strong>首结点</strong>，并且原来从<strong>循环$L$外</strong>到达$L$<strong>首结点</strong>的边都改成进入前置首结点。从<strong>循环L里面</strong>到达<strong>首结点</strong>的边不变</li>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig10.jpg" alt="fig10" /></li>
+</ul>
+<h2 id="43-循环不变计算语句-swig75-移动的条件"><a class="markdownIt-Anchor" href="#43-循环不变计算语句-swig75-移动的条件"></a> 4.3 循环不变计算语句$s : x = y + z$移动的条件</h2>
+<ol>
+<li>
+$s$所在的基本块是循环所有出口结点(有后继结点在循环外的结点)的支配结点
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig11.jpg" alt="fig11" /></li>
+</ul>
+</li>
+<li>循环中没有其它语句对$x$赋值
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig12.jpg" alt="fig12" /></li>
+</ul>
+</li>
+<li>循环中对x的引用仅由$s$到达
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig13.jpg" alt="fig13" /></li>
+</ul>
+</li>
+</ol>
+<h2 id="44-代码移动算法"><a class="markdownIt-Anchor" href="#44-代码移动算法"></a> 4.4 代码移动算法</h2>
+<p>输入：循环$L$、$ud$链、支配结点信息</p>
+<p>输出：修改后的循环</p>
+<p>方法：</p>
+<ol>
+<li>寻找<strong>循环不变计算</strong></li>
+<li>对于步骤(1)中找到的每个循环不变计算，检查是否满足上面的<strong>三个条件</strong></li>
+<li>按照循环不变计算找出的次序，把所找到的满足上述条件的循环不变计算外提到前置首结点中。如果循环不变计算有分量在循环中定值，只有将定值点外提后，该循环不变计算才可以外提</li>
+</ol>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig14.jpg" alt="fig14" /></p>
+<h2 id="45-作用于归纳变量的强度削弱"><a class="markdownIt-Anchor" href="#45-作用于归纳变量的强度削弱"></a> 4.5 作用于归纳变量的强度削弱</h2>
+<p>对于一个变量$x$，如果存在一个正的或负的<strong>常量</strong>$c$，使得每次$x$被赋值时，它的值总是<strong>增加</strong>$c$，则称$x$为归纳变量</p>
+<ul>
+<li>如果循环$L$中的变量$i$只有形如$i = i + c$的定值($c$是常量)，则称$i$为循环$L$的<strong>基本归纳变量</strong></li>
+<li>如果$j = c \times i+d$，其中$i$是<strong>基本归纳变量</strong>，$c$和$d$是常量，则$j$也是一个归纳变量，称$j$属于$i$族
+<ul>
+<li>基本归纳变量$i$属于它自己的族</li>
+</ul>
+</li>
+<li>每个归纳变量都关联一个三元组。如果$j = c \times i+d$，其中$i$是基本归纳变量，$c$和$d$是常量，则与$j$相关联的三元组是$(i, c, d)$</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig15.jpg" alt="fig15" /></p>
+<h2 id="46-归纳变量检测算法"><a class="markdownIt-Anchor" href="#46-归纳变量检测算法"></a> 4.6 归纳变量检测算法</h2>
+<p>输入：带有循环不变计算信息和到达定值信息的循环$L$</p>
+<p>输出：一组归纳变量</p>
+<p>方法：</p>
+<ol>
+<li>扫描$L$的语句，找出所有<strong>基本归纳变量</strong>。在此要用到<strong>循环不变计算信息</strong>。与每个基本归纳变量$i$相关联的三元组是$(i, 1, 0)$</li>
+<li>寻找$L$中<strong>只有一次定值</strong>的变量$k$，它具有下面的形式：$k=c^{\prime} \times j + d^{\prime}$。其中$c^{\prime}$和$d^{\prime}$是常量，$j$是<strong>基本的</strong>或<strong>非基本的</strong>归纳变量
+<ul>
+<li>如果$j$<strong>是基本归纳变量</strong>，那么$k$属于$j$族。$k$对应的三元组可以通过其定值语句确定</li>
+<li>如果$j$<strong>不是基本归纳变量</strong>，假设其属于$i$族，$k$的三元组可以通过$j$的三元组和$k$的定值语句来计算（将$j = c \times i+d$代入$k=c^{\prime} \times j + d^{\prime}$），此时我们还要求：
+<ul>
+<li>循环$L$中对$j$的唯一定值和对$k$的定值之间没有对$i$的定值</li>
+<li>循环$L$外没有$j$的定值可以到达$k$</li>
+<li>这两个条件是为了保证对$k$进行赋值的时候，$j$当时的值一定等于$c \times (i当时的值)+d$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="47-作用于归纳变量的强度削弱算法"><a class="markdownIt-Anchor" href="#47-作用于归纳变量的强度削弱算法"></a> 4.7 作用于归纳变量的强度削弱算法</h2>
+<p>输入：带有<strong>到达定值信息</strong>和已计算出的<strong>归纳变量族</strong>的循环L</p>
+<p>输出：修改后的循环</p>
+<p>方法：对于每个基本归纳变量$i$，对其族中的每个归纳变量$j:(i, c, d)$执行下列步骤</p>
+<ol>
+<li>建立新的临时变量$t$。如果变量$j_1$和$j_2$具有相同的三元组，则只为它们建立一个新变量</li>
+<li>用$j=t$代替对$j$的赋值</li>
+<li>在$L$中紧跟定值$i=i+n$之后，添加$t=t+c \times n$。将$t$放入$i$族，其三元组为$(i, c, d)$</li>
+<li>在<strong>前置节点的末尾</strong>，添加语句$t=c \times i$和$t=t+d$，使得在循环开始的时候$t=c \times i+d=j$</li>
+</ol>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig16.jpg" alt="fig16" /></p>
+<h1 id="5-归纳变量的删除"><a class="markdownIt-Anchor" href="#5-归纳变量的删除"></a> 5 归纳变量的删除</h1>
+<p>对于在强度削弱算法中引入的复制语句$j=t$，如果在归纳变量$j$的<strong>所有引用点</strong>都可以用对$t$的引用代替对$j$的引用，并且$j$在<strong>循环的出口</strong>处<strong>不活跃</strong>，则可以<strong>删除复制语句</strong>$j=t$</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig17.jpg" alt="fig17" /></p>
+<p>强度削弱后，<strong>有些归纳变量的作用只是用于测试</strong>。如果可以用对其它归纳变量的测试代替对这种归纳变量的测试，那么可以删除这种归纳变量</p>
+<h2 id="51-删除仅用于测试的归纳变量"><a class="markdownIt-Anchor" href="#51-删除仅用于测试的归纳变量"></a> 5.1 删除仅用于测试的归纳变量</h2>
+<p>对于仅用于测试的基本归纳变量$i$，取$i$族的某个归纳变量$j$(尽量使得$c$、$d$简单，即$c=1$或$d=0$的情况)。把每个对$i$的测试替换成为对$j$的测试</p>
+<ul>
+<li>
+$( relop\;\;i\;\;x\;\;B )$替换为$( relop\;\;j\;\;c \times x + d\;\;B )$，其中$x$不是归纳变量，并假设$c \gt 0$
+</li>
+<li>
+$( relop\;\;i_1\;\;i_2\;\;B )$，如果能够找到三元组$j_1:(i_1, c, d)$和$j_2:(i_2, c, d)$，那么可以将其替换为$( relop\;\;j_1\;\;j_2\;\;B )$ (假设$c \gt 0$ )。否则，测试的替换可能是没有价值的
+</li>
+</ul>
+<p>如果归纳变量$i$不再被引用，那么可以删除和它相关的指令</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/fig18.jpg" alt="fig18" /></p>
+<h1 id="6-参考"><a class="markdownIt-Anchor" href="#6-参考"></a> 6 参考</h1>
+<ul>
+<li>《MOOC-编译原理-陈鄞》</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/24/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/" rel="prev" title="编译原理-代码优化3">
+      <i class="fa fa-chevron-left"></i> 编译原理-代码优化3
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/11/26/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" rel="next" title="编译原理-代码生成">
+      编译原理-代码生成 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%94%AF%E9%85%8D%E7%BB%93%E7%82%B9%E5%92%8C%E5%9B%9E%E8%BE%B9"><span class="nav-text"> 1 支配结点和回边</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E6%94%AF%E9%85%8D%E7%BB%93%E7%82%B9dominators"><span class="nav-text"> 1.1 支配结点(Dominators)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E5%AF%BB%E6%89%BE%E6%94%AF%E9%85%8D%E7%BB%93%E7%82%B9-%E6%94%AF%E9%85%8D%E7%BB%93%E7%82%B9%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B5%81%E6%96%B9%E7%A8%8B"><span class="nav-text"> 1.2 寻找支配结点-支配结点的数据流方程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E8%AE%A1%E7%AE%97%E6%94%AF%E9%85%8D%E7%BB%93%E7%82%B9%E7%9A%84%E8%BF%AD%E4%BB%A3%E7%AE%97%E6%B3%95"><span class="nav-text"> 1.3 计算支配结点的迭代算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E5%9B%9E%E8%BE%B9back-edges"><span class="nav-text"> 1.4 回边(Back Edges)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%87%AA%E7%84%B6%E5%BE%AA%E7%8E%AF%E5%8F%8A%E5%85%B6%E8%AF%86%E5%88%AB"><span class="nav-text"> 2 自然循环及其识别</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E8%87%AA%E7%84%B6%E5%BE%AA%E7%8E%AF%E7%9A%84%E8%AF%86%E5%88%AB"><span class="nav-text"> 2.1 自然循环的识别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E7%AE%97%E6%B3%95%E6%9E%84%E9%80%A0%E4%B8%80%E6%9D%A1%E5%9B%9E%E8%BE%B9%E7%9A%84%E8%87%AA%E7%84%B6%E5%BE%AA%E7%8E%AF"><span class="nav-text"> 2.2 算法：构造一条回边的自然循环</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%88%A0%E9%99%A4%E5%85%A8%E5%B1%80%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%92%8C%E5%A4%8D%E5%88%B6%E8%AF%AD%E5%8F%A5"><span class="nav-text"> 3 删除全局公共子表达式和复制语句</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%85%A8%E5%B1%80%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%88%A0%E9%99%A4%E7%AE%97%E6%B3%95"><span class="nav-text"> 3.1 全局公共子表达式删除算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E5%88%A0%E9%99%A4%E5%A4%8D%E5%88%B6%E8%AF%AD%E5%8F%A5%E7%9A%84%E7%AE%97%E6%B3%95"><span class="nav-text"> 3.2 删除复制语句的算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E4%BB%A3%E7%A0%81%E7%A7%BB%E5%8A%A8"><span class="nav-text"> 4 代码移动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E8%AE%A1%E7%AE%97%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95"><span class="nav-text"> 4.1 循环不变计算检测算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E4%BB%A3%E7%A0%81%E5%A4%96%E6%8F%90"><span class="nav-text"> 4.2 代码外提</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E8%AE%A1%E7%AE%97%E8%AF%AD%E5%8F%A5-swig75-%E7%A7%BB%E5%8A%A8%E7%9A%84%E6%9D%A1%E4%BB%B6"><span class="nav-text"> 4.3 循环不变计算语句$s : x &#x3D; y + z$移动的条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-%E4%BB%A3%E7%A0%81%E7%A7%BB%E5%8A%A8%E7%AE%97%E6%B3%95"><span class="nav-text"> 4.4 代码移动算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-%E4%BD%9C%E7%94%A8%E4%BA%8E%E5%BD%92%E7%BA%B3%E5%8F%98%E9%87%8F%E7%9A%84%E5%BC%BA%E5%BA%A6%E5%89%8A%E5%BC%B1"><span class="nav-text"> 4.5 作用于归纳变量的强度削弱</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#46-%E5%BD%92%E7%BA%B3%E5%8F%98%E9%87%8F%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95"><span class="nav-text"> 4.6 归纳变量检测算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#47-%E4%BD%9C%E7%94%A8%E4%BA%8E%E5%BD%92%E7%BA%B3%E5%8F%98%E9%87%8F%E7%9A%84%E5%BC%BA%E5%BA%A6%E5%89%8A%E5%BC%B1%E7%AE%97%E6%B3%95"><span class="nav-text"> 4.7 作用于归纳变量的强度削弱算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%BD%92%E7%BA%B3%E5%8F%98%E9%87%8F%E7%9A%84%E5%88%A0%E9%99%A4"><span class="nav-text"> 5 归纳变量的删除</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E5%88%A0%E9%99%A4%E4%BB%85%E7%94%A8%E4%BA%8E%E6%B5%8B%E8%AF%95%E7%9A%84%E5%BD%92%E7%BA%B3%E5%8F%98%E9%87%8F"><span class="nav-text"> 5.1 删除仅用于测试的归纳变量</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%8F%82%E8%80%83"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

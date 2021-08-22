@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文翻译-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems">
+<meta property="og:url" content="http://example.com/2021/08/02/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-1-1.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-1-2.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-2-1.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-2-2.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-3-1.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-3-2.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-1.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-2.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-1.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-2.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-3.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-4.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-5.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-6.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-7.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-8.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-4.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-5.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-6.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-5-1-1.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-5-1-2.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-5-1-3.png">
+<meta property="article:published_time" content="2021-08-02T02:15:39.000Z">
+<meta property="article:modified_time" content="2021-08-11T13:25:46.655Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-1-1.png">
+
+<link rel="canonical" href="http://example.com/2021/08/02/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>论文翻译-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/08/02/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          论文翻译-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-02 10:15:39" itemprop="dateCreated datePublished" datetime="2021-08-02T10:15:39+08:00">2021-08-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-11 21:25:46" itemprop="dateModified" datetime="2021-08-11T21:25:46+08:00">2021-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Paper/Database/" itemprop="url" rel="index"><span itemprop="name">Database</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/08/02/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/" class="post-meta-item leancloud_visitors" data-flag-title="论文翻译-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/08/02/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/08/02/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<p><strong>摘要</strong></p>
+<p>近期，我们对列存储数据库系统（<code>column-oriented database systems</code>），或者称为列存储（<code>column-stores</code>），做了一个调研，这些系统最显著的特征就是：一个数据表中的不同属性分别存放在不同的文件或存储区域中。伴随着海量数据的扫描、聚合需求的激增，列存储数据库在近几年又重新进入了人们的视野中。列存储的最主要优势在于：仅需要访问、读取查询条件中的那些属性。特别地，我们重点关注三种比较流行的原型，分别是：<code>MonetDB</code>[46]、<code>VectorWise</code>[18]、<code>C-Store</code>[88]。一些著名的商业化列存储系统的实现以这些原型作为理论基石。我们会讨论这三种原型的相似性与差异性，以及针对<code>compression</code>、<code>late materialization</code>、<code>join processing</code>、<code>vectorization</code>、<code>adaptive indexing</code>这几个方面的架构特点</p>
+<h1 id="1-introduction"><a class="markdownIt-Anchor" href="#1-introduction"></a> 1 Introduction</h1>
+<p>物理介质（例如磁盘）上的存储效率，以及数据在存储介质与CPU寄存器之间拷贝移动的速率，直接关系到数据库的性能。出于这个原因，数据库社区长期以来都在探索物理存储的不同方案，包括<code>sophisticated indexing</code>（复杂索引），<code>materialized views</code>（物化视图）以及垂直分区或者水平分区</p>
+<p>近几年，列存储重新火了起来。早期有学术影响力的系统包括：<code>Monet DB</code>[46]、<code>VectorWise</code>[18]、<code>C-Store</code>[88]。知名商业化列存储系统包括<code>Sybase IQ</code>[66]。<code>VectorWise</code>以及<code>C-Store</code>分别演化成了商业化系统<code>Ingres VectorWise</code>[99]以及<code>Vertica</code>[60]。到2013年底，所有主要供应商（包括IBM[11]、微软[63]、SAP[26]以及Oracle）都遵循了这一趋势，并在其数据库系统产品中提供了列存储实现，突出了这项技术的重要性</p>
+<p>列存储系统将数据库划分成由独立存储的列值的集合。将每个列独立存储在磁盘上，列存储系统在执行查询任务时，仅需读取所需的列，而不用读取整行（包含不需要的字段，且需要在返回结果前在内存中进行过滤和丢弃）。一个显而易见的优势就是，列存储可以大大提高I/O以及内存的使用效率。在列存储的性能优化这一方向上，可以进行大量的数据库架构方面的创新。在这篇文章中，我们将讨论现代化的列存储系统，包括它们的架构、演进方向以及在数据分析上的优势</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-1-1.png" alt="Figure-1-1" /></p>
+<p><strong>数据布局与访问模式</strong>。<code>Figure 1.1</code>说明了列存储以及传统行存储（<code>row oriented databases</code>/<code>row stores</code>）在物理存储上的差异。上图表明，存在三种方式来存储一张包含多个属性的<code>sales</code>数据表。在两种列存储的方法中（<code>Figure 1.1(a)</code>和<code>Figure 1.1(b)</code>），每个列独立地存放在不同的存储单元中。数据通常以数据块的形式在存储介质中进行读写操作，而列存储意味着某个存储单元的每个数据块都包含着<code>sales</code>数据表中的某个特定的列值。在这个例子中，如果要查询某个产品在7月的销量，那么仅需访问<code>prodid</code>以及<code>date</code>这两列，因此只有这两列相关的数据块会被读取（后面会讨论<code>Figure 1.1(a)</code>和<code>Figure 1.1(b)</code>这两种存储方式的差异）。而对于行存储（<code>Figure 1.1(c)</code>），所有的数据都被存放在同一个存储单元中，这就意味着，每个数据块都包含<code>sales</code>数据表的所有列。因此在查询时，没有办法仅仅读取所需的列值，而不得不读取整行数据。数据传输效率通常是数据库系统中的主要性能瓶颈，与此同时，数据库表结构的设计也变得越来越复杂，通常一个大表会包含几百个属性，针对这种场景，列存储系统在数据查询中将会表现得异常优异</p>
+<p><strong>权衡</strong>。数据的访问模式决定了如何选择列存储和行存储。假设数据存储在磁盘上。若需要查询单条记录（每条记录都包含了全部的属性值），列存储通常会花费数倍于行存储的时间（每个属性至少得访问一个存储单元，具体数量取决于属性的数量）。若需要查询多条纪录的某几个属性，列存储可以读取大量整列，将搜索分摊到到不同的列。在传统的行存储中，作为对比，若需要查询单条纪录，由于数据是连续存储的，通常只需要一次读取便可读取到所有的列值，并且相比于读取相关列值，读取所有列值带来的整体开销相比于搜索时间来说是微不足道的。然而，当查询的记录不断增大时，读取更多列值带来的整体开销将会逼近甚至超过搜索时间，此时列存储在性能上会比行存储更好。由于这种原因，列存储更适用于数据分析性应用，这些应用通常会查询扫描单表并计算它们的聚合或其他统计信息</p>
+<p><strong>列存储架构</strong>。尽管最近的列存储系统采用了与早期垂直分区研究提案[12, 22, 55, 65]中的概念相似的高级概念，但它们包含了许多超出垂直分区以外的架构特性，旨在最大限度地提高列存储系统的性能。本文的主要目标是调研近些年的研究成果，架构演进趋势，以及优化手段。我们主要关注以下几个方面</p>
+<ul>
+<li><strong><code>Virtual ID</code>[46]</strong>：在列存储中表示列的最简单方法就是将元组标识符（例如，数字主键）与每一列相关联。显式地存储此元组标识符会使得磁盘数据膨胀，从而降低I/O效率。相反地，现代列存储系统使用元组标识符的偏移量来作为该列的虚拟元组标识符，从而避免额外的存储（<code>Figure 1.1(a)</code>和<code>Figure 1.1(b)</code>）。在一些列存储系统中，每个属性都存储为固定宽度的密集数组，并且每个记录都存储在表的所有列中的相同（数组）位置。另外，宽度固定的列仅需要通过偏移量就能实现数据访问，极大地简化了数据访问的过程。举个例子，若要访问列<code>A</code>的第$i$个列值，只需要访问起始位置为$startOf(A) + i * width(A)$的数据，不需要其他的间接引用。然而，正如我们稍后将在第4节中详细讨论的那样，相比于行存储而言，列存储的一个优势就是提高了压缩率，许多压缩算法以非固定长度的方式压缩数据，因此数据不能简单地存储在数组中。一些列存储系统会放弃部分压缩性能从而保持固定宽度的特性，另一些列存储系统仍然利用非固定宽度的压缩算法</li>
+<li><strong><code>Block-oriented and vectorized processing</code>[18, 2]</strong>：通过在算子间传递缓存快大小的元组块（<code>cache-line sized blocks of tuples</code>），算子同时并发操作多个值而非使用传统的元组迭代器，列存储可以显著提高缓存利用率和CPU使用效率。使用向量化CPU指令对这些值块进行选择、表达式和其他类型的算术运算可以进一步提高吞吐量</li>
+<li><strong><code>Late materialization</code>[3, 50]</strong>：<code>Late materialization</code>或者<code>late tuple reconstruction</code>（把从各个列中获取的数据重新组装为行的过程称之为<code>tuple construction</code>）指的是延迟元组的物化。事实上，针对某些查询，列存储可以完全避免这种物化行为。因此，<code>Late materialization</code>意味着列存储不仅一次存储一列数据，而且还以列格式处理数据。举个例子，选择算子使用for循环，一次扫描一列，并以缓存/CPU友好的格式输出（与首先构造包含当前查询所需的所有属性的元组，并将它们提供给传统的行存储选择算子相反，该算子只需要访问这些属性中的一个）。通过这种方式，列存储能极大的提升内存利用率（避免浪费内存资源）</li>
+<li><strong><code>Column-specific compression</code>[100, 2]</strong>：通过对每一列使用针对该列最有效的压缩算法，能够大幅度地降低整体的磁盘使用量。由于列存储的特性，即便利用简单的压缩算法也能得到较好的压缩率</li>
+<li><strong><code>Direct operation on compressed data</code>[3]</strong>：许多现代的列存储系统仅在必要时对数据进行解压缩，理想情况下，直到结果需要呈现给用户时才进行解压缩。处理压缩数据能够极大地提升内存利用率，这也是主要的瓶颈。<code>Late materialization</code>允许数据以压缩的形式存储在内存中，而创建更宽的元组通常需要先进行解压缩</li>
+<li><strong><code>Efficient join implementations</code>[67, 2]</strong>：由于列值独立存储，类似于半连接（<code>semi-join</code>[13]）的连接策略也是可能的。对于某些特定的连接类型，其性能远远优于传统的<code>hash join</code>或<code>merge join</code></li>
+<li><strong><code>Redundant representation of individual columns in different sort orders</code>[88]</strong>：根据特定属性排序的列可以在该属性上更快地过滤。通过存储按不同属性排列的多个副本，可以大幅度地提高性能。<code>C-Store</code>将按照某个特定属性排序的不同列称为投影。<code>Virtual ID</code>是每列基于自身的投影。此外，列值有序存储还能进一步提高压缩率</li>
+<li><strong><code>Database cracking and adaptive indexing</code>[44]</strong>：<code>Database cracking</code>避免排序整个列。具有<code>cracking</code>特性的列存储可以自适应地以及增量地对列进行排序（排序这一结果是作为查询的副作用），<code>workloads</code>无额外的开销。每个查询操作都可能会重组对应的列，从而加速后续查询的速度。定宽列存储能够加速列重组的速率，同时向量处理意味着我们可以一次性有效地重组整个列，从而使得自适应索引成为现代列存储架构的重要特性</li>
+<li><strong><code>Efficient loading architectures</code>[41, 88]</strong>：最后，列存储的一个问题是它们的加载和更新速度可能比行存储慢，这是因为列存储中，每个列是单独存储，一行数据的写入要分别写入不同的列存储单元中，以及数据是以压缩的形式存储。由于加载性能可能是数据仓库系统中的一个重要问题，因此优化的加载器很重要。例如，在<code>C-Store</code>系统中，数据首先被写入一个未压缩的，写优化的缓冲区中（<code>WOS</code>），后续再进行批量的压缩和写入磁盘。这种方法避免了对每个属性、每行进行一次磁盘搜索，并且不必将新数据插入压缩列中；而是一次写入和压缩许多记录</li>
+</ul>
+<p><strong>上述特性是列存储所特有的吗</strong>？上面讨论的这些特性以及概念，稍加改变便也应用到行存储系统当中。事实上，大部分设计特征都受到了早期针对行存储研究的启发。多年来，学术界和工业界在传统的行存储领域，通过一些附加设计达到了相似的效果。这些附加设计旨在不干扰行存储的基础架构</p>
+<p>举个例子，<code>IMB DB2</code>中的<code>EVI</code>功能早在1997年就允许数据以列的方式进行存储[14]。相似地，过去针对<code>fractured mirrors</code>[78]的研究提出系统存储数据的两个副本，一个副本以行的形式存储，另一个副本以列的形式存储，或者更复杂的存储形式，例如<code>PAX</code>[5]，每个关系元组都像普通行存储一样存储在单个页中，但是每个页内部都按列进行组织，这种方式对磁盘I/O并无益处，但是会降低数据在磁盘、主存、和CPU寄存器之间的传输。传统数据库的索引技术也与<code>Late materialization</code>有异曲同工之妙，它允许算子在某一个时刻仅处理部分相关的数据，能够更好地优化内存使用。现代索引指导工具[21]，总是尝试提出一套“覆盖”索引，它指的是一组索引，在理想情况下，任何查询操作都可以使用到这些索引，从而避免直接访问数据（行存储）。早期的系统，例如<code>Model 204</code>[72]严重依赖位图索引[71]来降低I/O以及处理成本。与向量化（<code>vectorization</code>）类似的概念最早出现在行存储中。另外，压缩技术也是最早出现在行存储中[30, 82]，同时还研究了一些设计原则，例如尽可能晚地解压缩数据[30]以及同时压缩数据以及索引[31, 47]等</p>
+<p>本文对于列存储的贡献是（除了提出新的数据存储和访问技术）：一种全新的为上述分析型应用设计的架构。从零开始，我们可以毫无顾忌地将这些理念、想法推向极致，而无需担心与传统设计的兼容性。在过去几年中，这些设计理念的一些变体各自被独立地试验过，主要集中在传统行存储的原型设计。相比之下，从数据库存储开始，沿着技术栈往上，包括查询执行引擎和查询优化器，列存储系统从设计上与传统的行存储系统存在巨大差异，因此在数据库的各个方面，能够在创新的同时最大限度地发挥这些想法的好处。我们会在4.9节重新讨论行存储与列存储</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-1-2.png" alt="Figure-1-2" /></p>
+<p>为了说明列存储和这些优化的好处，我们简要总结了最近一篇论文[1]的结果。在这篇文章中，我们比较了学术原型<code>C-Store</code>以及一个商业化行存储系统。我们研究了各种列存储优化对<code>SSBM</code>[73]（<code>TPC-H</code>数据仓库基准测试的简化版本）的整体查询性能的影响。<code>Figure 1.2</code>显示了基准测试中规模为10的数据库（6000万个元组）中所有查询的平均运行时间。左边的条形图显示了<code>C-Store</code>中各种优化手段的性能增益。<code>baseline</code>代表包含所有优化项，需要花费4s来响应所有的查询，而不含所有优化项的需要花费40s来响应所有的查询。右边的条形图显示了传统的商业化行存储系统。基于这些结果，可以发现经过充分优化的列存储系统的性能是传统商业化行存储系统性能的5倍。但是未经过优化的列存储系统的性能要落后于行存储系统，其表现较差的可能原因是<code>SSBM</code>基准测试使用了相对较小（列少）的表格，因此列存储所带来的的增益也会被削减。在大多数的现实系统中，列的数量会比较大，因此，列存储带来的性能增益会更加显著</p>
+<p>尽管比较成熟的商业系统和学术原型之间的绝对性能数字很棘手，但这些数字表明，未优化的列存储与选择大部分列的查询提供了与行存储系统相当的性能，并且前面提到的优化项可以带来非常大的性能提升</p>
+<p>在本文的剩余篇幅中，我们会展示上述架构创建如何带来巨大的性能提升。特别地，我们会详细的讨论<code>C-Store</code>、<code>MonetDB</code>、<code>VectorWise</code>，介绍他们的异同点，以及三种架构的核心创新点</p>
+<p>在下一节中，我们追踪了数据库文献中垂直分区和列存储系统的演变，讨论面向列的架构更适用于分析型场景这一技术趋势。在第3节和第4节中，我们将介绍<code>C-Store</code>、<code>MonetDB</code>、<code>VectorWise</code>的顶层架构以及详细设计，以及一些商业化实现。最后在第5节，我们讨论未来的发展趋势以及进行总结</p>
+<h1 id="2-history-trends-and-performance-tradeoffs"><a class="markdownIt-Anchor" href="#2-history-trends-and-performance-tradeoffs"></a> 2 History, trends, and performance tradeoffs</h1>
+<p>尽管列存储技术在1970年就已问世，但是直至2003年，列存储相关的研究才被大家认可，商业化列存储才开始出现。在本小节中，我们将追踪列存储的发展历史，技术以及应用的发展趋势。最后总结了最近关于列存储以及行存储之间基本性能如何权衡的研究结果</p>
+<h2 id="21-history"><a class="markdownIt-Anchor" href="#21-history"></a> 2.1 History</h2>
+<p>列存储技术的起源可以追溯到1970年代，那时转置文件（<code>transposed files</code>）刚刚问世[65, 12]。TOD（<code>Time Oriented Database</code>）是一种基于转置文件，专为病例管理而设计的系统[90]。最早出现的与现代列存储系统类似的系统叫做<code>Cantor</code>[55, 54]。它具备整数压缩技术，包括<code>zero suppression</code>、<code>delta encoding</code>、<code>RLE (run length encoding)</code>以及<code>delta RLE</code>，所有这些技术都应用在现代的列存储系统当中（我们会在后续小节中详细讨论这些技术）。使用动态规划算法选择压缩方法和相关参数</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-2-1.png" alt="Figure-2-1" /></p>
+<p>紧跟着转置文件的研究热潮，又兴起了针对表属性类聚的垂直分区技术的研究。于此同时，行存储技术成为了关系型数据库的架构标准。页内存储的典型实现是<code>slotted-page approach</code>，如<code>Figure 2.1</code>左半部分所示。这种存储模型被称为是<code>N-ary Storage Model（NSM）</code>。1985年，<code>Copeland</code>、<code>Khoshafian</code>共同提出了<code>NSM</code>的替代方案<code>Decomposition Storage Model（DSM）</code>，这是列存储的前身[22]，如<code>Figure 2.2</code>右半部分所示。对于许多人来说，这项工作标志着行存储和列存储的第一次全面比较。在随后的20年间，术语<code>NSM</code>以及<code>DSM</code>更常用于替代行存储和列存储这两个术语。在<code>DSM</code>中，表的每一列都单独存储，并且对于列中的每个属性值，存储<code>surrogate key</code>（类似于记录id）的副本，如<code>Figure 1.1(b)</code>。由于<code>surrogate key</code>冗余存储，因此相比于<code>NSM</code>需要更多的存储空间。以与原始表相同的顺序存储每一列（在<code>surrogate key</code>上使用聚集索引），作者提议为每列的属性存储一个非聚集索引，从而提供可以将任何属性快速映射到<code>surrogate key</code>的能力</p>
+<p>一项分析（基于当时可用的技术）表明，当仅查询几列时，<code>DSM</code>的扫描性能优于<code>NSM</code>，但是以额外的存储空间为代价。当查询的列的数量增多时，<code>DSM</code>的性能逐渐下降，作者重点介绍了<code>DSM</code>简单性和灵活性方面的优势。他们推测基于<code>DSM</code>的存储的物理设计决策会更简单（因为不需要做索引创建的决策），并且更容易构建<code>DSM</code>的查询执行引擎。最早的<code>DSM</code>论文并没有涉及压缩算法，也没有评估除了扫描算子外的其他算子的优势。后续论文侧重于研究<code>DSM</code>架构之上的算子的并行性[59]，而随后对连接和投影索引的研究[58]则进一步加强了<code>DSM</code>相对于<code>NSM</code>的优势</p>
+<p>尽管上述研究尽可能地围绕着<code>DSM</code>指出了列存储相比于行存储的优势，直到很久以后，大约在2000年左右，技术和应用层面的发展趋势才为列存储技术的发展铺平了道路</p>
+<h2 id="22-technology-and-application-trends"><a class="markdownIt-Anchor" href="#22-technology-and-application-trends"></a> 2.2 Technology and Application Trends</h2>
+<p>就其核心而言，关系数据库管理系统的基本设计至今仍与1980年代开发的系统非常接近[24]。然而硬件确发生了翻天覆地的变化。在1980年，<code>Digital VAX 11/780</code>具有<code>1 MIPS</code>CPU、<code>1KB</code>高速缓存、<code>8 MB</code>最大主内存、<code>1.2 MB/s</code>传输速率和<code>80MB</code>容量的磁盘驱动器，标价<code>25</code>万美元。而到了2010年，服务器的CPU通常快<code>5000</code>到<code>10000</code>倍，更大的缓存和<code>RAM</code>大小，以及更大的磁盘容量。硬盘驱动器的磁盘传输时间提高了大约<code>100</code>倍，平均磁盘磁头寻道时间提高了<code>10</code>倍（<code>30</code>毫秒与<code>3</code>毫秒）。这些趋势的差异（<code>10000</code>倍与<code>100</code>倍与<code>10</code>倍）对数据库的性能产生了重大影响</p>
+<p>磁盘容量增长与磁盘传输和磁盘寻道次数的性能提升之间的不平衡可以通过两个指标来查看：a) 每个可用字节的传输带宽（假设整块磁盘都被占用），多年依赖已经降低了2个数量级；b) 顺序存取速度与随机存取速度之比，多年依赖已经提高了1个数量级。这两个指标清晰地表明，<code>DBMSs</code>不仅需要尽可能避免随机磁盘<code>I/O</code>，而且最重要的是要保留磁盘带宽</p>
+<p>随着整个内存层次结构的随机访问变得越来越昂贵，查询处理技术开始越来越依赖于顺序访问模式，大多数<code>DBMS</code>架构都是围绕着应该尽可能进行完全顺序访问的前提而构建的。然而，随着数据库的体积增大，扫描变得越来越慢。大多数数据库供应商并不认为<code>DSM</code>是<code>NSM</code>的可行替代品，这是由于早期<code>DSM</code>实现中发现的局限性[22]，其中<code>DSM</code>仅在查询访问很少的列时优于<code>NSM</code>。为了让基于列 (<code>DSM</code>) 的存储方案优于基于行 (<code>NSM</code>) 的存储方案，它需要有一种快速重建元组的机制（因为<code>DBMS</code>的其余部分仍将在行上运行），并且还需要能够在访问磁盘上的多个列时分摊磁盘搜索的成本。高性能CPU能够实现前者，而大容量的内存能够实现后者</p>
+<p>尽管现代列存储因能够高效地处理基于磁盘的数据而广受欢迎，在1990年代，列存储技术广泛用于内存系统。在90年代末期，人们对研究内存数据布局以解决CPU和内存之间日益增长的速度差异产生了浓厚的兴趣。大约在1980年代，内存访问与指令执行的速度相当。但是到了90年代中期，内存访问的周期是指令执行周期的数百倍。<code>MonetDB</code>[46]是学术界第一个主要的列存储项目。<code>MonetDB</code>最初的动机，是为了解决内存带宽问题，同时通过避免表达式解析提高计算效率[19]。一种新的查询执行代数是在类似于具有<code>Virtual ID</code>的<code>DSM</code>的存储格式上开发的。随后的研究，研究了缓存敏感查询处理算法（<code>MonetDB</code>的全面介绍在第3.2 节之后）</p>
+<p>PAX（<code>Partition Attributes Across</code>）采用混合<code>NSM/DSM</code>方法，其中每个<code>NSM</code>页面组织为一组迷你列[5]。它延续了<code>NSM</code>的<code>I/O</code>模式的同时优化了缓存和RAM之间的通信（<code>seeking to obtain the cache latency benefits identified in Monet without the disk-storage overheads of DSM with its explicit row IDs</code>）。后续的项目包括<code>data morphing</code>[39]（<code>PAX</code>的动态版本）、<code>Clotho</code>[84]，研究了采用<code>scatter-gather I/O</code>的自定义页面</p>
+<p><code>Fractured Mirrors</code>[78]利用镜像来提高可靠性和可用性。它的思路是，一份数据以<code>NSM</code>的格式存储，另一份数据以<code>DSM</code>的格式存储，因此，能够同时得到两者的优势</p>
+<p>大约在1996年左右，第一个商业化的列存储系统<code>SybaseIQ</code>[28, 29, 66]问世，展示了压缩的，面向列的存储能够为多种分析型应用带来好处。尽管它在商业上获得了成功，但是它未能吸引其他数据库供应商或者学术界的关注，可能原因包括，由于它进入市场为时过早，有利于列存储的硬件进步（触发数据库架构创新），例如大容量内存、<code>SIMD instructions</code>，在当时并未问世；也可能是因为它缺乏一些架构创新，后来证明这些创新对于列存储的性能优势至关重要</p>
+<p>行业中一些值得注意的例子包括<code>IBM BLU</code>[79]，它起源于<code>IBM Blink</code>项目[11]，主要在提供与处理压缩列的能力紧密集成的架构上进行创新，以及存储数据的<code>SAP HANA</code>[26]，它以行格式和列格式将在线分析处理和在线事务处理结合在一个系统中。此外，微软很快就对<code>SQL Server</code>行存储的架构进行了扩展，带来了面向列的存储、向量化处理和压缩等功能[62, 61]。最初列存储仅用于辅助加速器架构，例如列索引[62]，但是后续的版本提供了更通用的架构，它允许以列的形式存储基础数据</p>
+<h2 id="23-fundamental-performance-tradeoffs"><a class="markdownIt-Anchor" href="#23-fundamental-performance-tradeoffs"></a> 2.3 Fundamental Performance Tradeoffs</h2>
+<p>尽管<code>DSM</code>使得快速扫描单列成为可能，但是扩展到扫描多个列，甚至扫描全表，其性能远远落后于<code>NSM</code>。这是由于多列的元组重建、更多的磁盘访问、处理无关信息等会带来大量的性能开销。为了使得列存储能够获得与行存储相当的性能，需要在<code>DSM</code>的各个工作负载上都保持良好的性能，包括查询多列甚至整行的这种情况。随着CPU处理速度的增长远远大于磁盘带宽的增长，以及在软件层面针对I/O的优化，使得列存储在读取多列时的性能慢慢接近行存储。这一点，在过去十年中，被许多学术研究所证明</p>
+<ul>
+<li>在<code>Fractured Mirrors</code>[78]中，作者针对<code>DSM</code>提出了多个优化项。每个<code>DSM</code>列以<code>B-tree</code>的方式存储，每个叶节点包含了列的所有属性值。此外，淘汰了每列的<code>ID</code>属性，将开销分摊到多个不同的列中（<code>Graefe</code>还提出了一种在<code>B-tree</code>中高效存储列值的方法[33]），以及使用了基于块的元组重建</li>
+<li>在文献[40]中，作者基于一种全新的实现（一个独立的存储管理器，读优化的存储方式，大型预选单元来隐藏跨列的磁盘查找），对比了列扫描器和行扫描器。在2006年，在查询整行数据的情况下，列存储扫描的速率仅比行存储慢20-30%</li>
+<li>最后，在文献[89]中，作者提出了闪存固态存储器是数据库系统的主要介质，并证明了基于列的存储模型对磁盘存储的有效性。由于<code>SSD</code>的随机访问速度远优于<code>HDD</code>，列存储在这种介质上，进行整行全表扫描的I/O开销与行存储相当</li>
+</ul>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-2-2.png" alt="Figure-2-2" /></p>
+<p><code>Figure 2.2</code>将上述研究成果都整合到一张图中。展示了列存储（或称<code>DSM</code>）的扫描时间与行存储的扫描时间（<code>I/O</code>开销是个常量）在不同投影比例（读取元组/列的百分比）下的对比。<code>DSM</code>的基线取自于2001年的参考文献[5]，该基线同样被<code>PAX</code>以及<code>NSM</code>的性能对比所引用。随着时间的推移，在最差的情况下（投影比例是100%），列存储的性能开销在慢慢逼近行存储的性能开销。当存储介质是<code>SSD</code>时，列存储的性能不再若于行存储，当仅查询少数列时，列存储的性能要远远优于行存储。如果选择性很高，那么列存储可以最大限度地减少它们创建的中间结果的数量，否则会产生显着的开销</p>
+<h1 id="3-column-store-architectures"><a class="markdownIt-Anchor" href="#3-column-store-architectures"></a> 3 Column-store Architectures</h1>
+<p>在本小节中，我们将讨论<code>C-Store</code>、<code>MonetDB</code>以及<code>Vector-</code>Wise三种研究原型的顶层架构。这些架构衍生出了现代列存储系统的主要设计原则。本文高度赞扬这些系统的设计，大部分设计原则三种系统都遵循，少部分设计原则是各自系统所独有的。下一节更详细地讨论这些特性和设计原则，并提供查询处理和性能示例</p>
+<h2 id="31-c-store"><a class="markdownIt-Anchor" href="#31-c-store"></a> 3.1 C-Store</h2>
+<p>在<code>C-Store</code>中，数据在磁盘中的主要组织形式是一组列文件。每个列文件包含了某列的所有数据，这些数据是通过一些列压缩算法压缩过的，并且以与列相关联的一些属性排序过后的。这一组文件被称为<code>ROS（read-optimized store）</code>。此外，新数据是通过<code>WOS（write-optimized store）</code>方式存储（数据未压缩，且未分区）。<code>WOS</code>支持高效地加载数据，并且能够分摊压缩和搜索的时间开销。一个被称为<code>tuple mover</code>的进程会定期的将<code>WOS</code>的数据转换成<code>ROS</code>的数据，执行的操作包括排序、压缩、将数据重新写入等等操作</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-3-1.png" alt="Figure-3-1" /></p>
+<p><code>C-Store</code>中的每列，可能会以不同的排序方式存储多次。一组以相同排序方式排序的列，被称为投影（<code>projections</code>）。通常来说，至少包含一个投影（包含所有列）用以响应所有的查询请求。包含少量列，且按照不同排序方式的投影，主要是为了优化热点数据的查询性能。举个例子，在特定时间段内，特定区域每个月的销售数量的查询，可以受益于包含产品id、日期、地域且以地域、时间进行排序的投影。排序能够对相关的记录进行有效的子集化，且可以一次聚集一个月的结果，而无需维护聚合的中间状态。作为对照，在特定时间段内，每个月的销售数量的查询，则可以受益于包含日期且以日期进行排序的投影。<code>Figure 3.1</code>展示了两种不同的投影。在<code>C-Store</code>中，我们使用<code>saleid, date, region | date</code>来表示包含<code>saleid</code>、<code>date</code>、<code>region</code>这三列，且以<code>date</code>进行排序的投影。注意到，这些投影可以包含不同的列，且无需包含所有的列。</p>
+<p><code>C-Store</code>中的每列都是经过压缩处理的，且不同数据可能使用不同的压缩算法。如何选择压缩算法，取决于：a) 数据是否排序；b) 数据类型；c) 该列不同取值的数量。举个例子，<code>product class</code>的可能取值就很少，当数据经过排序后，使用<code>using run-length encoding（RLE）</code>便可对其进行有效压缩。在<code>RLE</code>中，连续<code>X</code>个相同的数值，可以被表示为<code>(X, product class)</code>，而不是<code>X</code>个记录。更多压缩算法的细节将在第4节中进行讨论</p>
+<p><code>C-Store</code>不支持二级索引，但是通过使用稀疏索引（<code>sparse indexes</code>）支持对排序投影的有效索引。稀疏索引是一种基于树的小型索引，用于存储列的每个物理页上的第一个数据。通常来说，<code>C-Store</code>的每个物理页的大小在几兆字节。给定投影中的某个数值，查询会返回第一个包含该值的物理页。然后在物理页中扫描来查询该值。<code>C-Store</code>中另一种相似的稀疏索引以元组的下标来进行排序，当数据以压缩的形式存储，或者存储的是可变长度的属性值时，允许通过元组偏移量来快速地查询某个元组信息</p>
+<p>此外，<code>C-Store</code>使用无覆盖（<code>no-overwrite</code>）的存储形式。在这种模式下，更新操作就会被等价表示为先删除再插入，删除操作就会等价表示为在删除列（<code>delete column</code>）中增加一条记录</p>
+<p><code>C-Store</code>中的查询执行过程，同时包含访问<code>ROS</code>以及<code>WOS</code>数据，并整合这两者的结果。在特定时间范围内的查询，需要过滤掉存在于删除列中的数据。因此，<code>C-Store</code>允许查询过去某个时间段的数据（由于数据并未删除，而是记录在删除列中，那么就可以通过比较删除的时间点与查询的时间点来判断数据是否可见）。修改数据库的查询使用传统的两阶段锁定运行。如果只读查询可以容忍读取稍微过时的数据，则可以通过在最近的某个时间执行它们而无需设置锁来运行它们。最后，<code>C-Store</code>查询执行器使用了一系列先进的技术，包括物化技术、列连接技术，批处理技术。这些技术将在第4节中详细讨论</p>
+<p>最后，除了完整的垂直分区之外，<code>C-Store</code>被认为是一个无共享的大规模并行分布式数据库系统，尽管学术原型从未包含这些功能（商业版本则包含）。<code>C-Store</code>中的并发设计指的是投影以<code>hash</code>或者<code>range-partitioning</code>的方式散列在不同的节点上，查询尽可能地在每个节点上执行，然后聚合成一个结果并返回。大多数<code>C-Store</code>的并行设计都是基于早期的共享非并行系统的设计，例如<code>Gamma</code>[23]。因此，并行不是这里讨论的重点</p>
+<h2 id="32-monetdb-and-vectorwise"><a class="markdownIt-Anchor" href="#32-monetdb-and-vectorwise"></a> 3.2 MonetDB and VectorWise</h2>
+<p>在本小节，我们先讨论<code>MonetDB</code>的架构设计，然后再讨论<code>VectorWise</code>的架构设计</p>
+<p><strong><code>MonetDB</code></strong>。<code>MonetDB</code>是从头开始设计的，专注于在现代硬件上执行高效的分析任务。<code>MonetDB</code>同时将数据存放在内存以及磁盘上，并且使用了批处理以及物化技术。它完全依赖于内存映射文件，避免了管理缓冲池的开销和复杂性。<code>MonetDB</code>与传统的<code>RDBMS</code>在许多方面上存在差异，包括</p>
+<ul>
+<li>执行引擎，使用<code>a column at-a-time-algebra</code>[19]</li>
+<li>处理算法，旨在最大限度地提高缓存命中率而非<code>I/O</code>效率</li>
+<li>索引，这不是<code>DBA</code>的任务，而是作为查询执行的副产品（写查询的人得明白如何利用索引高效地查询数据），即<code>database cracking</code></li>
+<li>查询优化，这是在运行时完成的，在查询的过程中会对数据进行一些处理，包括排序等等</li>
+<li>事务管理，使用显式的附加表以及代数运算实现，因此只读的工作负载可以省略并避免所有事务开销</li>
+</ul>
+<p>传统的查询过程采用的是每次一个元组（<code>tuple-at-a-time</code>）、拉模式（<code>pull-based</code>）的方式，每个算子通过调用<code>next()</code>方法从上下游中的相关算子中获取下一个输入元组，并以此方式进行迭代处理。而<code>MonetDB</code>中的每个算子工作在列上。通过这种方式，<code>MonetDB</code>旨在模仿计算机在提升CPU执行效率方面取得的成功，通过在列上的处理模式优化（例如<code>tight loops over fixed-width and dense arrays</code>）获取性能增益。这些优化需要编译技术的支持，通过各种手段从CPU中获取最大的性能，这些手段包括<code>strength reduction</code>（将一个算子替换为另一个低成本的算子）、<code>array blocking</code>（对数组的子集进行分组以增加缓存局部性）以及<code>loop pipelining</code>（将循环映射为流水线的执行方式）。<code>MonetDB</code>的<code>column-at-a-time</code>这一原语，不仅可以使用更少的指令来完成同样的任务，而且由于消除了<code>tuple-at-a-time</code>，指令执行的效率会更高。换言之，就是<code>MonetDB</code>查询计划为CPU提供了更多的动态指令，使得流水线满负荷运行、可以进行分支预测以及提高CPU缓存命中率。并且在编译器的帮助下允许数据库系统从<code>SIMD</code>中获得指示</p>
+<p><code>column-at-a-time</code>处理过程，通过<code>BAT Algebra</code>来实现，允许算子处理一部分<code>BAT</code>并产生新的<code>BAT</code>。<code>BAT</code>代表二进制关联表<code>Binary Association Table</code>，指的是<code>DSM</code>中的<code>&lt;surrogate, value&gt;</code>表。其中<code>surrogate</code>就是<code>Virtual ID</code>，它实际上是列的数组索引，并没有具体化。基础数据以及中间结果都会存储在<code>BAT</code>中，最终结果其实是一组<code>BAT</code>。因此<code>MonetDB</code>将<code>late tuple materialization</code>发挥到了极致。<code>BAT</code>本质上是内存中的（或者内存映射）数组。算子产生或者消费<code>BAT</code>，例如选择算子将一个<code>BAT</code>作为输入，对该<code>BAT</code>中的数据进行筛选过滤，然后产生一个新的包含所有合法元组的<code>BAT</code>作为输出</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-3-2.png" alt="Figure-3-2" /></p>
+<p>元组重建的缺失正符合<code>MonetDB</code>的另一个目标，即用一个内部的数据表示形式（即<code>BAT</code>）来处理其他不同模式的数据。<code>MonetDB</code>遵循了<code>frontend/back-end</code>的设计，其中<code>front-end</code>负责维护存储在一些逻辑数据模型中的数据的视图；<code>MonetDB</code>中的<code>front-end</code>适用于存储和查询纯关系型数据，包括面向对象的，<code>XML RDF</code>以及图数据。<code>front-end</code>将终端用户输入的查询语句（<code>SQL</code>、<code>OQL</code>、<code>XQuery</code>、<code>SPARQL</code>）转换成<code>BAT</code>代数，执行计划，并将结果<code>BAT</code>转换成最终的结果。<code>Figure 3.2</code>展示了不同的<code>front-end</code>产生的查询计划都会在<code>back-end</code>中进行执行</p>
+<p><code>BAT</code>代数效率背后的原因是它的硬编码语义，导致所有算子都是无谓词的。作为对照，在传统数据库系统的关系代数中，连接以及选择算子采用布尔表达式来确定哪些元组应该被连接或选择。由于这些布尔表达式，在查询时才能确定，意味着<code>RDBMS</code>必须在选择和连接算子的执行过程中使用一些表达式解释器来对表达式进行解释。这样的谓词不会出现在<code>BAT</code>代数中。因此我们也称其为「零自由度」。零自由度意味着算子将不再需要表达式解释器。因此，所有的<code>BAT</code>代数中的算子的执行代码都是固化的。从而，查询中不同的查询条件将会被映射成不同的算子。<code>MonetDB</code>中表达式解析的粒度发生在<code>column-at-a-time</code>这个维度，因此分摊了解析带来的开销</p>
+<p><code>BAT</code>代数背后的理念也可以解释为：<code>RISC</code>方法在数据库查询语言上的引用。通过简化代数，提供了优化执行效率的可能性</p>
+<p>近期的研究表明，通过走极端路线并即时编译代码（即在查询处理期间），可以获得进一步的优势。理由是编译后的代码最适合特定查询的查询模式和数据布局，从而提高扫描密集型工作负载的性能[43, 70]，使用针对这次特定扫描所关联的算子，可以进一步减少函数调用，增加缓存命中率</p>
+<p>在执行数据更新时，<code>MonetDB</code>为数据库中的每个基本列都使用了一组<code>pending column</code>。每个更新操作仅影响<code>pending column</code>，也就是说每个更新操作，会转换成针对<code>pending column</code>的操作。每个查询都会从基础列以及<code>pending column</code>中读取数据，并聚合成最终的值。举个例子，当针对<code>X</code>列进行一次过滤动作时，会执行两个算子，其中一个算子针对<code>X</code>列进行过滤；而另一个算子对该列对应的<code>pending column</code>组进行过滤，随后对两个算子的结果进行合并，<code>pending column</code>中的数据会定期的与基础列中的数据进行合并</p>
+<p><strong>VectorWise</strong>。<code>MonetDB</code>开创了多个列存储的核心设计原则，后续的<code>VectorWise</code>以及<code>C-Store</code>又补充了一些标志性的设计。<code>MonetDB</code>将数据以非压缩的方式存储在磁盘上，<code>BAT</code>代数算子通过内存映射来访问磁盘，不受任何API的阻碍。由于缺少<code>buffer</code>，<code>MonetDB</code>依赖操作系统的虚拟内存访问，系统本身对<code>I/O</code>调度没有绝对控制权。<code>column-at-a-time</code>的另一个缺点是它对中间结果的全物化。举个例子，如果选择算子将全部数据作为一次输入，那么该算子需要一次性物化所有的结果，这会导致额外的开销，特别是处理海量数据的时候。上述缺点综合在一起，就导致了，当<code>MonetDB</code>工作空间（内存等）超过<code>RAM</code>时，就极易发生<code>swap</code>（该操作性能极差）</p>
+<p>上述问题被同一个位于<code>CWI</code>的研究小组开发的系统<code>VectorWise</code>[96]所攻克。<code>VectorWise</code>另起炉灶，重新实现一整套系统，以解决<code>MonetDB</code>的缺陷，并提供为现代化硬件量身定制的架构。<code>VectorWise</code>的核心创新点它的向量执行模型。在<code>MonetDB</code>（对中间结果的全物化）以及传统的行存储系统（<code>tuple-at-a-time</code>迭代模式带来的函数开销）之间找到了平衡点。本质上来说，<code>VectorWise</code>一次处理某列的一部分，而不是一次处理整列，或一次处理整行</p>
+<p><code>VectorWise</code>以更加高级的方式执行显式<code>I/O</code>操作，自适应地为并发查询在<code>Active Buffer Manager（ABM）</code>以及<code>Cooperative Scans</code>[98]等方面进行优化。<code>VectorWise</code>提供了一种新颖的更新数据的方法（<code>Positional Delta Trees</code>[41]），以及一种高效率的压缩算法[100]。我们将在下一小节讨论这些细节</p>
+<h2 id="33-other-implementations"><a class="markdownIt-Anchor" href="#33-other-implementations"></a> 3.3 Other Implementations</h2>
+<p>来自行业的后续设计，基本共享了<code>VectorWise</code>以及<code>C-Store</code>的基本原则（我们将在下一节中详细讨论）。这里有2个在列存储领域，广泛被工业界采纳的核心架构</p>
+<p><strong>Columnar Storage Only</strong>。第一范式：以列的方式存储数据，但依赖于标准的行存储执行引擎来处理查询。这意味着，每个查询仅访问相关的列，在<code>I/O</code>层面节省了一些开销，但是一旦所有数据到达内存，它就会立刻拼接成<code>N</code>元组并送入经典的行存储引擎。因此，这种设计容易被现有系统所兼容，因为只需要在列存储中读出数据之后，将其映射成元组即可，但是这种方式不能发挥列存储的全部优势。此类设计的典型实现包括<code>Teradata</code>、<code>Asterdata and EMC</code>、<code>Greenplum</code>。这种设计的好处就是它允许更平滑的过度到一个全新的架构中去，并且他允许数据同时以行存储以及列存储的方式存储，且仍然可以由同一个执行引擎处理这两种数据</p>
+<p><strong>Native Column-store Designs</strong>。第二范式：全方位地接纳列存储这一设计理念。它不仅以列的方式存储数据，而且为<code>column-at-a-time</code>的算子以及延迟物化等技术量身打造了一个执行引擎。然后，这个新的引擎将与传统的行存储引擎集成到一起</p>
+<p><strong>IBM BLU/BLINK</strong>。第二范式的一个主要例子是源自<code>IBM BLINK</code>项目[11, 52]的<code>IBM BLU</code>[79]。本质上，<code>IBM BLU</code>位于标准行存储<code>DB2</code>引擎的一侧，负责处理部分数据。优化器知道何时将数据输入到传统的标准引擎，以及何时将数据输入到<code>BLU</code>引擎。通过这种方式，查询可以从列存储中获益，反之亦然，实际上查询可以从面向行和面向列的表中扫描数据</p>
+<p>除了利用标准的列存储设计，例如延迟物化。<code>IBM BLINK/BLU</code>在压缩领域引入了新的技术。<code>Frequency partitioning</code>[81]在提升压缩的空间效率的同时遵循了列存储的设计原则。总体思路是重新组织列，以减少数据在每个数据页中的变化度。也就是说，通过字典压缩，并通过最小化页面内的可能值来分别压缩每个页面。<code>IBM BLINK/BLU</code>降低了数据表示的成本（每个数据以更少的bit来存储）</p>
+<p><code>Frequency partitioning</code>意味着，与其他系统不同，<code>IBM BLU</code>可以存储非定宽的列。每个页面有独立的字典以及编码长度；在每个页面中，所有的数值/编码都是定长的，但是同一列的不同页面可能采用不同长度的编码。因此，与其他列存储系统相似，<code>IBM BLU</code>可以利用依赖于紧密<code>for</code>循环并且对缓存和<code>CPU</code>友好的算子的设计。只不过在处理不同的页面时，需要进行一些微调。这会导致页面的设计更加复杂一些，它不是纯粹的基于数组的存储，而是需要存储一些额外的信息，包括每个页面独立的字典以及元数据信息（元组与全局顺序的映射关系）。鉴于<code>Frequency partitioning</code>重新组织数据且通常发生在单个列的维度，这意味着，不同的列可能以不同的顺序存储，因此需要有一种方法能够将一张表中的所有列关联起来。我们将在下一节中讨论<code>Frequency partitioning</code>以及其他核心的设计原则</p>
+<p><strong>Microsoft SQL Server Column Indexes</strong>。这个设计范式，被由<code>Microsoft</code>[62]研发的<code>SQL Server</code>系统所采用。<code>SQL Server</code>对列存储和列执行提供了原生的支持，同时采用了许多列存储中的重要设计，例如向量处理，并且大量利用压缩。<code>SQL Server</code>将这些设计与传统的行存储系统进行了有效的整合，允许根据使用场景灵活地选择使用行存储还是列存储。列可以用作“列索引”，即辅助数据，增强对特定属性的扫描性能，或者它们可以作为扫描密集型场景的首选</p>
+<h1 id="4-column-store-internals-and-advanced-techniques"><a class="markdownIt-Anchor" href="#4-column-store-internals-and-advanced-techniques"></a> 4 Column-store internals and advanced techniques</h1>
+<p>在前几小节中，我们大概掌握了列存储的基本概念，在本小节中，我们将详细讨论列存储的设计细节，不仅局限于数据存储方式以及列存储与传统行存储的差异，而会介绍向量处理（<code>vectorized processing</code>）、延迟物化（<code>late materialization</code>）、压缩（<code>compression</code>）、<code>database cracking</code>等技术</p>
+<h2 id="41-vectorized-processing"><a class="markdownIt-Anchor" href="#41-vectorized-processing"></a> 4.1 Vectorized Processing</h2>
+<p>数据库的相关文献通常会对比两种搜索执行策略，火山式（<code>Volcano-style</code>）的迭代模式[32]（该模式也被称为<code>tuple-at-a-time pipeline</code>），以及全物化模式（<code>full materialization</code>）。在<code>tuple-at-a-time pipeline</code>中，元组在整个查询计划树中流转。算子通过自身的<code>next()</code>方法产生一个新的元组，通过调用子算子的<code>next()</code>来获取当前算子的下一个输入元组。这种方式，除了在软件工程层面来看比较优雅之外，还具有尽量避免物化中间结果的优势</p>
+<p>在<code>full materialization</code>方式中，每个算子独立工作，算子从存储介质中（磁盘或者内存）获取输入，并且将结果写入存储介质中。<code>MonetDB</code>是少数使用<code>full materialization</code>的数据库系统，它的<code>BAT</code>代数设计，能够使得算子的执行更加简单以及高效。然而，<code>MonetDB</code>之所以能够高效执行，是因为在执行的过程中产生了大量的中间结果</p>
+<p>为了更好地说明上述两种方法的差异，假设有如下的查询$select\ avg(A)\ from\ R\ where\ A \lt 100$。在<code>tuple-at-a-time pipeline</code>中，选择算子会将符合条件的元组，一个个地推送给聚合算子。在<code>full materialization</code>中，选择算子会先扫描整列A，创建一个包含所有符合条件的元组的中间结果，然后将这个中间结果推送给聚合算子。选择算子和聚合算子可以用非常高效的方式来实现，但是由于产了一个巨大的中间结果，会消耗大量的内存，这也是一个问题</p>
+<p>我们现在转向另一种由<code>VectorWise</code>开创的方法，叫做<code>vectorized execution</code>，这种方式在<code>tuple-at-a-time pipeline</code>以及<code>full materialization</code>这两种方式之间找到了良好的平衡点。该方法将查询进度控制逻辑与数据处理逻辑分开。抛开控制逻辑来看，<code>vectorized processing</code>与<code>tuple-at-a-time pipeline</code>比较类似，唯一的区别就是<code>next()</code>方法返回的是N个元组还是一个元组。抛开处理逻辑来看，算子的工作方式类似于<code>MonetDB</code>中的<code>BAT</code>代数，一次处理一组数据。因此<code>vectorized execution</code>能够结合两者的优势，既能够避免产生较大的中间结果，也能够提高算子的执行效率</p>
+<p>通常来说，<code>vectorized processing</code>中向量<code>vector</code>的大小最好能够匹配<code>L1 cache</code>的容量（在<code>VectorWise</code>中，取值为1000），这样能够避免在整个内存层级结构中进行读写操作。考虑到现代的列存储系统通常在某一个时刻处理某列的一组数据，这意味着，处理过程所包含的<code>vector</code>（输入和输出）以及辅助数据必须要适合<code>L1 cache</code>。例如，具有多个谓词和多列的查询通常会在每一列上单独应用谓词，因此，单列的一个<code>vector</code>必须适合缓存（在4.4节中会详细介绍延迟物化）</p>
+<p><code>vectorized processing</code>有很多优势，我们总结了如下几个主要的优势</p>
+<ul>
+<li><strong>Reduced interpretation overhead</strong>。降低表达式解析的整体开销。解释器调用的次数，相比于<code>tuple-at-a-time</code>模式（每个迭代都会执行），会降低到与<code>vector</code>大小相关的一个数值上。在CPU密集型的查询场景中，这种方式能够将性能提高两个数量级</li>
+<li><strong>Better cache locality</strong>。<code>VectorWise</code>将<code>vector</code>的容量调整为与<code>CPU</code>缓存相匹配的一个数值，如果<code>vector</code>的容量过大（极限情况下就退化成了<code>MonetDB</code>，容量就是表的大小），会降低查询的速率。不考虑缓存这个因素，<code>vector</code>模式也在<code>tuple-at-a-time processing</code>以及<code>full materialization</code>之间找到了平衡，对<code>vector</code>进行循环处理，根据局部性原理，也能够提高执行令的执行效率</li>
+<li><strong>Compiler optimization opportunities</strong>。正如<code>MonetDB</code>中提到的，循环会提高执行效率，且容易被编译器优化，并且通常还会触发编译器生成<code>SIMD</code>指令</li>
+<li><strong>Block algorithms</strong>。数据处理算法现在处理N个元组的事实，通常会导致逻辑算法的优化。举个例子，若要检查某些条件（例如输出buffer是否已满），<code>tuple-at-a-time</code>模式下，将会在每次处理元组时都执行一次检查动作，而在<code>vector</code>模式下，算法可以先检查输出buffer是否能够容纳N个结果</li>
+<li><strong>Parallel memory access</strong>。在现代CPU上循环执行内存访问的算法可以协助缓存构建。这是因为现代CPU可以在缓存未命中的时候，可以对后续的循环进行推测，并构建缓存。这在<code>tuple-at-a-time</code>架构中是是无法实现的，因为需要通过<code>next()</code>方法调用获取下一个输入，CPU无法提前做出预测。在现代计算机上，生成多个并发缓存是获得良好内存带宽的必要条件。文献[96]表明，可以在所有主要关系数据库算子中向量化内存查找，例如排序、哈希表查找以及哈希表探测。这种查找方式，会导致缓存未命中，在这种场景下，指令通过乱序推测生成的缓存将会使得查询效率比非向量化的内存访问快4倍左右。</li>
+<li><strong>Profiling</strong>。相关算子在处理一组元组时，只需要执行一次表达式解析的动作，分析该过程的开销会很小（整体开销会分摊到每个元组上）。这允许向量化引擎提供对<code>CPU</code>周期消耗的详细性能指标</li>
+<li><strong>Adaptive execution</strong>。详细的性能指标也可以在运行时，即执行查询的时候采集到。例如，对向量进行算数运算，其中某些谓词只选择向量中值的一个子集，<code>VectorWise</code>会自适应地决定只为选定的元组计算结果，还是为数组中的所有元组计算结果。后者虽然做了一些额外的工作（非匹配的元组也进行了计算），但是循环逻辑是没有条件判断的，这样就为使用<code>SIMD</code>指令提供了可能，整体的效率可能反而比只计算选中的元组来的更高。<code>VectorWise</code>的微自适应机制[77]概括了使用运行时统计来优化查询处理的概念。<code>Multi Armed Bandid</code>算法的作用是在运行时为算子选择最佳的执行路径。在一段时间后，经过数以万计的执行查询任务，几乎尝试了所有的可能路径，因此在后续的执行过程中，总是会选择最优的执行路径。这种方法可以抵抗编译器和编译器标志的差异（通过多次链接同一函数、以不同方式编译、以不同风格提供）以及硬件差异，并且还可以对查询期间数据分布的变化做出反应</li>
+</ul>
+<p><code>vectorized execution</code>主要涉及算子以及元组流在执行树之间的流转。算子中使用的数据布局可以与在存储介质中的数据布局有所不同。尽管<code>vectorized execution</code>是在<code>VectorWise</code>这一列存储系统的上下文中被提出以及使用的，但是这一设计原则可以被应用到行存储系统中，因为它和底层的存储管理并无耦合关系。事实上，上述概念早在1994年就在行存储系统中进行了试验[85]，当时是为了提高缓存命中率和指令命中率。随后进行了更进一步的尝试，在行存储系统上使用了<code>block based query processing</code>[74]以及<code>buffer operators</code>[95]，通过缓存来达到批处理的效果（缓存满了才流转到下个算子中）</p>
+<p>文献[101]指出，一个采用了<code>vectorized query execution</code>设计的系统可以通过一个简单的执行器同时支持行存储和列存储。此外，还指出了存储格式对算子的执行效率影响巨大，其中算子特性、硬件参数、数据分布决定了哪种存储格式最有效。通常来说，顺序访问算子（投影、选择）在<code>vertical vectors</code>效果最佳（利用自动内存预取和<code>SIMD</code>）；随机访问算子（<code>hash-join</code>or<code>aggregation</code>）在<code>blocks of horizontal records</code>效果最佳（<code>cache locality</code>）。由于通过<code>vectorized execution</code>来对水平或者垂直格式的数据进行转换的成本较低的，这使得在执行查询任务时，进行数据转换成为可能（很可能会转换多次），这为查询布局规划的查询优化器开辟了新天地，该优化器应该使用基于成本估计为查询执行计划的每个阶段确定最佳数据布局</p>
+<h2 id="42-compression"><a class="markdownIt-Anchor" href="#42-compression"></a> 4.2 Compression</h2>
+<p>起初，存储在列中的数据会比存储在行中的数据更容易进行压缩。压缩算法通常更容易压缩信息熵更小的数据（数据的局部性）或者说来自同一列的数据会比来自不同列的数据更具有局部性</p>
+<p><strong>Compressing one column-at-a-time</strong>。举个例子，假设一个数据表包含客户的一些信息，包括姓名、电话号码、e-mail地址、snail-mail地址等等。行存储，意味着每个数据页包含了姓名、电话号码等信息，我们需要对这些信息一起进行压缩处理。另一方面，列存储，意味着所有的姓名被存储在一起，所有的电话号码被存储在一起。具体来说，某个电话号码肯定是与另一个电话号码更相似，而不是与e-mail地址相似。这就引出了列存储在压缩中的两个优势：第一，当仅存储一个属性的数据时，压缩算法能够使用相同的常见模式压缩更多的数据；第二，相似的数据意味着相似的数据结构，能够达到更好的压缩效果。此外，如果数据是已排序的，那么可以达到更好的压缩效果，例如可以使用<code>RLE</code>压缩算法</p>
+<p><strong>Exploiting extra CPU cycles</strong>。通常来说，数据库系统的最基础的目标就是高性能，尽可能地快速处理查询请求，而不是追求压缩效率，因为存储介质很便宜且变得愈发便宜。然而，压缩确实能够提供数据库的性能（同时还能降低磁盘空间），因为如果数据是经过压缩的，那么可以降低<code>I/O</code>成本，包括（磁盘到内存、内存到寄存器）。另一个动机是因为CPU的执行效率将远远大于内存的带宽，数据访问相比于过去占用了更多的CPU周期。直觉上来说，这意味着我们有更多的CPU资源可以用于数据的解压缩，但是在过去更倾向于传输未压缩的数据（会占用更多的内存资源）</p>
+<p><strong>Fixed-width arrays and SIMD</strong>。鉴于性能是数据库系统最重要的指标，这意味着追求压缩率的重量级压缩方案（<code>Lempel-Ziv</code>、<code>Huffman</code>、<code>arithmetic encoding</code>）的优先级要小于牺牲压缩率但是具有较好解压缩性能的轻量级压缩方案。轻量级压缩方案中可以将列值进行等宽压缩的算法会更受到青睐，因为压缩后的数据可以当成一个数组来处理（元素宽度相同）。此类数组的遍历（解压缩）可以利用现代CPU的<code>SIMD</code>指令，可以极大地提高解压缩的性能。利用<code>SIMD</code>指令，我们可以使用一个指令解压缩或者处理多个数据，只要这些数据以定宽的形式存储在数组中，最大程度地提高并行性。由于列存储无论如何都会使用定宽的密集数组，因此在处理未压缩的数据时，也能使用<code>SIMD</code>指令。此外，由于经过了压缩，相比于未压缩的数据，我们可以在相同容量的<code>SIMD</code>寄存器中存储更多的数据，等效于在相同时间内处理了更多的数据。举个例子，现代处理器的<code>SIMD</code>寄存器通常可以存储4个4-byte大小的整数，那么我们在同一时刻可以处理4个未压缩的数据（假设数据大小就是4byte）。若数据经过压缩后大小变为2byte，那么<code>SIMD</code>寄存器便可以容纳8个压缩后的数据，因此提高了并发度</p>
+<p>总之，压缩能够极大地提升列存储系统的性能，并且已经作为工业界中不可或缺的一部分。另外，由于压缩节省下来的磁盘空间可以用于存储物化的附属信息或者数据结构等等，例如<code>C-Store</code>中的投影。反过来，这进一步提高了性能，因为现在查询可以享受更好的访问模式。针对列存储中的压缩算法的研究有很多[2, 100, 43, 15]，大部分都由<code>C-Store</code>以及<code>VectorWise</code>开创并由工业界进一步完善。特别地，<code>IBM BLINK</code>项目[11]所提出的<code>frequency partitioning</code>方案更是将压缩和列存储技术紧密的结合在了一起</p>
+<p><strong>Frequency partitioning</strong>。<code>frequency partitioning</code>的主要动机是提高压缩率的同时，保持定宽数组的特性并可以利用<code>vectorization</code>架构。这要求针对系统架构进行更加紧密的压缩设计。由于<code>frequency partitioning</code>会重新组织列，因此在列的每个页面的熵都比较低。<code>IBM BLINK</code>以数据出现的频率为依据对列进行重组，相同的数据被尽可能地存放在同一个物理页中，这允许系统对每个页面使用更为紧凑的字典进行字典压缩，省下来的空间可以用于存储字典，尽管如此，相比于使用一个全局的字典，仍然能够得到更好的压缩率。举个例子，如果一列中仅有两个不同的数值，针对某个页面（假设都是同样的值），字典仅需占用1个bit。在每个页面中，所有的数值都具有相同的宽度，这允许算子使用CPU以及缓存友好的方式访问数据，就像典型的列存储架构一样，系统以<code>page-at-a-time</code>进行<code>vectorized processing</code></p>
+<p><strong>Compression algorithms</strong>。针对列存储中的压缩算法的研究有很多[2, 100, 43, 42, 15]。某些通用算法可以在列存储以及行存储场景中使用；某些特定算法只能在列存储场景中使用，可以压缩同一列中的多个连续值（在行存储中，这是行不通的，相同的列值是不连续存储的）</p>
+<p>接下来我们将详细讨论上述压缩算法，包括<code>run-length encoding</code>、<code>bit-vector encoding</code>、<code>dictionary compression</code>、<code>patching</code></p>
+<h3 id="421-run-length-encoding"><a class="markdownIt-Anchor" href="#421-run-length-encoding"></a> 4.2.1 Run-length Encoding</h3>
+<p><code>run-length encoding（RLE）</code>适用于经过排序且包含大量重复数据的场景。元数据被编码成一个个三元组，每个三元组可表示为<code>(value, start position, runLength)</code>。举个例子，若一列中的前42个元素都是字母<code>M</code>，那么这前42个元素便可压缩为<code>('M', 1, 42)</code></p>
+<p>在行存储的场景中，<code>RLE</code>只能用于压缩包含大量空白和重复子串的大string。但是在列存储系统中，<code>RLE</code>能够得到更广泛的应用，列值单独存储，且经过排序，会存在大量的重复数据。特别是列值的不同取值仅有少数几个的时候。举个例子，<code>C-Store</code>中的的列在不同投影中以不同的顺序存储，且大多数情况下是经过排序的，因此特别适合于<code>RLE</code>算法</p>
+<p>鉴于<code>RLE</code>会将包含相同取值的任意长度的数据块映射成一个三元组，会导致压缩后的数据不是定长的。这意味着我们不能对压缩后的数据采用上面提到过的依赖于定长数据的算法，且在这种情况下，元组重建也会更加复杂。我们需要在磁盘空间以及<code>I/O</code>效率的提升以及该算法对数据分布的影响之间做好权衡</p>
+<h3 id="422-bit-vector-encoding"><a class="markdownIt-Anchor" href="#422-bit-vector-encoding"></a> 4.2.2 Bit-Vector Encoding</h3>
+<p><code>bit-vector encoding</code>经常用于列值空间较小（可取的值比较少）的情况（比如美国的州等等）。但是，如果<code>bit-vector</code>可以被进一步压缩的话，还能适用于列值空间特别大的场景。<code>bit-string</code>（包含的bit数量与列的总大小相同），列中的每个可能的元素都有一个<code>bit-string</code>。如果列中的第<code>i</code>个元素是<code>X</code>，那么将<code>X</code>对应的<code>bit-string</code>的第<code>i</code>个位置的bit置为<code>1</code>，否则置为<code>0</code>。例如，对于列<code>1 1 3 2 2 3 1</code>，由于该列存在3种独立的取值（<code>1</code>、<code>2</code>、<code>3</code>），因此会包含3个<code>bit-string</code>，其中</p>
+<ul>
+<li><code>1</code>对应的<code>bit-string</code>：<code>1100001</code></li>
+<li><code>2</code>对应的<code>bit-string</code>：<code>0001100</code></li>
+<li><code>3</code>对应的<code>bit-string</code>：<code>0010010</code></li>
+</ul>
+<p>由于<code>bit-vector encoding</code>的一个变体可用于索引行存储（被称为<code>bit-map indices</code>[71]），在进一步压缩这些<code>bit-map</code>以及进一步压缩对查询性能的影响方面已经做了很多工作[68, 8, 7, 53, 91, 93, 92]</p>
+<h3 id="423-dictionary"><a class="markdownIt-Anchor" href="#423-dictionary"></a> 4.2.3 Dictionary</h3>
+<p><code>dictionary encoding</code>适用于数据分布异常分散的场景，且同样可以用于string的压缩。将按照列值频率排序的列，构造成一个字典是最简单的形式，字典的值表示关键词在列中的序号。这些整数值可以通过整数压缩算法进行进一步的压缩。全局的字典体积太大，且不同区域的数值分布也不同。针对这种场景，且为了简化更新操作，有时候我们会在数据页的维度使用字典[76, 11]。字典压缩通常有助于将字符串谓词映射成整数谓词来优化查询，在这一点上，全局字典更容易实现</p>
+<p><code>dictionary encoding</code>的好处之一是：它能够将列改造成固定宽度的格式，这是CPU、缓存友好型的访问模式，但是需要在存储收益上作出一些牺牲。事实上，值得注意的是，<code>MonetDB</code>从架构上并未使用压缩（压缩是由<code>VectorWise</code>引入的），但是它仍然使用字典压缩来将string（不定宽）类型的列映射成定宽的列</p>
+<p>一个实际的考量点是如何高效地进行字典压缩，这取决于散列速度。一种特别高效的散列技术是<code>cuckoo hashing</code>[97]</p>
+<h3 id="424-frame-of-reference-for"><a class="markdownIt-Anchor" href="#424-frame-of-reference-for"></a> 4.2.4 Frame Of Reference (FOR)</h3>
+<p>列值的分布如何含有局部性，那么列值可以表示为一个基础值加上差值。范围可以是整个磁盘也可以是磁盘的一部分。于是列值就映射成了一个很小的值（相比于很大的值来说，仅需要更少的bit即可表示该值，因此可以节省存储空间）。因此<code>FOR</code>就可以表示为基值加上陪集（陪集表示原值与基值的差值构成的集合）的形式[31]。举个例子，<code>1003, 1001, 1007, 1006, 1004</code>可以表示为：<code>1000, 3, 1, 7, 6, 4</code>。其中陪集还可以结合<code>delta coding</code>，当前值可以表示为前一个值的<code>delta</code>，这在前后数值具有强关联的场景下特别有效。一个典型的例子就是经过排序后的整数</p>
+<h3 id="425-the-patching-technique"><a class="markdownIt-Anchor" href="#425-the-patching-technique"></a> 4.2.5 The Patching Technique</h3>
+<p><code>dictionary</code>以及<code>FOR</code>这两种压缩方案要求列值空间不能太大。如果值域分布及其不均匀，那么我们仍然可以通过这种方式来压缩高频数据</p>
+<p><code>dictionary</code>以及<code>FOR</code>的一种简单扩展思路是：我们允许少部分值不被压缩。这种技术通常会将磁盘分成相邻的两部分，其中一部分用于存放正常压缩的数据（从起始位置，正向移动）；另一部分用于存放未压缩的数据（从末位置，逆向移动）。由于这种存储方式，在进行解码操作的时候，需要判断数据属于哪个部分，这种判断逻辑会降低在现代CPU上的执行效率（因为无法有效地预测执行分支，跳转指令会成为性能开销）</p>
+<p>于是，<code>patching</code>方案应运而生[100]，它是通过链表来维护未压缩的数据。于是，在处理正常压缩数据的时候，是无需考虑这些未压缩的异常值的，整个处理过程是平坦的（无分支）。在第二个阶段，会将这个链表中的所有未压缩的值再添加到解压后的数据集中。虽然在处理异常值上做了更多的工作，但是它将处理过程分成两个分支，能够提升解压的效率。这种<code>patching</code>技术还被用于优化<code>block-wise processing</code></p>
+<h2 id="43-operating-directly-on-compressed-data"><a class="markdownIt-Anchor" href="#43-operating-directly-on-compressed-data"></a> 4.3 Operating Directly on Compressed Data</h2>
+<p>在很多情况下，上面讨论的这些面向列的压缩算法（以及包括一些面向行的压缩算法），都支持在未解压的情况下进行操作。由于直接操作压缩数据能够有效地降低<code>I/O</code>开销。特别地，当压缩算法是<code>RLE</code>时，这种增益会进一步被放大。举个例子，连续1000个<code>42</code>将会被编码成一个三元组<code>（'42', pos, 1000）</code>，如果对这1000个数据进行求和运算的话，完全不需要解压缩，会大大降低性能开销。另一个例子是，当<code>dictionary</code>使用了保持比较顺序的编码方式时，这意味着两个原始数据的比较关系，在压缩前后保持不变。因此，选择算子可以直接使用压缩数据来进行比较，在这种方式下，我们只需要对被用于判断条件的值进行压缩即可，例如，判断条件是<code>where x &gt; 100</code>，那么我们只需要将<code>100</code>进行压缩，得到压缩后的数据，这样就可以与所有已压缩的数据进行比较</p>
+<p>然而，直接操作压缩数据要求查询执行引擎理解正在被处理的数据是如何被压缩的。这会导致产生一些不可扩展的代码（一个算子需要通过<code>if statements</code>语句或者<code>switch</code>来对不同的压缩算法进行分支处理）。这个问题的一般解决思路是抽象出压缩算法的一般特性，并且让算子针对这些通用特性进行操作（在工程上来说，这种特性以接口的方式体现）。顺着这个思路，就需要研究那些不需要修改查询执行引擎代码的压缩算法</p>
+<p>可以在查询执行引擎中添加一个模块来实现，该模块负责维护一个压缩数据块（<code>compression block</code>）（包含了所有经过压缩后的中间数据）。该模块提供一个缓冲区，用于存储压缩数据，并提供多种不同的访问<code>API</code>以供算子使用。压缩数据块无需与实际的存储数据块一一对应。事实上，压缩数据块占用的空间可能非常小（例如<code>RLE</code>）。通常来说，一个存储数据块会被分解成多个压缩数据块。这些压缩数据块会将一些关键属性暴露给算子。举个例子，<code>RLE</code>以及<code>bit-vector</code>会包含列值的一些位置信息，某些聚合算子（例如<code>COUNT</code>算子）可以直接通过直接调用压缩数据块的<code>getSize</code>方法来获取该信息，而无需访问压缩数据块中的数据。相关的属性还包括<code>isSorted()</code>、<code>isPositionContiguous()</code>、<code>isOneValue()</code>、<code>getFirstValue()</code>、<code>getEndPosition()</code>等等，这些属性都有助于算子无需遍历压缩数据，便可直接获取相关信息</p>
+<p>通过抽象压缩算法的一些通用接口，允许算子在不改变代码的情况下直接操作压缩数据，这有利于进一步扩展压缩算法的种类。当需要添加一种新的压缩算法时，那么需要实现这些通用接口，包括：a) 数据压缩接口；b) 从存储中扫描压缩数据，并将分解成多个压缩块的接口；c) 迭代并解压数据的接口；d) 查询压缩算法本身的一些相关信息的接口；e) 查询压缩块相关的概要信息的接口（比如长度，第一个元素，是否排序等等）</p>
+<p>试验表明，压缩不仅能够节省存储空间，还能大幅度提升性能。如果不直接操作压缩后的数据，很少能够获得三倍以上的性能提升[2]。如果查询执行引擎能够额外感知压缩相关的一些信息，便可能获得超过一个数量级的性能提升，特别是针对那些经过排序的数据</p>
+<h2 id="44-late-materialization"><a class="markdownIt-Anchor" href="#44-late-materialization"></a> 4.4 Late Materialization</h2>
+<p>在列存储中，逻辑实体的信息是存储在磁盘的多个位置中的（例如名字、e-mail、地址、电话号码等，这些信息都被存储在不同的列中），而在行存储中，这些信息是存放在同一行中的。然而，大部分的查询都会查询多个属性。此外，大多数数据库的输出标准（例如ODBC以及JDBC）以实体的形式返回结果（而不是以列的形式）。因此，在大多数的查询计划中，来自不同列的数据需要被整合成一个数据行。这个将多个列值物化成一行数据，类似的过程被称为元组物化（<code>materialization of tuples</code>），或者被称为元组构建（<code>tuple construction</code>），这也是列存储中最常见的操作</p>
+<p>朴素的列存储[38, 40]将数据以列的形式存储在磁盘（或者内存）中，一次特定的查询只需要读取那些与查询相关的列（读到CPU寄存器或者内存中），将这些列值构建成一个元组，然后用面向行的算子来处理这些元组。尽管，在数据分析领域（例如仓储）中，列存储的性能要优于行存储，上述在查询计划的早期进行元组重建的方法存在巨大的优化空间</p>
+<p>近期的列存储系统，包括<code>VectorWise</code>、<code>C-Store</code>、<code>Vertica</code>、<code>SybaseIQ</code>，选择保持以列的形式存储数据，并且直接访问这些列值，直至查询计划的最后（极限情况：返回结果的时候，必须进行元组重建操作）。为了达到这样的目的，通常需要构建<code>intermediate 'position' list</code>以匹配已在不同列上执行的操作。举个例子，一个将谓词应用于两列并在应用谓词后投影同一表中的第三列的查询。在列存储中需要用到延迟物化<code>late materialization</code>，谓词将会独立地应用到每个列上，在这个过程中需要用到一个包含列值位置信息（列值在列中的原始的偏移量）的向量。针对不同类型的谓词，这个向量的形式可以是一个简单数组或者<code>bit-string</code>（<code>bit-string</code>中位置为$i^{th}$的值为1代表列中第$i^{th}$个元素被谓词选中）、或者一组区间。将这些位置向量进行交集运算（如果是<code>bit-string</code>，那么可以用位于运算来求交集）来得到最终的位置向量。然后根据这个位置向量，从第三列中取出指定位置的元素</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-1.png" alt="Figure-4-1" /></p>
+<p><strong>Example</strong>。<code>Figure 4.1</code>展示了现代列存储中延迟物化的简单示例。在这里，为了更好地关注于延迟物化技术本身，我们假设中间结果以位置向量的形式存储。且为了易于演示，过程中不涉及到压缩。<code>Figure 4.1</code>中是一个<code>select-project-join</code>查询，该查询需要从两张独立表（<code>R</code>以及<code>S</code>）中的三列作为过滤条件，并且将两张表连接在两列上，随后在其中一张表（<code>R</code>）中进行求和运算。<code>Figure 4.1</code>展示了响应本次查询的多个具体的操作，并显示了<code>MAL</code>代数查询计划，以及<code>MAL</code>算子的行为</p>
+<p>延迟物化意味着我们将总是直接操作独立的列。在<code>Figure 4.1</code>中，选择算子独立地过滤每个列，由于每个算子只读取相关的数据，因此能最大程度的利用内存带宽。这样，在<code>Figure 4.1</code>中的<code>Step 1</code>过滤列<code>R.a</code>后，产生了一个包含所有选中列值的位置向量。位置向量可以理解成行id。<code>Figure 4.1</code>所有位置向量都以虚线的形式标出。接着，在<code>Step 2</code>中，我们依据位置向量重新构建<code>R.b</code>。接着，在<code>Step 3</code>中，我们可以根据<code>R.b</code>的谓词来创建另一个中间结果<code>inter2</code>，同样它也是一个位置向量，并且该位置向量会在<code>Step 4</code>中用于重新构建<code>R.c</code></p>
+<p>随后，我们以同样的方式来过滤<code>S</code>表中的<code>S.a</code>，然后提取出<code>S.b</code>用于后续的连接操作。在<code>Step 7</code>中，我们重新调整这个中间结果，以便于后续的连接操作。<code>Step 8</code>中进行连接操作，该操作会产生两个位置向量，便于投影各自表中的列值。在这个例子中，我们只需要<code>R</code>表的位置向量，因此我们在<code>Step 9</code>去除了<code>S</code>表的位置向量，然后用这个位置向量来重新构建<code>R.a</code>，并基于此列执行<code>sum</code>函数。最后，在<code>Step 11</code>中，我们执行聚合函数，得益于<code>column-at-a-time</code>，可以用CPU以及缓存友好的模式访问这些数据，以达到较高的性能</p>
+<p>我们将根据位置向量（由前一个算子产生）从列中取值的过程被称为元组重建，该过程在一次查询计划中可能执行多次，最多<code>N-1</code>次。其中，<code>N</code>指的是一次查询中相关的列的数量。跨列的元组对齐以及顺序访问模式降低了元组重建的开销。在<code>Figure 4.1</code>中，中间结果以行id的形式组织（位置）。然而，正如我们早先讨论的那样，这里存在很多的可替代方案，例如使用位向量（<code>bit-vector</code>）、或者像文献[80]中描述的一样，先独立地过滤列，然后再进行merge</p>
+<p>值得注意的是，在<code>C-Store</code>的投影中，元组重建的开销更低。鉴于每个投影都经过排序，查询操作会将后续的元组重建限定在相同的范围内。由于投影是根据当前属性排序的，该投影中的其他列也以此属性排序，因此，确定位置信息后，只需要在不同的列中用同一个位置信息来获取列值，并进行元组构建即可。这种方式能够进一步的优化访问模式，以及增大缓存命中。<code>database cracking</code>采用了自组织的形式达到了相同的效果（我们将在后面详细讨论）。即随着工作负载的发展对列进行部分排序，适应工作负载模式并避免先验地创建整个投影</p>
+<p><strong>Advantages of late materialization</strong>。延迟物化有4重优势。第一，选择和聚合算子减少了不必要的元组重建操作。因此，如果算子在重建元组前等待了足够长的时间，它可能能够完全避免构造它的开销。第二，如果数据是被压缩过的（尤其是<code>RLE</code>这种压缩方式），在元组重建的时候必须进行解压缩，并且与其他列值共同组成一个元组，这消除了直接操作压缩数据带来的优势</p>
+<p>第三，当直接操作列值数据时，缓存性能较高（命中率高），因为缓存中的数据没有被算子中其他相关的属性所污染[5]。这一点至关重要，因为<code>CPU</code>与内存之间的带宽是现代计算机系统的主要性能瓶颈。举个例子，在谓词算子中（例如$WHERE\ salary \gt 100,000$，由于算子仅对<code>salary</code>这一个属性进行操作，因此不会浪费带宽</p>
+<p>第四，在定宽列值的场景中，之前提到的<code>vectorized optimizations</code>能够进一步优化性能。在行存储当中，如果某个属性的宽度是可变的，那么整个元组就是可变的。在延迟物化的列存储中，定宽的列可以被独立处理</p>
+<p>在某些情况下，延迟物化的性能要比早期物化差。举个例子，如果在多列上使用非限制性谓词（例如，$WHERE\ salary \gt 100\ AND\ age \gt 5\ AND...$），那么需要在多组中间结果（每个谓词一个）间进行交集以及物化操作，整体开销会比简单的元组构造过程大得多</p>
+<p><strong>Multi-column blocks</strong>。有几个方向可以进一步提高元组重建的性能，甚至在某些情况下甚至完全消除它。其顶层设计是将数据存储在一组列中而不是一个列中，这种方式被称为多列块（<code>multi-column blocks</code>）、列向量块（<code>vector blocks</code>）或列组<code>column-groups</code></p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-2.png" alt="Figure-4-2" /></p>
+<p>列向量块将属性关系等相关信息存储在原始的压缩信息中。如<code>Figure 4.2</code>所示，一种理解列向量块存储方式的方法是，将其与<code>PAX</code>进行对比，差别是，并非所有相关的属性都必须存储在同一个页面中。列向量块允许谓词单独应用于每一列，然后位置向量会被输送到交集算子并进行交集运算，并将结果输出到位置解释器中（<code>Figure 4.2</code>最左边），用以表示哪些元组满足了所有的谓词，这些结果可以输送到更上层的算子进行进一步的处理</p>
+<p>尽管，列向量块并不能消除位置交叉的需要，但是一次只对每列的一个小子集进行操作，可以以流水线的形式产生谓词判断的结果（位置向量），并将其直接输送到交集算子中，从而实现元组的构造。这意味着，只要不涉及到<code>join</code>操作，在大部分情况下，延迟物化都要优于早期物化。然而，在有<code>join</code>操作的场景中，如果不经过优化处理，延迟物化反而会带来问题，我们将在下一节中讨论</p>
+<p><code>IBM Blink</code>[11]中使用的列向量块，提出了一种更加灵活的布局：存储在列向量块某个页面的数据，可能以面向行的形式存储。需要注意的是，这里的面向行的格式与传统的行存储中的格式（例如槽页）不同，它仍然以列的形式存储（定宽密集数组），但是某个页面中的数据可能会“粘”在一起，形成矩阵。这对于那些工作在列向量块中的所有列上的算子大有裨益，因为完全避免了中间结果以及元组重建（只要查询过程中不涉及列向量块以外的列）</p>
+<p>类似的想法还被应用于行存储中，例如<code>multi-resolutions blocks</code>[94]。该方案中，每个页面可能仅包含一张表中的部分属性，这样可以避免从磁盘中加载与本次查询无关的属性。在内部，页面仍然以槽页的方式进行组织，并且以标准的行执行引擎进行处理</p>
+<p><code>Figure 4.3</code>展示了，列存储中多种不同的存储方式，每个页面可能存储了一个列，或者多个列。内部以列的方式组织或者定宽行的形式组织</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3.png" alt="Figure-4-3" /></p>
+<p>列向量块以及多种变体，被现代化列存储系统所使用，包括<code>Vertica</code>、<code>VectorWise</code>以及<code>IBM BLU</code>。列向量块的一个劣势是：我们必须事先做好决策，决定哪些列需要被组织在一起。这需要了解工作负载的相关特点以及一个相对稳定的访问模式（业务场景固化）。针对<code>VectorWise</code>的研究表明，当访问模式的收益超过转换成本时[101]，在查询处理期间即时构建此类列向量块甚至是有益的，而视觉系统需要能够根据查询模式实时自适应地调整存储模式</p>
+<h2 id="45-joins"><a class="markdownIt-Anchor" href="#45-joins"></a> 4.5 Joins</h2>
+<p>连接算子为列存储系统提供了大量的优化机会，但是如果不妥善处理的话，同样会导致性能瓶颈以及复杂度的提升。如果在连接操作的同时使用了早期物化策略，数据在输送到连接算子之前就会进行元组物化操作，因此连接算子会和行存储系统中的连接算子一样进行处理，并输出连接后的元组（因此与行存储中的连接算子性能相似）。然而，可以将几种可替代的连接算法与延迟物化策略一起使用。最直接的方式是，将仅与连接谓词相关的列作为连接算子的输入。以<code>hash-join</code>（一种常见的连接算法）为例，这使得hash表更为紧凑，从而可以进一步优化访问模式；hash表越小，缓存命中率越高。连接算子的输出是一对位置向量（符合连接谓词）。举个例子，下面这张图展示了长度为5的列和长度为4的列的连接过程</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-1.png" alt="Figure-4-3-1" /></p>
+<p>对于大多数连接算法，连接算子输出的2个位置向量中，左边（或者外面）的这个位置向量会被排序，而右侧（内侧）的将不会。这是因为，左边的这个位置向量经常会被遍历访问，而右边的这个位置向量通常用于判断列值是否符合连接谓词。对于其他连接算法（例如，对两组输入进行排序或重新分区的算法）都不会对位置向量进行排序，无论哪种方式，至少有一个位置向量不会被排序。这个未排序的位置向量可能会成为一个问题，因为通常在连接操作之后，还需要获取其他列的数据，例如以下查询</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-2.png" alt="Figure-4-3-2" /></p>
+<p>在连接后需要从<code>emp</code>表中提取<code>age</code>属性，以及需要从<code>dept</code>表中提取<code>name</code>属性。基于未排序的位置向量的查询动作将会造成性能能问题，因为在列中乱序的取值会导致在不同的位置上跳跃，这将导致严重的性能问题，因为大部分的存储驱动，其随机访问的表现要远远低于顺序访问</p>
+<p>幸运的是，多个文献中提到了针对依据未排序的位置向量，在存储中跳跃取值的多个优化项。其中一种方法就是<code>Jive join</code>[64, 89]。举个例子，当我们连接一个长度为5的列和一个长度为4的列的时候，我们会得到如下的输出</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-3.png" alt="Figure-4-3-3" /></p>
+<p>上图中右侧（内侧）的位置向量是未排序的。现在假设我们将会根据右边这个位置向量从表中取出<code>name</code>属性，该属性包含如下几个数值</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-4.png" alt="Figure-4-3-4" /></p>
+<p><code>Jive join</code>的核心思路是：我们在位置向量之外，额外添加一列，该列是一个连续递增的整数</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-5.png" alt="Figure-4-3-5" /></p>
+<p>然后按我们要提取的位置向量进行排序（排序会导致我们新添加的这一列变成无序），如下</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-6.png" alt="Figure-4-3-6" /></p>
+<p>于是，可以以顺序的访问访问需要提取数据的这一列，然后添加到当前的数据结构中</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-7.png" alt="Figure-4-3-7" /></p>
+<p>最后将数据重新依据额外添加的那一列进行排序，以恢复其原始的顺序</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-3-8.png" alt="Figure-4-3-8" /></p>
+<p>该算法使得任何列都可以被顺序访问，代价就是两次排序。这些额外排序的成本随着连接算子输出的大小而增加。由于大部分的数据库系统都有一个非常高效的排序算法（与顺序访问的开销相近）。该算法可以显著优化由延迟物化连接算法带来的性能问题</p>
+<p>进一步的研究使上述算法得到了进一步的改进。研究表明，为了降低随机访问性能开销，而在连接操作后对列值进行全排序是不必要的。这是因为，大部分的物理介质会将数据存放到连续的多个存储块中，在一个数据块中的随机访问的开销要远低于在所有数据块中随机访问。因此，数据库无需在提取列值前对位置向量进行全排序。只需将其以存储块的形式进行划分即可。在每个分区中，位置向量仍然是无序的，正如前面介绍的，在块中的随机访问的性能开销是很低的。我们所提取的列值在数据块维度仍然是有序的，但并不是整体有序。<code>Radix Join</code>就应用了这种方法，并提供了一种机制，用于在列值提取之前对位置向量进行分块操作，然后在提取操作结束后，恢复原始顺序</p>
+<p>实际上，由于额外的工程复杂度，大多数商业化的列存储系统的实现并未采用单纯的延迟物化连接技术，尽管这些技术在学术上已被证明了非常有效。有些则使用了混合物化方法，依赖左侧有序输入来遍历、依赖右侧无需输入来探测。对于右侧（内侧）的表，会将所有相关的列（连接所涉及的所有列），而不仅仅作为连接谓词的列，先进行物化操作，然后再输送到连接算子中；同时对于左侧（外侧）的表，仅会将与连接谓词相关的列输送到连接算子中。连接算子的输出是来自右侧的一组元组和来自左侧的一个位置向量，然后会以依照位置向量，从右侧的元组集合中提取对应的列值信息，并完成元组构建。这种方法的优势在于，对于不同的列值，仅执行了一次提取操作。对于那些需要无序访问连接相关列的连接算法，通常会在连接操作之前进行元组物化</p>
+<p>多列向量提供了右侧关系组的替代方案，相关列会以多列向量的形式而非元组的形式输送到连接算子中去。与连接谓词匹配的位置信息会用于检索其他相关的列值，并动态构建元组。当连接选择性低且需要构造的元组很少时</p>
+<p>最后，自从列存储技术在2000年初复兴依赖，针对<code>MonetDB</code>以及<code>C-Store</code>连接的研究催生了一大批针对内存连接的优化方式的研究，例如[9, 10, 6]。所有这些努力的共同点是，它们遵循列存储算子最先采用的顶层设计，例如关注主存性能、对硬件属性和趋势敏感、有缓存意识、利用<code>SIMD</code>指令、避免随机访问模式等</p>
+<h2 id="46-group-by-aggregation-and-arithmetic-operations"><a class="markdownIt-Anchor" href="#46-group-by-aggregation-and-arithmetic-operations"></a> 4.6 Group-by, Aggregation and Arithmetic Operations</h2>
+<p>到目前为止，我们讨论了选择、连接以及元组重建的相关内容。在本小节中，我们将讨论列存储中的分组（<code>group by</code>）、聚合（<code>aggregation</code>）以及算数（<code>arithmetic</code>）算子。总的来说，这些算子利用了延迟物化、<code>vectorization</code>等基于列存储数据布局的技术，因此这些算子只需要工作在相关的数据上（无需存取额外的数据），并且具有CPU、缓存友好的访问模式，能够有效利用<code>SIMD</code>指令</p>
+<p><strong>Group-by</strong>。在列存储中，分组算子通常基于散列表（<code>hash-table</code>）来实现。具体来说，我们会使用一个小型的散列表，仅存储于分组相关的属性，这样有助于提高性能</p>
+<p><strong>Aggregations</strong>。聚合算子深度依赖列存储数据布局。具体来说，他们以紧密循环的方式工作在相关的列上。举个例子，以<code>sum()</code>、<code>min()</code>、<code>max()</code>、<code>avg()</code>算子为例，它们仅需要扫描相关的列（或者中间结果，也是基于列），这样能够提高内存带宽的利用率，如<code>Figure 4.1</code>中的<code>Step 11</code>所示</p>
+<p><strong>Arithmetic operations</strong>。算数算子会在select子句中用到，例如<code>+</code>、<code>-</code>、<code>*</code>、<code>/</code>等数学算子，同样能够借助列存储的特性以获得更高的执行效率。但是算数算子通常工作在一组列上，例如$select\ A+B+C\ From\ R...$，并且需要为每个动作产生中间结果。在这个例子中，一个中间结果就是$inter=add(A, B)$，算子会工作在列<code>A</code>和列<code>B</code>上，并且产生中间结果并输送到另一个$res=add(C, inter)$算子中，并产生最终结果。<code>Vectorization</code>能够任何给定时间最小化中间结果的内存占用，并且将中间结果即时转换为列向量以便处理多列（的向量）也可能是有益的[101]，从而避免一次性物化所有中间结果。在上面的例子中，我们可以为$(A, B, C)$创建一个列向量，以便在一次运算中就能得到最终结果</p>
+<h2 id="47-insertsupdatesdeletes"><a class="markdownIt-Anchor" href="#47-insertsupdatesdeletes"></a> 4.7 Inserts/updates/deletes</h2>
+<p>列存储相比于行存储对数据变更操作更加敏感。不同的列独立存储在不同的文件中，这意味着一张数据表被存储在多个不同的文件中。正因如此，针对某一条数据的更新操作，就会涉及到多次<code>I/O</code>。而与此相反，行存储只需要一次数据更新操作即可。通过列向量能够有效降低<code>I/O</code>次数，但仍然会涉及到多次<code>I/O</code>操作</p>
+<p>列存储除了垂直分片，还大量使用压缩，并且还可能以不同的顺序存储多个表副本或投影，目的都是为了提高查询性能。即使用户想要一次插入多个元组，由于有序或聚集存储，这些磁盘<code>I/O</code>也是分散的（随机）<code>I/O</code>。最后，压缩还使得更新操作更加复杂，因为需要解压缩数据，然后进行数据变更，再将压缩后的数据重新写回磁盘。如果更新的数据不再适合原始位置，则会出现额外的复杂情况</p>
+<p>一些分析型列存储数据库系统，例如<code>C-Store</code>、<code>MonetDB</code>，通过将其架构拆分为管理所有数据的<code>read-store</code>和管理最近进行的更新的<code>write-store</code>来处理更新。于是，所有查询都会从<code>read-store</code>获取基础信息，从<code>write-store</code>获取差量信息，并即时进行合并。为了尽量保持<code>write-store</code>处于一个较小的容量（通常来说都在内存中）。<code>write-store</code>中的数据都会被定期地刷入<code>read-store</code>中</p>
+<p>一个比较自然的方式就是，将所有差量的数据（插入、删除、更新）写入位于内存中。<code>MonetDB</code>使用普通列，即对于模式中的每个基本列，都有两个辅助列来存储插入和删除的数据（更新可以由删除和插入操作组成）。<code>C-Store</code>采用了类似于行存储的存储方式，能够加速数据的更新，因为只需要一次<code>I/O</code>（但是会导致将数据合并到列存储中的开销变得更大）。将增量单独存储的缺点是，每次查询都要在基础列和差量列之间进行一次合并操作。然而，这里存在许多的优化点。举个例子，我们可以仅在最后进行合并操作，而不需要每次都进行合并操作。再举个例子，一个选择算子会独立地作用于基础列和差量列，但是只有那些满足谓词的元组才需要进行合并操作。此外，我们还可以通过一个布尔值来标识列值是否被删除，并且可以通过一个<code>bitmap</code>来保存和更新该布尔值</p>
+<p><code>VectorWise</code>采用了一种更加新颖的数据结构，被称为<code>Positional Delta Trees（PDTs）</code>，来存储差量。其主要优势在于，合并操作主要依赖差量的位置信息，而不是用于排序的关键词，后者会更加复杂。当查询提交时，它会立即找出哪些表位置受到影响。因此，它将合并过程从查询时间移动到更新时间，这符合读取优化处理的议程。相反，如果没有<code>PDTs</code>，我们将需要使用开销更高的<code>MergeUnion</code>以及<code>MergeDiff</code>处理过程，该过程在每次查询时都会执行。此外，它使每个查询都读取排序键列，如果这些属性不是查询所必需的，则会导致额外的<code>I/O</code></p>
+<p>跟踪有序表中的位置是很棘手的，因为插入、删除会在中途改变所有后续元组的位置，<code>PDT</code>是一种计数类型<code>B</code>树，以对数更新成本（$log\ cost_{update}$）跟踪位置信息</p>
+<p>差分数据结构<code>PDT</code>以及之前提到的差分文件，可以进一步分层：我们对差分进行差分，对差分的差分进一步差分，等等。这种分层架构可以利用操作下通内存的分层架构的特性。例如可以将最小的差分存储在<code>CPU cache</code>中，大一点的差分存储在<code>RAM</code>中，再大一点的差分存储在磁盘上。此外，分层增量是实现隔离和事务管理的工具。这个想法是一个新的事务将一个最初为空的顶层<code>PDT</code>添加到已经存在的基层<code>PDT</code>上。通过共享不可变的基层<code>PDT</code>，可以提供廉价的快照以及隔离性。当有数据发生变更时，差量会被写入到顶层的<code>PDT</code>中，它有效地捕获了事务的写集。在[41]中展示了在并发事务下保持<code>PDT</code>位置跟踪一致的算法，正是实现乐观并发控制所需的算法</p>
+<p>最后，一个最新的研究表明，现在的趋势是在单个系统中同时支持<code>OLTP</code>和<code>OLAP</code>。通过采用列存储中首创的许多原则来实现快速<code>OLAP</code>处理。<code>System Hyper</code>[57, 56]是在这个领域中最有代表性的例子，它的主要设计特点是它依靠硬件辅助的页面阴影来避免在更新过程中锁定页面。此外，<code>SAP HANA</code>[26]以列和行格式存储数据，以启用这两种功能</p>
+<h2 id="48-indexing-adaptive-indexing-and-database-cracking"><a class="markdownIt-Anchor" href="#48-indexing-adaptive-indexing-and-database-cracking"></a> 4.8 Indexing, Adaptive Indexing and Database Cracking</h2>
+<p>在本小节中，我们将讨论列存储当中的索引以及自适应索引。尽管列存储提供了远好于行存储的扫描性能，仍然可以通过索引来进一步优化。列存储中的扫描可以通过一个循环来实现，其性能表现非常好，但是使用索引可以能够将进一步提高性能，大约1个或几个数量级[44]。关于列存储索引的形状，研究表明在完全排序的列上工作比在列顶部维护内存树结构（例如 <code>AVL</code>树）更有益[44]。树结构同时支持遍历以及随机访问，另一方面，如果我们完全复制和排序基列，我们可以在范围查询时利用有效的二分搜索操作</p>
+<p><strong>Indexing</strong>。<code>C-Store</code>引出了投影的概念。每个表可能以不同的排序方式存储了多个副本。此外，每个副本不需要包含表中的所有列，而仅包含投影相关的列。查询可以使用单个覆盖投影，该投影用于谓词最相关的属性进行排序（理想情况下），用于降低查询开销以及元组重建的开销。相比于传统行存储系统，鉴于列可以被充分压缩，实现这些额外的投影不会带来非常显著的存储开销。当然，投影的数量取决于工作负载，并且会为数据变更带来额外的复杂度（与传统行存储数据库中的索引相似）</p>
+<p>另一个在列存储中经常用到的索引形式是<code>zonemaps</code>。在每个页面上存储一些轻量的元数据，比如<code>min/max</code>等。举个例子，<code>Netezza</code>使用这种形式的索引来提高扫描的性能，因为可以通过<code>min/max</code>这些元数据来快速判断当前页面中是否包含符合查询条件的数据。其他有有创意的想法包括使用缓存敏感位图索引[86]，它为每个区域创建一个bitmap，而不仅仅是在每个页面中记录<code>min/max</code>等信息</p>
+<p><strong>Database Cracking and Adaptive Indexing</strong>。所有形式的索引都需要人为进行设置，并且需要工作负载相关的知识作为输入，但是这些通常都是稀缺资源。在本小节余下的部分，我们将讨论列存储中有关<code>database cracking</code>的一些早期的尝试[44]，<code>database cracking</code>在<code>MonetDB</code>系统的背景下开创了现代数据库系统中自适应索引的概念，并引入了为自适应索引量身定制的列存储架构[48, 49, 50, 51, 37, 35, 36, 83]。我们将讨论这些工作的基础知识，以及这些工作通过利用列存储架构的关键特性在列存储环境中蓬勃发展的原因</p>
+<p>传统（即非自适应）索引的基本问题之一是：我们需要就我们将要创建的索引做出固定的预先决定（说白了，索引就是开发者根据业务特点以及工作负载手动创建的）。考虑到时间以及空间因素，创建所有可能的索引是不切实际的，因为既没有足够的空间来容纳这些索引，也没有足够的时间来创建和维护这些索引。因此，我们需要决定如何调整数据库系统，选择要创建的索引集。然而，对工作负载充分了解后，才能作出上述决策，包括如何使用数据库，常用查询模式是怎样的，对用户来讲哪些是关键数据等等。随着我们进入大数据时代，越来越多的应用场景表现出不可预测的行为（<code>ad-hoc</code>），这意味着无法依赖工作负载来作出选择。此外，越来越多的应用要求在尽可能短的时间内对新的数据达到较高的查询性能，换句话说，没有时间来研究特定工作负载然后作出如何创建索引的决策，于是发展为由数据库系统自己决定如何创建索引</p>
+<p>这种动态和在线的场景是自适应索引的主要动机。其主要思想是：数据库仅会自动创建必须的索引。a) 仅在必要时创建；b) 仅创建必要的索引；c) 持续调整索引。通过<code>database cracking</code>，一旦有数据，数据库立即变得可用（无需额外的时间来创建索引）。系统使用得越多，如果有足够的空闲时间和工作负载相关的信息来充分准备当前工作负载所需的所有索引，则性能就越接近最佳性能</p>
+<p>主要创新是物理数据存储会随着查询而发生变化，对于每个查询$q, using\ q\ as\ a\ hint\ on\ how\ data\ should\ be\ stored$，</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-4.png" alt="Figure-4-4" /></p>
+<p>假设有一个查询的查询条件是$A \lt 10$，<code>DBMS</code>会将所有满足$A \lt 10$的元组放到最前面，将所有满足$A \ge 10$的元组放到最后面。当后续查询的查询条件是$A \ge v_1, v_1 \ge 10$，那么只需要在后半部分进行搜索即可（即$A \ge 10$的那部分）。同样，当后续查询的查询条件是$A \lt v_2, v2 \le 10$，那么只需要在前半部分进行搜搜即可（即$A \lt 10$的那部分）。<code>crach</code>动作作为查询算子的一部分，无需额外的管理。<code>Figure 4.4</code>展示了通过以选择谓词作为分区的边界，将列进行分解的例子。其中查询<code>Q1</code>将列分解成三部分，查询<code>Q2</code>进行进一步分解</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-5.png" alt="Figure-4-5" /></p>
+<p><code>cracking</code>能够有效提高列存储系统的性能。<code>Sloan Digital Sky Surve</code>最近的实验表明，开启了<code>cracking</code>的<code>MonetDB</code>可以完成<code>160000</code>次查询，而未开启<code>cracking</code>的<code>MonetDB</code>还在创建索引，且仅创建了一半，因此无法响应任何查询。另外，在<code>TPC-H</code>基准测试中，<code>MonetDB</code>创建所有索引、投影等耗费了3个小时，而开启了<code>cracking</code>的<code>MonetDB</code>，则在无任何准备工作的前提下，几秒内就响应了所有的查询[50]。<code>Figure 4.5</code>展示了一些分析结果。普通的列存储（<code>MonetDB</code>）相比于行存储系统（<code>MySQL</code>）具有更好的性能，即便在行存储系统使用了<code>B-tree</code>的情况下（<code>Mysql presorted</code>）。在列存储系统开启投影后，能够进一步带来性能增益（<code>MonetDB/presorted</code>），但是以巨大的初始化开销作为代价，在此次<code>TPC-H</code>基准实验中，花费了3小时来创建投影。另一方面，当<code>MonetDB</code>开启<code>cracking</code>后，系统能够在无准备的情况下，立即响应查询请求，并且在几次查询后就会达到一个较好的性能，且性能与花费了大量时间进行前置准备工作（例如创建索引等）的系统的查询性能接近</p>
+<p><code>cracking</code>技术会将数据库分解成多个较小且易于管理的片段（类似快排的分区）。<code>cracking</code>通过逐渐改善数据的访问，并最终提升查询性能[48, 50]，甚至可以提升更新的性能[49]。<code>cracking</code>在列存储系统中，仅作用于列这个维度，查询导致的数据重组仅限定在与查询相关的列中，而不是整张表。<code>cracking</code>根据查询需要在多个列中进行传播，其中一些<code>cracker</code>是根据存储限制动态创建和删除的。在文献[35]中，作者展示了如何通过有限的并发控制来启用并发查询，具体来说就是仅依赖<code>latch</code>，因为<code>cracking</code>仅改变索引结构而不会改变索引内容。另外，<code>stochastic cracking</code>[37]通过不太严格地遵循查询边界来执行非确定性的<code>cracking</code>动作。通过这种方式，它使得列的分区更加均匀，避免产生大块的未分区的区域，降低未来分区的成本</p>
+<p>后续的研究[51]扩展了最初的<code>cracking</code>，采用了具有显式排序或者非显式分区的分区/合并逻辑。原始的<code>cracking</code>可以看做是增量快速排序（分区动作是由查询驱动的），而这些最新的<code>cracking</code>介于增量快速排序和增量归并排序之间，并设计了一系列索引自适应算法</p>
+<p><code>cracking</code>采用了完全不同的方法。到目前为止，查询处理所耗费时间被认为是极其宝贵的，除了处理当前查询之外不会发生任何其他事情。而<code>cracking</code>另辟蹊径，会持续优化索引，同时获得短期或者长期的增益。这是利用某些列存储架构特性的直接副作用。特别地，批量处理和列式存储使这些自适应索引的思想成为可能。通过一次存储一列数据，以定宽密集数组的形式存储在连续的内存区域中，意味着<code>cracking</code>能以最小代价重组这个数组（相比于将数据存放在槽页中的行存储系统，定位单个值可能都需要进行重定向）。此外，批量处理意味着每个算子在查询计划继续执行下一个算子之前完全消耗其输入列，对于<code>cracking</code>来说，这意味着每个算子工作在单一的列上，有助于有效地执行所有细化操作。<code>vectorized processing</code>同样有效，主要区别是每个向量是独立破解的，并且根据策略数据也可能跨向量移动[51]</p>
+<p>前面讨论的<code>C-Store</code>中的投影是另一种形式的索引，它存储了按照不同属性排序的多个副本。从上层的视角来说，<code>cracking</code>架构与<code>C-Store</code>中的投影起到了相似的作用，只不过以一种更加自动化、动态的方式来实现。我们无需事先决定需要创建哪些投影，自然也无需为创建投影花费额外的时间成本</p>
+<p>除了无需工作负载相关的信息以及额外的时间之外，<code>cracking</code>还允许用户在使用数据库系统的时候无需进行过多的调优。它能够降低使用数据的配置成本，且无需配置数据库管理员来进行索引相关的决策以及对索引的维护以及调优</p>
+<p>过去针对数据库的研究中并没有针对自适应索引相关的研究。其中，与<code>cracking</code>概念最接近的是<code>partial indexes</code>[87]，它允许只在表的一部分上创建传统的非自适应索引。从而避免索引数据中包含与查询无关的数据（需要基于工作负载相关的信息）</p>
+<h2 id="49-summary-and-design-principles-taxonomy"><a class="markdownIt-Anchor" href="#49-summary-and-design-principles-taxonomy"></a> 4.9 Summary and Design Principles Taxonomy</h2>
+<p>本章中提到的设计原则被大多数列存储系统所使用，并为所有后续的主内存和缓存设计提供了共同的基础。</p>
+<p><strong>从上述众多功能中可以看出，现代列存储不仅仅是一次一列存储数据。它们提供了为现代硬件和数据分析量身定制的全新数据库架构和执行引擎</strong></p>
+<p>在许多场景中，列存储有助于最大限度地利用这些新设计原则。从这个意义上说，我们可以说主要由<code>VectorWise</code>和<code>C-Store</code>重新定义的现代列存储系统是一个包含所有这些设计原则的系统，而不仅仅是面向列的存储布局</p>
+<p>正如我们在本节和前几节中所讨论的，现代列存储的一些设计原则，过去曾在传统行存储的背景下以某种形式进行过研究。然而，在<code>MonetDB</code>、<code>VectorWise</code>和 <code>C-Store</code>被提出之前，没有任何系统可以提供具有所有这些设计原则的完整<code>DBMS</code>的设计和实现。本质上，它们标志着对数据库内核进行全面重新设计的必要性，其灵感来自于数据库社区对<code>DBMS</code>架构进行了数十年的研究</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-4-6.png" alt="Figure-4-6" /></p>
+<p><code>Figure 4.6</code>展示了上述章节中讨论的一些特性以及设计原则，这些特性以及设计原则共同定义了现代列存储系统，并且指出了这些特性以及设计原则与在行存储背景下独立提出的一些特性以及设计原则的相似性</p>
+<h1 id="5-discussion-conclusions-and-future-directions"><a class="markdownIt-Anchor" href="#5-discussion-conclusions-and-future-directions"></a> 5 Discussion, Conclusions, and Future Directions</h1>
+<p>在本节中，我们简单对比<code>MonetDB</code>、<code>VectorWise</code>、<code>C-Store</code>。我们还讨论了在面向行的数据库中模拟列存储的可行性，并提出了结论和未来的工作</p>
+<h2 id="51-comparing-monetdbvectorwisec-store"><a class="markdownIt-Anchor" href="#51-comparing-monetdbvectorwisec-store"></a> 5.1 Comparing MonetDB/VectorWise/C-Store</h2>
+<p>读取优化的数据库系统显然受益于<code>CPU</code>高效的查询执行效率。上述这三种架构：<code>MonetDB</code>、<code>VectorWise</code>、<code>C-Store</code>，以不同的方式用到了<code>block-oriented execution</code>[74]。<code>MonetDB</code>将<code>column-at-a-time</code>的执行模式贯彻到极致，从而引出了延迟物化这一技术。<code>C-Store</code>以及<code>VectorWise</code>都允许流水线执行，在算子之间传递元组块而不是单个元组。其中，<code>C-Store</code>中元组块会被尽可能地以压缩的形式存在，<code>VectorWise</code>在整个执行以及存储架构中使用了<code>vectorized</code></p>
+<p>对于存储和更新，<code>MonetDB</code>以及<code>C-Store</code>使用了一个简单的方法，使用<code>deletion bitmap</code>以及临时表来表示插入（<code>WOS</code>）。尤其在大型的连接查询中，在元组流被送入连接算子之前需要对插入和删除的数据进行合并操作，这会导致大量的合并开销。<code>VectorWise</code>中提出的<code>PDT</code>数据结构能够大幅降低这种开销，尽管<code>PDT</code>的实现较为复杂，且插入和删除操作的开销更大</p>
+<p>普通的<code>MonetDB</code>不会使用压缩，也不会以任何顺序存储数据表。<code>VectorWise</code>以及<code>C-Store</code>大量使用压缩，且只有<code>C-Store</code>提供了压缩执行。<code>C-Store</code>以不同顺序存储了投影中的多个副本。<code>VectorWise</code>使用了一个稀疏索引来存储一个范围内元组的最大以及最小值，从而降低范围谓词匹配的开销，且能进一步降低扫描带来的<code>I/O</code>开销</p>
+<h2 id="52-simulating-columnrow-stores"><a class="markdownIt-Anchor" href="#52-simulating-columnrow-stores"></a> 5.2 Simulating Column/Row Stores</h2>
+<p>关于面向列的数据库的一个常见问题是是否可以使用传统的面向行的系统来模拟基于列的系统。这里有两种方法可以用于实现这个仿真：使用完全垂直分区的设计以及为每列创建一个索引。我们将会挨个讨论这两种方法，并列出每种方法的劣势</p>
+<p><strong>Vertical Partitioning</strong>。在行存储系统中模拟列存储的最直接的方法是对所有关系进行垂直分区，正如在上述讨论的早期列存储中所做的那样[58]。如果进行了彻底的垂直分区，那么需要有一些机制来为一行的多个字段之间建立联系（在列存储系统中，同一行的不同列以相同的顺序存储，这就是一种隐式的联系，但是在行存储系统中，并不存在这种联系）。最简单的方式就是为每个表增加一个整数列，用于保存位置信息（<code>position</code>），这通常比使用主键更可取，因为主键可能很大并且有时是复合的）。例如，给定如下的<code>employee</code>表：</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-5-1-1.png" alt="Figure-5-1-1" /></p>
+<p>我们增加一列<code>position</code></p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-5-1-2.png" alt="Figure-5-1-2" /></p>
+<p>于是，我们为这张物理表的每列都创建了一个单独的表。其中第$i^{th}$张表包含两列，其中一列是<code>employee</code>中的第$i^{th}$列，另一列是<code>position</code>（取值从1开始）</p>
+<p><img src="/images/%E8%AE%BA%E6%96%87%E7%BF%BB%E8%AF%91-The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems/Figure-5-1-3.png" alt="Figure-5-1-3" /></p>
+<p>然后将包含<code>employee</code>表的多个属性的查询操作改写为多个表的连接操作</p>
+<p>下面是这种方式的主要劣势：1) <code>position</code>列会占用额外的存储空间，并会带来额外的<code>I/O</code>开销；2) 需要增加一个适配层用于转换查询语句；3) 由于查询语句改写会引入连接操作，而连接的数量将会使得大多数<code>DBMS</code>实现的优化器不堪重负，并且会对查询性能造成灾难性的影响；4) 由于每个列存储在独立的表中，因此每个列包含一个元组头，它的大小可能远远大于数据本身的大小；5) 无法使用面向列的压缩算法，例如<code>RLE</code></p>
+<p><strong>Creating an index on every column</strong>。这种方法是为数据表的每个列都创建一个索引。这种方式解决了上述垂直分区带来的大部分问题（至少问题2、3、4），但是它也存在自己的劣势。其最主要的问题就是大量索引带来的空间成本以及更新所需的开销。然而，更严重的问题是，数据在每个索引中的顺序可能与其在行中的顺序并不一致。因此，将两个（或多个）属性物化为行（如第4.4节所述，需要在查询执行期间的某个时刻发生）需要对<code>tuple-id</code>进行完整的连接（与垂直分区的情况不同，垂直分区可以通过简单地将两列合并在一起来执行，而这里两组值完全未对齐）。因此，在实践中，数据库优化器将使用原始行存储表进行列投影，这将完全抵消列存储仅读取相关列所带来的性能增益</p>
+<h2 id="53-conclusions"><a class="markdownIt-Anchor" href="#53-conclusions"></a> 5.3 Conclusions</h2>
+<p>我们描述了许多架构创新，它们使<code>MonetDB</code>、<code>VectorWise</code>和<code>C-Store</code>等现代列存储能够在分析工作负载上提供非常好的性能。包括压缩、<code>vectorization</code>、延迟物化、高效的连接方法等等。这些方法被一些商业化的系统所采用，包括学术项目的直系后代（<code>VectorWise</code>和<code>Vertica</code>）以及一些其他项目（<code>Aster Data</code>、<code>Greenplum</code>、<code>Infobright</code>、<code>Paraccel</code>等）。甚至行存储的坚定拥护者<code>Oracle</code>也已在其数据库<code>Exadata</code>中实施了一些面向列的技术（特别是，他们实施了<code>PAX</code>页面布局和面向列的压缩）。据称，这些产品在典型的数据仓库和分析工作负载上提供比老一代面向行的系统高1到2个数量级的性能，并且在商业上非常成功（<code>VectorWise</code>、<code>Vertica、Greenplum</code>和<code>Aster Data</code>都已被收购）</p>
+<p>尽管列存储在学术和商业上都取得了成功，仍然存在几个有趣的研究方向。特别地，部分面向列的混合系统有很大的机会。举个例子，将经常访问的多个列存储在一起能够比单纯的列存储达到更高的性能。此外，随着时间的推移，根据访问模式自适应地选择面向列和面向行的存储方式的系统可能会变得很重要，因为要求用户确定哪种类型的存储方式并不合理[45]。<code>Microsoft</code>在<code>SQLServer</code>产品中增加了一个列存储的选项用以支持<code>vectorized</code>查询处理。尽管这些功能仍然有限（系统只读、只有部分算子和数据类型支持了<code>vectorized</code>处理，且不能动态作出存储方式的决策）但这是朝这个方向迈出的一步</p>
+<p>我们同样期望列存储的一些想法能够进入其他的数据处理系统，例如<code>Hadoop</code>、<code>MapReduce</code>[27]，它们在海量数据的分析型处理中被广泛使用</p>
+<h1 id="6-参考"><a class="markdownIt-Anchor" href="#6-参考"></a> 6 参考</h1>
+<ul>
+<li><a href="/Papers/The-Design-and-Implementation-of-Modern-Column-Oriented-Database-Systems.pdf">The Design and Implementation of Modern Column-Oriented Database Systems.pdf</a></li>
+</ul>
+<h1 id="7-todo"><a class="markdownIt-Anchor" href="#7-todo"></a> 7 todo</h1>
+<ol>
+<li>OLAP、OLTP</li>
+<li>Database cracking的定义：数据库分解，就是在查询的过程中，对列进行分区（类似快排的partition）</li>
+<li>EVI</li>
+<li>transposed files</li>
+<li>列存储和行存储是数据库系统最底层的部分，这部分的差异，顺着技术栈往上走，如何影响上层模块的架构？</li>
+<li>DBMS、RDBMS</li>
+<li>Disk Bandwidth的定义</li>
+<li>在数据库的上下文中，load指的是存储数据还是读取数据？</li>
+<li>WOS支持高效地加载数据，并且能够分摊压缩和搜索的时间开销？为什么</li>
+<li>什么是BAT？</li>
+<li>算子的谓词是指什么？</li>
+<li>RISC</li>
+<li>SIMD指令是什么？</li>
+<li>Parallel memory access，不知所云，翻译稀烂</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/07/04/%E6%96%B9%E6%B3%95%E8%AE%BA/" rel="prev" title="方法论">
+      <i class="fa fa-chevron-left"></i> 方法论
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/08/19/Cpp-%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E7%82%B9/" rel="next" title="Cpp-相关知识点">
+      Cpp-相关知识点 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-history-trends-and-performance-tradeoffs"><span class="nav-text"> 2 History, trends, and performance tradeoffs</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-history"><span class="nav-text"> 2.1 History</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-technology-and-application-trends"><span class="nav-text"> 2.2 Technology and Application Trends</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-fundamental-performance-tradeoffs"><span class="nav-text"> 2.3 Fundamental Performance Tradeoffs</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-column-store-architectures"><span class="nav-text"> 3 Column-store Architectures</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-c-store"><span class="nav-text"> 3.1 C-Store</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-monetdb-and-vectorwise"><span class="nav-text"> 3.2 MonetDB and VectorWise</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-other-implementations"><span class="nav-text"> 3.3 Other Implementations</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-column-store-internals-and-advanced-techniques"><span class="nav-text"> 4 Column-store internals and advanced techniques</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-vectorized-processing"><span class="nav-text"> 4.1 Vectorized Processing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-compression"><span class="nav-text"> 4.2 Compression</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#421-run-length-encoding"><span class="nav-text"> 4.2.1 Run-length Encoding</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#422-bit-vector-encoding"><span class="nav-text"> 4.2.2 Bit-Vector Encoding</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#423-dictionary"><span class="nav-text"> 4.2.3 Dictionary</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#424-frame-of-reference-for"><span class="nav-text"> 4.2.4 Frame Of Reference (FOR)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#425-the-patching-technique"><span class="nav-text"> 4.2.5 The Patching Technique</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-operating-directly-on-compressed-data"><span class="nav-text"> 4.3 Operating Directly on Compressed Data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-late-materialization"><span class="nav-text"> 4.4 Late Materialization</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-joins"><span class="nav-text"> 4.5 Joins</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#46-group-by-aggregation-and-arithmetic-operations"><span class="nav-text"> 4.6 Group-by, Aggregation and Arithmetic Operations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#47-insertsupdatesdeletes"><span class="nav-text"> 4.7 Inserts&#x2F;updates&#x2F;deletes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#48-indexing-adaptive-indexing-and-database-cracking"><span class="nav-text"> 4.8 Indexing, Adaptive Indexing and Database Cracking</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#49-summary-and-design-principles-taxonomy"><span class="nav-text"> 4.9 Summary and Design Principles Taxonomy</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-discussion-conclusions-and-future-directions"><span class="nav-text"> 5 Discussion, Conclusions, and Future Directions</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-comparing-monetdbvectorwisec-store"><span class="nav-text"> 5.1 Comparing MonetDB&#x2F;VectorWise&#x2F;C-Store</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-simulating-columnrow-stores"><span class="nav-text"> 5.2 Simulating Column&#x2F;Row Stores</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-conclusions"><span class="nav-text"> 5.3 Conclusions</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%8F%82%E8%80%83"><span class="nav-text"> 6 参考</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-todo"><span class="nav-text"> 7 todo</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

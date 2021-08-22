@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java-IO-排坑日记">
+<meta property="og:url" content="http://example.com/2018/11/01/Java-IO-%E6%8E%92%E5%9D%91%E6%97%A5%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-11-01T07:31:38.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.322Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/11/01/Java-IO-%E6%8E%92%E5%9D%91%E6%97%A5%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java-IO-排坑日记 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/01/Java-IO-%E6%8E%92%E5%9D%91%E6%97%A5%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java-IO-排坑日记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-11-01 15:31:38" itemprop="dateCreated datePublished" datetime="2018-11-01T15:31:38+08:00">2018-11-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/IO/" itemprop="url" rel="index"><span itemprop="name">IO</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/11/01/Java-IO-%E6%8E%92%E5%9D%91%E6%97%A5%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Java-IO-排坑日记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/11/01/Java-IO-%E6%8E%92%E5%9D%91%E6%97%A5%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/11/01/Java-IO-%E6%8E%92%E5%9D%91%E6%97%A5%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-pipedinputstream读卡顿"><a class="markdownIt-Anchor" href="#1-pipedinputstream读卡顿"></a> 1 PipedInputStream读卡顿</h1>
+<p>情景还原：需要从一组InputStream中读取数据，数据什么时候到达不可知。针对这个问题，一般会有两种思路，其一，为每一个InputStream开启一个线程来进行blocking-IO操作；其二，用一个扫描线程（Scanner）来检查每个流的数据到达状态（即是否有数据可以读取），若发现某个流有数据可读，便交由异步线程来进行IO操作</p>
+<p>经过简化后的源码如下，大致上可以拆分为如下两个部分</p>
+<ol>
+<li>一个扫描线程<code>scanThread</code>，循环检查<code>PipedInputStream</code>是否有数据到达（调用InputStream的非阻塞方法available），若发现有数据，则开启异步流程读取数据</li>
+<li>一个线程模拟网络数据到达<code>networkDataThread</code>，从控制台输入任意输入并按回车后，将会从pipedOutputStream写入数据</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.io.pipe;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.PipedInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.PipedOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.nio.charset.Charset;</span><br><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ExecutorService;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.Executors;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BufferIssue</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ExecutorService THREAD_POOL = Executors.newCachedThreadPool();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> writeSize = <span class="number">2048</span>;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> bufferSize = <span class="number">1024</span>;</span><br><span class="line">        <span class="keyword">final</span> PipedInputStream pipedInputStream = <span class="keyword">new</span> PipedInputStream(bufferSize);</span><br><span class="line">        <span class="keyword">final</span> PipedOutputStream pipedOutputStream = <span class="keyword">new</span> PipedOutputStream();</span><br><span class="line">        pipedInputStream.connect(pipedOutputStream);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// non-blocking scanner</span></span><br><span class="line">        <span class="keyword">final</span> Thread scanThread = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">while</span> (!Thread.currentThread().isInterrupted()) &#123;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        <span class="keyword">final</span> <span class="keyword">int</span> available = pipedInputStream.available();</span><br><span class="line">                        <span class="keyword">if</span> (available &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                            <span class="comment">// do IO operation in other thread</span></span><br><span class="line">                            THREAD_POOL.execute(() -&gt; &#123;</span><br><span class="line">                                <span class="keyword">final</span> <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[available];</span><br><span class="line">                                <span class="keyword">try</span> &#123;</span><br><span class="line">                                    <span class="keyword">int</span> actualBytes = pipedInputStream.read(bytes);</span><br><span class="line"></span><br><span class="line">                                    System.out.println(<span class="keyword">new</span> String(bytes, <span class="number">0</span>, actualBytes, Charset.defaultCharset()));</span><br><span class="line"></span><br><span class="line">                                &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                                    e.printStackTrace();</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="comment">// sleep for a while</span></span><br><span class="line">                    TimeUnit.MILLISECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        scanThread.start();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> Thread networkDataThread = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            Scanner scanner = <span class="keyword">new</span> Scanner(System.in);</span><br><span class="line">            <span class="keyword">while</span> (scanner.next() != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    pipedOutputStream.write(getString(writeSize).getBytes());</span><br><span class="line">                    pipedOutputStream.flush();</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        networkDataThread.start();</span><br><span class="line"></span><br><span class="line">        scanThread.join();</span><br><span class="line">        networkDataThread.join();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title">getString</span><span class="params">(<span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; length; i++) &#123;</span><br><span class="line">            sb.append(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>当<code>writeSize&gt;bufferSize</code>会发现数据打印会有明显卡顿</strong>：由于<code>PipedInputStream</code>内部实现会有一个缓存，该缓存大小即<code>PipedInputStream</code>一次可以接收的最大数据量。当一次到达的数据大于该缓存大小时，必将造成分批读取</p>
+<p>因此，依据数据的规模的大小，适当调整bufferSize的大小，可以解决IO卡顿的问题</p>
+<h1 id="2-pipedinputstream出现read-end-dead异常"><a class="markdownIt-Anchor" href="#2-pipedinputstream出现read-end-dead异常"></a> 2 PipedInputStream出现<code>Read end dead</code>异常</h1>
+<p>情景还原：一个Scanner线程扫描<code>PipedInputStream</code>是否有数据到达，若有数据到达则交由异步IO线程池执行IO读操作</p>
+<p>经过简化后的源码如下，大致上可以拆分为如下两个部分</p>
+<ol>
+<li>一个扫描线程<code>scanThread</code>，循环检查<code>PipedInputStream</code>是否有数据到达（调用InputStream的非阻塞方法available），若发现有数据，则开启异步流程读取数据</li>
+<li>一个线程模拟网络数据到达<code>networkDataThread</code>，从控制台输入任意输入并按回车后，将会从pipedOutputStream写入数据</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.io.pipe;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.PipedInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.PipedOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.nio.charset.Charset;</span><br><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ExecutorService;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.SynchronousQueue;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ThreadPoolExecutor;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> hechenfeng</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/11/24</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReadEndDeadIssue</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 这里讲keepAliveTime设置为1s，即任务执行结束1s之内，没有收到新的任务，那么线程将会结束</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ExecutorService THREAD_POOL = <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">0</span>, Integer.MAX_VALUE, <span class="number">1L</span>, TimeUnit.SECONDS, <span class="keyword">new</span> SynchronousQueue&lt;&gt;());</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> bufferSize = <span class="number">1024</span>;</span><br><span class="line">        <span class="keyword">final</span> PipedInputStream pipedInputStream = <span class="keyword">new</span> PipedInputStream(bufferSize);</span><br><span class="line">        <span class="keyword">final</span> PipedOutputStream pipedOutputStream = <span class="keyword">new</span> PipedOutputStream();</span><br><span class="line">        pipedInputStream.connect(pipedOutputStream);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// non-blocking scanner</span></span><br><span class="line">        <span class="keyword">final</span> Thread scanThread = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">while</span> (!Thread.currentThread().isInterrupted()) &#123;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        <span class="keyword">final</span> <span class="keyword">int</span> available = pipedInputStream.available();</span><br><span class="line">                        <span class="keyword">if</span> (available &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                            <span class="comment">// do IO operation in other thread</span></span><br><span class="line">                            THREAD_POOL.execute(() -&gt; &#123;</span><br><span class="line">                                <span class="keyword">final</span> <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[available];</span><br><span class="line">                                <span class="keyword">try</span> &#123;</span><br><span class="line">                                    <span class="keyword">int</span> actualBytes = pipedInputStream.read(bytes);</span><br><span class="line"></span><br><span class="line">                                    System.out.println(<span class="keyword">new</span> String(bytes, <span class="number">0</span>, actualBytes, Charset.defaultCharset()));</span><br><span class="line"></span><br><span class="line">                                &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                                    e.printStackTrace();</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="comment">// sleep for a while</span></span><br><span class="line">                    TimeUnit.MILLISECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        scanThread.start();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> Thread networkDataThread = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            Scanner scanner = <span class="keyword">new</span> Scanner(System.in);</span><br><span class="line">            <span class="keyword">while</span> (scanner.next() != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    pipedOutputStream.write(<span class="string">&quot;hello&quot;</span>.getBytes());</span><br><span class="line">                    pipedOutputStream.flush();</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        networkDataThread.start();</span><br><span class="line"></span><br><span class="line">        scanThread.join();</span><br><span class="line">        networkDataThread.join();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>启动后，在控制台输入任意字符，1s之后，再输入任意字符，即可复现该问题。</p>
+<p>解决方案：让每一个<code>PipedInputStream</code>执行IO操作的线程是同一个</p>
+<h1 id="3-zipoutputstream打包相同文件后得到的字节数组不同"><a class="markdownIt-Anchor" href="#3-zipoutputstream打包相同文件后得到的字节数组不同"></a> 3 ZipOutputStream打包相同文件后得到的字节数组不同</h1>
+<p>因为你压缩文件，实际上是根据原文件，copy出一个新文件然后把这个文件压缩进zip文件中。那么，这个新文件，实际上是有<code>最后修改时间</code>的，这个属性肯定是不同的。文件属性的不同，导致你把整个zip文件拉入<code>MD5</code>算法计算其散列值的时候，肯定会算出不同的散列值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">            BufferedInputStream bis = <span class="keyword">new</span> BufferedInputStream(</span><br><span class="line">                    <span class="keyword">new</span> FileInputStream(file));</span><br><span class="line">            ZipEntry entry = <span class="keyword">new</span> ZipEntry(basedir + file.getName());</span><br><span class="line">            entry.setTime(file.lastModified());<span class="comment">//时间设置为源文件的最后修改时间，避免每次MD5不同</span></span><br><span class="line">            out.putNextEntry(entry);</span><br><span class="line">            <span class="keyword">int</span> count;</span><br><span class="line">            <span class="keyword">byte</span> data[] = <span class="keyword">new</span> <span class="keyword">byte</span>[BUFFER];</span><br><span class="line">           <span class="comment">// System.out.println(&quot;===================压缩流字节====================&quot;);</span></span><br><span class="line">            <span class="keyword">while</span> ((count = bis.read(data, <span class="number">0</span>, BUFFER)) != -<span class="number">1</span>) &#123;</span><br><span class="line">                <span class="comment">//System.out.println(&quot;data &quot;+data.length +&quot;:&quot;+ ArrayUtils.toString(data));</span></span><br><span class="line">                out.write(data, <span class="number">0</span>, count);</span><br><span class="line">            &#125;</span><br><span class="line">            bis.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>此外，在内存中将一个<code>byte array</code>打包成一个<code>zipped byte array</code>时，需要调用<code>ZipOutputStream.finish()</code>方法，否则得到的是一个不完整的zip文件</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] packageFiles(ZipEntity... entities) &#123;</span><br><span class="line">        <span class="keyword">try</span> (ByteArrayOutputStream bos = <span class="keyword">new</span> ByteArrayOutputStream(); ZipOutputStream zos = <span class="keyword">new</span> ZipOutputStream(bos)) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (ZipEntity entity : entities) &#123;</span><br><span class="line">                ZipEntry zipEntry = <span class="keyword">new</span> ZipEntry(entity.getFileName());</span><br><span class="line">                <span class="comment">// 将zip包中文件的修改时间改为1970年1月1日，避免修改时间不同而导致整个zip字节序列的差异</span></span><br><span class="line">                zipEntry.setLastModifiedTime(FileTime.fromMillis(<span class="number">0</span>));</span><br><span class="line">                zos.putNextEntry(zipEntry);</span><br><span class="line">                zos.write(entity.getBytes());</span><br><span class="line">                zos.flush();</span><br><span class="line">                zos.closeEntry();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 追加文件尾（当内层OutputStream为ByteArrayOutputStream，这一句是必须的，否则将输出的字节重新写入文件后，得到的是一个不完整的zip文件）</span></span><br><span class="line">            zos.finish();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> bos.toByteArray();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Data</span></span><br><span class="line">    <span class="meta">@AllArgsConstructor</span></span><br><span class="line">    <span class="meta">@NoArgsConstructor</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ZipEntity</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String fileName;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">byte</span>[] bytes;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h1 id="4-颜色输出"><a class="markdownIt-Anchor" href="#4-颜色输出"></a> 4 颜色输出</h1>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[30;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[31;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[32;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[33;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[34;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[35;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[36;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[37;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[40;31;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[41;32;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[42;33;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[43;34;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[44;35;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[45;36;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[46;37;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">    System.out.println(<span class="string">&quot;\033[47;4m&quot;</span> + <span class="string">&quot;我滴个颜什&quot;</span> + <span class="string">&quot;\033[0m&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_RESET = <span class="string">&quot;\u001B[0m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_BLACK = <span class="string">&quot;\u001B[30m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_RED = <span class="string">&quot;\u001B[31m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_GREEN = <span class="string">&quot;\u001B[32m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_YELLOW = <span class="string">&quot;\u001B[33m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_BLUE = <span class="string">&quot;\u001B[34m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_PURPLE = <span class="string">&quot;\u001B[35m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_CYAN = <span class="string">&quot;\u001B[36m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_WHITE = <span class="string">&quot;\u001B[37m&quot;</span>;</span><br><span class="line"></span><br><span class="line">System.out.println(ANSI_RED + <span class="string">&quot;This text is red!&quot;</span> + ANSI_RESET);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_BLACK_BACKGROUND = <span class="string">&quot;\u001B[40m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_RED_BACKGROUND = <span class="string">&quot;\u001B[41m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_GREEN_BACKGROUND = <span class="string">&quot;\u001B[42m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_YELLOW_BACKGROUND = <span class="string">&quot;\u001B[43m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_BLUE_BACKGROUND = <span class="string">&quot;\u001B[44m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_PURPLE_BACKGROUND = <span class="string">&quot;\u001B[45m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_CYAN_BACKGROUND = <span class="string">&quot;\u001B[46m&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ANSI_WHITE_BACKGROUND = <span class="string">&quot;\u001B[47m&quot;</span>;</span><br><span class="line"></span><br><span class="line">System.out.println(ANSI_GREEN_BACKGROUND + <span class="string">&quot;This text has a green background but default text!&quot;</span> + ANSI_RESET);</span><br><span class="line">System.out.println(ANSI_RED + <span class="string">&quot;This text has red text but a default background!&quot;</span> + ANSI_RESET);</span><br><span class="line">System.out.println(ANSI_GREEN_BACKGROUND + ANSI_RED + <span class="string">&quot;This text has a green background and red text!&quot;</span> + ANSI_RESET);</span><br></pre></td></tr></table></figure>
+<h1 id="5-process死锁问题"><a class="markdownIt-Anchor" href="#5-process死锁问题"></a> 5 Process死锁问题</h1>
+<p>下面这段代码会阻塞（如果在你电脑上执行不阻塞的话，可以把循环次数调大）</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) throws Exception &#123;</span><br><span class="line">    ProcessBuilder <span class="built_in">command</span> = new ProcessBuilder()</span><br><span class="line">            .<span class="built_in">command</span>(<span class="string">&quot;/bin/sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;for ((i=1;i&lt;=10000;i++))\n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;do \n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;    echo \&quot;some text\&quot;\n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;done&quot;</span>);</span><br><span class="line"></span><br><span class="line">    Process process = command.start();</span><br><span class="line">    process.waitFor();</span><br><span class="line"></span><br><span class="line">    System.out.println(process.exitValue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>产生这一现象的原因：<code>start</code>方法会通过系统调用创建一个子进程用于执行命令行，这个子进程和父进程（java进程）之间通过缓冲区来传递<code>stdout</code>、<code>stderr</code>、<code>stdin</code>，既然有缓冲区，那么必然有一个容量限制，当缓冲区被填满时，那么数据将无法写入，进而造成进程阻塞</p>
+<ol>
+<li>父进程（java进程）在<code>start</code>后立即调用了<code>waitFor</code>，因此并未从缓冲区读取子进程的输入</li>
+<li>子进程一直在执行<code>echo</code>，该命令会不断向缓冲区写数据</li>
+<li>当缓冲区被写满的时候，子进程就被阻塞挂起了</li>
+<li>父进程由于等待子进程退出，也被阻塞挂起了，死锁就此产生</li>
+</ol>
+<p><strong>解决方法</strong></p>
+<ol>
+<li>使用<code>inheritIO</code>方法，让java进程从缓冲区读取数据</li>
+<li>自己异步从缓冲区读取数据</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    ProcessBuilder command = <span class="keyword">new</span> ProcessBuilder()</span><br><span class="line">            .inheritIO()</span><br><span class="line">            .command(<span class="string">&quot;/bin/sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;for ((i=1;i&lt;=10000;i++))\n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;do \n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;    echo \&quot;some text\&quot;\n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;done&quot;</span>);</span><br><span class="line"></span><br><span class="line">    Process process = command.start();</span><br><span class="line">    process.waitFor();</span><br><span class="line"></span><br><span class="line">    System.out.println(process.exitValue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    ProcessBuilder command = <span class="keyword">new</span> ProcessBuilder()</span><br><span class="line">            .command(<span class="string">&quot;/bin/sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;for ((i=1;i&lt;=10000;i++))\n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;do \n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;    echo \&quot;some text\&quot;\n&quot;</span> +</span><br><span class="line">                    <span class="string">&quot;done&quot;</span>);</span><br><span class="line"></span><br><span class="line">    Process process = command.start();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">        InputStream inputStream = process.getInputStream();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> read;</span><br><span class="line">            <span class="keyword">while</span> ((read = inputStream.read()) != -<span class="number">1</span>) &#123;</span><br><span class="line">                System.out.print((<span class="keyword">char</span>) read);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// ignore</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;).start();</span><br><span class="line"></span><br><span class="line">    process.waitFor();</span><br><span class="line"></span><br><span class="line">    System.out.println(process.exitValue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="6-参考"><a class="markdownIt-Anchor" href="#6-参考"></a> 6 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/3d974ce66e51">java 使用Process调用exe程序 及 Process.waitFor() 死锁问题了解和解决</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/30/Banner/" rel="prev" title="Banner">
+      <i class="fa fa-chevron-left"></i> Banner
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/11/09/Linux-%E8%B0%83%E4%BC%98/" rel="next" title="Linux-调优">
+      Linux-调优 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-pipedinputstream%E8%AF%BB%E5%8D%A1%E9%A1%BF"><span class="nav-text"> 1 PipedInputStream读卡顿</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-pipedinputstream%E5%87%BA%E7%8E%B0read-end-dead%E5%BC%82%E5%B8%B8"><span class="nav-text"> 2 PipedInputStream出现Read end dead异常</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-zipoutputstream%E6%89%93%E5%8C%85%E7%9B%B8%E5%90%8C%E6%96%87%E4%BB%B6%E5%90%8E%E5%BE%97%E5%88%B0%E7%9A%84%E5%AD%97%E8%8A%82%E6%95%B0%E7%BB%84%E4%B8%8D%E5%90%8C"><span class="nav-text"> 3 ZipOutputStream打包相同文件后得到的字节数组不同</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E9%A2%9C%E8%89%B2%E8%BE%93%E5%87%BA"><span class="nav-text"> 4 颜色输出</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-process%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98"><span class="nav-text"> 5 Process死锁问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%8F%82%E8%80%83"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

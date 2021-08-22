@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式事务">
+<meta property="og:url" content="http://example.com/2017/07/14/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-07-14T13:20:24.000Z">
+<meta property="article:modified_time" content="2021-08-22T10:44:44.464Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/07/14/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>分布式事务 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/14/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式事务
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-14 21:20:24" itemprop="dateCreated datePublished" datetime="2017-07-14T21:20:24+08:00">2017-07-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-22 18:44:44" itemprop="dateModified" datetime="2021-08-22T18:44:44+08:00">2021-08-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/" itemprop="url" rel="index"><span itemprop="name">Distributed</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/Basic-Concepts/" itemprop="url" rel="index"><span itemprop="name">Basic Concepts</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/14/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/" class="post-meta-item leancloud_visitors" data-flag-title="分布式事务" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/14/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/14/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-基于事务消息的分布式事务"><a class="markdownIt-Anchor" href="#1-基于事务消息的分布式事务"></a> 1 基于事务消息的分布式事务</h1>
+<h2 id="11-场景"><a class="markdownIt-Anchor" href="#11-场景"></a> 1.1 场景</h2>
+<p>说到分布式事务，就会谈到那个经典的”账号转账”问题：2个账号，分布处于2个不同的DB，或者说2个不同的子系统里面，A要扣钱，B要加钱，如何保证原子性？</p>
+<p>一般的思路都是<strong>通过消息中间件来实现“最终一致性”</strong>：A系统扣钱，然后发条消息给中间件，B系统接收此消息，进行加钱</p>
+<p>但这里面有个问题：A是先update DB，后发送消息呢？还是先发送消息，后update DB？</p>
+<p>假设先update DB成功，发送消息网络失败，重发又失败，怎么办？<br />
+假设先发送消息成功，update DB失败。消息已经发出去了，又不能撤回，怎么办？</p>
+<p>所以，这里下个结论：只要发送消息和update DB这2个操作不是原子的，无论谁先谁后，都是有问题的</p>
+<p>那这个问题怎么解决呢？？</p>
+<h2 id="12-错误的方案0"><a class="markdownIt-Anchor" href="#12-错误的方案0"></a> 1.2 错误的方案0</h2>
+<p>有人可能想到了，我可以把“发送消息”这个网络调用和update DB放在同1个事务里面，如果发送消息失败，update DB自动回滚。这样不就保证2个操作的原子性了吗？</p>
+<p>这个方案看似正确，其实是错误的，原因有2：</p>
+<ol>
+<li>网络的2将军问题：发送消息失败，发送方并不知道是消息中间件真的没有收到消息呢？还是消息已经收到了，只是返回response的时候失败了？
+<ul>
+<li>如果是已经收到消息了，而发送端认为没有收到，执行update db的回滚操作。则会导致A账号的钱没有扣，B账号的钱却加了</li>
+</ul>
+</li>
+<li>把网络调用放在DB事务里面，可能会因为网络的延时，导致DB长事务。严重的，会block整个DB。这个风险很大</li>
+</ol>
+<p>基于以上分析，我们知道，这个方案其实是错误的！</p>
+<h2 id="13-方案1业务方自己实现"><a class="markdownIt-Anchor" href="#13-方案1业务方自己实现"></a> 1.3 方案1–业务方自己实现</h2>
+<p>假设消息中间件没有提供“事务消息”功能，比如你用的是Kafka。那如何解决这个问题呢？</p>
+<p>解决方案如下：</p>
+<ol>
+<li>Producer端准备1张消息表，把update DB和insert message这2个操作，放在一个DB事务里面</li>
+<li>准备一个后台程序，源源不断的把消息表中的message传送给消息中间件。失败了，不断重试重传。允许消息重复，但消息不会丢，顺序也不会打乱</li>
+<li>Consumer端准备一个判重表。处理过的消息，记在判重表里面。实现业务的幂等。但这里又涉及一个原子性问题：如果保证消息消费 + insert message到判重表这2个操作的原子性？</li>
+</ol>
+<p>消费成功，但insert判重表失败，怎么办？关于这个，在Kafka的源码分析系列，第1篇， exactly once问题的时候，有过讨论</p>
+<p>通过上面3步，我们基本就解决了这里update db和发送网络消息这2个操作的原子性问题</p>
+<p>但这个方案的一个缺点就是：需要设计DB消息表，同时还需要一个后台任务，不断扫描本地消息。导致消息的处理和业务逻辑耦合额外增加业务方的负担</p>
+<h2 id="14-方案2-rocketmq-事务消息"><a class="markdownIt-Anchor" href="#14-方案2-rocketmq-事务消息"></a> 1.4 方案2 – RocketMQ 事务消息</h2>
+<p>为了能解决该问题，同时又不和业务耦合，RocketMQ提出了“事务消息”的概念</p>
+<p>具体来说，就是把消息的发送分成了2个阶段：Prepare阶段和确认阶段</p>
+<p>具体来说，上面的2个步骤，被分解成3个步骤：</p>
+<ol>
+<li>发送Prepared消息</li>
+<li>update DB</li>
+<li>根据update DB结果成功或失败，Confirm或者取消Prepared消息</li>
+</ol>
+<p>可能有人会问了，前2步执行成功了，最后1步失败了怎么办？这里就涉及到了RocketMQ的关键点：RocketMQ会定期（默认是1分钟）扫描所有的Prepared消息，询问发送方，到底是要确认这条消息发出去？还是取消此条消息？</p>
+<p>具体代码实现如下：</p>
+<p>也就是定义了一个checkListener，RocketMQ会回调此Listener，从而实现上面所说的方案</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//也就是上文所说的，当RocketMQ发现`Prepared消息`时，会根据这个Listener实现的策略来决断事务</span></span><br><span class="line">TransactionCheckListener transactionCheckListener = <span class="keyword">new</span> TransactionCheckListenerImpl();</span><br><span class="line"><span class="comment">//构造事务消息的生产者</span></span><br><span class="line">TransactionMQProducer producer = <span class="keyword">new</span> TransactionMQProducer(<span class="string">&quot;groupName&quot;</span>);</span><br><span class="line"><span class="comment">//设置事务决断处理类</span></span><br><span class="line">producer.setTransactionCheckListener(transactionCheckListener);</span><br><span class="line"><span class="comment">//本地事务的处理逻辑，相当于示例中检查Bob账户并扣钱的逻辑</span></span><br><span class="line">TransactionExecuterImpl tranExecuter = <span class="keyword">new</span> TransactionExecuterImpl();</span><br><span class="line">producer.start()</span><br><span class="line"><span class="comment">//构造MSG，省略构造参数</span></span><br><span class="line">Message msg = <span class="keyword">new</span> Message(......);</span><br><span class="line"><span class="comment">//发送消息</span></span><br><span class="line">SendResult sendResult = producer.sendMessageInTransaction(msg, tranExecuter, <span class="keyword">null</span>);</span><br><span class="line">producer.shutdown();</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> TransactionSendResult <span class="title">sendMessageInTransaction</span><span class="params">(.....)</span>  </span>&#123;</span><br><span class="line">    <span class="comment">//逻辑代码，非实际代码</span></span><br><span class="line">    <span class="comment">//1.发送消息</span></span><br><span class="line">    sendResult = <span class="keyword">this</span>.send(msg);</span><br><span class="line">    <span class="comment">//sendResult.getSendStatus() == SEND_OK</span></span><br><span class="line">    <span class="comment">//2.如果消息发送成功，处理与消息关联的本地事务单元</span></span><br><span class="line">    LocalTransactionState localTransactionState = tranExecuter.executeLocalTransactionBranch(msg, arg);</span><br><span class="line">    <span class="comment">//3.结束事务</span></span><br><span class="line">    <span class="keyword">this</span>.endTransaction(sendResult, localTransactionState, localException);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>总结：对比方案2和方案1，RocketMQ最大的改变，其实就是把“扫描消息表”这个事情，不让业务方做，而是消息中间件帮着做了</p>
+<p>至于消息表，其实还是没有省掉。因为消息中间件要询问发送方，事务是否执行成功，还是需要一个“变相的本地消息表”，记录事务执行状态</p>
+<h2 id="15-人工介入"><a class="markdownIt-Anchor" href="#15-人工介入"></a> 1.5 人工介入</h2>
+<p>可能有人又要说了，无论方案1，还是方案2，发送端把消息成功放入了队列，但消费端消费失败怎么办？</p>
+<p>消费失败了，重试，还一直失败怎么办？是不是要自动回滚整个流程？</p>
+<p>答案是人工介入。从工程实践角度讲，这种整个流程自动回滚的代价是非常巨大的，不但实现复杂，还会引入新的问题。比如自动回滚失败，又怎么处理？</p>
+<p>对应这种极低概率的case，采取人工处理，会比实现一个高复杂的自动化回滚系统，更加可靠，也更加简单</p>
+<h1 id="2-分布式事务杂谈"><a class="markdownIt-Anchor" href="#2-分布式事务杂谈"></a> 2 分布式事务杂谈</h1>
+<p>事务就是一个会话过程中，对上下文的影响是一致的，要么所有的更改都做了，要么所有的更变都撤销掉。要么生，要么死。没有半死不死的中间不可预期状态</p>
+<p><strong>事务是为了保障业务数据的完整性和准确性的。</strong></p>
+<p><strong>分布式事务，常见的两个处理办法就是两段式提交和补偿。</strong></p>
+<ul>
+<li>两段式提交典型的就是XA，有个事务协调器，告诉大家，来都准备好提交，大家回复，都准备好了，然后协调器告诉大家，一起提交，大家都提交了</li>
+<li>补偿比较好理解，先处理业务，然后定时或者在回调方法里，检查状态是不是一致的。如果不一致就采用某个策略，强制状态到某个结束状态（一般是失败状态），然后就世界太平了。典型的就是冲正操作</li>
+</ul>
+<p><strong>问题 1：比如 一个业务要调用很多的服务都是写操作，如果有其中一个写的服务失败了，怎么办？假设有4个写操作吧，其中有2个写失败了。</strong></p>
+<blockquote>
+<p>淘宝之类的网站一般的做法是：如果4个都成功才算成功，那么这次提交时4个写都设置成一个中间状态，先容许不一致。然后4个写操作执行完成了以后，执行回调方法或是定时任务里检查这4个数据是不是一致的，如果一致就全部置为成功状态，如果不一致就全部置为失败</p>
+</blockquote>
+<blockquote>
+<p>复杂的业务交互过程中，不建议使用强一致性的分布式事务。<strong>解决分布式事务的最好办法就是不考虑分布式事务</strong>。就像刚说的问题一样，把分布式的事务过程拆解成多个中间状态，中间状态的东西不允许用户直接操作，等状态都一致成功，或者检测到不一致的时候全部失败掉。就解耦了这个强一致性的过程</p>
+</blockquote>
+<blockquote>
+<p>一般情况下准实时就成了。涉及到钱，有时候也可以这么搞。淘宝几秒内完成一个订单处理，不是什么问题吧。银行也不一定满足强一致性。也会扎差，也会冲正。特别是涉及到多个系统的时候，比如买机票，支付完成以后，只是支付完成状态，然后返回给用户了，我们过几分钟再刷新页面，才会看到变成已出票，订单完成状态。这个时候，如果我们要求所有处理，都是强一致性的，那么就完蛋了。页面要死在那儿几分钟，才把这个事务处理完成，返回给用户</p>
+</blockquote>
+<blockquote>
+<p>这样就肯定涉及一个问题：支付了，但是最终没有出票。那就没办法，商量换票或退款。淘宝的订单改成出票失败，给支付发消息通知退款。慢的时候，有可能是手工出票，这时出一张票半小时都可能，如果要求都必须强一致性的话，所有处理线程都挂在哪儿，系统早就完蛋了</p>
+</blockquote>
+<blockquote>
+<p><strong>解决分布式事务的最好办法就是不考虑分布式事务</strong>。拆分大的业务流程，转化成几个小的业务流程，然后考虑最终一致性</p>
+</blockquote>
+<p><strong>问题2：分布式事务是你们自己开发的，还是数据库自带的？</strong></p>
+<blockquote>
+<ol>
+<li>只要一个处理逻辑能保证要么成功，要么跟什么也没做一样，都算是事务。数据库事务，MQ也有事务。你自己甚至可以写个程序生成两个文件，要么都生成了，要么都删掉不留痕迹，这也算是事务</li>
+<li>分布式事务这一块有个XA规范，实现XA接口的事务，都可以加入到一个分布式事务中，被XA容器管理起来</li>
+<li>补偿的办法，需要具体情况具体分析，没有一个各种场合都适用的框架</li>
+</ol>
+</blockquote>
+<h1 id="3-参考"><a class="markdownIt-Anchor" href="#3-参考"></a> 3 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/dinglang/p/5679542.html">分布式系统事务一致性解决方案</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/chunlongyu/article/details/53844393">分布式消息队列RocketMQ–事务消息–解决分布式事务的最佳实践</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/kimmking/article/details/43197665">聊聊分布式事务</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/14/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E6%8E%A5%E5%8F%A3%E5%B9%82%E7%AD%89%E6%80%A7/" rel="prev" title="分布式系统接口幂等性">
+      <i class="fa fa-chevron-left"></i> 分布式系统接口幂等性
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/16/Algorithm-Array/" rel="next" title="Algorithm-Array">
+      Algorithm-Array <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%9F%BA%E4%BA%8E%E4%BA%8B%E5%8A%A1%E6%B6%88%E6%81%AF%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="nav-text"> 1 基于事务消息的分布式事务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%9C%BA%E6%99%AF"><span class="nav-text"> 1.1 场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E9%94%99%E8%AF%AF%E7%9A%84%E6%96%B9%E6%A1%880"><span class="nav-text"> 1.2 错误的方案0</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E6%96%B9%E6%A1%881%E4%B8%9A%E5%8A%A1%E6%96%B9%E8%87%AA%E5%B7%B1%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 1.3 方案1–业务方自己实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E6%96%B9%E6%A1%882-rocketmq-%E4%BA%8B%E5%8A%A1%E6%B6%88%E6%81%AF"><span class="nav-text"> 1.4 方案2 – RocketMQ 事务消息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#15-%E4%BA%BA%E5%B7%A5%E4%BB%8B%E5%85%A5"><span class="nav-text"> 1.5 人工介入</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E6%9D%82%E8%B0%88"><span class="nav-text"> 2 分布式事务杂谈</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%8F%82%E8%80%83"><span class="nav-text"> 3 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

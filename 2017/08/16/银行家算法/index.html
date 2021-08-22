@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="银行家算法">
+<meta property="og:url" content="http://example.com/2017/08/16/%E9%93%B6%E8%A1%8C%E5%AE%B6%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-08-16T13:20:29.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:20:23.008Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/08/16/%E9%93%B6%E8%A1%8C%E5%AE%B6%E7%AE%97%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>银行家算法 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/08/16/%E9%93%B6%E8%A1%8C%E5%AE%B6%E7%AE%97%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          银行家算法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-08-16 21:20:29" itemprop="dateCreated datePublished" datetime="2017-08-16T21:20:29+08:00">2017-08-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:20:23" itemprop="dateModified" datetime="2021-02-23T22:20:23+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index"><span itemprop="name">Algorithm</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/Others/" itemprop="url" rel="index"><span itemprop="name">Others</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/08/16/%E9%93%B6%E8%A1%8C%E5%AE%B6%E7%AE%97%E6%B3%95/" class="post-meta-item leancloud_visitors" data-flag-title="银行家算法" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/08/16/%E9%93%B6%E8%A1%8C%E5%AE%B6%E7%AE%97%E6%B3%95/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/08/16/%E9%93%B6%E8%A1%8C%E5%AE%B6%E7%AE%97%E6%B3%95/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-需求分析"><a class="markdownIt-Anchor" href="#1-需求分析"></a> 1 需求分析</h1>
+<h2 id="11-银行家算法的实现思想"><a class="markdownIt-Anchor" href="#11-银行家算法的实现思想"></a> 1.1 银行家算法的实现思想</h2>
+<p>允许进程动态地申请资源，<strong>系统在每次实施资源分配之前，先计算资源分配的安全性</strong>，若此次资源分配安全（即资源分配后，系统能按某种顺序来为每个进程分配其所需的资源，直至最大需求，使每个进程都可以顺利地完成），便将资源分配给进程，否则不分配资源，让进程等待</p>
+<h2 id="12-死锁的概念"><a class="markdownIt-Anchor" href="#12-死锁的概念"></a> 1.2 死锁的概念</h2>
+<p>死锁是指两个或两个以上的进程在执行过程中，由于竞争资源或者由于彼此通信而造成的一种阻塞的现象，若无外力作用，它们都将无法推进下去。此时称系统处于死锁状态或系统产生了死锁，这些永远在互相等待的进程称为死锁进程</p>
+<p>银行家算法是避免死锁的一种重要方法。操作系统按照银行家制定的规则为进程分配资源，当进程首次申请资源时，要测试该进程对资源的最大需求量，如果系统现存的资源可以满足它的最大需求量则按当前的申请量分配资源，否则就推迟分配。当进程在执行中继续申请资源时，先测试该进程已占用的资源数与本次申请的资源数之和是否超过了该进程对资源的最大需求量。若超过则拒绝分配资源，若没有超过则再测试系统现存的资源能否满足该进程尚需的最大资源量，若能满足则按当前的申请量分配资源，否则也要推迟分配</p>
+<h2 id="13-产生死锁的必要条件"><a class="markdownIt-Anchor" href="#13-产生死锁的必要条件"></a> 1.3 产生死锁的必要条件</h2>
+<ol>
+<li><strong>互斥条件</strong>：指进程对所分配到的资源进行排它性使用，即在一段时间内某资源只由一个进程占用。如果此时还有其它进程请求资源，则请求者只能等待，直至占有资源的进程用毕释放</li>
+<li><strong>请求和保持条件</strong>：指进程已经保持至少一个资源，但又提出了新的资源请求，而该资源已被其它进程占有，此时请求进程阻塞，但又对自己已获得的其它资源保持不放</li>
+<li><strong>不剥夺条件</strong>：指进程已获得的资源，在未使用完之前，不能被剥夺，只能在使用完时由自己释放</li>
+<li><strong>环路等待条件</strong>：指在发生死锁时，必然存在一个进程——资源的环形链，即进程集合<code>&#123;P0, P1, P2, ···, Pn&#125;</code>中的<code>P0</code>正在等待一个<code>P1</code>占用的资源；<code>P1</code>正在等待<code>P2</code>占用的资源，…，<code>Pn</code>正在等待已被<code>P0</code>占用的资源</li>
+</ol>
+<h2 id="14-功能实现"><a class="markdownIt-Anchor" href="#14-功能实现"></a> 1.4 功能实现</h2>
+<p>理解了死锁的原因，尤其是产生死锁的四个必要条件，就可以最大可能地避免、预防和解除死锁。所以，在系统设计、进程调度等方面注意如何能够不让这四个必要条件成立，如何确定资源的合理分配算法，避免进程永久占据系统资源。此外，也要防止进程在处于等待状态的情况下占用资源，在系统运行过程中，对进程发出的每一个系统能够满足的资源申请进行动态检查，并根据检查结果决定是否分配资源，若分配后系统可能发生死锁，则不予分配，否则予以分配。因此，对资源的分配要给予合理的规划</p>
+<h1 id="2-概要设计"><a class="markdownIt-Anchor" href="#2-概要设计"></a> 2 概要设计</h1>
+<h2 id="21-数据结构"><a class="markdownIt-Anchor" href="#21-数据结构"></a> 2.1 数据结构</h2>
+<ol>
+<li><strong>可利用资源向量Available</strong>：这是一个含有m个元素的数组，其中的而每一个元素代表一类可利用资源数目，其初始值是系统中所配置的该类全部可用资源的数目，其数值随该类资源的分配和回收而动态的改变。如果<code>Available[j] = K</code>，则表示系统中现有<code>Rj类资源</code>的数目为<code>K</code></li>
+<li><strong>最大需求矩阵Max</strong>：这是一个n*m的矩阵，它定义了系统中n个进程中的每一个进程对m类资源的最大需求。如果<code>Max[i][j] = K</code>，则表示<code>进程i</code>需要<code>Rj类资源</code>的最大数目为<code>K</code></li>
+<li><strong>分配矩阵Allocation</strong>：这也是一个n*m的矩阵，它定义了系统中每一类资源当前已分配给每一进程的资源数。如果<code>Allocation[i][j] = K</code>，则表示<code>进程i</code>当前已分得<code>Rj类资源</code>的数目为<code>K</code></li>
+<li><strong>需求矩阵Need</strong>：这也是一个n*m的矩阵，用以表示每一个进程尚需的各类资源数。如果<code>Need[i][j] = K</code>，则表示<code>进程i</code>还需要<code>Rj类资源</code>的数目为<code>K</code>个，方能完成任务</li>
+</ol>
+<ul>
+<li>上述三个矩阵间存在下述关系：<code>Need[i][j] = Max[i][j] - Allocation[i][j]</code></li>
+</ul>
+<h2 id="22-设计思路"><a class="markdownIt-Anchor" href="#22-设计思路"></a> 2.2 设计思路</h2>
+<p><strong>第一部分：银行家算法模块</strong></p>
+<ol>
+<li>如果<code>Request &lt;= Need</code>，则转向2；否则出错</li>
+<li>如果<code>Request &lt;= Available</code>，则转向3；否则等待</li>
+<li>系统试探分配请求的资源给进程</li>
+<li>系统执行安全性算法</li>
+</ol>
+<p><strong>第二部分:安全性算法模块</strong></p>
+<ol>
+<li>设置两个向量
+<ul>
+<li><code>Work = Available</code>：表示系统可提供给进程继续运行所需要的各类资源数目</li>
+<li><code>Finish</code>：表示系统是否有足够资源分配给进程</li>
+</ul>
+</li>
+<li>若<code>Finish[i] == False &amp;&amp; Need &lt;= Work</code>(i为资源类别)，则执行3；否则执行4</li>
+<li>进程P获得第i类资源，则顺利执行直至完成，并释放资源：<code>Work = Work + Allocation</code>以及<code>Finish[i] = true</code>；转2</li>
+<li>若所有进程的<code>Finish[i] == true</code>，则表示系统安全；否则不安全！</li>
+</ol>
+<h2 id="23-系统安全性判断"><a class="markdownIt-Anchor" href="#23-系统安全性判断"></a> 2.3 系统安全性判断</h2>
+<p><strong>什么叫做系统安全性：即不会产生死锁的条件，所有的进程都能够按照一定顺序结束运行。某个时刻，某一进程的完成不依赖于其他进程所占有的资源。</strong></p>
+<p><strong>详细过程与解释如下(类似于一个BFS遍历有向图的过程，每次访问degree为0的节点)</strong></p>
+<ol>
+<li>以进程i1为例，进程i1对资源j的需求量为<code>Need[i1][j]</code>，如果对于所有资源，均满足<code>Need[i1][j] &lt;= Available[j]</code>，<strong>意味着进程i1的完成只需要从系统剩余资源中获取即可，并不需要其他进程让出资源</strong>，因此进程i1是安全的，于是进程i1在当前状态下是可独立完成的，其完成的顺序记为1</li>
+<li>现在我们需要假设进程i1完成了，那么在进程i1完成的基础上，是否有其他进程也能够独立完成任务？此时我们需要将i1占有的资源全部退还到Available中，即对所有资源执行<code>Available[j] += Allocation[i][j]</code>。那么在Available的新状态下，如果进程i2对于所有资源均满足<code>Need[i2][j] &lt;= Available[j]</code>，<strong>意味着进程i2的完成只需要从系统剩余资源中获取即可，并不需要其他进程让出资源</strong>，因此进程i2也是安全的，于是进程i2在当前状态下是可独立完成的，其完成的顺序记为2</li>
+<li>重复上述步骤…直至<strong>所有进程均可完成(安全状态)<strong>或者</strong>存在某个或某些进程无法完成(不安全状态)</strong></li>
+</ol>
+<h1 id="3-java源码"><a class="markdownIt-Anchor" href="#3-java源码"></a> 3 Java源码</h1>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.other;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by HCF on 2017/8/16.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BankAlgorithm</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 可用资源数目</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> RESOURCE_NUM = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 进程数量</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> PROCESS_NUM = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化的系统资源总量</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] total;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 目前可用资源</span></span><br><span class="line"><span class="comment">     * available[i]代表第i类资源的可用数目</span></span><br><span class="line"><span class="comment">     * available[i]的初始值就是系统配置的该类资源的全部数目</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] available;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * max[i][j]代表进程i需要j类资源的最大数目</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[][] max;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * allocation[i][j]代表进程i分得j类资源的数目</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[][] allocation;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * need[i][j]代表进程i还需要j类资源的数目</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[][] need;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * state[i]表示进程i是否处于安全状态，true是，false否</span></span><br><span class="line"><span class="comment">     * isSafeState的临时变量，避免重复分配内存，因此设为字段</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span>[] state;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * finished[i]==true说明进程i执行完毕了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span>[] finished;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 执行完毕的进程数量</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> finishedCnt;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * available数组的拷贝，临时数组</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] pause;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 随机数，用于随机产生需要分配资源的进程id以及资源数量</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> Random random = <span class="keyword">new</span> Random();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">serve</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        initialize();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (finishedCnt != PROCESS_NUM) &#123;</span><br><span class="line">            <span class="keyword">int</span> processId = getRandomProcessId();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span>[] request = getRandomRequest(processId);</span><br><span class="line"></span><br><span class="line">            check();</span><br><span class="line">            requestResource(processId, request);</span><br><span class="line">            check();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化系统</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        total = <span class="keyword">new</span> <span class="keyword">int</span>[RESOURCE_NUM];</span><br><span class="line">        available = <span class="keyword">new</span> <span class="keyword">int</span>[RESOURCE_NUM];</span><br><span class="line">        max = <span class="keyword">new</span> <span class="keyword">int</span>[PROCESS_NUM][RESOURCE_NUM];</span><br><span class="line">        allocation = <span class="keyword">new</span> <span class="keyword">int</span>[PROCESS_NUM][RESOURCE_NUM];</span><br><span class="line">        need = <span class="keyword">new</span> <span class="keyword">int</span>[PROCESS_NUM][RESOURCE_NUM];</span><br><span class="line">        state = <span class="keyword">new</span> <span class="keyword">boolean</span>[PROCESS_NUM];</span><br><span class="line">        finished = <span class="keyword">new</span> <span class="keyword">boolean</span>[PROCESS_NUM];</span><br><span class="line">        pause = <span class="keyword">new</span> <span class="keyword">int</span>[RESOURCE_NUM];</span><br><span class="line"></span><br><span class="line">        finishedCnt = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        Arrays.fill(total, <span class="number">10</span>);</span><br><span class="line">        Arrays.fill(available, <span class="number">10</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; PROCESS_NUM; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">                max[i][j] = random.nextInt(<span class="number">5</span>) + <span class="number">1</span>;</span><br><span class="line">                need[i][j] = max[i][j];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getRandomProcessId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> remainProcessNum = PROCESS_NUM - finishedCnt;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> index = random.nextInt(remainProcessNum);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; PROCESS_NUM; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (finished[i]) <span class="keyword">continue</span>;</span><br><span class="line">            <span class="keyword">if</span> (index-- == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> i;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] getRandomRequest(<span class="keyword">int</span> processId) &#123;</span><br><span class="line">        <span class="keyword">int</span>[] request = <span class="keyword">new</span> <span class="keyword">int</span>[RESOURCE_NUM];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">            request[j] = random.nextInt(Math.min(available[j], need[processId][j]) + <span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> request;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 为进程processId申请指定的资源</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> processId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> request</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">requestResource</span><span class="params">(<span class="keyword">int</span> processId, <span class="keyword">int</span>[] request)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//首先检查一下输入的合法性</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (request[j] &gt; need[processId][j]) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (request[j] &gt; available[j]) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//试探性分配</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">            available[j] -= request[j];</span><br><span class="line">            allocation[processId][j] += request[j];</span><br><span class="line">            need[processId][j] -= request[j];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (isSafeState()) &#123;</span><br><span class="line">            System.err.println(<span class="string">&quot;Safe!&quot;</span>);</span><br><span class="line">            <span class="comment">//对于进程processId，已经分配完毕的资源种类的计数值</span></span><br><span class="line">            <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (need[processId][j] == <span class="number">0</span>) &#123;</span><br><span class="line">                    count++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (count == RESOURCE_NUM) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">                    available[j] += allocation[processId][j];</span><br><span class="line">                    allocation[processId][j] = <span class="number">0</span>;</span><br><span class="line">                    need[processId][j] = max[processId][j];</span><br><span class="line">                &#125;</span><br><span class="line">                finishedCnt++;</span><br><span class="line">                finished[processId] = <span class="keyword">true</span>;</span><br><span class="line">                System.out.println(<span class="string">&quot;Process &quot;</span> + processId + <span class="string">&quot; is finished!&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.err.println(<span class="string">&quot;Not safe!&quot;</span>);</span><br><span class="line">            <span class="comment">//撤销试探性分配</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">                available[j] += request[j];</span><br><span class="line">                allocation[processId][j] -= request[j];</span><br><span class="line">                need[processId][j] += request[j];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 判断当前系统是否满足安全性</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isSafeState</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        System.arraycopy(available, <span class="number">0</span>, pause, <span class="number">0</span>, RESOURCE_NUM);</span><br><span class="line">        Arrays.fill(state, <span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span> canBreak = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">while</span> (!canBreak) &#123;</span><br><span class="line">            canBreak = <span class="keyword">true</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; PROCESS_NUM; i++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (finished[i]) &#123;</span><br><span class="line">                    state[i] = <span class="keyword">true</span>;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">                    <span class="comment">//资源j的现有量能够满足进程i对资源j的需求</span></span><br><span class="line">                    <span class="keyword">if</span> (need[i][j] &lt;= pause[j]) &#123;</span><br><span class="line">                        count++;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">//现有的所有资源均能满足进程i的需求，也就是说进程i不依赖其他进程所占有的资源也能够完成执行</span></span><br><span class="line">                <span class="keyword">if</span> (!state[i] &amp;&amp; count == RESOURCE_NUM) &#123;</span><br><span class="line">                    state[i] = <span class="keyword">true</span>;</span><br><span class="line">                    <span class="comment">//由于进程i是安全的，因此当进程i结束并释放所有占用的资源后，可能还会有别的进程被判定为安全，因此while循环不能结束</span></span><br><span class="line">                    canBreak = <span class="keyword">false</span>;</span><br><span class="line">                    <span class="comment">//现在假定进程i执行完毕了，现在退还i占用的所有资源</span></span><br><span class="line">                    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">                        pause[j] += allocation[i][j];</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> safeProcessNum = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">boolean</span> b : state) &#123;</span><br><span class="line">            safeProcessNum += (b ? <span class="number">1</span> : <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> safeProcessNum == PROCESS_NUM;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">check</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; PROCESS_NUM; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; RESOURCE_NUM; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (max[i][j] != need[i][j] + allocation[i][j]) <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">                <span class="keyword">if</span> (max[i][j] &gt; total[j]) <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!isSafeState()) <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        BankAlgorithm bankAlgorithm = <span class="keyword">new</span> BankAlgorithm();</span><br><span class="line"></span><br><span class="line">        bankAlgorithm.serve();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="4-参考"><a class="markdownIt-Anchor" href="#4-参考"></a> 4 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/Lynn-Zhang/p/5672080.html">银行家算法1</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/yaopeng_2005/article/details/6935235">银行家算法2</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/yyf_it/article/details/52412071">死锁及其解决方案（避免、预防、检测）</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/08/16/R-tree-%E8%AF%A6%E8%A7%A3/" rel="prev" title="R-tree-详解">
+      <i class="fa fa-chevron-left"></i> R-tree-详解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/08/17/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" rel="next" title="正则表达式的实现原理">
+      正则表达式的实现原理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90"><span class="nav-text"> 1 需求分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E9%93%B6%E8%A1%8C%E5%AE%B6%E7%AE%97%E6%B3%95%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E6%83%B3"><span class="nav-text"> 1.1 银行家算法的实现思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E6%AD%BB%E9%94%81%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="nav-text"> 1.2 死锁的概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E4%BA%A7%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%9D%A1%E4%BB%B6"><span class="nav-text"> 1.3 产生死锁的必要条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 1.4 功能实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%A6%82%E8%A6%81%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 2 概要设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text"> 2.1 数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF"><span class="nav-text"> 2.2 设计思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%A4%E6%96%AD"><span class="nav-text"> 2.3 系统安全性判断</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-java%E6%BA%90%E7%A0%81"><span class="nav-text"> 3 Java源码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%8F%82%E8%80%83"><span class="nav-text"> 4 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

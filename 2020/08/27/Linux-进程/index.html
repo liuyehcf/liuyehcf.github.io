@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux-进程">
+<meta property="og:url" content="http://example.com/2020/08/27/Linux-%E8%BF%9B%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-08-27T06:24:08.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.334Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2020/08/27/Linux-%E8%BF%9B%E7%A8%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux-进程 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/27/Linux-%E8%BF%9B%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux-进程
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-27 14:24:08" itemprop="dateCreated datePublished" datetime="2020-08-27T14:24:08+08:00">2020-08-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/" itemprop="url" rel="index"><span itemprop="name">Operating System</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/08/27/Linux-%E8%BF%9B%E7%A8%8B/" class="post-meta-item leancloud_visitors" data-flag-title="Linux-进程" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/08/27/Linux-%E8%BF%9B%E7%A8%8B/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/08/27/Linux-%E8%BF%9B%E7%A8%8B/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-如何创建进程"><a class="markdownIt-Anchor" href="#1-如何创建进程"></a> 1 如何创建进程</h1>
+<p><strong>两个系统调用（这是Linux创建进程的唯一途径）</strong></p>
+<ol>
+<li><code>fork</code>：以当前进程作为原型进行复制，几乎包含进程的所有相关信息，包括代码和数据</li>
+<li><code>exec</code>：将当前进程空间的数据完全替换为另一个进程的数据</li>
+</ol>
+<p>Linux提供了一系列的机制和策略</p>
+<ol>
+<li>机制就是原子操作，所有Linux支持的系统调用都可以理解为一种机制</li>
+<li>策略是将这些机制进行组合达到最终的目的，在Linux中创建进程的策略就是通过<code>fork</code>+<code>exec</code></li>
+</ol>
+<h1 id="2-进程父子关系"><a class="markdownIt-Anchor" href="#2-进程父子关系"></a> 2 进程父子关系</h1>
+<p>父进程可以通过<code>fork</code>+<code>exec</code>来创建子进程，例如进程<code>A</code>创建了进程<code>B</code>，那么此时进程<code>B</code>的父进程就是进程<code>A</code></p>
+<p>那么当进程<code>A</code>退出之后，进程<code>B</code>的父进程该如何变化呢？</p>
+<p><strong>情景1</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 通过shell执行一个后台进程</span></span><br><span class="line">[root@liuyehcf ~]$ tail -f /dev/null &amp;</span><br><span class="line">127775</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看这个tail进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 127775</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root     127775 126213  0 16:28 pts/0    00:00:00 tail -f /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看父进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 126213</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root     126213 125787  0 16:28 pts/0    00:00:00 -bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 我们发现，此时tail进程的父进程就是shell本身（-bash进程）</span></span><br><span class="line"><span class="comment"># 此时我们退出终端</span></span><br><span class="line">[root@liuyehcf ~]$ <span class="built_in">exit</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 再次登录，并查看tail进程</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 127775</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root     127775      1  0 16:28 ?        00:00:00 tail -f /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此时发现，tail进程仍然存在，但是它的父进程变成了1</span></span><br></pre></td></tr></table></figure>
+<p><strong>情景2</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 通过shell执行一个后台进程</span></span><br><span class="line">[root@liuyehcf ~]$ tail -f /dev/null &amp;</span><br><span class="line">62925</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看这个tail进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 62925</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root      62925  23709  0 16:37 pts/1    00:00:00 tail -f /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看父进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 23709</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root      23709  23636  0 16:32 pts/1    00:00:00 -bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 我们发现，此时tail进程的父进程就是shell本身（-bash进程）</span></span><br><span class="line"><span class="comment"># 此时我们通过sighup停止shell</span></span><br><span class="line">[root@liuyehcf ~]$ <span class="built_in">kill</span> -sighup 23709</span><br><span class="line"></span><br><span class="line"><span class="comment"># 再次登录，并查看tail进程</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 62925</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此时发现，tail进程已经退出了</span></span><br></pre></td></tr></table></figure>
+<p><strong>情景3</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 通过shell执行一个后台进程，且使用nohup</span></span><br><span class="line">[root@liuyehcf ~]$ nohup tail -f /dev/null &amp;</span><br><span class="line">84964</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看这个tail进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 84964</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root      84964  78471  0 16:40 pts/0    00:00:00 tail -f /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看父进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 78471</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root      78471  78213  0 16:40 pts/0    00:00:00 -bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 我们发现，此时tail进程的父进程就是shell本身（-bash进程）</span></span><br><span class="line"><span class="comment"># 此时我们通过sighup停止shell</span></span><br><span class="line">[root@liuyehcf ~]$ <span class="built_in">kill</span> -sighup 78471</span><br><span class="line"></span><br><span class="line"><span class="comment"># 再次登录，并查看tail进程</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 84964</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root      84964      1  0 16:40 ?        00:00:00 tail -f /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此时发现，tail进程仍然存在，但是它的父进程变成了1</span></span><br></pre></td></tr></table></figure>
+<p><strong>情景4</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编写脚本</span></span><br><span class="line">[root@liuyehcf ~]$ cat &gt; tail1.sh &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#!/bin/sh</span></span><br><span class="line"></span><br><span class="line">tail -f /dev/null &amp;</span><br><span class="line">EOF</span><br><span class="line">[root@liuyehcf ~]$ chmod a+x tail1.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行脚本</span></span><br><span class="line">[root@liuyehcf ~]$ ./tail1.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看这个tail进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -ef | grep <span class="string">&#x27;tail -f&#x27;</span></span><br><span class="line">root      31417      1  0 16:52 pts/0    00:00:00 tail -f /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 发现tail进程的进程id是31417，其父进程的进程id是1</span></span><br></pre></td></tr></table></figure>
+<p><strong>情景5</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编写脚本</span></span><br><span class="line">[root@liuyehcf ~]$ cat &gt; tail2.sh &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#!/bin/sh</span></span><br><span class="line"></span><br><span class="line">tail -f /dev/null &amp;</span><br><span class="line"></span><br><span class="line">sleep 60</span><br><span class="line">EOF</span><br><span class="line">[root@liuyehcf ~]$ chmod a+x tail2.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行脚本</span></span><br><span class="line">[root@liuyehcf ~]$ ./tail2.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1分钟内，在另一个终端中，查看这个tail进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -ef | grep <span class="string">&#x27;tail -f&#x27;</span></span><br><span class="line">root      67472  67471  0 16:57 pts/0    00:00:00 tail -f /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 发现tail进程的进程id是67472，其父进程的进程id是67471</span></span><br><span class="line"><span class="comment"># 在另一个终端中，查看父进程的信息</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 67471</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root      67471  91584  0 16:57 pts/0    00:00:00 /bin/sh ./tail2.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 过一分钟之后，在另一个终端中，再次查看tail进程</span></span><br><span class="line">[root@liuyehcf ~]$ ps -f --pid 67472</span><br><span class="line">UID         PID   PPID  C STIME TTY          TIME CMD</span><br><span class="line">root      67472      1  0 16:57 pts/0    00:00:00 tail -f /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此时，tail进程仍然存在，父进程变成了1</span></span><br></pre></td></tr></table></figure>
+<p><strong>总结：</strong></p>
+<ol>
+<li>通过<code>情景1</code>和<code>情景2</code>的对比，我们可以发现，只有当父进程（在这里就是<code>bash</code>进程）收到了<code>hup</code>信号时，才会终止所有子进程</li>
+<li>通过<code>情景2</code>和<code>情景3</code>的对比，我们可以发现，当使用<code>nohup</code>时，即便<code>bash</code>收到了<code>hup</code>信号，也不会杀死该<code>nohup</code>的子进程</li>
+<li>通过<code>情景4</code>和<code>情景5</code>的对比，我们可以发现，在<code>shell</code>中执行脚本，其实是用<code>#!/bin/sh</code>指定的shell来执行对应的脚本，脚本中进程的父进程就是<code>/bin/sh</code>这个shell，且退出后没有收到<code>hup</code>信号时，不会杀死子进程</li>
+<li>子进程的父进程终止后，子进程的父进程会变为1</li>
+</ol>
+<ul>
+<li>在shell（这里就是<code>bash</code>）中执行命令，其简单过程如下：
+<ol>
+<li><code>bash</code>进程收到标准输入</li>
+<li><code>bash</code>进程通过执行<code>fork</code>+<code>exec</code>两次系统调用来启动子进程</li>
+<li><code>bash</code>编写了一套信号处理函数，当收到了<code>hup</code>信号时，会终止对应的子进程</li>
+</ol>
+</li>
+<li><code>nohup command args...</code>这个命令执行过程如下
+<ol>
+<li><code>bash</code>进程收到输入<code>nohup command args...</code>，通过系统调用<code>fork</code>+<code>exec</code>启动子进程<code>nohup</code></li>
+<li><code>nohup</code>进程收到入参<code>command args...</code>，首先注册<code>hup</code>信号的处理方法（该方法会忽略<code>hup</code>信号），然后通过系统调用<code>fork</code>+<code>exec</code>启动子进程<code>command</code></li>
+<li>当<code>bash</code>收到<code>hup</code>信号时，会将<code>hup</code>信号传递给子进程，而此时由于子进程已经注册了特殊的<code>hup</code>信号处理方法，于是将<code>hup</code>信号忽略，子进程得以存活</li>
+</ol>
+</li>
+</ul>
+<h1 id="3-进程-进程组-会话-终端-tty-作业-前台-后台"><a class="markdownIt-Anchor" href="#3-进程-进程组-会话-终端-tty-作业-前台-后台"></a> 3 进程、进程组、会话、终端、tty、作业、前台、后台</h1>
+<h2 id="31-终端terminal"><a class="markdownIt-Anchor" href="#31-终端terminal"></a> 3.1 终端（terminal）</h2>
+<p>终端（termimal）= tty（Teletypewriter，电传打印机），作用是提供一个命令的输入输出环境，在linux下使用组合键<code>ctrl+alt+T</code>打开的就是终端，可以认为<code>terminal</code>和<code>tty</code>是同义词</p>
+<h2 id="32-shell"><a class="markdownIt-Anchor" href="#32-shell"></a> 3.2 shell</h2>
+<p>shell是一个命令行解释器，是linux内核的一个外壳,负责外界与linux内核的交互。shell接收用户或者其他应用程序的命令, 然后将这些命令转化成内核能理解的语言并传给内核，内核执行命令完成后将结果返回给用户或者应用程序。当你打开一个terminal时，操作系统会将terminal和shell关联起来，当我们在terminal中输入命令后，shell就负责解释命令</p>
+<h2 id="33-console"><a class="markdownIt-Anchor" href="#33-console"></a> 3.3 console</h2>
+<p>在计算机发展的早期，计算机的外表上通常会存在一个面板，面板包含很多按钮和指示灯，可以通过面板来对计算机进行底层的管理，也可以通过指示灯来得知计算机的运行状态，这个面板就叫console。在现代计算机上，在电脑开机时（比如ubuntu）屏幕上会打印出一些日志信息，但在系统启动完成之前，terminal不能连接到主机上，所以为了记录主机的重要日志（比如开关机日志，重要应用程序的日志），系统中就多了一个名为console的设备，这些日志信息就是显示在console上。一台电脑有且只有一个console，但可以有多个terminal。举个例子，电视机上的某个区域一般都会有一些按钮，比如开机，调音量等，这个区域就可以当做console，且这个区域在电视上只有一个，遥控器就可以类比成terminal，terminal可以有多个</p>
+<h2 id="34-bash"><a class="markdownIt-Anchor" href="#34-bash"></a> 3.4 bash</h2>
+<p>linux系统上可以包含多种不同的shell（可以使用命令<code>cat /etc/shells</code>查看），比较常见的有<code>Bourne shell(sh)</code>、<code>C shell (csh)</code>和<code>Korn shell(ksh)</code>，三种shell都有它们的优点和缺点。<code>Bourne shell</code>的作者是<code>Steven Bourne</code>，它是<code>UNIX</code>最初使用的shell并且在每种<code>UNIX</code>上都可以使用。bash的全称叫做<code>Bourne Again shell</code>，从名字上可以看出bash是<code>Bourne shell</code>的扩展，bash与<code>Bourne shell</code>完全向后兼容，并且在<code>Bourne shell</code>的基础上增加和增强了很多特性，如命令补全、命令编辑和命令历史表等功能，它还包含了很多<code>C shell</code>和<code>Korn shell</code>中的优点，有灵活和强大的编程接口，同时又有很友好的用户界面。总而言之，bash是shell的一种，是增强的shell</p>
+<h1 id="4-参考"><a class="markdownIt-Anchor" href="#4-参考"></a> 4 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/sench/p/8920292.html">终端(terminal)、tty、shell、控制台（console）、bash之间的区别与联系</a></li>
+<li><a target="_blank" rel="noopener" href="https://unix.stackexchange.com/questions/4126/what-is-the-exact-difference-between-a-terminal-a-shell-a-tty-and-a-con">What is the exact difference between a ‘terminal’, a ‘shell’, a ‘tty’ and a ‘console’?</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/cangqinglang/p/12110843.html">进程、进程组、作业、会话</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/27/Linux-%E9%87%8D%E8%A6%81%E6%96%87%E4%BB%B6%E8%B7%AF%E5%BE%84/" rel="prev" title="Linux-重要文件路径">
+      <i class="fa fa-chevron-left"></i> Linux-重要文件路径
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/15/Linux-Kernel/" rel="next" title="Linux-Kernel">
+      Linux-Kernel <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%A6%82%E4%BD%95%E5%88%9B%E5%BB%BA%E8%BF%9B%E7%A8%8B"><span class="nav-text"> 1 如何创建进程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%BF%9B%E7%A8%8B%E7%88%B6%E5%AD%90%E5%85%B3%E7%B3%BB"><span class="nav-text"> 2 进程父子关系</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%BB%84-%E4%BC%9A%E8%AF%9D-%E7%BB%88%E7%AB%AF-tty-%E4%BD%9C%E4%B8%9A-%E5%89%8D%E5%8F%B0-%E5%90%8E%E5%8F%B0"><span class="nav-text"> 3 进程、进程组、会话、终端、tty、作业、前台、后台</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E7%BB%88%E7%AB%AFterminal"><span class="nav-text"> 3.1 终端（terminal）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-shell"><span class="nav-text"> 3.2 shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-console"><span class="nav-text"> 3.3 console</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-bash"><span class="nav-text"> 3.4 bash</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%8F%82%E8%80%83"><span class="nav-text"> 4 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

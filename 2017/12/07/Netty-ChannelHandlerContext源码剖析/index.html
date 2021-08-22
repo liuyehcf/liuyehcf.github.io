@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty-ChannelHandlerContext源码剖析">
+<meta property="og:url" content="http://example.com/2017/12/07/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/DefaultChannelHandlerContext.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelPipeline%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelOutboundInvoker.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelPipeline%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelInboundInvoker.png">
+<meta property="og:image" content="http://example.com/images/Netty-Channel%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/AttributeMap.png">
+<meta property="og:image" content="http://example.com/images/Netty-Channel%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/DefaultAttributeMap.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelHandlerContext.png">
+<meta property="og:image" content="http://example.com/images/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/AbstractChannelHandlerContext.png">
+<meta property="article:published_time" content="2017-12-07T05:50:34.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:19:53.733Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/DefaultChannelHandlerContext.png">
+
+<link rel="canonical" href="http://example.com/2017/12/07/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Netty-ChannelHandlerContext源码剖析 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/12/07/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Netty-ChannelHandlerContext源码剖析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-07 13:50:34" itemprop="dateCreated datePublished" datetime="2017-12-07T13:50:34+08:00">2017-12-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/" itemprop="url" rel="index"><span itemprop="name">Framework</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/Netty/" itemprop="url" rel="index"><span itemprop="name">Netty</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/12/07/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="post-meta-item leancloud_visitors" data-flag-title="Netty-ChannelHandlerContext源码剖析" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/12/07/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/12/07/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p>本篇博文以DefaultChannelHandlerContext为例对ChannelHandler的结构进行分析</p>
+<h1 id="2-继承结构"><a class="markdownIt-Anchor" href="#2-继承结构"></a> 2 继承结构</h1>
+<p><img src="/images/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/DefaultChannelHandlerContext.png" alt="DefaultChannelHandlerContext" /></p>
+<h2 id="21-channeloutboundinvoker"><a class="markdownIt-Anchor" href="#21-channeloutboundinvoker"></a> 2.1 ChannelOutboundInvoker</h2>
+<p>ChannelOutboundInvoker接口定义了与ChannelOutboundHandler相似的方法</p>
+<p><img src="/images/Netty-ChannelPipeline%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelOutboundInvoker.png" alt="ChannelOutboundInvoker" /></p>
+<h2 id="22-channelinboundinvoker"><a class="markdownIt-Anchor" href="#22-channelinboundinvoker"></a> 2.2 ChannelInboundInvoker</h2>
+<p>ChannelInboundInvoker接口定义了与ChannelInboundHandler相似的方法</p>
+<p><img src="/images/Netty-ChannelPipeline%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelInboundInvoker.png" alt="ChannelInboundInvoker" /></p>
+<h2 id="23-attributemap"><a class="markdownIt-Anchor" href="#23-attributemap"></a> 2.3 AttributeMap</h2>
+<p>AttributeMap接口定义了一种用于添加关键字以及判断关键字是否存在的Map</p>
+<p><img src="/images/Netty-Channel%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/AttributeMap.png" alt="AttributeMap" /></p>
+<h2 id="24-defaultattributemap"><a class="markdownIt-Anchor" href="#24-defaultattributemap"></a> 2.4 DefaultAttributeMap</h2>
+<p>DefaultAttributeMap抽象类对AttributeMap接口提供了基本的实现</p>
+<p><img src="/images/Netty-Channel%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/DefaultAttributeMap.png" alt="DefaultAttributeMap" /></p>
+<h2 id="25-channelhandlercontext"><a class="markdownIt-Anchor" href="#25-channelhandlercontext"></a> 2.5 ChannelHandlerContext</h2>
+<p>该接口作为Handler的上下文，继承自ChannelOutboundInvoker以及ChannelInboundInvoker接口，于是包含了触发这些Handler特定方法的方法</p>
+<p>此外，ChannelHandlerContext作为Handler的上下文</p>
+<ol>
+<li>与Channel一一对应</li>
+<li>与EventExecutor一一对应</li>
+<li>与Handler一一对应</li>
+<li>与Pipeline一一对应</li>
+</ol>
+<p><img src="/images/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ChannelHandlerContext.png" alt="ChannelHandlerContext" /></p>
+<h1 id="3-abstractchannelhandlercontext"><a class="markdownIt-Anchor" href="#3-abstractchannelhandlercontext"></a> 3 AbstractChannelHandlerContext</h1>
+<p>AbstractChannelHandlerContext抽象类为ChannelHandlerContext接口提供了基础实现</p>
+<p><img src="/images/Netty-ChannelHandlerContext%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/AbstractChannelHandlerContext.png" alt="AbstractChannelHandlerContext" /></p>
+<p><strong>AbstractChannelHandlerContext包含如下重要字段</strong></p>
+<ol>
+<li><code>boolean inbound</code>：用于标记当前持有的Handler是否为ChannelInbondHandler</li>
+<li><code>boolean outbound</code>：用于标记当前持有的Handler是否为ChannelOutnbondHandler</li>
+<li><code>DefaultChannelPipeline pipeline</code>：关联的DefaultChannelPipeline</li>
+<li><code>boolean ordered</code>：关联的executor是否是OrderedEventExecutor</li>
+<li><code>EventExecutor executor</code>：关联的EventExecutor，用于执行所有的异步任务</li>
+</ol>
+<p><strong>以<code>fireChannelRead</code>为例，分析一下Handler特定生命周期如何被触发，以及在同一个生命周期中，调用过程如何在各个ChannelHandlerContext之间的传递</strong></p>
+<ol>
+<li>首先调用findContextInbound()方法，从当前位置开始（当前ChannelHandlerContext位于双向链表中的位置）向后寻找下一个Inbond类型的ChannelHandlerContext</li>
+<li>通过静态方法invokeChannelRead触发ChannelRead方法</li>
+<li>同步或者异步方式触发指定ChannelHandlerContext的channelRead方法</li>
+<li>如果在该Handler的channelRead方法中包含<code>ctx.channelRead(ctx,msg)</code>，那么该条执行链路就会沿着双向链表向后传递</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ChannelHandlerContext <span class="title">fireChannelRead</span><span class="params">(<span class="keyword">final</span> Object msg)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//沿着双向链表的当前位置向后找到第一个Inbound类型的ChannelHandlerContext</span></span><br><span class="line">    invokeChannelRead(findContextInbound(), msg);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> AbstractChannelHandlerContext <span class="title">findContextInbound</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    AbstractChannelHandlerContext ctx = <span class="keyword">this</span>;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        ctx = ctx.next;</span><br><span class="line">    &#125; <span class="keyword">while</span> (!ctx.inbound);</span><br><span class="line">    <span class="keyword">return</span> ctx;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">invokeChannelRead</span><span class="params">(<span class="keyword">final</span> AbstractChannelHandlerContext next, Object msg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, <span class="string">&quot;msg&quot;</span>), next);</span><br><span class="line">    EventExecutor executor = next.executor();</span><br><span class="line">    <span class="keyword">if</span> (executor.inEventLoop()) &#123;</span><br><span class="line">        <span class="comment">//通过ChannelHandlerContext触发ChannelRead方法</span></span><br><span class="line">        next.invokeChannelRead(m);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        executor.execute(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="comment">//通过ChannelHandlerContext触发ChannelRead方法</span></span><br><span class="line">                next.invokeChannelRead(m);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">invokeChannelRead</span><span class="params">(Object msg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (invokeHandler()) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//重定向为Handler的channelRead方法</span></span><br><span class="line">            ((ChannelInboundHandler) handler()).channelRead(<span class="keyword">this</span>, msg);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">            notifyHandlerException(t);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        fireChannelRead(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="4-defaultchannelhandlercontext"><a class="markdownIt-Anchor" href="#4-defaultchannelhandlercontext"></a> 4 DefaultChannelHandlerContext</h1>
+<p><strong>DefaultChannelHandlerContext包含如下重要字段</strong></p>
+<ol>
+<li><code>ChannelHandler handler</code>：持有的Handler</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/12/07/Netty-ChannelPipeline%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" rel="prev" title="Netty-ChannelPipeline源码剖析">
+      <i class="fa fa-chevron-left"></i> Netty-ChannelPipeline源码剖析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/12/07/Netty-ChannelHandler%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" rel="next" title="Netty-ChannelHandler源码剖析">
+      Netty-ChannelHandler源码剖析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E7%BB%A7%E6%89%BF%E7%BB%93%E6%9E%84"><span class="nav-text"> 2 继承结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-channeloutboundinvoker"><span class="nav-text"> 2.1 ChannelOutboundInvoker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-channelinboundinvoker"><span class="nav-text"> 2.2 ChannelInboundInvoker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-attributemap"><span class="nav-text"> 2.3 AttributeMap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-defaultattributemap"><span class="nav-text"> 2.4 DefaultAttributeMap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-channelhandlercontext"><span class="nav-text"> 2.5 ChannelHandlerContext</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-abstractchannelhandlercontext"><span class="nav-text"> 3 AbstractChannelHandlerContext</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-defaultchannelhandlercontext"><span class="nav-text"> 4 DefaultChannelHandlerContext</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

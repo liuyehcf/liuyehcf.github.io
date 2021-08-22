@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BPlus-tree-详解">
+<meta property="og:url" content="http://example.com/2017/07/14/BPlus-tree-%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/BPlus-tree-%E8%AF%A6%E8%A7%A3/1.png">
+<meta property="article:published_time" content="2017-07-14T10:47:22.000Z">
+<meta property="article:modified_time" content="2021-02-23T14:20:23.018Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/BPlus-tree-%E8%AF%A6%E8%A7%A3/1.png">
+
+<link rel="canonical" href="http://example.com/2017/07/14/BPlus-tree-%E8%AF%A6%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>BPlus-tree-详解 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/14/BPlus-tree-%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          BPlus-tree-详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-14 18:47:22" itemprop="dateCreated datePublished" datetime="2017-07-14T18:47:22+08:00">2017-07-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 22:20:23" itemprop="dateModified" datetime="2021-02-23T22:20:23+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Data-Structure/" itemprop="url" rel="index"><span itemprop="name">Data Structure</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Data-Structure/Tree/" itemprop="url" rel="index"><span itemprop="name">Tree</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/14/BPlus-tree-%E8%AF%A6%E8%A7%A3/" class="post-meta-item leancloud_visitors" data-flag-title="BPlus-tree-详解" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/14/BPlus-tree-%E8%AF%A6%E8%A7%A3/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/14/BPlus-tree-%E8%AF%A6%E8%A7%A3/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-定义"><a class="markdownIt-Anchor" href="#1-定义"></a> 1 定义</h1>
+<h2 id="11-节点"><a class="markdownIt-Anchor" href="#11-节点"></a> 1.1 节点</h2>
+<p><strong>节点的属性</strong></p>
+<ol>
+<li>n：关键字个数</li>
+<li>key：关键字数组</li>
+<li>c：孩子数组</li>
+<li>leaf：是否为叶节点</li>
+<li>next：右兄弟节点，当节点为叶子节点时该字段才有用</li>
+</ol>
+<p><strong>节点的性质</strong></p>
+<ol>
+<li>节点关键字的个数
+<ul>
+<li>根节点：[1,2t]个关键字</li>
+<li>非根节点[t,2t]个关键字</li>
+</ul>
+</li>
+<li>所有叶子节点连接成一个单向链表</li>
+</ol>
+<h2 id="12-树"><a class="markdownIt-Anchor" href="#12-树"></a> 1.2 树</h2>
+<p><strong>属性</strong></p>
+<ol>
+<li>t：B+树的度</li>
+<li>root：根节点</li>
+<li>data：第一个叶节点</li>
+</ol>
+<p><strong>与B树的区别</strong></p>
+<ol>
+<li>所有的关键字均存储在叶节点中</li>
+<li>非叶节点中的关键字仅仅起到索引作用</li>
+<li>索引关键字不一定存在于叶节点中(由于删除，会导致该索引关键字从叶节点删除，但是索引关键字的索引作用仍然成立)</li>
+<li>每个非叶节点的索引关键字是该索引关键字对应的子树的最值的上届(由于删除，可能取不到)，可以任选一种来实现(本章选用的是最大值)</li>
+<li>非叶子节点的关键字数量和孩子数量一一对应，而B-tree中，孩子数量要比关键字数量多1</li>
+<li>所有叶子节点通过next指针串接起来，这样一来范围内的遍历要非常快捷</li>
+</ol>
+<p>B±tree示意图如下</p>
+<p><img src="/images/BPlus-tree-%E8%AF%A6%E8%A7%A3/1.png" alt="fig1" /></p>
+<h1 id="2-伪代码"><a class="markdownIt-Anchor" href="#2-伪代码"></a> 2 伪代码</h1>
+<p>B±tree的操作与B-tree的操作基本类似，注意维护好非叶子节点关键字的索引性质即可</p>
+<h2 id="21-split"><a class="markdownIt-Anchor" href="#21-split"></a> 2.1 Split</h2>
+<p>分裂一个节点</p>
+<ol>
+<li>x.c[i]是满节点</li>
+<li>x是非满节点</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">B+-TREE-SPLIT-CHILD(x,i)<span class="comment">//x.ci是满节点，x是非满节点</span></span><br><span class="line">y=x.c[i]</span><br><span class="line">z= ALLOCATE-NODE()</span><br><span class="line">y.n=z.n=t</span><br><span class="line"><span class="keyword">for</span> j=<span class="number">1</span> to t</span><br><span class="line">    z.key[j]=y.key[j+t]</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> y.leaf</span><br><span class="line">    <span class="keyword">for</span> j=<span class="number">1</span> to t</span><br><span class="line">        z.c[j]=y.c[j+t]</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    z.next=y.next</span><br><span class="line">    y.next=z</span><br><span class="line">z.leaf=y.leaf</span><br><span class="line"><span class="keyword">for</span> j=x.n+<span class="number">1</span> downto i+<span class="number">2</span></span><br><span class="line">    x.key[j]=x.key[j<span class="number">-1</span>]</span><br><span class="line">    x.c[j]=x.c[j<span class="number">-1</span>]</span><br><span class="line">x.key[i+<span class="number">1</span>]=x.key[i]<span class="comment">//新增节点的索引值为原索引值</span></span><br><span class="line">x.key[i]=y.key[y.n]<span class="comment">//原节点的索引值为现有y中最大的值</span></span><br><span class="line">x.c[i+<span class="number">1</span>]=z</span><br><span class="line">x.n++</span><br></pre></td></tr></table></figure>
+<h2 id="22-merge"><a class="markdownIt-Anchor" href="#22-merge"></a> 2.2 Merge</h2>
+<p>合并指定节点，合并x.c[i]和x.c[i+1]</p>
+<ol>
+<li>x.c[i]和x.c[i+1]关键字数量必定为t</li>
+<li>x的关键字数量必定大于t</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">B+-TREE-MERGE(x,i)</span><br><span class="line">y=x.c[i]</span><br><span class="line">z=x.c[i+<span class="number">1</span>]</span><br><span class="line">y.n=<span class="number">2</span>t</span><br><span class="line"><span class="keyword">for</span> j=<span class="number">1</span> to t</span><br><span class="line">    y.key[j+t]=z.key[j]</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> y.leaf</span><br><span class="line">    <span class="keyword">for</span> j=<span class="number">1</span> to t</span><br><span class="line">        y.c[j+t]=z.c[j]</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    y.next=z.next</span><br><span class="line"><span class="keyword">for</span> j=i+<span class="number">1</span> to x.n<span class="number">-1</span></span><br><span class="line">    x.key[j]=x.key[j+<span class="number">1</span>]</span><br><span class="line">    x.c[j]=x.c[j+<span class="number">1</span>]</span><br><span class="line">x.key[i]=y.key[y.n]<span class="comment">//更新索引值</span></span><br><span class="line">x.n--</span><br></pre></td></tr></table></figure>
+<h2 id="23-shift"><a class="markdownIt-Anchor" href="#23-shift"></a> 2.3 Shift</h2>
+<p>shift方法用于删除操作时，为了保证递归的节点关键字数量大于t，要从左边或者右边挪一个节点到当前节点，这两个方法就是执行这个操作，当且仅当左右节点的关键字数量均为t时(即没有多余的关键字可以挪给其他节点了)，才执行merge操作</p>
+<p>shift操作会导致左侧节点的索引失效，但仅仅需要改动该父节点即可（即不会触发递归向上的索引值修改），因为父节点需要修改的索引必定不是父节点的最值</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">B+-TREE-SHIFT-TO-LEFT-CHILD(x,i)</span><br><span class="line">y=x.c[i]</span><br><span class="line">z=x.c[i+<span class="number">1</span>]</span><br><span class="line">y.key[y.n+<span class="number">1</span>]=z.key[<span class="number">1</span>]</span><br><span class="line"><span class="keyword">for</span> j=<span class="number">1</span> to z.n<span class="number">-1</span></span><br><span class="line">    z.key[j]=z.key[j+<span class="number">1</span>]</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> y.leaf</span><br><span class="line">    y.c[y.n+<span class="number">1</span>]=z.c[<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">for</span> j=<span class="number">1</span> to z.n<span class="number">-1</span></span><br><span class="line">        z.c[j]=z.c[j+<span class="number">1</span>]</span><br><span class="line">y.n++</span><br><span class="line">z.n--</span><br><span class="line">x.key[i]=y.key[y.n]</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">B+-TREE-SHIFT-TO-RIGHT-CHILD(x,i)</span><br><span class="line">p=x.c[i]</span><br><span class="line">y=x.c[i+<span class="number">1</span>]</span><br><span class="line"><span class="keyword">for</span> j=y.n+<span class="number">1</span> downto <span class="number">2</span></span><br><span class="line">    y.key[j]=y.key[j<span class="number">-1</span>]</span><br><span class="line">y.key[<span class="number">1</span>]=p.key[p.n]</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> y.leaf</span><br><span class="line">    <span class="keyword">for</span> j=y.n+<span class="number">1</span> downto <span class="number">2</span></span><br><span class="line">        y.c[j]=y.c[j<span class="number">-1</span>]</span><br><span class="line">    y.c[<span class="number">1</span>]=p.c[p.n]</span><br><span class="line">y.n++</span><br><span class="line">p.n--</span><br><span class="line">x.key[i]=p.key[p.n]</span><br></pre></td></tr></table></figure>
+<h2 id="24-插入"><a class="markdownIt-Anchor" href="#24-插入"></a> 2.4 插入</h2>
+<p>为了避免额外的父节点指针以及实现复杂度，采用了自顶向下的<strong>预分裂</strong>式的插入操作</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">B+-TREE-INSERT(k)</span><br><span class="line"><span class="keyword">if</span> root.n==<span class="number">2</span>t</span><br><span class="line">    newRoot= ALLOCATE-NODE()</span><br><span class="line">    newRoot.n=<span class="number">1</span></span><br><span class="line">    newRoot.key[<span class="number">1</span>]=root.key[<span class="number">2</span>t]</span><br><span class="line">    newRoot.c[<span class="number">1</span>]=root</span><br><span class="line">    newRoot.leaf=<span class="literal">false</span></span><br><span class="line">    root=newRoot</span><br><span class="line">    B+-TREE-SPLIT-CHILD (root,<span class="number">1</span>)</span><br><span class="line">B+TREE-INSERT-NOT-FULL(root,k)</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">B+TREE-INSERT-NOT-FULL(x,k)</span><br><span class="line">i=x.n</span><br><span class="line"><span class="keyword">if</span> x.leaf</span><br><span class="line">    <span class="keyword">while</span> i&gt;=<span class="number">1</span> <span class="keyword">and</span> x.key[i]&gt;k</span><br><span class="line">        x.key[i+<span class="number">1</span>]=x.key[i]</span><br><span class="line">        i--</span><br><span class="line">    i++</span><br><span class="line">    x.key[i]=k</span><br><span class="line">    x.n++</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="keyword">while</span> i&gt;=<span class="number">1</span> <span class="keyword">and</span> x.key[i]&gt;=k   <span class="comment">//这个等于至关重要，虽然B+树节点不会重复，但是由于删除操作的存在，留在树中的索引关键字未必存在于叶节点中，因此这里需要加上等号</span></span><br><span class="line">        i--</span><br><span class="line">    i++</span><br><span class="line">    <span class="keyword">if</span> x.n+<span class="number">1</span>==i   <span class="comment">//这里至关重要，插入节点时需要维护索引的正确性，就在这唯一一处进行维护</span></span><br><span class="line">        x.key[x.n]=k</span><br><span class="line">        i--</span><br><span class="line">y=x.c[i]</span><br><span class="line"><span class="keyword">if</span> y.n==<span class="number">2</span>t</span><br><span class="line">    B+-TREE-SPLIT-CHILD(x,i)</span><br><span class="line">    <span class="keyword">if</span> k&gt;y.key[y.n]</span><br><span class="line">        i++</span><br><span class="line">B+TREE-INSERT-NOT-FULL(x.c[i],k)</span><br></pre></td></tr></table></figure>
+<h2 id="25-删除"><a class="markdownIt-Anchor" href="#25-删除"></a> 2.5 删除</h2>
+<p>为了避免额外的父节点指针以及实现复杂度，采用了自顶向下的<strong>预分裂</strong>式的插入操作</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">B+-TREE-DELETE(k)</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> root.leaf <span class="keyword">and</span> root.n==<span class="number">1</span></span><br><span class="line">    root=root.c[<span class="number">1</span>]</span><br><span class="line"><span class="keyword">if</span> root.n==<span class="number">2</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> root.leaf <span class="keyword">and</span> root.c[<span class="number">1</span>].n==t <span class="keyword">and</span> root.c[<span class="number">2</span>].n==t</span><br><span class="line">        B+-TREE-MERGE(root,<span class="number">1</span>)</span><br><span class="line">B+-TREE-DELETE-NOT-NONE(root,k)</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">B+-TREE-DELETE-NOT-NONE(x,k)</span><br><span class="line">i=<span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> x.leaf</span><br><span class="line">    <span class="keyword">while</span> i&lt;=x.n <span class="keyword">and</span> x.key[i]&lt;k</span><br><span class="line">        i++</span><br><span class="line">    <span class="keyword">while</span> i&lt;=x.n<span class="number">-1</span></span><br><span class="line">        x.key[i]=x.key[i+<span class="number">1</span>]</span><br><span class="line">        i++</span><br><span class="line">    x.n--</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="keyword">while</span> i&lt;=x.n <span class="keyword">and</span> x.key[i]&lt;k  <span class="comment">//这里必须严格小于，找到第一个满足k&lt;=x.key[i]的i</span></span><br><span class="line">        i++</span><br><span class="line">    y=x.c[i]</span><br><span class="line">    <span class="keyword">if</span> i&gt;<span class="number">1</span></span><br><span class="line">        p=x.c[i<span class="number">-1</span>]</span><br><span class="line">    <span class="keyword">if</span> i&lt;x.n</span><br><span class="line">        z=x.c[i+<span class="number">1</span>]</span><br><span class="line"><span class="keyword">if</span> y.n==t</span><br><span class="line">    <span class="keyword">if</span> p!=null <span class="keyword">and</span> p.n&gt;t</span><br><span class="line">        B+-TREE-SHIFT-TO-RIGHT-CHILD(x,i<span class="number">-1</span>)</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> z!=null <span class="keyword">and</span> z.n&gt;t</span><br><span class="line">        B+-TREE-SHIFT-TO-LEFT-CHILD(x,i)</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> p!=null</span><br><span class="line">        B+-TREE-MERGE(x,i<span class="number">-1</span>)</span><br><span class="line">        y=p</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        B+-TREE-MERGE(x,i)</span><br><span class="line">B+-TREE-DELETE-NOT-NONE(y,k)</span><br><span class="line"> </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="3-java代码"><a class="markdownIt-Anchor" href="#3-java代码"></a> 3 Java代码</h1>
+<h2 id="31-节点"><a class="markdownIt-Anchor" href="#31-节点"></a> 3.1 节点</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BPlusTreeNode</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关键字个数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关键字</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span>[] keys;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 孩子</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    BPlusTreeNode[] children;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 叶子节点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">boolean</span> isLeaf;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 兄弟节点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    BPlusTreeNode next;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BPlusTreeNode</span><span class="params">(<span class="keyword">int</span> t)</span></span>&#123;</span><br><span class="line">        n=<span class="number">0</span>;</span><br><span class="line">        keys=<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">2</span>*t];</span><br><span class="line">        children=<span class="keyword">new</span> BPlusTreeNode[<span class="number">2</span>*t];</span><br><span class="line">        isLeaf=<span class="keyword">false</span>;</span><br><span class="line">        next=<span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span></span>&#123;</span><br><span class="line">        StringBuilder sb=<span class="keyword">new</span> StringBuilder();</span><br><span class="line">        sb.append(<span class="string">&quot;&#123; size: &quot;</span>+n+<span class="string">&quot;, keys: [&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;n;i++)&#123;</span><br><span class="line">            sb.append(keys[i]+<span class="string">&quot;, &quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        sb.append(<span class="string">&quot;] &#125;&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="32-bplus-tree"><a class="markdownIt-Anchor" href="#32-bplus-tree"></a> 3.2 BPlus-tree</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br><span class="line">372</span><br><span class="line">373</span><br><span class="line">374</span><br><span class="line">375</span><br><span class="line">376</span><br><span class="line">377</span><br><span class="line">378</span><br><span class="line">379</span><br><span class="line">380</span><br><span class="line">381</span><br><span class="line">382</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.algorithm.datastructure.tree.bplustree;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by liuye on 2017/5/3 0003.</span></span><br><span class="line"><span class="comment"> * 该版本的B+树同样不支持重复关键字</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BPlusTree</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> t;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> BPlusTreeNode root;</span><br><span class="line">    <span class="keyword">private</span> BPlusTreeNode data;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BPlusTree</span><span class="params">(<span class="keyword">int</span> t)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.t = t;</span><br><span class="line">        root = <span class="keyword">new</span> BPlusTreeNode(t);</span><br><span class="line">        root.n = <span class="number">0</span>;</span><br><span class="line">        root.isLeaf = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">        data = root;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">insert</span><span class="params">(<span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root.n == <span class="number">2</span> * t) &#123;</span><br><span class="line">            BPlusTreeNode newRoot = <span class="keyword">new</span> BPlusTreeNode(t);</span><br><span class="line">            newRoot.n = <span class="number">1</span>;</span><br><span class="line">            newRoot.keys[<span class="number">0</span>] = root.keys[<span class="number">2</span> * t - <span class="number">1</span>];</span><br><span class="line">            newRoot.children[<span class="number">0</span>] = root;</span><br><span class="line">            newRoot.isLeaf = <span class="keyword">false</span>;</span><br><span class="line">            root = newRoot;</span><br><span class="line">            split(root, <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        insertNotFull(root, k);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!check()) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">split</span><span class="params">(BPlusTreeNode x, <span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">        BPlusTreeNode y = x.children[i];</span><br><span class="line">        BPlusTreeNode z = <span class="keyword">new</span> BPlusTreeNode(t);</span><br><span class="line"></span><br><span class="line">        y.n = z.n = t;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; t; j++) &#123;</span><br><span class="line">            z.keys[j] = y.keys[j + t];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!y.isLeaf) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; t; j++) &#123;</span><br><span class="line">                z.children[j] = y.children[j + t];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            z.next = y.next;</span><br><span class="line">            y.next = z;</span><br><span class="line">        &#125;</span><br><span class="line">        z.isLeaf = y.isLeaf;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = x.n; j &gt; i + <span class="number">1</span>; j--) &#123;</span><br><span class="line">            x.keys[j] = x.keys[j - <span class="number">1</span>];</span><br><span class="line">            x.children[j] = x.children[j - <span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        x.keys[i + <span class="number">1</span>] = x.keys[i];</span><br><span class="line">        x.keys[i] = y.keys[y.n - <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        x.children[i + <span class="number">1</span>] = z;</span><br><span class="line">        x.n++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">insertNotFull</span><span class="params">(BPlusTreeNode x, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = x.n - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (x.isLeaf) &#123;</span><br><span class="line">            <span class="keyword">while</span> (i &gt;= <span class="number">0</span> &amp;&amp; x.keys[i] &gt; k) &#123;</span><br><span class="line">                x.keys[i + <span class="number">1</span>] = x.keys[i];</span><br><span class="line">                i--;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (i &gt;= <span class="number">0</span> &amp;&amp; x.keys[i] == k) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">            &#125;</span><br><span class="line">            i++;</span><br><span class="line">            x.keys[i] = k;</span><br><span class="line">            x.n++;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//todo 这个等号非常关键，执行过删除操作后，遗留下来的元素可能并不存在于叶节点中</span></span><br><span class="line">            <span class="keyword">while</span> (i &gt;= <span class="number">0</span> &amp;&amp; x.keys[i] &gt;= k) &#123;</span><br><span class="line">                i--;</span><br><span class="line">            &#125;</span><br><span class="line">            i++;</span><br><span class="line">            <span class="comment">//todo 关键，自上而下寻找插入点时，即维护了索引的正确性</span></span><br><span class="line">            <span class="keyword">if</span> (i == x.n) &#123;</span><br><span class="line">                <span class="comment">//此时说明新插入的值k比当前节点中所有关键字都要大，因此当前节点的最后一个索引需要改变</span></span><br><span class="line">                x.keys[x.n - <span class="number">1</span>] = k;</span><br><span class="line">                i--;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            BPlusTreeNode y = x.children[i];</span><br><span class="line">            <span class="keyword">if</span> (y.n == <span class="number">2</span> * t) &#123;</span><br><span class="line">                split(x, i);</span><br><span class="line">                <span class="keyword">if</span> (k &gt; y.keys[y.n - <span class="number">1</span>])</span><br><span class="line">                    i++;</span><br><span class="line">            &#125;</span><br><span class="line">            insertNotFull(x.children[i], k);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">check</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> checkIndex(root)</span><br><span class="line">                &amp;&amp; checkN(root)</span><br><span class="line">                &amp;&amp; checkOrder();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">checkIndex</span><span class="params">(BPlusTreeNode x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (x == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; x.n; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (x.keys[i] &lt;= x.keys[i - <span class="number">1</span>]) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!x.isLeaf) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; x.n; i++) &#123;</span><br><span class="line">                BPlusTreeNode child = x.children[i];</span><br><span class="line">                <span class="keyword">if</span> (x.keys[i] &lt; child.keys[child.n - <span class="number">1</span>]) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">                <span class="keyword">if</span> (i &gt; <span class="number">0</span> &amp;&amp; child.keys[<span class="number">0</span>] &lt;= x.keys[i - <span class="number">1</span>]) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">                <span class="keyword">if</span> (!checkIndex(child)) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">checkN</span><span class="params">(BPlusTreeNode x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (x.isLeaf) &#123;</span><br><span class="line">            <span class="keyword">return</span> (x == root) || (x.n &gt;= t &amp;&amp; x.n &lt;= <span class="number">2</span> * t);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">boolean</span> flag = (x == root) || (x.n &gt;= t &amp;&amp; x.n &lt;= <span class="number">2</span> * t);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; x.n; i++) &#123;</span><br><span class="line">                flag = flag &amp;&amp; checkN(x.children[i]);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> flag;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">checkOrder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        BPlusTreeNode x = data;</span><br><span class="line">        Integer pre = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (x != <span class="keyword">null</span> &amp;&amp; x.n &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (pre == <span class="keyword">null</span>) &#123;</span><br><span class="line">                pre = x.keys[i++];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (pre &gt;= x.keys[i]) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">                pre = x.keys[i++];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (i == x.n) &#123;</span><br><span class="line">                x = x.next;</span><br><span class="line">                i = <span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> BPlusTreeNode <span class="title">search</span><span class="params">(BPlusTreeNode x, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (!x.isLeaf) &#123;</span><br><span class="line">            <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">while</span> (i &lt; x.n &amp;&amp; k &gt; x.keys[i]) &#123;</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            x = x.children[i];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; x.n; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (x.keys[i] == k) <span class="keyword">return</span> x;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">delete</span><span class="params">(<span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!root.isLeaf &amp;&amp; root.n == <span class="number">1</span>) &#123;</span><br><span class="line">            root = root.children[<span class="number">0</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (root.n == <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!root.isLeaf &amp;&amp; root.children[<span class="number">0</span>].n == t &amp;&amp; root.children[<span class="number">1</span>].n == t) &#123;</span><br><span class="line">                merge(root, <span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        deleteNotNone(root, k);</span><br><span class="line">        <span class="keyword">if</span> (!check()) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">deleteNotNone</span><span class="params">(BPlusTreeNode x, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (x.isLeaf) &#123;</span><br><span class="line">            <span class="keyword">while</span> (i &lt; x.n &amp;&amp; x.keys[i] &lt; k) &#123;</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (k != x.keys[i]) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">while</span> (i &lt; x.n - <span class="number">1</span>) &#123;</span><br><span class="line">                x.keys[i] = x.keys[i + <span class="number">1</span>];</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            x.n--;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (i &lt; x.n &amp;&amp; x.keys[i] &lt; k) &#123;</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            BPlusTreeNode y = x.children[i];</span><br><span class="line">            BPlusTreeNode p = <span class="keyword">null</span>, z = <span class="keyword">null</span>;</span><br><span class="line">            <span class="keyword">if</span> (i &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                p = x.children[i - <span class="number">1</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (i &lt; x.n - <span class="number">1</span>) &#123;</span><br><span class="line">                z = x.children[i + <span class="number">1</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (y.n == t) &#123;</span><br><span class="line">                <span class="keyword">if</span> (p != <span class="keyword">null</span> &amp;&amp; p.n &gt; t) &#123;</span><br><span class="line">                    shiftToRight(x, i - <span class="number">1</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (z != <span class="keyword">null</span> &amp;&amp; z.n &gt; t) &#123;</span><br><span class="line">                    shiftToLeft(x, i);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (p != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    merge(x, i - <span class="number">1</span>);</span><br><span class="line">                    y = p;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    merge(x, i);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            deleteNotNone(y, k);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(BPlusTreeNode x, <span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">        BPlusTreeNode y = x.children[i];</span><br><span class="line">        BPlusTreeNode z = x.children[i + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        y.n = <span class="number">2</span> * t;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; t; j++) &#123;</span><br><span class="line">            y.keys[j + t] = z.keys[j];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!y.isLeaf) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; t; j++) &#123;</span><br><span class="line">                y.children[j + t] = z.children[j];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            y.next = z.next;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = i + <span class="number">1</span>; j &lt; x.n - <span class="number">1</span>; j++) &#123;</span><br><span class="line">            x.keys[j] = x.keys[j + <span class="number">1</span>];</span><br><span class="line">            x.children[j] = x.children[j + <span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        x.keys[i] = y.keys[y.n - <span class="number">1</span>];</span><br><span class="line">        x.n--;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">shiftToLeft</span><span class="params">(BPlusTreeNode x, <span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">        BPlusTreeNode y = x.children[i];</span><br><span class="line">        BPlusTreeNode z = x.children[i + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        y.keys[y.n] = z.keys[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; z.n - <span class="number">1</span>; j++) &#123;</span><br><span class="line">            z.keys[j] = z.keys[j + <span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!y.isLeaf) &#123;</span><br><span class="line">            y.children[y.n] = z.children[<span class="number">0</span>];</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; z.n - <span class="number">1</span>; j++) &#123;</span><br><span class="line">                z.children[j] = z.children[j + <span class="number">1</span>];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        y.n++;</span><br><span class="line">        z.n--;</span><br><span class="line"></span><br><span class="line">        x.keys[i] = y.keys[y.n - <span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">shiftToRight</span><span class="params">(BPlusTreeNode x, <span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">        BPlusTreeNode p = x.children[i];</span><br><span class="line">        BPlusTreeNode y = x.children[i + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = y.n; j &gt; <span class="number">0</span>; j--) &#123;</span><br><span class="line">            y.keys[j] = y.keys[j - <span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        y.keys[<span class="number">0</span>] = p.keys[p.n - <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!y.isLeaf) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = y.n; j &gt; <span class="number">0</span>; j--) &#123;</span><br><span class="line">                y.children[j] = y.children[j - <span class="number">1</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            y.children[<span class="number">0</span>] = p.children[p.n - <span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        y.n++;</span><br><span class="line">        p.n--;</span><br><span class="line"></span><br><span class="line">        x.keys[i] = p.keys[p.n - <span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">levelOrderTraverse</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Queue&lt;BPlusTreeNode&gt; queue = <span class="keyword">new</span> LinkedList&lt;BPlusTreeNode&gt;();</span><br><span class="line">        queue.offer(root);</span><br><span class="line">        <span class="keyword">while</span> (!queue.isEmpty()) &#123;</span><br><span class="line">            <span class="keyword">int</span> len = queue.size();</span><br><span class="line">            <span class="keyword">while</span> (len-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                BPlusTreeNode peek = queue.poll();</span><br><span class="line">                System.out.print(peek + <span class="string">&quot;, &quot;</span>);</span><br><span class="line">                <span class="keyword">if</span> (!peek.isLeaf) &#123;</span><br><span class="line">                    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; peek.n; i++) &#123;</span><br><span class="line">                        queue.offer(peek.children[i]);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Integer&gt; <span class="title">getOrderedList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;Integer&gt;();</span><br><span class="line">        BPlusTreeNode x = data;</span><br><span class="line">        <span class="keyword">while</span> (x != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; x.n; i++) &#123;</span><br><span class="line">                list.add(x.keys[i]);</span><br><span class="line">            &#125;</span><br><span class="line">            x = x.next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">        Random random = <span class="keyword">new</span> Random();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> TIMES = <span class="number">500</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (--TIMES &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;剩余测试次数: &quot;</span> + TIMES);</span><br><span class="line">            BPlusTree bPlusTree = <span class="keyword">new</span> BPlusTree(random.nextInt(<span class="number">20</span>) + <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> N = <span class="number">10000</span>;</span><br><span class="line"></span><br><span class="line">            Set&lt;Integer&gt; set = <span class="keyword">new</span> HashSet&lt;Integer&gt;();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">                set.add(random.nextInt());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;Integer&gt;(set);</span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line">            <span class="comment">//插入N个数据</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i : list) &#123;</span><br><span class="line">                bPlusTree.insert(i);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> M = list.size() / <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//删除M个数据</span></span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; M; i++) &#123;</span><br><span class="line">                set.remove(list.get(i));</span><br><span class="line">                bPlusTree.delete(list.get(i));</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//再插入M个数据</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; M; i++) &#123;</span><br><span class="line">                <span class="keyword">int</span> k = random.nextInt();</span><br><span class="line">                <span class="keyword">if</span> (set.add(k)) &#123;</span><br><span class="line">                    bPlusTree.insert(k);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            list.clear();</span><br><span class="line">            list.addAll(set);</span><br><span class="line">            Collections.shuffle(list, random);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//再删除所有元素</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i : list) &#123;</span><br><span class="line">                bPlusTree.delete(i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> end = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;Run time: &quot;</span> + (end - start) / <span class="number">1000</span> + <span class="string">&quot;s&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/14/B-tree-%E8%AF%A6%E8%A7%A3/" rel="prev" title="B-tree-详解">
+      <i class="fa fa-chevron-left"></i> B-tree-详解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/14/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E6%8E%A5%E5%8F%A3%E5%B9%82%E7%AD%89%E6%80%A7/" rel="next" title="分布式系统接口幂等性">
+      分布式系统接口幂等性 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%AE%9A%E4%B9%89"><span class="nav-text"> 1 定义</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E8%8A%82%E7%82%B9"><span class="nav-text"> 1.1 节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E6%A0%91"><span class="nav-text"> 1.2 树</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="nav-text"> 2 伪代码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-split"><span class="nav-text"> 2.1 Split</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-merge"><span class="nav-text"> 2.2 Merge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-shift"><span class="nav-text"> 2.3 Shift</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E6%8F%92%E5%85%A5"><span class="nav-text"> 2.4 插入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-%E5%88%A0%E9%99%A4"><span class="nav-text"> 2.5 删除</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-java%E4%BB%A3%E7%A0%81"><span class="nav-text"> 3 Java代码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E8%8A%82%E7%82%B9"><span class="nav-text"> 3.1 节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-bplus-tree"><span class="nav-text"> 3.2 BPlus-tree</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

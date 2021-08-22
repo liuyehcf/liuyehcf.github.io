@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库-优化策略">
+<meta property="og:url" content="http://example.com/2017/09/02/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-09-02T03:18:54.000Z">
+<meta property="article:modified_time" content="2021-08-22T10:39:39.964Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/09/02/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据库-优化策略 | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/09/02/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库-优化策略
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-02 11:18:54" itemprop="dateCreated datePublished" datetime="2017-09-02T11:18:54+08:00">2017-09-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-22 18:39:39" itemprop="dateModified" datetime="2021-08-22T18:39:39+08:00">2021-08-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Data-Base/" itemprop="url" rel="index"><span itemprop="name">Data Base</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Data-Base/Basic-Concepts/" itemprop="url" rel="index"><span itemprop="name">Basic Concepts</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/09/02/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/" class="post-meta-item leancloud_visitors" data-flag-title="数据库-优化策略" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/09/02/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/09/02/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
+<p><strong>数据库优化的指导思路是首先写出的SQL是优化器喜欢的</strong>，然后在排除烂的SQL的情况下就是，找瓶颈，数据库吞吐量上不去或者查询慢都是因为某一瓶颈的存在，<strong>从非常大的粒度来看，瓶颈可以分为五类：io、内存、CPU、网络、锁</strong>。当卡在某一瓶颈时，其他的资源就会被闲置，解决瓶颈或者用非瓶颈的资源做trade off达到总和的最大才是优化的正解，比如建索引就是以空间换时间的做法。<strong>由于数据库相对比较复杂，上下文有区别优化思路也会不一样，所以离开上下文谈具体的优化手段就是坑</strong>。大部分开发人员会犯的错误是所谓的&quot;锤子人&quot;，也就是自己是锤子看什么都像钉子，比如觉得慢就说要分区，觉得某种语句的写法一定比另一种快而不考虑场景</p>
+<h1 id="2-调整数据结构的设计"><a class="markdownIt-Anchor" href="#2-调整数据结构的设计"></a> 2 调整数据结构的设计</h1>
+<p>这一部分在开发信息系统之前完成，程序员需要考虑是否使用ORACLE数据库的分区功能，对于经常访问的数据库表是否需要建立索引等</p>
+<h1 id="3-调整应用程序结构设计"><a class="markdownIt-Anchor" href="#3-调整应用程序结构设计"></a> 3 调整应用程序结构设计</h1>
+<p>这一部分也是在开发信息系统之前完成，程序员在这一步需要考虑应用程序使用什么样的体系结构，是使用传统的Client/Server两层体系结构，还是使用Browser/Web/Database的三层体系结构。不同的应用程序体系结构要求的数据库资源是不同的</p>
+<h1 id="4-调整数据库sql语句"><a class="markdownIt-Anchor" href="#4-调整数据库sql语句"></a> 4 调整数据库SQL语句</h1>
+<p>应用程序的执行最终将归结为数据库中的SQL语句执行，因此SQL语句的执行效率最终决定了ORACLE数据库的性能。ORACLE公司推荐使用ORACLE语句优化器（Oracle Optimizer）和行锁管理器（row-level manager）来调整优化SQL语句</p>
+<h1 id="5-调整服务器内存分配"><a class="markdownIt-Anchor" href="#5-调整服务器内存分配"></a> 5 调整服务器内存分配</h1>
+<p>内存分配是在信息系统运行过程中优化配置的，数据库管理员可以根据数据库运行状况调整数据库系统全局区（SGA区）的数据缓冲区、日志缓冲区和共享池的大小；还可以调整程序全局区（PGA区）的大小。需要注意的是，SGA区不是越大越好，SGA区过大会占用操作系统使用的内存而引起虚拟内存的页面交换，这样反而会降低系统</p>
+<h1 id="6-调整硬盘io"><a class="markdownIt-Anchor" href="#6-调整硬盘io"></a> 6 调整硬盘I/O</h1>
+<p>这一步是在信息系统开发之前完成的。数据库管理员可以将组成同一个表空间的数据文件放在不同的硬盘上，做到硬盘之间I/O负载均衡</p>
+<h1 id="7-调整操作系统参数"><a class="markdownIt-Anchor" href="#7-调整操作系统参数"></a> 7 调整操作系统参数</h1>
+<p>例如：运行在UNIX操作系统上的ORACLE数据库，可以调整UNIX数据缓冲池的大小，每个进程所能使用的内存大小等参数</p>
+<p>实际上，上述数据库优化措施之间是相互联系的。ORACLE数据库性能恶化表现基本上都是用户响应时间比较长，需要用户长时间的等待。但性能恶化的原因却是多种多样的，有时是多个因素共同造成了性能恶化的结果，这就需要数据库管理员有比较全面的计算机知识，能够敏感地察觉到影响数据库性能的主要原因所在。另外，良好的数据库管理工具对于优化数据库性能也是很重要的</p>
+<h1 id="8-索引"><a class="markdownIt-Anchor" href="#8-索引"></a> 8 索引</h1>
+<p>索引是提高数据库性能的常用方法</p>
+<p>创建索引时的注意事项</p>
+<ol>
+<li>表的主键、外键必须有索引</li>
+<li>数据量超过300的表应该有索引</li>
+<li>经常与其他表进行连接的表，在连接字段上应该建立索引</li>
+<li>经常出现在Where子句中的字段，特别是大表的字段，应该建立索引</li>
+<li>索引应该建在选择性高的字段上</li>
+<li>索引应该建在小字段上，对于大的文本字段甚至超长字段，不要建索引
+<ul>
+<li>正确选择复合索引中的主列字段，一般是选择性较好的字段</li>
+<li>复合索引的几个字段是否经常同时以AND方式出现在Where子句中？单字段查询是否极少甚至没有？如果是，则可以建立复合索引；否则考虑单字段索引</li>
+<li>如果复合索引中包含的字段经常单独出现在Where子句中，则分解为多个单字段索引</li>
+<li>如果复合索引所包含的字段超过3个，那么仔细考虑其必要性，考虑减少复合的字段</li>
+<li>如果既有单字段索引，又有这几个字段上的复合索引，一般可以删除复合索引</li>
+</ul>
+</li>
+<li>频繁进行数据操作的表，不要建立太多的索引</li>
+<li>删除无用的索引，避免对执行计划造成负面影响</li>
+<li>复合索引的建立需要进行仔细分析，尽量考虑用单字段索引代替</li>
+</ol>
+<h1 id="9-分页优化"><a class="markdownIt-Anchor" href="#9-分页优化"></a> 9 分页优化</h1>
+<p>MySQL的LIMIT工作原理就是先读取n条记录，然后抛弃前n条，读m条想要的，所以n越大，性能会越差</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> crm_user <span class="keyword">INNER</span> <span class="keyword">JOIN</span> (<span class="keyword">SELECT</span> id <span class="keyword">FROM</span> crm_user LIMIT <span class="number">1000</span>,<span class="number">10</span>) <span class="keyword">AS</span> a  <span class="keyword">USING</span>(id);</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> crm_user <span class="keyword">INNER</span> <span class="keyword">JOIN</span> (<span class="keyword">SELECT</span> id <span class="keyword">FROM</span> crm_user LIMIT <span class="number">1000</span>,<span class="number">10</span>) <span class="keyword">AS</span> a  <span class="keyword">ON</span> crm_user.id <span class="operator">=</span> a.id;</span><br></pre></td></tr></table></figure>
+<h1 id="10-数据库分表"><a class="markdownIt-Anchor" href="#10-数据库分表"></a> 10 数据库分表</h1>
+<a href="/2017/08/22/%E6%95%B0%E6%8D%AE%E5%BA%93-%E5%88%86%E8%A1%A8%E7%AD%96%E7%95%A5/" title="数据库-分表策略">数据库-分表策略</a>
+<h1 id="11-尽量不使用null字段"><a class="markdownIt-Anchor" href="#11-尽量不使用null字段"></a> 11 尽量不使用NULL字段</h1>
+<p>MySQL难以优化引用可空列查询，它会使索引、索引统计和值更加复杂。可空列需要更多的存储空间，还需要MySQL内部进行特殊处理。可空列被索引后，每条记录都需要一个额外的字节，还能导致MyISAM中固定大小的索引变成可变大小的索引</p>
+<h1 id="12-参考"><a class="markdownIt-Anchor" href="#12-参考"></a> 12 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/u013474436/article/details/49908683">MySQL的几种优化方法</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhidao.baidu.com/question/67759076.html">数据库性能优化有哪些措施?</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/36431635?sort=created">有哪些常见的数据库优化方法？</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/yzllz001/article/details/54848513">数据库性能优化详解</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/09/01/HTTPS%E5%8D%8F%E8%AE%AE/" rel="prev" title="HTTPS协议">
+      <i class="fa fa-chevron-left"></i> HTTPS协议
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/09/02/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="next" title="数据库-事务隔离级别">
+      数据库-事务隔离级别 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%B0%83%E6%95%B4%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 2 调整数据结构的设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E8%B0%83%E6%95%B4%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 3 调整应用程序结构设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E8%B0%83%E6%95%B4%E6%95%B0%E6%8D%AE%E5%BA%93sql%E8%AF%AD%E5%8F%A5"><span class="nav-text"> 4 调整数据库SQL语句</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E8%B0%83%E6%95%B4%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="nav-text"> 5 调整服务器内存分配</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E8%B0%83%E6%95%B4%E7%A1%AC%E7%9B%98io"><span class="nav-text"> 6 调整硬盘I&#x2F;O</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E8%B0%83%E6%95%B4%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8F%82%E6%95%B0"><span class="nav-text"> 7 调整操作系统参数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E7%B4%A2%E5%BC%95"><span class="nav-text"> 8 索引</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%88%86%E9%A1%B5%E4%BC%98%E5%8C%96"><span class="nav-text"> 9 分页优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-%E6%95%B0%E6%8D%AE%E5%BA%93%E5%88%86%E8%A1%A8"><span class="nav-text"> 10 数据库分表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-%E5%B0%BD%E9%87%8F%E4%B8%8D%E4%BD%BF%E7%94%A8null%E5%AD%97%E6%AE%B5"><span class="nav-text"> 11 尽量不使用NULL字段</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-%E5%8F%82%E8%80%83"><span class="nav-text"> 12 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>
