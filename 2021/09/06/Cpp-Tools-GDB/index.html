@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cpp-Tools-GDB">
+<meta property="og:url" content="http://example.com/2021/09/06/Cpp-Tools-GDB/index.html">
+<meta property="og:site_name" content="Liuye Blog">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-09-06T02:55:03.000Z">
+<meta property="article:modified_time" content="2021-09-11T07:47:22.321Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2021/09/06/Cpp-Tools-GDB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Cpp-Tools-GDB | Liuye Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/09/06/Cpp-Tools-GDB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Cpp-Tools-GDB
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-06 10:55:03" itemprop="dateCreated datePublished" datetime="2021-09-06T10:55:03+08:00">2021-09-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-09-11 15:47:22" itemprop="dateModified" datetime="2021-09-11T15:47:22+08:00">2021-09-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Cpp/" itemprop="url" rel="index"><span itemprop="name">Cpp</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/09/06/Cpp-Tools-GDB/" class="post-meta-item leancloud_visitors" data-flag-title="Cpp-Tools-GDB" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/09/06/Cpp-Tools-GDB/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/09/06/Cpp-Tools-GDB/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-gdb能够做什么"><a class="markdownIt-Anchor" href="#1-gdb能够做什么"></a> 1 GDB能够做什么？</h1>
+<ol>
+<li>一个支持包括<code>c</code>以及<code>c++</code>等众多语言的<code>debugger</code>工具</li>
+<li>它允许您检查程序在执行期间的某个时刻正在做什么</li>
+<li>能够定位诸如<code>segmentation faults</code>等错误的具体原因</li>
+<li></li>
+</ol>
+<p>对<code>c/c++</code>程序的调试，需要在编译前就加上<code>-g</code>选项：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -g hello.c -o hello</span><br><span class="line">g++ -g hello.cpp -o hello</span><br></pre></td></tr></table></figure>
+<h1 id="2-如何进入gdb-shell"><a class="markdownIt-Anchor" href="#2-如何进入gdb-shell"></a> 2 如何进入GDB shell</h1>
+<p><code>gdb</code>提供了一个交互式的<code>shell</code>，能够通过<code>↑</code>查询历史命令，可以通过<code>tab</code>进行命令行补全，可以通过<code>help [command]</code>查询帮助文档</p>
+<p><strong>进入gdb交互界面的几种方式：</strong></p>
+<ul>
+<li><code>gdb &lt;binary_with_-g&gt;</code>：调试可执行文件</li>
+<li><code>gdb &lt;binary_with_-g&gt; core.xxx</code>：分析coredump</li>
+<li><code>gdb &lt;binary_with_-g&gt; &lt;pid_without_-g&gt;</code>：以可执行文件为元数据，调试指定进程
+<ul>
+<li><code>&lt;binary&gt;</code>需要用<code>-g</code>参数编译出来，否则指定该文件没有意义</li>
+<li><code>&lt;pid&gt;</code>对应的进程可以是不带<code>-g</code>参数编译出来的版本，只要保证源码一样即可</li>
+</ul>
+</li>
+<li><code>gdb -p &lt;pid_with_-g&gt;</code>：调试指定进程
+<ul>
+<li>若<code>&lt;pid&gt;</code>对应的进程如果是用<code>-g</code>参数编译出来，那么等效于<code>gdb &lt;binary_with_-g&gt;</code> + <code>run</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>下面演示一下使用<code>gdb &lt;binary_with_-g&gt; &lt;pid_without_-g&gt;</code>这种方式进入gdb shell</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 源码</span></span><br><span class="line">cat &gt; main.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include&lt;iostream&gt;</span></span><br><span class="line"><span class="comment">#include&lt;thread&gt;</span></span><br><span class="line"><span class="comment">#include&lt;chrono&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;hello, world!&quot;</span> &lt;&lt;<span class="string">std::endl;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    int cnt = 0;</span></span><br><span class="line"><span class="string">    while(true) &#123;</span></span><br><span class="line"><span class="string">        ++cnt;</span></span><br><span class="line"><span class="string">        std</span>::this_thread::sleep_for(std::chrono::seconds(1));</span><br><span class="line">	std::cout &lt;&lt; <span class="string">&quot;cnt=&quot;</span> &lt;&lt; <span class="string">cnt &lt;&lt; std::endl;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 编译两个版本，一个带-g参数，一个不带</span></span><br><span class="line"><span class="string">g++ -o main_without_debug main.cpp -std=gnu++11</span></span><br><span class="line"><span class="string">g++ -o main_with_debug main.cpp -std=gnu++11 -g</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 运行非debug版本</span></span><br><span class="line">./main_without_debug</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查询进程id</span></span><br><span class="line">pid=$(ps -ef | grep main_without_debug | grep -v grep | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入gdb shell</span></span><br><span class="line">gdb main_with_debug <span class="variable">$&#123;pid&#125;</span></span><br></pre></td></tr></table></figure>
+<h1 id="3-command"><a class="markdownIt-Anchor" href="#3-command"></a> 3 command</h1>
+<h2 id="31-运行程序"><a class="markdownIt-Anchor" href="#31-运行程序"></a> 3.1 运行程序</h2>
+<p>当我们通过<code>gdb &lt;binary&gt;</code>这种方式进入<code>gdb shell</code>后，程序不会立即执行，需要通过<code>run</code>或者<code>start</code>命令触发程序的执行</p>
+<ul>
+<li><code>run</code>：开始执行程序，直到碰到第一个断点或者程序结束</li>
+<li><code>start</code>：开始执行程序，在main函数第一行停下来</li>
+</ul>
+<p>如果程序有异常（比如包含段错误），那么我们将会得到一些有用的信息，包括：程序出错的行号，函数的参数等等信息</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># c++源文件</span></span><br><span class="line">$ cat &gt; segment_fault.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    int *num = nullptr;</span><br><span class="line">    *num = 100;</span><br><span class="line">    <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译（可以试下不加-g参数）</span></span><br><span class="line">$ g++ -o segment_fault segment_fault.cpp -std=gnu++11 -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入gdb shell</span></span><br><span class="line">$ gdb segment_fault</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行程序，程序会出现段错误而退出，并输出相关的错误信息</span></span><br><span class="line"><span class="comment"># 如果编译时没有加-g参数，输出的信息就会少很多（比如行号和具体的代码就没有了）</span></span><br><span class="line">(gdb) run</span><br><span class="line"></span><br><span class="line">Starting program: xxx/segment_fault</span><br><span class="line"></span><br><span class="line">Program received signal SIGSEGV, Segmentation fault.</span><br><span class="line">0x000000000040051d <span class="keyword">in</span> main () at segment_fault.cpp:3</span><br><span class="line">3	    *num = 100;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="32-gdb与程序关联"><a class="markdownIt-Anchor" href="#32-gdb与程序关联"></a> 3.2 GDB与程序关联</h2>
+<h2 id="33-断点设置"><a class="markdownIt-Anchor" href="#33-断点设置"></a> 3.3 断点设置</h2>
+<ul>
+<li><code>break</code>：用于设置断点
+<ul>
+<li><code>break &lt;line_num&gt;</code></li>
+<li><code>break &lt;func_name&gt;</code></li>
+<li><code>break &lt;file_name&gt;:&lt;line_num&gt;</code></li>
+<li><code>break &lt;file_name&gt;:&lt;func_name&gt;</code></li>
+</ul>
+</li>
+<li><code>info break</code>：用于查看断点</li>
+<li><code>delete</code>：用于删除断点
+<ul>
+<li><code>delete &lt;break_id&gt;</code>：删除指定断点</li>
+<li><code>delete</code>：删除所有断点</li>
+</ul>
+</li>
+<li><code>enable</code>：用于启用断点
+<ul>
+<li><code>enable &lt;break_id&gt;</code></li>
+</ul>
+</li>
+<li><code>disable</code>：用于停用断点
+<ul>
+<li><code>disable &lt;break_id&gt;</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="331-demo"><a class="markdownIt-Anchor" href="#331-demo"></a> 3.3.1 demo</h3>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># c++源文件</span></span><br><span class="line">$ cat &gt; set_break.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">void <span class="function"><span class="title">funcA</span></span>() &#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;invoke funcA()&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">int main() &#123;</span></span><br><span class="line"><span class="string">    std</span>::cout &lt;&lt; <span class="string">&quot;hello world&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    int num = 0;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    int *num_ptr = &amp;num;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    funcA();</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    for(int i=0; i &lt; 10; i++) &#123;</span></span><br><span class="line"><span class="string">        ++(*num_ptr);</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    std</span>::cout &lt;&lt; <span class="string">&quot;num: &quot;</span> &lt;&lt; *num_ptr &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 编译（可以试下不加-g参数）</span></span><br><span class="line"><span class="string">$ g++ -o set_break set_break.cpp -std</span>=gnu++11 -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入gdb shell</span></span><br><span class="line">$ gdb set_break</span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过list查看源码</span></span><br><span class="line">$ (gdb) list 0</span><br><span class="line">1	<span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line">2</span><br><span class="line">3	void <span class="function"><span class="title">funcA</span></span>() &#123;</span><br><span class="line">4	    std::cout &lt;&lt; <span class="string">&quot;invoke funcA()&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">5	&#125;</span></span><br><span class="line"><span class="string">6</span></span><br><span class="line"><span class="string">7	int main() &#123;</span></span><br><span class="line"><span class="string">8	    std</span>::cout &lt;&lt; <span class="string">&quot;hello world&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">9</span></span><br><span class="line"><span class="string">10	    int num = 0;</span></span><br><span class="line"><span class="string"># 回车，继续输出下10行</span></span><br><span class="line"><span class="string">$ (gdb)</span></span><br><span class="line"><span class="string">11</span></span><br><span class="line"><span class="string">12	    int *num_ptr = &amp;num;</span></span><br><span class="line"><span class="string">13</span></span><br><span class="line"><span class="string">14	    funcA();</span></span><br><span class="line"><span class="string">15</span></span><br><span class="line"><span class="string">16	    for(int i=0; i &lt; 10; i++) &#123;</span></span><br><span class="line"><span class="string">17	        ++(*num_ptr);</span></span><br><span class="line"><span class="string">18	    &#125;</span></span><br><span class="line"><span class="string">19</span></span><br><span class="line"><span class="string">20	    std</span>::cout &lt;&lt; <span class="string">&quot;num: &quot;</span> &lt;&lt; *num_ptr &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string"># 回车，继续输出下10行</span></span><br><span class="line"><span class="string">$ (gdb)</span></span><br><span class="line"><span class="string">21</span></span><br><span class="line"><span class="string">22	    return 0;</span></span><br><span class="line"><span class="string">23	&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在行号为8的位置打断点</span></span><br><span class="line">$ (gdb) <span class="built_in">break</span> 8</span><br><span class="line">Breakpoint 1 at 0x400848: file set_break.cpp, line 8.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在行号为10的位置打断点</span></span><br><span class="line">$ (gdb) <span class="built_in">break</span> set_break.cpp:10</span><br><span class="line">Breakpoint 2 at 0x400864: file set_break.cpp, line 10.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在行号为12的位置打断点</span></span><br><span class="line">$ (gdb) <span class="built_in">break</span> 12</span><br><span class="line">Breakpoint 3 at 0x40086b: file set_break.cpp, line 12.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在行号为4的位置打断点</span></span><br><span class="line">$ (gdb) <span class="built_in">break</span> 4</span><br><span class="line">Breakpoint 4 at 0x400821: file set_break.cpp, line 4.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在行号为17的位置打断点</span></span><br><span class="line">$ (gdb) <span class="built_in">break</span> 17</span><br><span class="line">Breakpoint 5 at 0x400881: file set_break.cpp, line 17.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在行号为20的位置打断点</span></span><br><span class="line">$ (gdb) <span class="built_in">break</span> 20</span><br><span class="line">Breakpoint 6 at 0x40089a: file set_break.cpp, line 20.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在函数funcA处打断点，发现该断点已经重复了</span></span><br><span class="line">$ (gdb) <span class="built_in">break</span> funcA</span><br><span class="line">Note: breakpoint 4 also <span class="built_in">set</span> at pc 0x400821.</span><br><span class="line">Breakpoint 7 at 0x400821: file set_break.cpp, line 4.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看所有断点</span></span><br><span class="line">(gdb) info <span class="built_in">break</span></span><br><span class="line">Num     Type           Disp Enb Address            What</span><br><span class="line">1       breakpoint     keep y   0x0000000000400848 <span class="keyword">in</span> main() at set_break.cpp:8</span><br><span class="line">2       breakpoint     keep y   0x0000000000400864 <span class="keyword">in</span> main() at set_break.cpp:10</span><br><span class="line">3       breakpoint     keep y   0x000000000040086b <span class="keyword">in</span> main() at set_break.cpp:12</span><br><span class="line">4       breakpoint     keep y   0x0000000000400821 <span class="keyword">in</span> funcA() at set_break.cpp:4</span><br><span class="line">5       breakpoint     keep y   0x0000000000400881 <span class="keyword">in</span> main() at set_break.cpp:17</span><br><span class="line">6       breakpoint     keep y   0x000000000040089a <span class="keyword">in</span> main() at set_break.cpp:20</span><br><span class="line">7       breakpoint     keep y   0x0000000000400821 <span class="keyword">in</span> funcA() at set_break.cpp:4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行命令run开始运行程序，发现现在程序卡在了行号为8的位置</span></span><br><span class="line">$ (gdb) run</span><br><span class="line">Starting program: xxx/set_break</span><br><span class="line"></span><br><span class="line">Breakpoint 1, main () at set_break.cpp:8</span><br><span class="line">8	    std::cout &lt;&lt; <span class="string">&quot;hello world&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br></pre></td></tr></table></figure>
+<h2 id="34-调试"><a class="markdownIt-Anchor" href="#34-调试"></a> 3.4 调试</h2>
+<ul>
+<li><code>continue</code>：继续运行直至程序结束或者遇到下一个断点</li>
+<li><code>step</code>：源码级别的单步调试，会进入方法，另一种说法是<code>step into</code></li>
+<li><code>next</code>：源码级别的单步调试，不会进入方法，将方法调用视为一步，另一种说法是<code>step over</code></li>
+<li><code>stepi</code>：指令级别的单步调试，会进入方法，另一种说法是<code>step into</code></li>
+<li><code>nexti</code>：指令级别的单步调试，不会进入方法，将方法调用视为一步，另一种说法是<code>step over</code></li>
+<li><code>until</code>：退出循环</li>
+<li><code>finish</code>：结束当前函数的执行</li>
+<li><code>display &lt;variable&gt;</code>：跟踪查看某个变量，每次停下来都显示它的值</li>
+<li><code>undisplay &lt;display_id&gt;</code>：取消跟踪</li>
+<li><code>watch</code>：设置观察点。当被设置观察点的变量发生修改时，打印显示</li>
+<li><code>thread &lt;id&gt;</code>：切换调试的线程为指定线程</li>
+</ul>
+<h2 id="35-查看调试相关信息"><a class="markdownIt-Anchor" href="#35-查看调试相关信息"></a> 3.5 查看调试相关信息</h2>
+<ul>
+<li><code>bt</code>、<code>backtrace</code>、<code>where</code>：查看当前调用堆栈
+<ul>
+<li><code>bt 3</code>：最上面3层</li>
+<li><code>bt -3</code>：最下面3层</li>
+</ul>
+</li>
+<li><code>disassemble</code>：查看当前的汇编指令
+<ul>
+<li><code>disassemble</code>：当前函数的汇编指令</li>
+<li><code>disassemble &lt;function&gt;</code>：指定函数的汇编指令</li>
+</ul>
+</li>
+<li><code>list</code>：查看源码
+<ul>
+<li><code>list</code>：紧接着上一次的输出，继续输出10行源码</li>
+<li><code>list &lt;linenumber&gt;</code>：输出当前文件指定行号开始的10行源码</li>
+<li><code>list &lt;function&gt;</code>：输出指定函数的10行源码</li>
+<li><code>list &lt;filename:linenum&gt;</code>：输出指定文件指定行号开始的10行源码</li>
+<li><code>list &lt;filename:function&gt;</code>：输出指定文件指定函数的10行源码</li>
+</ul>
+</li>
+<li><code>info</code>用于查看各种调试相关的信息
+<ul>
+<li><code>info break</code>：查看断点</li>
+<li><code>info reg</code>：查看寄存器</li>
+<li><code>info stack</code>：查看堆栈</li>
+<li><code>info thread</code>：查看线程</li>
+<li><code>info locals</code>：查看本地变量</li>
+<li><code>info args</code>：查看参数</li>
+<li><code>info symbol &lt;address&gt;</code>：查看指定内存地址所对应的符号信息（如果有的话）</li>
+</ul>
+</li>
+<li><code>print</code>：用于查看变量
+<ul>
+<li><code>print &lt;variable&gt;</code></li>
+<li><code>print &lt;variable&gt;.&lt;field&gt;</code></li>
+<li><code>p *((std::vector&lt;uint32_t&gt;*) &lt;address&gt;)</code>：查看智能指针</li>
+</ul>
+</li>
+<li><code>x/&lt;n/f/u&gt; &lt;addr&gt;</code>：以指定格式打印内存信息
+<ul>
+<li><code>n</code>：正整数，表示需要显示的内存单元的个数，即从当前地址向后显示n个内存单元的内容，一个内存单元的大小由第三个参数<code>u</code>定义</li>
+<li><code>f</code>：表示<code>addr</code>指向的内存内容的输出格式
+<ul>
+<li><code>s</code>：对应输出字符串</li>
+<li><code>x</code>：按十六进制格式显示变量</li>
+<li><code>d</code>：按十进制格式显示变量</li>
+<li><code>u</code>：按十进制格式显示无符号整型</li>
+<li><code>o</code>：按八进制格式显示变量</li>
+<li><code>t</code>：按二进制格式显示变量</li>
+<li><code>a</code>：按十六进制格式显示变量</li>
+<li><code>c</code>：按字符格式显示变量</li>
+<li><code>f</code>：按浮点数格式显示变量</li>
+</ul>
+</li>
+<li><code>u</code>：就是指以多少个字节作为一个内存单元-unit，默认为4。<code>u</code>还可以用被一些字符表示:
+<ul>
+<li><code>b</code>：1 byte</li>
+<li><code>h</code>：2 bytes</li>
+<li><code>w</code>：4 bytes</li>
+<li><code>g</code>：8 bytes</li>
+</ul>
+</li>
+<li>示例：
+<ul>
+<li><code>x /1ug $rbp-0x4</code>：查看寄存器<code>rbp</code>存储的内容减去<code>0x4</code>得到的地址中所存储的内容</li>
+<li><code>x /1xg $rsp</code>：查看寄存器<code>rsp</code>存储的地址中所存储的内容</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>info reg</code>会显示所有寄存器的内容，其中内容会打印两列，第一列是以16进制的形式输出（<code>raw format</code>），另一列是以原始形式输出（<code>natural format</code>），下面显式了所有寄存器的大小以及类型</strong></p>
+<ul>
+<li>类型为<code>int64</code>的寄存器，<code>natural format</code>用十进制表示</li>
+<li>类型为<code>data_ptr</code>以及<code>code_ptr</code>的寄存器，<code>natural format</code>仍然以十六进制表示，所以你会看到两列完全一样的值</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rax&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rbx&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rcx&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rdx&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rsi&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rdi&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rbp&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;data_ptr&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rsp&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;data_ptr&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;r8&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;r9&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;r10&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;r11&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;r12&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;r13&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;r14&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;r15&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int64&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;rip&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;64&quot;</span> <span class="attr">type</span>=<span class="string">&quot;code_ptr&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;eflags&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;32&quot;</span> <span class="attr">type</span>=<span class="string">&quot;i386_eflags&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;cs&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;32&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int32&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;ss&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;32&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int32&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;ds&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;32&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int32&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;es&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;32&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int32&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;fs&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;32&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int32&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">reg</span> <span class="attr">name</span>=<span class="string">&quot;gs&quot;</span> <span class="attr">bitsize</span>=<span class="string">&quot;32&quot;</span> <span class="attr">type</span>=<span class="string">&quot;int32&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="351-demo-of-print"><a class="markdownIt-Anchor" href="#351-demo-of-print"></a> 3.5.1 demo of print</h3>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># c++源文件</span></span><br><span class="line">$ cat &gt; print.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">struct Person &#123;</span><br><span class="line">    const char* name;</span><br><span class="line">    const char* phone_num;</span><br><span class="line">    const int age;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    Person p &#123;<span class="string">&quot;张三&quot;</span>, <span class="string">&quot;123456789&quot;</span>, 18&#125;;</span><br><span class="line">    <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译（可以试下不加-g参数）</span></span><br><span class="line">$ g++ -o <span class="built_in">print</span> print.cpp -std=gnu++11 -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入gdb shell</span></span><br><span class="line">$ gdb <span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看源码</span></span><br><span class="line">$ list</span><br><span class="line">(gdb) list</span><br><span class="line">1	struct Person &#123;</span><br><span class="line">2	    const char* name;</span><br><span class="line">3	    const char* phone_num;</span><br><span class="line">4	    const int age;</span><br><span class="line">5	&#125;;</span><br><span class="line">6</span><br><span class="line">7	int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">8	    Person p &#123;<span class="string">&quot;张三&quot;</span>, <span class="string">&quot;123456789&quot;</span>, 18&#125;;</span><br><span class="line">9	    <span class="built_in">return</span> 0;</span><br><span class="line">10	&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置断点</span></span><br><span class="line">$ (gdb) <span class="built_in">break</span> 9</span><br><span class="line">Breakpoint 1 at 0x400528: file print.cpp, line 9.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行程序，会停在断点处</span></span><br><span class="line">$ (gdb) run</span><br><span class="line">Starting program: xxx/<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line">Breakpoint 1, main () at print.cpp:9</span><br><span class="line">9	    <span class="built_in">return</span> 0;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看相关信息</span></span><br><span class="line">$ (gdb) <span class="built_in">print</span> p</span><br><span class="line"><span class="variable">$1</span> = &#123;name = 0x4005c0 <span class="string">&quot;张三&quot;</span>, phone_num = 0x4005c7 <span class="string">&quot;123456789&quot;</span>, age = 18&#125;</span><br><span class="line">$ (gdb) <span class="built_in">print</span> p.name</span><br><span class="line"><span class="variable">$2</span> = 0x4005c0 <span class="string">&quot;张三&quot;</span></span><br><span class="line">$ (gdb) <span class="built_in">print</span> p.phone_num</span><br><span class="line"><span class="variable">$3</span> = 0x4005c7 <span class="string">&quot;123456789&quot;</span></span><br><span class="line">$ (gdb) <span class="built_in">print</span> p.age</span><br><span class="line"><span class="variable">$4</span> = 18</span><br><span class="line">$ (gdb) <span class="built_in">print</span> &amp;p</span><br><span class="line"><span class="variable">$5</span> = (Person *) 0x7fffffffe0c0</span><br></pre></td></tr></table></figure>
+<h2 id="36-执行外部命令"><a class="markdownIt-Anchor" href="#36-执行外部命令"></a> 3.6 <code>!</code>执行外部命令</h2>
+<p>格式：<code>!&lt;command&gt; [params]</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(gdb) !<span class="built_in">pwd</span></span><br><span class="line">xxx/gdb_tutorial</span><br></pre></td></tr></table></figure>
+<h1 id="4-asan"><a class="markdownIt-Anchor" href="#4-asan"></a> 4 ASAN</h1>
+<p><a target="_blank" rel="noopener" href="https://github.com/google/sanitizers">google/sanitizers</a></p>
+<h1 id="5-参考"><a class="markdownIt-Anchor" href="#5-参考"></a> 5 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cs.umd.edu/~srhuang/teaching/cmsc212/gdb-tutorial-handout.pdf">GDB Tutorial - A Walkthrough with Examples</a></li>
+<li><a target="_blank" rel="noopener" href="https://visualgdb.com/gdbreference/commands/">GDB Command Reference</a></li>
+<li><a target="_blank" rel="noopener" href="https://wizardforcel.gitbooks.io/100-gdb-tips/content/break-on-linenum.html">《100个gdb小技巧》</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/muclenerd/article/details/48005171">gdb 调试coredump文件中烂掉的栈帧的方法</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/9809810/gdb-corrupted-stack-frame-how-to-debug">GDB corrupted stack frame - How to debug?</a></li>
+<li><a target="_blank" rel="noopener" href="https://izualzhy.cn/why-the-code-stack-is-overflow">追core笔记之五：如何查看一个corrupt stack的core</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/muclenerd/article/details/48005171">gdb 调试coredump文件中烂掉的栈帧的方法</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/10005982/how-do-you-set-gdb-debug-flag-with-cmake">How do you set GDB debug flag with cmake?</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/31026000/gdb-info-registers-command-second-column-of-output">GDB info registers command - Second column of output</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/06/Cpp-%E7%BC%96%E7%A8%8B%E8%8C%83%E5%BC%8F/" rel="prev" title="Cpp-编程范式">
+      <i class="fa fa-chevron-left"></i> Cpp-编程范式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/06/Cpp-Tools-Make/" rel="next" title="Cpp-Tools-Make">
+      Cpp-Tools-Make <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-gdb%E8%83%BD%E5%A4%9F%E5%81%9A%E4%BB%80%E4%B9%88"><span class="nav-text"> 1 GDB能够做什么？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%A6%82%E4%BD%95%E8%BF%9B%E5%85%A5gdb-shell"><span class="nav-text"> 2 如何进入GDB shell</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-command"><span class="nav-text"> 3 command</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E8%BF%90%E8%A1%8C%E7%A8%8B%E5%BA%8F"><span class="nav-text"> 3.1 运行程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-gdb%E4%B8%8E%E7%A8%8B%E5%BA%8F%E5%85%B3%E8%81%94"><span class="nav-text"> 3.2 GDB与程序关联</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E6%96%AD%E7%82%B9%E8%AE%BE%E7%BD%AE"><span class="nav-text"> 3.3 断点设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#331-demo"><span class="nav-text"> 3.3.1 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E8%B0%83%E8%AF%95"><span class="nav-text"> 3.4 调试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#35-%E6%9F%A5%E7%9C%8B%E8%B0%83%E8%AF%95%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF"><span class="nav-text"> 3.5 查看调试相关信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#351-demo-of-print"><span class="nav-text"> 3.5.1 demo of print</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#36-%E6%89%A7%E8%A1%8C%E5%A4%96%E9%83%A8%E5%91%BD%E4%BB%A4"><span class="nav-text"> 3.6 !执行外部命令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-asan"><span class="nav-text"> 4 ASAN</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8F%82%E8%80%83"><span class="nav-text"> 5 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">318</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
