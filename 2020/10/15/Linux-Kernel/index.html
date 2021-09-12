@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-10-15T07:12:44.000Z">
-<meta property="article:modified_time" content="2021-07-25T04:58:04.741Z">
+<meta property="article:modified_time" content="2021-09-12T11:51:46.226Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-25 12:58:04" itemprop="dateModified" datetime="2021-07-25T12:58:04+08:00">2021-07-25</time>
+                <time title="修改时间：2021-09-12 19:51:46" itemprop="dateModified" datetime="2021-09-12T19:51:46+08:00">2021-09-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -342,10 +342,10 @@
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/347313289">systemtap从入门到放弃（一）</a></li>
 </ul>
 <h1 id="4-ftrace"><a class="markdownIt-Anchor" href="#4-ftrace"></a> 4 ftrace</h1>
-<p><strong>本小结转载摘录自<a target="_blank" rel="noopener" href="https://www.cnblogs.com/arnoldlu/p/7211249.html">Linux ftrace框架介绍及运用</a></strong></p>
+<p><strong>本小节转载摘录自<a target="_blank" rel="noopener" href="https://www.cnblogs.com/arnoldlu/p/7211249.html">Linux ftrace框架介绍及运用</a></strong></p>
 <p>在日常工作中，经常会需要对内核进行debug、或者进行优化工作。一些简单的问题，可以通过<code>dmesg/printk</code>查看，优化借助一些工具进行。但是当问题逻辑复杂，优化面宽泛的时候，往往无从下手。需要从上到下、模块到模块之间分析，这时候就不得不借助于Linux提供的静态（<code>trace event</code>）动态（各种<code>tracer</code>）工具进行分析。同时还不得不借助工具、或者编写脚本进行分析，以缩小问题范围、发现问题。简单的使用<code>tracepoint</code>已经不能满足需求，因此就花点精力进行梳理</p>
 <p><code>ftrace</code>是<code>function trace</code>的意思，最开始主要用于记录内核函数运行轨迹，随着功能的逐渐增加，演变成一个跟踪框架。包含了静态<code>tracepoint</code>，针对不同<code>subsystem</code>提供一个目录进行开关。还包括不同的动态跟踪器，<code>function</code>、<code>function_graph</code>、<code>wakeup</code>等等</p>
-<p><code>ftrace</code>的帮助文档在<code>Documentation/trace</code>，<code>ftrace</code>代码主要在<code>kernel/trace</code>，<code>ftrace</code>相关头文件在i<code>nclude/trace</code>中</p>
+<p><code>ftrace</code>的帮助文档在<code>Documentation/trace</code>，<code>ftrace</code>代码主要在<code>kernel/trace</code>，<code>ftrace</code>相关头文件在<code>include/trace</code>中</p>
 <h2 id="41-ftrace框架介绍"><a class="markdownIt-Anchor" href="#41-ftrace框架介绍"></a> 4.1 ftrace框架介绍</h2>
 <p>整个<code>ftrace</code>框架可以分为几部分：</p>
 <ol>
@@ -373,8 +373,8 @@
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /sys/kernel/debug/tracing/README</span><br></pre></td></tr></table></figure>
 <p><strong>通用配置：</strong></p>
 <ul>
-<li><code>available_tracers</code>当前编译及内核的跟踪器列表，<code>current_tracer</code>必须是这里面支持的跟踪器</li>
-<li><code>current_tracer</code>：用于设置或者显示当前使用的跟踪器列表。系统启动缺省值为<code>nop</code>，使用echo将跟踪器名字写入即可打开。可以通过写入<code>nop</code>重置跟踪器</li>
+<li><strong><code>available_tracers</code>当前编译及内核的跟踪器列表，<code>current_tracer</code>必须是这里面支持的跟踪器</strong></li>
+<li><strong><code>current_tracer</code>：用于设置或者显示当前使用的跟踪器列表。系统启动缺省值为<code>nop</code>，使用echo将跟踪器名字写入即可打开。可以通过写入<code>nop</code>重置跟踪器</strong></li>
 <li><code>buffer_size_kb</code>：用于设置单个CPU所使用的跟踪缓存的大小。跟踪缓存为<code>ring buffer</code>形式，如果跟踪太多，旧的信息会被新的跟踪信息覆盖掉。需要先将<code>current_trace</code>设置为nop才可以</li>
 <li><code>buffer_total_size_kb</code>：显示所有的跟踪缓存大小，不同之处在于<code>buffer_size_kb</code>是单个CPU的，<code>buffer_total_size_kb</code>是所有CPU的和</li>
 <li><code>free_buffer</code>：此文件用于在一个进程被关闭后，同时释放<code>ring buffer</code>内存，并将调整大小到最小值</li>
@@ -392,7 +392,7 @@
 <li><code>echo 2</code>：清空缓存，不释放也不分配内存</li>
 </ul>
 </li>
-<li><code>trace</code>：查看获取到的跟踪信息的接口，<code>echo &gt; trace</code>可以清空当前<code>ring buffer</code></li>
+<li><strong><code>trace</code>：查看获取到的跟踪信息的接口，<code>echo &gt; trace</code>可以清空当前<code>ring buffer</code></strong></li>
 <li><code>trace_pipe</code>：输出和<code>trace</code>一样的内容，但是此文件输出<code>trace</code>同时将<code>ring buffer</code>中的内容删除，这样就避免了<code>ring buffer</code>的溢出。可以通过<code>cat trace_pipe &gt; trace.txt &amp;</code>保存文件</li>
 <li><code>trace_clock</code>：显示当前<code>trace</code>的<code>timestamp</code>所基于的时钟，默认使用local时钟
 <ul>
@@ -407,7 +407,7 @@
 <li><code>options</code>：<code>trace</code>选项的一系列文件，和<code>trace_options</code>对应</li>
 <li><code>trace_stat/</code>：每个CPU的<code>trace</code>统计信息</li>
 <li><code>tracing_max_latency</code>：记录<code>tracer</code>的最大延时</li>
-<li><code>tracing_on</code>：用于控制跟踪打开或停止
+<li><strong><code>tracing_on</code>：用于控制跟踪打开或停止</strong>
 <ul>
 <li><code>echo 0</code>：停止跟踪</li>
 <li><code>echo 1</code>：继续跟踪</li>
@@ -417,14 +417,14 @@
 </ul>
 <p><strong>events配置：</strong></p>
 <ul>
-<li><code>available_events</code>：列出系统中所有可用的<code>trace events</code>，分两个层级，用冒号隔开</li>
+<li><strong><code>available_events</code>：列出系统中所有可用的<code>trace events</code>，分两个层级，用冒号隔开</strong></li>
 <li><code>events/</code>：系统<code>trace events</code>目录，在每个<code>events</code>下面都有<code>enable</code>、<code>filter</code>和<code>fotmat</code>。<code>enable</code>是开关；<code>format</code>是<code>events</code>的格式，然后根据格式设置<code>filter</code></li>
 <li><code>set_event</code>：将<code>trace events</code>名称直接写入<code>set_event</code>就可以打开</li>
 <li><code>set_event_pid</code>：指定追踪特定进程的<code>events</code></li>
 </ul>
 <p><strong>function配置：</strong></p>
 <ul>
-<li><code>available_filter_functions</code>：记录了当前可以跟踪的内核函数，不在该文件中列出的函数，无法跟踪其活动</li>
+<li><strong><code>available_filter_functions</code>：记录了当前可以跟踪的内核函数，不在该文件中列出的函数，无法跟踪其活动</strong></li>
 <li><code>dyn_ftrace_total_info</code>：显示<code>available_filter_functins</code>中跟中函数的数目，两者一致</li>
 <li><code>enabled_functions</code>：显示有回调附着的函数名称</li>
 <li><code>function_profile_enabled</code>：打开此选项，在<code>trace_stat</code>中就会显示<code>function</code>的统计信息</li>
@@ -445,7 +445,7 @@
 <li><code>stack_trace_filter</code>：设置<code>stack tracer</code>不检查的函数名称</li>
 </ul>
 <h2 id="43-trace-cmd"><a class="markdownIt-Anchor" href="#43-trace-cmd"></a> 4.3 trace-cmd</h2>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 该命令会在当前目录下生成一个trace.dat文件</span></span><br><span class="line">trace-cmd record -e irq</span><br><span class="line"></span><br><span class="line"><span class="comment"># 该命令会分析当前目录下的trace.dat文件</span></span><br><span class="line">trace-cmd report</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 该命令会在当前目录下生成一个trace.dat文件</span></span><br><span class="line"><span class="comment"># （注意，不要在/sys/kernel/debug/tracing这个目录下使用这个命令，因为无法在这些目录中创建trace.dat文件）</span></span><br><span class="line">trace-cmd record -e irq</span><br><span class="line"></span><br><span class="line"><span class="comment"># 该命令会分析当前目录下的trace.dat文件</span></span><br><span class="line">trace-cmd report</span><br></pre></td></tr></table></figure>
 <h2 id="44-参考"><a class="markdownIt-Anchor" href="#44-参考"></a> 4.4 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/arnoldlu/p/7211249.html">Linux ftrace框架介绍及运用</a></li>
@@ -453,6 +453,7 @@
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44410537/article/details/103587609">ftrace和trace-cmd：跟踪内核函数的利器</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_32534441/article/details/90244495">使用 ftrace 跟踪内核</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/smilingsusu/p/12705780.html">【Kernel ftrace】使用kernel ftrace追踪IRQ的例子</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/99e127973abe">使用 ftrace 来跟踪系统问题 - ftrace 介绍</a></li>
 </ul>
 <h1 id="5-dump"><a class="markdownIt-Anchor" href="#5-dump"></a> 5 dump</h1>
 <h2 id="51-kdump"><a class="markdownIt-Anchor" href="#51-kdump"></a> 5.1 kdump</h2>
@@ -684,14 +685,14 @@ tcp对应的<code>proto_ops</code>对象为<code>inet_stream_ops</code></p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">318</span>
+          <span class="site-state-item-count">319</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">117</span>
+        <span class="site-state-item-count">118</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
