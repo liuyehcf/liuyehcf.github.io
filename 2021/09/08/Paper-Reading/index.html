@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-08T09:03:18.000Z">
-<meta property="article:modified_time" content="2021-09-12T11:51:46.231Z">
+<meta property="article:modified_time" content="2021-09-25T05:25:36.428Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-12 19:51:46" itemprop="dateModified" datetime="2021-09-12T19:51:46+08:00">2021-09-12</time>
+                <time title="修改时间：2021-09-25 13:25:36" itemprop="dateModified" datetime="2021-09-25T13:25:36+08:00">2021-09-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -289,11 +289,142 @@
 <li>由于pipeline之间是有依赖关系的，因此，当前驱pipeline完成后需要通知并驱动下一个pipeline，这种机制叫做<code>passive state machine</code></li>
 <li><code>elasticity</code>：在任何时候可以将core分配给任何查询任务的能力</li>
 <li>在<code>morsel-driven</code>架构中，取消查询的代价非常低（可能原因是用户取消查询，或者内存分配超限等等异常情况），只需要将查询相关的pipeline标记为<code>cancel</code>，那么所有的worker便不再处理这个查询了（相比于让操作系统杀掉线程的操作来说轻量很多）</li>
+<li><code>morsel-size</code>对于性能来说不是特别重要，通常它只需要保证足够大以分摊调度开销，同时提供良好的响应时间即可</li>
+<li>在一些系统中，那些共享的数据结构，即便是<code>lock-free</code>，也很容易成为性能瓶颈。而在<code>morsel-driven</code>架构中，包含如下几个特点
+<ul>
+<li>数据会被切割成一组互补重合的区间，<code>worker</code>工作在某一个区间上，因此<code>cache line</code>基本是和每个区间对齐的，不太可能出现缓存冲突的问题（除非<code>worker</code>从其他<code>worker</code>那边窃取了数据并进行处理</li>
+<li>并发度越高，数据结构带来的压力越低（这个怎么理解？）</li>
+<li>我们总是可以通过调大<code>morsel-size</code>来降低<code>work-stealing</code>的发生。如果<code>morsel-size</code>特别大，虽然会降低线程的工作效率（本来一份工作可以由多个线程同时处理，比如scan，但现在只由一个线程处理，有些core可能没在工作）。但是随着并发度的提高，这种负增益将会被逐渐抵消（每个core都在工作）</li>
+</ul>
+</li>
+<li><code>Lock-Free Tagged Hash Table</code>没太看懂
+<ul>
+<li>The key idea is to tag a hash bucket list with a small filter into which all elements of that partic- ular list are “hashed” to set their 1-bit.</li>
+<li>与<code>Bloom filter</code>相比，优势是？
+<ul>
+<li><code>Bloom filter</code>是一个额外的数据结构，而<code>tagged hash table</code>不需要，并且性能开销很低，只需要几个位运算即可</li>
+<li>对于大表，<code>Bloom filter</code>体积也会比较大，很难全部加载到cache中（或者只存在于<code>low-level</code>的cache中）</li>
+<li>可以直接使用，无需依赖优化器对选择进行一个预测（是否要构建<code>Bloom filter</code>）</li>
+</ul>
+</li>
+<li>存储的是<code>tuple</code>的地址而不是对象本身，因此不能使用开放寻址法（为什么？？？，开放寻址法不能存指针么）
+<ul>
+<li>可以通过降低装载因子减小冲突，同时空间开销较小</li>
+<li>链表允许存储大小不同的<code>tuple</code>（开放寻址法做不到，为什么？？？）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>NUMA-Aware Table Partitioning</code>
+<ul>
+<li>对于需要频繁执行的join查询，最好将其通过同一个key进行散列，这样有更好的locality，避免多个节点之间的交互（shuffle）</li>
+</ul>
+</li>
+<li>聚合算子的性能与基数分布密切相关（<code>distinct keys</code>），解决这个问题，通常来说有两种途径，一种是基于优化器的预测；另一种就是两阶段聚合，第一阶段做本地聚合，第二阶段做partition聚合，每个partition也有一个hashTable，但是互不重叠</li>
+<li>通常来说，基于hash的聚合算法要比基于排序的聚合算法要更快</li>
+<li>排序也采用了两阶段，难点在于：聚合阶段，如何进行并行聚合且没有同步开销。具体做法是，在第一阶段进行本地排序后，对排序后的数据进行切分，此时需要获取全局的分布信息。这样切分完之后，就可以送往多个不同的节点进行独立的处理（不同节点上的数据也是不会存在重叠的）</li>
 </ol>
 <p><strong>progress：5/12 3.3</strong></p>
-<h1 id="2-efficiency-in-the-columbia-database-query-optimizer"><a class="markdownIt-Anchor" href="#2-efficiency-in-the-columbia-database-query-optimizer"></a> 2 Efficiency in the Columbia Database Query Optimizer</h1>
-<h1 id="3-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"><a class="markdownIt-Anchor" href="#3-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"></a> 3 Fast Selection and Aggregation on Encoded Data using Operator Specialization</h1>
-<h1 id="4-shared-memory-consistency-models-a-tutorial"><a class="markdownIt-Anchor" href="#4-shared-memory-consistency-models-a-tutorial"></a> 4 Shared memory consistency models - A tutorial</h1>
+<h1 id="2-google-file-system"><a class="markdownIt-Anchor" href="#2-google-file-system"></a> 2 Google File System</h1>
+<ol>
+<li>GFS的目标包括：performance（高性能）、scalability（高可扩展）、reliability（高可靠）、availability（高可用）</li>
+<li>在设计中，把失败视为常态而非异常。因此系统必须具备的核心能力包括：持续监控、错误勘探、错误容忍、自动恢复</li>
+<li>管理几十亿个<code>KB</code>大小的文件不是一种好方法，需要重新设计文件格式、<code>I/O</code>操作的块大小等参数</li>
+<li>绝大部分情况下，文件总是追加写入而不是覆盖写入，因此并无随机写入的需求</li>
+<li>GFS放宽了一致性模型的要求，从而大大简化了文件系统的设计，降低用户的使用心智</li>
+<li>GFS的假设
+<ul>
+<li>文件系统由许多廉价的机器构成，并且这些机器容易出错（宕机等）。因此必须能够持续监控自身、探测错误、容错，并且敏捷地从异常中恢复</li>
+<li>系统存储少量大文件，大小在100M、1G甚至更大。并且能够基于这些大文件提供高效的操作。小文件肯定支持，但是不会针对小文件做太多优化</li>
+<li>工作负载包含两类读操作：大数据量的流式读取以及小数据量的随机读取。对于小数据量的随机读取，性能敏感性应用通常会进行批处理和排序，以稳定地浏览文件而不是来回移动</li>
+<li>工作负载支持两类写操作：大数据量的顺序写入以及小数据量的随机写入。其中小数据量的随机写入性能不会很好</li>
+<li>系统必须为并发写入提供高效的实现，并且提供明确的语义</li>
+<li>可持续的高带宽比低延迟更重要</li>
+</ul>
+</li>
+<li>GFS具有常规文件系统的接口，包括：<code>create</code>、<code>delete</code>、<code>open</code>、<code>close</code>、<code>read</code>、<code>write</code>。同时增加了两个新操作<code>snapshot</code>以及<code>record append</code>
+<ul>
+<li><code>snapshot</code>以非常低的开销进行文件或者目录树的拷贝</li>
+<li><code>record append</code>能够处理大量客户端的并发请求，并且保证其写入的原子性</li>
+</ul>
+</li>
+<li>GFS包含一个<code>master</code>、多个<code>chunkserver</code>以及大量的<code>clients</code>
+<ul>
+<li>文件被拆分成大小固定的<code>chunks</code>，每个<code>chunk</code>由一个全局唯一的<code>chunk handler</code>标识，该标识由<code>master</code>签发</li>
+<li><code>chunkserver</code>将<code>chunk</code>以linux文件的形式存储在本地磁盘上，并且通过<code>chunk handler</code>进行操作。基于可靠性考虑，每个<code>chunk</code>都会存在多个副本，并且分布在不同的<code>chunkserver</code>中</li>
+<li><code>master</code>中存储了全部的元信息，包括<code>namespace</code>、<code>access control</code>、文件与<code>chunk</code>的映射关系、<code>chunk</code>的位置信息等。同时，<code>master</code>也控制着<code>chunk lease</code>、垃圾回收（无用chunk）、<code>chunk</code>迁移等过程。<code>master</code>与<code>chunkserver</code>之间通过心跳包保持通信，用于传递指令以及采集状态信息</li>
+<li><code>client</code>从<code>master</code>中获取元数据，然后直接从<code>chunkserver</code>中读写数据</li>
+<li>无论是<code>client</code>（<code>client</code>会缓存元数据，但是不会缓存数据）或者<code>chunkserver</code>都不用缓存（这里的缓存指的是GFS层面的缓存），这是由工作负载决定的，大部分的时间都在读写大批量的数据，缓存在这种场景中，用处很小。无缓存降低了系统的复杂度。虽然<code>chunkserver</code>不用缓存，但是其存储是基于Linux文件系统的，Linux文件系统本身是有缓存的，对于频繁读写的数据是有性能增益的</li>
+</ul>
+</li>
+<li><code>single-master</code>能够有效的降低系统复杂度，并且使得<code>master</code>能够借助全局信息处理诸如<code>chunk</code>替换以及复制等复杂操作。同时，我们要尽最大努力降低<code>master</code>在普通读写操作中的参与度，避免其成为性能瓶颈。虽然<code>client</code>不从<code>master</code>中读取数据，但是它需要知道从<code>master</code>中获取哪些<code>chunkserver</code>存储了相应的数据，因此<code>client</code>可以缓存这些信息，从而降低与<code>master</code>的交互频率</li>
+<li><code>chunk size</code>是GFS的关键参数，建议值是<code>64MB</code>。大的<code>chunk size</code>包含如下优势
+<ul>
+<li>降低了<code>client</code>与<code>master</code>的交互频率，如果读取的数据在同一个<code>chunk</code>中，那么直接从<code>chunkserver</code>中读取即可，无需与<code>master</code>交互</li>
+<li>使得<code>client</code>的大部分操作集中在一个<code>chunk</code>中，避免多机网络开销</li>
+<li>降低了<code>master</code>中元数据的大小，<code>chunk size</code>越大，元数据数量越少，从而使得<code>master</code>将元数据存储在内存中成为可能</li>
+</ul>
+</li>
+<li>大的<code>chunk size</code>也存在劣势，包括
+<ul>
+<li>增大了热点chunk出现的概率。但是对于GFS的预设的工作负载来说，热点不会是主要问题，因为大部分都是顺序读写大批量的chunk</li>
+</ul>
+</li>
+<li><code>master</code>存储了如下三种元数据
+<ol>
+<li>文件以及<code>chunk</code>的<code>namespace</code></li>
+<li><code>file</code>到<code>chunk</code>的映射关系</li>
+<li><code>chunk</code>的每个副本的具体位置信息</li>
+</ol>
+<ul>
+<li>所有的元数据都存储在<code>master</code>的内存中，前两种类型也会以日志的形式持久化到本地磁盘上</li>
+<li><code>master</code>不存储<code>chunk</code>的具体位置信息，而是在<code>master</code>每次启动或者有新的<code>chunkserver</code>加入集群时主动询问</li>
+</ul>
+</li>
+<li>对于存储在内存中的元数据，<code>master</code>会对其进行周期性的扫描，主要实现以下功能
+<ul>
+<li>实现垃圾回收，清理那些被标记删除的chunk</li>
+<li><code>chunk</code>复制，用以应对<code>chunkserver</code>宕机</li>
+<li><code>chunk</code>迁移，实现负载均衡</li>
+</ul>
+</li>
+<li><code>master</code>不会存储<code>chunk</code>的位置信息，而是在启动时，主动向<code>chunkserver</code>拉取这些信息，<code>master</code>始终保持原信息的有效性，因为它控制着所有<code>chunk</code>的迁移、拷贝等操作，并且与<code>chunkserver</code>通过周期性的心跳包来定期同步状态
+<ul>
+<li><strong>采用这种设计的另一个原因是：<code>chunkserver</code>对一个<code>chunk</code>是否在其本地磁盘上有最终解释权，没有必要维护一个<code>master</code>视角下的一致性视图。大大降低了复杂度</strong></li>
+</ul>
+</li>
+<li><code>operation log</code>记录了<code>metadata</code>的历史变更。<code>master</code>必须确保操作日志落盘后（本机以及用以备份的远程主机），才能返回<code>client</code>，
+<ul>
+<li><code>master</code>可以通过重放日志来恢复自身的状态</li>
+<li>当日志数量超过一定的阈值后，可以通过<code>checkpoint</code>来解决这个问题，<code>checkpoint</code>可以简单理解成某个时刻<code>master</code>内存数据的快照，其数据结构类似B-tree</li>
+</ul>
+</li>
+<li>GFS采用了一种松一致性模型。引入两个概念<code>consistent</code>以及<code>defined</code>
+<ul>
+<li><code>consistent</code>：所有客户端看到的数据都是一样的（从任意副本上）</li>
+<li><code>defined</code>：所有客户端都能看到引起数据变更的操作具体是什么</li>
+<li><code>a serial success mutation</code>：<code>consistent</code>，<code>difined</code></li>
+<li><code>concurrent success mutations</code>：<code>consistent</code>、<code>undefined</code></li>
+<li><code>failed mutations</code>：<code>inconsistent</code>、<code>undefined</code></li>
+</ul>
+</li>
+<li><code>Data mutations</code>包含两种操作<code>write</code>以及<code>record append</code>
+<ul>
+<li><code>write</code>：表示往指定的offset写入数据</li>
+<li><code>record append</code>：表示往文件最后追加数据。在并发的场景下，至少有一个能追加成功</li>
+</ul>
+</li>
+<li>GFS的松一致性模型保证的约束有
+<ul>
+<li>文件命名空间变更是个原子操作</li>
+<li>在<code>a sequence of successful mutations</code>之后，相应的文件是<code>consistent</code>，<code>difined</code>。GFS通过在副本上重放操作来保证<code>defined</code>特性，并且通过版本号来检测那些过时的<code>chunk</code>（<code>chunkserver</code>从错误中恢复回来，但是错过了一些变更），这些过时的<code>chunk</code>将不包含在<code>master</code>中。此外，由于<code>client</code>会缓存<code>chunk</code>的位置信息，因此在缓存失效之前可能读到旧的数据，而大部分的文件都是<code>append-only</code>的，因此大概率读到的是不完整的数据而不是错误的数据，又进一步降低了影响</li>
+<li>当一个<code>chunk</code>的所有副本均丢失后，<code>chunk</code>才算丢失。在恢复之前，GFS会返回清晰的错误信息而不是错误的数据</li>
+</ul>
+</li>
+</ol>
+<h1 id="3-efficiency-in-the-columbia-database-query-optimizer"><a class="markdownIt-Anchor" href="#3-efficiency-in-the-columbia-database-query-optimizer"></a> 3 Efficiency in the Columbia Database Query Optimizer</h1>
+<h1 id="4-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"><a class="markdownIt-Anchor" href="#4-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"></a> 4 Fast Selection and Aggregation on Encoded Data using Operator Specialization</h1>
+<h1 id="5-shared-memory-consistency-models-a-tutorial"><a class="markdownIt-Anchor" href="#5-shared-memory-consistency-models-a-tutorial"></a> 5 Shared memory consistency models - A tutorial</h1>
 
     </div>
 
@@ -395,7 +526,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-morsel-driven-parallelism-a-numa-aware-query-evaluation-framework-for-the-many-core-age"><span class="nav-text"> 1 Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-efficiency-in-the-columbia-database-query-optimizer"><span class="nav-text"> 2 Efficiency in the Columbia Database Query Optimizer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"><span class="nav-text"> 3 Fast Selection and Aggregation on Encoded Data using Operator Specialization</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-shared-memory-consistency-models-a-tutorial"><span class="nav-text"> 4 Shared memory consistency models - A tutorial</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-morsel-driven-parallelism-a-numa-aware-query-evaluation-framework-for-the-many-core-age"><span class="nav-text"> 1 Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-google-file-system"><span class="nav-text"> 2 Google File System</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-efficiency-in-the-columbia-database-query-optimizer"><span class="nav-text"> 3 Efficiency in the Columbia Database Query Optimizer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"><span class="nav-text"> 4 Fast Selection and Aggregation on Encoded Data using Operator Specialization</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-shared-memory-consistency-models-a-tutorial"><span class="nav-text"> 5 Shared memory consistency models - A tutorial</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
