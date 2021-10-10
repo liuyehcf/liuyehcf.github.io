@@ -37,7 +37,7 @@
 <meta property="og:image" content="http://example.com/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/14-3-1.jpg">
 <meta property="og:image" content="http://example.com/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/14-3-2.jpg">
 <meta property="article:published_time" content="2019-10-28T09:46:22.000Z">
-<meta property="article:modified_time" content="2021-02-23T14:19:53.320Z">
+<meta property="article:modified_time" content="2021-10-10T09:02:29.128Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -239,7 +239,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-02-23 22:19:53" itemprop="dateModified" datetime="2021-02-23T22:19:53+08:00">2021-02-23</time>
+                <time title="修改时间：2021-10-10 17:02:29" itemprop="dateModified" datetime="2021-10-10T17:02:29+08:00">2021-10-10</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -946,11 +946,11 @@ $srtt$值代替了之前的SRTT，且$rttvar$为平均偏差的EWMA，而非采�
 </ul>
 </li>
 </ol>
-$$
-srtt ← (1 - g)(srtt) + (g)M \\
-rttvar ← (1 - h)rttvar +(h)(|M - srtt|) \\
-RTO = srtt + 4(rttvar)
-$$
+$$\begin{split}
+srtt &= (1 - g)(srtt) + (g)M \\
+rttvar &= (1 - h)rttvar +(h)(|M - srtt|) \\
+RTO &= srtt + 4(rttvar)
+\end{split}$$
 <ol>
 <li>上述算式可以简化为
 <ul>
@@ -966,12 +966,12 @@ $srtt$与$rttvar$均用于计算RTO且随时间变化
 </ul>
 </li>
 </ol>
-$$
-Err = M - srtt \\
-srtt ← srtt + g(Err) \\
-rttvar ← rttvar + h(|Err| - rttvar) \\
-RTO = srtt + 4(rttvar)
-$$
+$$\begin{split}
+Err &= M - srtt \\
+srtt &= srtt + g(Err) \\
+rttvar &= rttvar + h(|Err| - rttvar) \\
+RTO &= srtt + 4(rttvar)
+\end{split}$$
 <h4 id="10321-时钟粒度与rto边界"><a class="markdownIt-Anchor" href="#10321-时钟粒度与rto边界"></a> 10.3.2.1 时钟粒度与RTO边界</h4>
 <ol>
 <li>时钟粒度会影响RTT的测量以及RTO的设置。在[RFC6298]中，粒度用于优化RTO的更新情况，并给RTO设置一个下界
@@ -989,10 +989,10 @@ $$
 <li>根据[RFC6298]，RTO的初始值为1s，而初始SYN报文段采用的超时时间间隔为3s</li>
 <li>当接收到首个RTT的测量结果M，估计器按如下方式进行初始化</li>
 </ol>
-$$
-srtt ← M \\
-rttvar ← M/2
-$$
+$$\begin{split}
+srtt &= M \\
+rttvar &= M/2
+\end{split}$$
 <h4 id="10323-重传二义性与karn算法"><a class="markdownIt-Anchor" href="#10323-重传二义性与karn算法"></a> 10.3.2.3 重传二义性与Karn算法</h4>
 <ol>
 <li>在测量RTT样本的过程中若出现重传，就可能导致某些问题。<strong>假设一个包的传输出现超时，该数据包会被重传，接着收到一个确认信息。那么该信息是对第一次还是第二次传输的确认就存在二义性</strong></li>
@@ -1083,12 +1083,12 @@ $RTO = srtt + 4(rttvar) = 26 + 4(50) = 226ms$
 <li>若每个窗口只测量一个RTT样本，rttvar相对变动则较小。利用时间戳和对每个包的测量就可以得到更多的样本值。但同时，短时间内得到的大量样本值可能导致平均偏差变小（接近0，基于大数定理）。为了解决这个问题，Linux维护瞬时平均偏差估计值mdev，但设置RTO时则基于rttvar（在一个窗口数据期间记录的最大mdev，且最小值为50ms）。仅当进入下一个窗口时，rttvar才可能减小</li>
 <li>标准方法中，rttvar所占权重较大（系数为4），因此即使当RTT减小时，也会导致RTO增长。在时钟粒度较粗时，这种情况不会造成很大影响，因为RTO可用值很少。若时钟粒度较细，如Linux的1ms，就可能出现问题。针对RTT减小的情况，若新样本值小于RTT估计范围的下界（srtt - mdev），则减小新样本的权重，完整的关系如下</li>
 </ol>
-$$
-if (m < (srtt - mdev)) \\
-mdev = (\frac{31}{32})mdev + (\frac{1}{32})|srtt-m| \\
-else \\
-mdev = (\frac{3}{4})mdev + (\frac{1}{4})|srtt-m|
-$$
+$$\begin{split}
+&if (m < (srtt - mdev)) \\
+&\;\;\;\;mdev = (\frac{31}{32})mdev + (\frac{1}{32})|srtt-m| \\
+&else \\
+&\;\;\;\;mdev = (\frac{3}{4})mdev + (\frac{1}{4})|srtt-m|
+\end{split}$$
 <h3 id="1034-rtt估计器行为"><a class="markdownIt-Anchor" href="#1034-rtt估计器行为"></a> 10.3.4 RTT估计器行为</h3>
 <ol>
 <li>Linux的RTO始终保持在200ms以上，且避免了所有不必要的重传（尽管可能由于RTO较大，计时器未超时，导致丢包时性能降低）</li>
@@ -1211,10 +1211,10 @@ $G$代表时钟粒度。$srtt\_prev$设置为$srtt$加上两倍的时钟粒度�
 </ul>
 </li>
 </ol>
-$$
-srtt\_prev = srtt + 2(G) \\
-rttvar\_prev = rttvar
-$$
+$$\begin{split}
+srtt\_prev &= srtt + 2(G) \\
+rttvar\_prev &= rttvar
+\end{split}$$
 <ol>
 <li>完成$srtt\_prev$和$rttvar\_prev$的存储后，就要触发某种检测算法。运行检测算法后可得到一个特殊的值，称为<code>伪恢复（SpuriousRecovery）</code>。如果检测到一次<code>伪超时</code>，则将<code>伪恢复</code>设置为<code>SPUR_TO</code>。如果检测到<code>迟伪超时</code>，则将其设置为<code>LATE_SPUR_TO</code>。否则，该次超时为正常超时，TCP继续执行正常的响应行为</li>
 <li>若<code>伪恢复</code>为<code>SPUR_TO</code>，TCP可在恢复阶段完成之前进行操作，通过将下一个要发送的报文段（称为<code>SND.NXT</code>）的序列号修改为最新的未发送过的报文段（称为<code>SND.MAX</code>），这样就可在首次重传后避免不必要的“回退N”行为。若<code>伪恢复</code>为<code>LATE_SPUR_TO</code>，此时已收到首次重传的ACK，则<code>SND.NXT</code>不改变。以上两种情况中，都要重新设置拥塞控制状态，并且一旦接收到重传计时器超时后发送的报文段的ACK，就要按如下方式更新$srtt$、$rttvar$和RTO
@@ -1226,11 +1226,11 @@ $m$是一个RTT样本值，它是基于超时后收个发送数据收到的ACK�
 </ul>
 </li>
 </ol>
-$$
-srtt ← max(srtt\_prev, m) \\
-rttvar ← max(rttvar\_prev, \frac{m}{2}) \\
-RTO = srtt + max(G, 4(rttvar))
-$$
+$$\begin{split}
+srtt &= max(srtt\_prev, m) \\
+rttvar &= max(rttvar\_prev, \frac{m}{2}) \\
+RTO &= srtt + max(G, 4(rttvar))
+\end{split}$$
 <ol>
 <li>在新RTT样本值较大的情况下，上述等式尽力获得上述两种情况的平衡。这样做可以有效地抛弃之前的RTT历史值（和RTT的历史变化情况）。只有在响应算法中$srtt$和$rttvar$的值才会增大。若RTT不会增大，则维持估计值不变，这本质上是忽略超时情况发生。两种情况中，RTO还是按正常方式进行鞥新，并针对此次超时设置新的重传计时器值</li>
 </ol>
