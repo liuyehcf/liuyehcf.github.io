@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-08T09:03:18.000Z">
-<meta property="article:modified_time" content="2021-09-25T05:25:36.428Z">
+<meta property="article:modified_time" content="2021-10-10T07:35:28.428Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-25 13:25:36" itemprop="dateModified" datetime="2021-09-25T13:25:36+08:00">2021-09-25</time>
+                <time title="修改时间：2021-10-10 15:35:28" itemprop="dateModified" datetime="2021-10-10T15:35:28+08:00">2021-10-10</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -357,7 +357,7 @@
 <li>无论是<code>client</code>（<code>client</code>会缓存元数据，但是不会缓存数据）或者<code>chunkserver</code>都不用缓存（这里的缓存指的是GFS层面的缓存），这是由工作负载决定的，大部分的时间都在读写大批量的数据，缓存在这种场景中，用处很小。无缓存降低了系统的复杂度。虽然<code>chunkserver</code>不用缓存，但是其存储是基于Linux文件系统的，Linux文件系统本身是有缓存的，对于频繁读写的数据是有性能增益的</li>
 </ul>
 </li>
-<li><code>single-master</code>能够有效的降低系统复杂度，并且使得<code>master</code>能够借助全局信息处理诸如<code>chunk</code>替换以及复制等复杂操作。同时，我们要尽最大努力降低<code>master</code>在普通读写操作中的参与度，避免其成为性能瓶颈。虽然<code>client</code>不从<code>master</code>中读取数据，但是它需要知道从<code>master</code>中获取哪些<code>chunkserver</code>存储了相应的数据，因此<code>client</code>可以缓存这些信息，从而降低与<code>master</code>的交互频率</li>
+<li><code>single-master</code>能够有效的降低系统复杂度，并且使得<code>master</code>能够借助全局信息处理诸如<code>chunk</code>替换以及克隆等复杂操作。同时，我们要尽最大努力降低<code>master</code>在普通读写操作中的参与度，避免其成为性能瓶颈。虽然<code>client</code>不从<code>master</code>中读取数据，但是它需要知道从<code>master</code>中获取哪些<code>chunkserver</code>存储了相应的数据，因此<code>client</code>可以缓存这些信息，从而降低与<code>master</code>的交互频率</li>
 <li><code>chunk size</code>是GFS的关键参数，建议值是<code>64MB</code>。大的<code>chunk size</code>包含如下优势
 <ul>
 <li>降低了<code>client</code>与<code>master</code>的交互频率，如果读取的数据在同一个<code>chunk</code>中，那么直接从<code>chunkserver</code>中读取即可，无需与<code>master</code>交互</li>
@@ -384,7 +384,7 @@
 <li>对于存储在内存中的元数据，<code>master</code>会对其进行周期性的扫描，主要实现以下功能
 <ul>
 <li>实现垃圾回收，清理那些被标记删除的chunk</li>
-<li><code>chunk</code>复制，用以应对<code>chunkserver</code>宕机</li>
+<li><code>chunk</code>克隆，用以应对<code>chunkserver</code>宕机</li>
 <li><code>chunk</code>迁移，实现负载均衡</li>
 </ul>
 </li>
@@ -403,9 +403,9 @@
 <ul>
 <li><code>consistent</code>：所有客户端看到的数据都是一样的（从任意副本上）</li>
 <li><code>defined</code>：所有客户端都能看到引起数据变更的操作具体是什么</li>
-<li><code>a serial success mutation</code>：<code>consistent</code>，<code>difined</code></li>
-<li><code>concurrent success mutations</code>：<code>consistent</code>、<code>undefined</code></li>
-<li><code>failed mutations</code>：<code>inconsistent</code>、<code>undefined</code></li>
+<li><code>a serial success mutation</code>：<code>consistent and difined</code></li>
+<li><code>concurrent success mutations</code>：<code>consistent and undefined</code></li>
+<li><code>failed mutations</code>：<code>inconsistent and undefined</code></li>
 </ul>
 </li>
 <li><code>Data mutations</code>包含两种操作<code>write</code>以及<code>record append</code>
@@ -419,6 +419,153 @@
 <li>文件命名空间变更是个原子操作</li>
 <li>在<code>a sequence of successful mutations</code>之后，相应的文件是<code>consistent</code>，<code>difined</code>。GFS通过在副本上重放操作来保证<code>defined</code>特性，并且通过版本号来检测那些过时的<code>chunk</code>（<code>chunkserver</code>从错误中恢复回来，但是错过了一些变更），这些过时的<code>chunk</code>将不包含在<code>master</code>中。此外，由于<code>client</code>会缓存<code>chunk</code>的位置信息，因此在缓存失效之前可能读到旧的数据，而大部分的文件都是<code>append-only</code>的，因此大概率读到的是不完整的数据而不是错误的数据，又进一步降低了影响</li>
 <li>当一个<code>chunk</code>的所有副本均丢失后，<code>chunk</code>才算丢失。在恢复之前，GFS会返回清晰的错误信息而不是错误的数据</li>
+</ul>
+</li>
+<li>使用GFS的应用，最好使用追加写而不是覆盖写，因为追加写具有更好的性能以及错误恢复能力</li>
+<li>系统被设计为尽量避免与master交互</li>
+<li><code>Leases and Mutation Order</code>
+<ul>
+<li>在执行变更操作时，<code>master</code>会挑选出某一个副本作为<code>primary</code>，然后由这个<code>primary</code>决定这一组操作的执行顺序，然后将这个执行顺序同步给其他副本</li>
+<li>租赁机制是为了降低<code>master</code>的参与度，避免<code>master</code>成为系统的瓶颈</li>
+<li>在执行变更的过程中，<code>master</code>还有可能通过心跳包发送额外的变更请求，或者直接终止变更操作
+<ul>
+<li>假设有2个副本A、B，A变更结束，B还在变更，此时<code>master</code>发送终止变更的消息，A和B将如何恢复？</li>
+</ul>
+</li>
+<li>变更操作的整体流程（看论文就行，这里不赘述）
+<ul>
+<li>第三步：论文中是由client向所有的replicas推送待写入的数据，这就要求clients必须知道集群中的所有副本情况，才知道发给谁，感觉有点怪。更好的做法是：发给其中某个副本，然后让这个副本同步给其他副本</li>
+<li>第六步：如果部分副本变更成功，部分副本变更失败时，怎么回滚？不需要回滚，因为数据有版本的概念，假设有三个副本A、B、C，A、B都写入成功了，<code>chunk</code>的版本号是6；C写失败，版本号还是5。但此时，A和B构成了一个多数派，变更操作成功，并且将版本信息告知<code>master</code>，下次<code>client</code>读的时候，仍然可以从A、B、C三个副本中随机读取，假设选择的是C，但是一看版本号不是最新的，那么就会重新发起读操作，直至读取到最新的数据。此外，失败的副本会有补偿机制来进行修复</li>
+</ul>
+</li>
+<li>如果需要写入大量数据（规模超过<code>chunkSize</code>），<code>client</code>会首先将其拆分成多个小块，但是这多个小块的多次写操作可能不是原子的。因为在写入的过程中，可能会插入其他client的写入操作。最终多个副本上的数据一定是相同的，但是从不同client的视角上来说，变更的顺序可能是不同的。因此此时就是<code>consistent but undefined</code></li>
+</ul>
+</li>
+<li><code>Data Flow</code>
+<ul>
+<li>控制流与数据流解耦（控制流中不要阻塞等待io事件）</li>
+<li>为了最大程度地利用机器带宽，数据被组织在线性的<code>pipeline</code>中，而不是其他复杂的拓扑结构。目的是为了更快的传递数据，而不是将时间消耗在拓扑结构处理中（效果会很好？）</li>
+<li>更具体来说，当有数据需要传送到多个节点时，机器只会将数据发送给离自己最近的节点，然后依次类推。如何计算距离：通过ip地址（估计通过网段的差异性来判断距离的远近）</li>
+<li>当机器收到数据的同时，就立即将数据<code>forward</code>到其他节点</li>
+</ul>
+</li>
+<li><code>Atomic Record Appends</code>
+<ul>
+<li>传统的写操作，需要提供数据以及写入的<code>offset</code>，并发写无法做同步（为啥？？？），导致最终结果包含多个<code>client</code>的数据</li>
+<li>在<code>append write</code>中，客户端只需要提供数据，GFS会提供该操作的至少写入一次的原子语义，并且将数据写入的<code>offset</code>发送给<code>client</code>。这与Unix中的<code>O APPEND</code>文件模式相同</li>
+<li>如果任何一个副本写失败，客户端都会重试。这就会导致不同副本上的同一个chunk可能包含不同的数据（由于重试导致的重复）。GFS并不保证chunk在字节层面完全一致，它只保证数据至少被写入一次</li>
+<li>写操作成功意味着，数据以相同的<code>offset</code>被写入到所有副本的chunk中。这不是跟上条矛盾了么，如何解决？为后续的写操作分配一致的offset，一般来说，就是那个包含重复数据最多的chunk的末尾的<code>offset</code>，这样能够保证相同<code>offset</code>这个语义（会导致<code>chunk</code>中存在空白块）</li>
+</ul>
+</li>
+<li><code>Snapshot</code>
+<ul>
+<li>GFS几乎在瞬间就可以生成文件或者目录树的快照，尽量减少在生成期间由于其他变更引入的数据不一致。在实际场景中，会大量使用该功能来创建海量数据的副本（或者副本的副本），以及创建<code>checkpoint</code></li>
+<li>GFS使用了<code>Copy-On-Write</code>技术来实现快照</li>
+<li>当<code>master</code>收到了创建快照的请求时，会先回收相关<code>chunk</code>的租赁，于是后续针对这些<code>chunk</code>的写操作都需要与<code>master</code>进行交互。然后<code>master</code>创建该<code>chunk</code>的一个副本
+<ul>
+<li>拷贝一份文件或者目录树的元数据，新老两份元数据指向的是同一个<code>chunk</code></li>
+<li>当对副本进行写操作时，才会进行<code>chunk</code>的拷贝动作</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>master</code>允许同时处理多个请求，并采用适当粒度的锁来保证同步
+<ol>
+<li>与传统文件系统不同，GFS没有为目录提供用于保存该目录下所有文件和子目录的数据结构，也不支持别名（类似于软硬链接）。GFS在逻辑上将其命名空间表示为将完整路径名映射到元数据的查找表。使用前缀压缩算法，该查找表可以保存在内存中</li>
+<li>每个命名空间（文件或者目录）都有一个读写锁。每个操作都需要获取一系列的锁，例如对<code>/d1/d2/.../dn/leaf</code>的操作，需要先后获取<code>/d1</code>、<code>/d1/d2</code>、<code>/d1/d2/d3</code>、…、<code>/d1/d2/.../dn</code>以及<code>/d1/d2/.../dn/leaf</code>的锁，这里<code>leaf</code>可以是文件也可以是目录
+<ul>
+<li>以一个例子来说明锁机制是如何工作的：在创建<code>/home/user</code>的快照<code>/save/user</code>的过程中，创建<code>/home/user/foo</code>文件。首先，快照操作会获取<code>/home</code>、<code>/save</code>的读锁以及<code>/home/user</code>、<code>/save/user</code>的写锁。文件创建操作需要获取<code>/home</code>以及<code>/home/user</code>的读锁以及<code>/home/user/foo</code>的写锁。因此这两个操作会被串行执行，因为它们都需要获取<code>/home/user</code>这个锁（读写锁冲突）</li>
+<li>可以看到，我们在创建文件时，在其父目录上只加了一把读锁，这种锁机制的好处在于，它允许在同一个目录上进行并发操作。例如我们可以并发地在一个目录上创建多个文件。同时，该读锁可以确保目录不被删除、重命名、创建快照</li>
+<li>由于<code>namespace</code>包含了非常多的节点，因此读写锁被设计成延迟加载，以及在不用时，锁会被删除</li>
+<li>GFS会严格保证按照namespace的层次结构依次顺序获取锁，以免发生死锁</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><code>Replica Placement</code>
+<ul>
+<li>GFS集群可以包含多个层级结构。通常一个GFS集群包含成百上千个节点，这些节点可能跨机房部署，因此两台机器之间的通信也可能跨机房。显然跨机房的网络带宽一般小于同机房的网络带宽。因此<code>multi-level</code>分布式架构对高可用、高可靠、高可扩展提出了全新的挑战</li>
+<li><code>hunk replica placement policy</code>有两个目标
+<ul>
+<li>最大化可靠性和可用性</li>
+<li>最大化带宽利用率</li>
+</ul>
+</li>
+<li>为了达到上述两个目的，仅跨机传播副本是不够的，还必须跨机房传播副本，以提高容灾能力。即便一个机房挂了，服务也照样可用。同时跨机传输会带来带宽的开销，因此需要在两者之间做一个权衡</li>
+</ul>
+</li>
+<li><code>Creation, Re-replication, Rebalancing</code>
+<ul>
+<li><code>chunk</code>副本的主要原因有三个：<code>chunk</code>的创建、恢复以及负载均衡</li>
+<li>当<code>master</code>创建一个新的<code>chunk</code>时，需要决定将这个<code>chunk</code>放到哪个<code>chunkserver</code>上，会考虑如下几个因素
+<ul>
+<li>挑选一个磁盘负载最低的<code>chunkserver</code></li>
+<li>控制每个<code>chunksever</code>近期创建<code>chunk</code>的数量。尽管<code>chunk</code>创建本身开销很低，但是创建通常伴随着大量的写入操作，因此整体上来讲需要做一个动态平衡</li>
+<li>将<code>chunk</code>跨机房分布</li>
+</ul>
+</li>
+<li>当<code>chunk</code>的副本数量小于一个阈值时，<code>master</code>会开启副本拷贝的流程</li>
+<li>此外，<code>chunk</code>克隆也有优先级。因素包括：缺失的<code>chunk</code>数量</li>
+<li>为了避免克隆带来的网络开销，<code>master</code>会在集群维度和<code>chunkserver</code>维度分别限制克隆任务的数量</li>
+<li><code>master</code>还会周期性的迁移这些<code>chunk</code>，以获得更好的分布情况，磁盘利用率以及负载均衡</li>
+</ul>
+</li>
+<li><code>Garbage Collection</code>
+<ul>
+<li>当一个文件或被删除后，<code>GFS</code>不会立即进行物理删除，而是记录日志，并且将其名字改成一个隐藏名。同时<code>master</code>会定期扫描所有<code>namespace</code>，并对这些特殊名称且过期的文件（超过一定时间，默认3天）进行物理删除。而在此之前，仍然可以通过这个特殊的隐藏名访问读写文件，或者将其重命名为正常文件</li>
+<li><code>chunkserver</code>会与<code>master</code>通过心跳包交换信息，<code>chunkserver</code>会告知<code>master</code>自身存储的所有<code>chunk</code>，而<code>master</code>会告知<code>chunkserver</code>哪些<code>chunk</code>已经可以删除了（没有被任何一个文件关联），<code>chunkserver</code>会在空闲时间删除它们</li>
+<li>GFS中的<code>garbage collection</code>特别简单，它能够快速确认哪些<code>chunk</code>可以删除，因为<code>master</code>在元数据中维护了<code>file-&gt;chunk</code>的映射。同时可以很容易地确认所有<code>chunk</code>副本的信息，任何不在<code>master</code>中记录的副本都可以当成是<code>garbage</code></li>
+<li>与传统的即时删除相比，GFS的垃圾回收有如下优势
+<ul>
+<li>简单可靠</li>
+<li>定期与<code>chunkserver</code>同步chunk信息，确保信息的正确性</li>
+<li>批量写操作，开销低</li>
+<li>仅在<code>master</code>空闲的时候进行，避免影响正常业务</li>
+<li>容错性更好，由于删除只是写日志以及重命名，当有异常时，可以非常方便的进行错误恢复，比如回滚等等</li>
+</ul>
+</li>
+<li>与传统的即时删除相比，GFS的垃圾回收有如下劣势
+<ul>
+<li>存储资源紧张时，可能会存在问题，此时需要调整过期的阈值，让文件尽早物理删除</li>
+<li>频繁的创建、删除同名文件可能会占用不同的存储资源</li>
+</ul>
+</li>
+<li>GFS允许为不同的<code>namespace</code>设置不同的存储策略，包括副本数量、是否即时删除等等来解决上面的问题</li>
+</ul>
+</li>
+<li><code>Stale Replica Detection</code>
+<ul>
+<li><code>master</code>通过给每个<code>chunk</code>维护一个<code>version</code>，来判断<code>chunk</code>是否是最新的</li>
+<li><code>master</code>在垃圾回收时，进行过期副本的处理。因此<code>master</code>仅可简单地认为自己维护的副本都是最新的即可。此外，作为补偿，在进行写操作或者进行<code>chunk</code>克隆的时候，都会校验<code>version</code></li>
+</ul>
+</li>
+<li>GFS最大的挑战之一就是如何处理频繁发生的组件异常
+<ul>
+<li>不能完全信任硬件设备（包括磁盘等）</li>
+<li>组件异常可能导致服务不可用，或者数据损坏</li>
+</ul>
+</li>
+<li><code>High Availability</code>
+<ul>
+<li><code>Fast Recovery</code>
+<ul>
+<li>无论<code>master</code>或者<code>chunkserver</code>正常或异常终止，都需要在启动时进行信息同步</li>
+</ul>
+</li>
+<li><code>chunk replication</code>
+<ul>
+<li>前面讨论到，<code>chunk</code>的不同副本存放在不同机器，以及不同机架上，当<code>chunkserver</code>宕机后，<code>master</code>便会开启克隆任务，确保副本数量不小于某个值（默认3）</li>
+</ul>
+</li>
+<li><code>master replication</code>
+<ul>
+<li>处于可靠性考虑，<code>master</code>的状态也会以多副本存储在多个机器上。一个写操作当且仅当其操作日志在当前机器以及所有副本机器上成功落盘后，才算成功</li>
+<li>正常情况下，只有一个<code>master</code>提供服务，并管理所有的任务（包括克隆等等）</li>
+<li>当<code>master</code>宕机后，一个GFS之外的监控系统就会在另一台机器上重新拉起<code>master</code>，并且按照日志重建状态即可</li>
+<li><code>client</code>需要使用dns、而不是<code>master ip</code>，这样当<code>master</code>发生切换时，<code>client</code>无需感知</li>
+<li><code>shadow master</code>会提供读服务（即便<code>primary master</code>宕机）</li>
+</ul>
+</li>
 </ul>
 </li>
 </ol>
