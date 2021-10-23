@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-08T09:03:18.000Z">
-<meta property="article:modified_time" content="2021-10-21T13:39:17.729Z">
+<meta property="article:modified_time" content="2021-10-23T06:18:22.228Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-21 21:39:17" itemprop="dateModified" datetime="2021-10-21T21:39:17+08:00">2021-10-21</time>
+                <time title="修改时间：2021-10-23 14:18:22" itemprop="dateModified" datetime="2021-10-23T14:18:22+08:00">2021-10-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -700,7 +700,44 @@
 <li>对于更新操作，先写<code>commit log</code>（包含<code>redo log</code>），最近的更新会存储在<code>memtable</code>中</li>
 <li><code>tablet</code>恢复：<code>tablet server</code>首先从<code>METADATA table</code>中读取该<code>tablet</code>的元信息，该元信息包含一系列的<code>SSTables</code>，而<code>SSTable</code>包含了一系列的<code>tablet</code>以及<code>redo point</code>，<code>redo point</code>指向<code>commit log</code>（可能包含数据）。<code>tablet server</code>根据这些信息就可以重建<code>memtable</code></li>
 <li>当<code>tablet server</code>接收到读操作时，它会在<code>memtable</code>和<code>SSTable</code>上进行合并查找，因为<code>memtable</code>和<code>SSTable</code>中对于键值的存储都是字典顺序的，所以整个读操作的执行会非常快</li>
-<li>随着写操作的进行，<code>memtable</code>会随着事件的推移逐渐增大，当<code>memtable</code>的大小超过一定的阈值时，就会将当前的<code>memtable</code>冻结，并且创建一个新的<code>memtable</code>，被冻结的<code>memtable</code>会被转换为一个<code>SSTable</code>并且写入到<code>GFS</code>系统中，这种压缩方式也被称作<code>Minor Compaction</code></li>
+</ul>
+</li>
+<li><code>Compactions</code>
+<ul>
+<li>随着写入操作增多，<code>memtable</code>的大小也随之增大，当其达到一个阈值后，<code>memtable</code>会转换成<code>SSTable</code>，并且写入到GFS中</li>
+<li>这种<code>micro-compaction</code>有两个目的
+<ol>
+<li>缩小<code>table server</code>的的内存占用量</li>
+<li>当<code>server</code>从宕机中恢复，并要恢复之前的数据时，可以减少从<code>commit log</code>中读取的数据量</li>
+</ol>
+</li>
+<li>在进行<code>compaction</code>的过程时，仍然可以进行读写操作</li>
+<li><code>merging compaction</code>会周期性地将一小部分<code>SSTable</code>以及<code>memtable</code>写入到一个新的<code>SSTable</code>中，操作完成后，原来的<code>SSTable</code>以及<code>memtable</code>可以被丢弃</li>
+<li>将所有<code>SSTable</code>写入一个新的<code>SSTable</code>中的过程叫做<code>major compaction</code>。<code>non-major compaction</code>产生的<code>SSTable</code>可能包含某些条目的删除信息，这些条目的数据还存储在其他<code>SSTable</code>中。因此<code>major compaction</code>可以消除这部分数据。GBT会周期性的对所有<code>table</code>执行<code>major compaction</code>过程</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Refinements</code>
+<ul>
+<li><code>Locality groups</code>
+<ul>
+<li><code>client</code>可以将一组<code>column family</code>作为一个<code>locality group</code></li>
+<li>通常，将不会一起访问的<code>column family</code>分离到不同的<code>locality group</code>中可以实现更高效的读取</li>
+<li>每个<code>locality group</code>支持独立设置参数。例如声明某个<code>locality group</code>直接在内存中存储，这个<code>locality group</code>中的数据会延迟加载进内存，一旦在内存中存在后，就可以避免磁盘访问，进一步提高效率。在GBT内部，<code>METADATA table</code>中存储的<code>location column family</code>就使用了这个功能</li>
+</ul>
+</li>
+<li><code>Compression</code>
+<ul>
+<li><code>client</code>可以控制<code>SSTable</code>中的某个<code>locality group</code>是否需要压缩，若需要压缩，可以指定压缩算法</li>
+<li>尽管独立压缩会增加复杂度以及降低空间利用率。但是某一部分不压缩的数据，可以提高读取的效率</li>
+<li>大部分的<code>client</code>会采用<code>two-pass</code>的压缩方案
+<ul>
+<li><code>first pass</code>：采用<code>Bentley and McIlroy’s scheme</code>，对长<code>string</code>进行压缩</li>
+<li><code>second pass</code>：采用快速压缩算法，在数据的<code>16 KB</code>小窗口中查找重复项</li>
+</ul>
+</li>
+<li><code>two-pass</code>不仅及其高效，而且压缩效率很高，能够达到<code>10-1</code></li>
 </ul>
 </li>
 </ul>
