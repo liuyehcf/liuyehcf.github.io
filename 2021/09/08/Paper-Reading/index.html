@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-08T09:03:18.000Z">
-<meta property="article:modified_time" content="2021-10-23T06:18:22.228Z">
+<meta property="article:modified_time" content="2021-10-30T06:39:19.259Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-23 14:18:22" itemprop="dateModified" datetime="2021-10-23T14:18:22+08:00">2021-10-23</time>
+                <time title="修改时间：2021-10-30 14:39:19" itemprop="dateModified" datetime="2021-10-30T14:39:19+08:00">2021-10-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -325,7 +325,7 @@
 <li>排序也采用了两阶段，难点在于：聚合阶段，如何进行并行聚合且没有同步开销。具体做法是，在第一阶段进行本地排序后，对排序后的数据进行切分，此时需要获取全局的分布信息。这样切分完之后，就可以送往多个不同的节点进行独立的处理（不同节点上的数据也是不会存在重叠的）</li>
 </ol>
 <p><strong>progress：5/12 3.3</strong></p>
-<h1 id="2-google-file-system"><a class="markdownIt-Anchor" href="#2-google-file-system"></a> 2 Google File System</h1>
+<h1 id="2-the-google-file-system"><a class="markdownIt-Anchor" href="#2-the-google-file-system"></a> 2 The Google File System</h1>
 <ol>
 <li>GFS的目标包括：performance（高性能）、scalability（高可扩展）、reliability（高可靠）、availability（高可用）</li>
 <li>在设计中，把失败视为常态而非异常。因此系统必须具备的核心能力包括：持续监控、错误勘探、错误容忍、自动恢复</li>
@@ -569,7 +569,7 @@
 </ul>
 </li>
 </ol>
-<h1 id="3-google-big-table"><a class="markdownIt-Anchor" href="#3-google-big-table"></a> 3 Google Big Table</h1>
+<h1 id="3-bigtable-a-distributed-storage-system-for-structured-data"><a class="markdownIt-Anchor" href="#3-bigtable-a-distributed-storage-system-for-structured-data"></a> 3 Bigtable: A Distributed Storage System for Structured Data</h1>
 <ol>
 <li>GBT的目标包括
 <ul>
@@ -740,16 +740,74 @@
 <li><code>two-pass</code>不仅及其高效，而且压缩效率很高，能够达到<code>10-1</code></li>
 </ul>
 </li>
+<li><code>Caching for read performance</code>
+<ul>
+<li>为了提高读性能，<code>tablet server</code>使用了两级缓存，分别是<code>scan cache</code>以及<code>block cache</code>，其中<code>scan cache</code>是<code>high level cache</code>，存储的是<code>SSTable</code>接口返回的键值对；<code>block cache</code>是<code>low level cache</code>，存储的是从GFS读取到的数据</li>
+<li><code>scan cache</code>对于那些需要重复读取数据的应用来说十分友好</li>
+<li><code>block cache</code>对于那些需要读取相关信息的应用来说十分友好</li>
+</ul>
+</li>
+<li><code>Bloom filters</code>
+<ul>
+<li>用于减少磁盘访问的速率</li>
+</ul>
+</li>
+<li><code>Commit-log implementation</code>
+<ul>
+<li>如果每个<code>tablet</code>的<code>commit log</code>都单独记录在不同的文件，那么会出现大量文件同时写入GFS的情况。因此，GBT中的实现是，多个<code>tablet</code>的<code>commit log</code>共享同一个日志文件</li>
+<li>使用同一个日志文件可以显著地提升性能（为啥？？？），但同时增大了恢复的复杂度。当一个<code>tablet server</code>宕机后，该机器上的所有<code>tablet</code>会被打散到其他<code>tablet server</code>中，因此，其他<code>tablet server</code>都需要全量读取一遍这个日志文件来进行数据的恢复（因为不知道某个<code>tablet</code>相关日志记录的具体位置）</li>
+<li>为了解决单日志文件造成的恢复时需要读取多次日志文件的问题。GBT会首先先对日志中的记录进行排序（<code>table, row name, log sequence num</code>）。于是同一个<code>tablet</code>的记录就会连续存储，通过少量的磁盘访问就可以全部读取出来</li>
+<li>此外，写日志可能会因为各种原因而失败，比如宕机、网络隔离等等。为了提高可用性，每个<code>tablet server</code>都由两个线程，每个线程写独立的文件。同一时刻只有一个线程是活跃状态。如果处于活跃状态的线程写入出现问题，那么会切换到另一个线程进行写入。日志条目包含序列号，以允许恢复过程消除由此日志切换过程产生的重复条目。</li>
+</ul>
+</li>
+<li><code>Speeding up tablet recovery</code>
+<ul>
+<li>当<code>master</code>要将某个<code>tablet</code>从一个<code>tablet server</code>迁移到另一个<code>tablet server</code>中时，第一步，会进行第一次压缩（减小数据量），且此时<code>tablet server</code>仍在提供服务；第二步，<code>tablet server</code>会停止对该<code>tablet</code>的服务；第三步，再进行一次压缩操作，因为在第一次压缩时，可能有新的数据变更产生；第四步，其他<code>tablet server</code>读取该<code>tablet</code>来重建<code>tablet</code></li>
+</ul>
+</li>
+<li><code>Exploiting immutability</code>
+<ul>
+<li>由于<code>SStable</code>是不可变的，因此读取<code>SSTable</code>是不需要同步措施的。并发控制实现起来非常简单</li>
+<li>唯一可读可写的数据结构，存储在<code>memtable</code>中，为了降低冲突的可能性，采用了<code>COW</code>的技术</li>
+<li>由于<code>SSTable</code>是不可变的，清理删除的数据转变成了垃圾收集器收集过时的<code>SSTable</code></li>
+<li>由于<code>SSTable</code>是不可变的，因此<code>tablet</code>的拆分变得很容易，因为<code>child tablet</code>可以共享<code>parent tablet</code>的<code>SSTable</code>而无需拷贝</li>
+</ul>
+</li>
 </ul>
 </li>
 </ol>
-<h2 id="31-参考"><a class="markdownIt-Anchor" href="#31-参考"></a> 3.1 参考</h2>
+<h1 id="4-mapreduce-simplified-data-processing-on-large-clusters"><a class="markdownIt-Anchor" href="#4-mapreduce-simplified-data-processing-on-large-clusters"></a> 4 MapReduce: Simplified Data Processing on Large Clusters</h1>
+<ol>
+<li><code>Abstract</code>
+<ul>
+<li><code>map</code>用于产生一组<code>key/value</code>对</li>
+<li><code>reduct</code>用于合并具有相同<code>key</code>的<code>key/value</code>对</li>
+<li><code>GMR</code>会处理数据的分区、执行调度、异常恢复、节点通信等等细节问题。这允许用户在无任何并发和分布式的经验的前提下，就能够利用好大规模的资源来进行计算</li>
+</ul>
+</li>
+<li><code>Programming Model</code>
+<ul>
+<li><code>GMR library</code>暴露两个函数<code>Map</code>和<code>Reduce</code>
+<ul>
+<li><code>Map function</code>（由用户编写），负责产生一组<code>key/value</code>。然后<code>GMR library</code>会将具有相同<code>key</code>的<code>pair</code>输送到<code>Reduce function</code></li>
+<li><code>Reduce function</code>（由用户编写），负责接受一个<code>key</code>以及一组<code>value</code>，并将其合并成一个或少量<code>value</code></li>
+</ul>
+</li>
+<li><code>Types</code>
+<ul>
+<li><code>GMR</code>只处理string，用户负责在string和正确的类型之间进行转换</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="41-参考"><a class="markdownIt-Anchor" href="#41-参考"></a> 4.1 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/jpfss/p/10721384.html">浅析 Bigtable 和 LevelDB 的实现</a></li>
 </ul>
-<h1 id="4-efficiency-in-the-columbia-database-query-optimizer"><a class="markdownIt-Anchor" href="#4-efficiency-in-the-columbia-database-query-optimizer"></a> 4 Efficiency in the Columbia Database Query Optimizer</h1>
-<h1 id="5-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"><a class="markdownIt-Anchor" href="#5-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"></a> 5 Fast Selection and Aggregation on Encoded Data using Operator Specialization</h1>
-<h1 id="6-shared-memory-consistency-models-a-tutorial"><a class="markdownIt-Anchor" href="#6-shared-memory-consistency-models-a-tutorial"></a> 6 Shared memory consistency models - A tutorial</h1>
+<h1 id="5-efficiency-in-the-columbia-database-query-optimizer"><a class="markdownIt-Anchor" href="#5-efficiency-in-the-columbia-database-query-optimizer"></a> 5 Efficiency in the Columbia Database Query Optimizer</h1>
+<h1 id="6-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"><a class="markdownIt-Anchor" href="#6-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"></a> 6 Fast Selection and Aggregation on Encoded Data using Operator Specialization</h1>
+<h1 id="7-shared-memory-consistency-models-a-tutorial"><a class="markdownIt-Anchor" href="#7-shared-memory-consistency-models-a-tutorial"></a> 7 Shared memory consistency models - A tutorial</h1>
 
     </div>
 
@@ -851,7 +909,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-morsel-driven-parallelism-a-numa-aware-query-evaluation-framework-for-the-many-core-age"><span class="nav-text"> 1 Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-google-file-system"><span class="nav-text"> 2 Google File System</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-google-big-table"><span class="nav-text"> 3 Google Big Table</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%8F%82%E8%80%83"><span class="nav-text"> 3.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-efficiency-in-the-columbia-database-query-optimizer"><span class="nav-text"> 4 Efficiency in the Columbia Database Query Optimizer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"><span class="nav-text"> 5 Fast Selection and Aggregation on Encoded Data using Operator Specialization</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-shared-memory-consistency-models-a-tutorial"><span class="nav-text"> 6 Shared memory consistency models - A tutorial</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-morsel-driven-parallelism-a-numa-aware-query-evaluation-framework-for-the-many-core-age"><span class="nav-text"> 1 Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-the-google-file-system"><span class="nav-text"> 2 The Google File System</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-bigtable-a-distributed-storage-system-for-structured-data"><span class="nav-text"> 3 Bigtable: A Distributed Storage System for Structured Data</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-mapreduce-simplified-data-processing-on-large-clusters"><span class="nav-text"> 4 MapReduce: Simplified Data Processing on Large Clusters</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E5%8F%82%E8%80%83"><span class="nav-text"> 4.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-efficiency-in-the-columbia-database-query-optimizer"><span class="nav-text"> 5 Efficiency in the Columbia Database Query Optimizer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-fast-selection-and-aggregation-on-encoded-data-using-operator-specialization"><span class="nav-text"> 6 Fast Selection and Aggregation on Encoded Data using Operator Specialization</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-shared-memory-consistency-models-a-tutorial"><span class="nav-text"> 7 Shared memory consistency models - A tutorial</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
