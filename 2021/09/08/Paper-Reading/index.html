@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-08T09:03:18.000Z">
-<meta property="article:modified_time" content="2021-11-03T14:51:43.944Z">
+<meta property="article:modified_time" content="2021-11-19T15:36:04.690Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-03 22:51:43" itemprop="dateModified" datetime="2021-11-03T22:51:43+08:00">2021-11-03</time>
+                <time title="修改时间：2021-11-19 23:36:04" itemprop="dateModified" datetime="2021-11-19T23:36:04+08:00">2021-11-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -275,7 +275,7 @@
       
         <p><strong>阅读更多</strong></p>
 <a id="more"></a>
-<h1 id="1-morsel-driven-parallelism-a-numa-aware-query-evaluation-framework-for-the-many-core-age"><a class="markdownIt-Anchor" href="#1-morsel-driven-parallelism-a-numa-aware-query-evaluation-framework-for-the-many-core-age"></a> 1 Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age</h1>
+<h1 id="1-morsel-driven-parallelism-a-numa-aware-query-evaluation-framework-for-the-many-core-age"><a class="markdownIt-Anchor" href="#1-morsel-driven-parallelism-a-numa-aware-query-evaluation-framework-for-the-many-core-age"></a> 1 <a href="/Papers/Morsel-Driven-Parallelism.pdf">Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age</a></h1>
 <ol>
 <li>为什么现在开始关注<code>many-core</code>架构：随着内存带宽的增长，出现了一些内存级的数据库（广义或者狭义，狭义指的是所有数据完全存在于内存中；广义指的是部分数据以某种形式存在于内存中，比如缓存），对于这些数据库系统，I/O不再是性能瓶颈，能否高效利用好计算机的多个<code>core</code>决定了系统整体的性能</li>
 <li>核心是调度机制：（称为<code>dispatcher</code>），能够灵活的调整pipeline的并发度</li>
@@ -325,7 +325,7 @@
 <li>排序也采用了两阶段，难点在于：聚合阶段，如何进行并行聚合且没有同步开销。具体做法是，在第一阶段进行本地排序后，对排序后的数据进行切分，此时需要获取全局的分布信息。这样切分完之后，就可以送往多个不同的节点进行独立的处理（不同节点上的数据也是不会存在重叠的）</li>
 </ol>
 <p><strong>progress：5/12 3.3</strong></p>
-<h1 id="2-the-google-file-system"><a class="markdownIt-Anchor" href="#2-the-google-file-system"></a> 2 The Google File System</h1>
+<h1 id="2-the-google-file-system"><a class="markdownIt-Anchor" href="#2-the-google-file-system"></a> 2 <a href="/Papers/Google-File-System.pdf">The Google File System</a></h1>
 <ol>
 <li>GFS的目标包括：performance（高性能）、scalability（高可扩展）、reliability（高可靠）、availability（高可用）</li>
 <li>在设计中，把失败视为常态而非异常。因此系统必须具备的核心能力包括：持续监控、错误勘探、错误容忍、自动恢复</li>
@@ -569,7 +569,7 @@
 </ul>
 </li>
 </ol>
-<h1 id="3-bigtable-a-distributed-storage-system-for-structured-data"><a class="markdownIt-Anchor" href="#3-bigtable-a-distributed-storage-system-for-structured-data"></a> 3 Bigtable: A Distributed Storage System for Structured Data</h1>
+<h1 id="3-bigtable-a-distributed-storage-system-for-structured-data"><a class="markdownIt-Anchor" href="#3-bigtable-a-distributed-storage-system-for-structured-data"></a> 3 <a href="/Papers/Google-Bigtable.pdf">Bigtable: A Distributed Storage System for Structured Data</a></h1>
 <ol>
 <li>GBT的目标包括
 <ul>
@@ -776,7 +776,7 @@
 </ul>
 </li>
 </ol>
-<h1 id="4-mapreduce-simplified-data-processing-on-large-clusters"><a class="markdownIt-Anchor" href="#4-mapreduce-simplified-data-processing-on-large-clusters"></a> 4 MapReduce: Simplified Data Processing on Large Clusters</h1>
+<h1 id="4-mapreduce-simplified-data-processing-on-large-clusters"><a class="markdownIt-Anchor" href="#4-mapreduce-simplified-data-processing-on-large-clusters"></a> 4 <a href="/Papers/Google-MapReduce.pdf">MapReduce: Simplified Data Processing on Large Clusters</a></h1>
 <ol>
 <li><code>Abstract</code>
 <ul>
@@ -812,6 +812,57 @@
 <li><code>reduce worker</code>对排序后的键值对进行遍历，并将每个<code>key/value set</code>送入用户自定义的<code>Reduce function</code>，其结果会追加到<code>final output file</code></li>
 <li>当所有<code>map task</code>以及<code>reduce task</code>处理完毕后，<code>master</code>会唤醒用户程序，并将结果返回给该程序</li>
 </ol>
+</li>
+<li><code>Master Data Structures</code>
+<ul>
+<li><code>master</code>会存储每个<code>map task</code>和<code>reduce task</code>的状态（空闲、处理中、完成）</li>
+<li><code>master</code>是将中间文件区域的位置从<code>map task</code>传播到<code>reduce task</code>的管道。因此，对于每个完成的<code>map task</code>，<code>master</code>会存储<code>map task</code>产生的中间文件的位置和大小，并且将这些信息推送给正在执行的<code>reduece task</code></li>
+</ul>
+</li>
+<li><code>Fault Tolerance</code>
+<ul>
+<li><code>Worker Failure</code>
+<ul>
+<li><code>master</code>会周期性地<code>ping</code>每个<code>worker</code></li>
+<li><code>failed worker</code>上的<code>map task</code>以及<code>reduce task</code>会被发送到其他空闲的<code>worker</code>中进行重新计算</li>
+</ul>
+</li>
+<li><code>Master Failure</code>
+<ul>
+<li><code>master</code>会周期性的记录<code>checkpoint</code>，当<code>master</code>宕机后，一个新的机器会从最新的<code>checkpoint</code>中恢复</li>
+</ul>
+</li>
+<li><code>Semantics in the Presence of Failures</code>
+<ul>
+<li>当用户提供的<code>map</code>和<code>reduce</code>操作是它们输入值的确定性函数时，我们的分布式实现产生的输出与整个程序的无故障顺序执行产生的输出相同。<code>GMR</code>通过<code>map task</code>以及<code>reduce task</code>的原子提交来实现这个属性。每个<code>task</code>会将其结果保存在私有的临时文件中</li>
+<li>当<code>map task</code>完成时，会发送一条消息到<code>master</code>，告知其文件的位置。若<code>master</code>此前已经收到过该消息了，那么会直接忽略当前消息</li>
+<li>当<code>reduct task</code>完成时，会将私有的临时文件重命名为一个全局文件，当多个<code>reduce task</code>在不同机器上执行时，<code>GMR</code>中的原子重命名操作会保证只有一个会成功</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Locality</code>
+<ul>
+<li><code>master</code>更倾向于将<code>map task</code>调度到包含更多相关输入的机器上，或者相关输入距离最近的机器上（比如相关输入位于同一个交换机下的不同机器）。这样能够极大程度地降低网络资源的开销</li>
+</ul>
+</li>
+<li><code>Task Granularity</code>
+<ul>
+<li><code>map-task</code>会被切分为更小的<code>M</code>份，而<code>reduce task</code>会被切分为更小的<code>N</code>份。理论上<code>M</code>和<code>N</code>的大小要远远大于机器的数量。这样能够获得更均衡的负载，也能够提升异常恢复的速度</li>
+<li>如何确定<code>M</code>和<code>N</code>的具体数值呢？有如下几点考量
+<ol>
+<li>这些任务的信息必须能够保存在<code>master</code>的内存中</li>
+<li><code>M</code>与输入的总量有关，最好将输入文件的大小控制在<code>16M-64M</code>之间</li>
+<li><code>N</code>是机器数量的几倍（2-3倍）</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><code>Backup Tasks</code>
+<ul>
+<li><code>MapReduce</code>的整体耗时与最慢的<code>task</code>密切相关</li>
+<li><code>GMR</code>提供了一种机制来解决这个问题，在任务完成后，<code>master</code>会将尚未结束的任务分配给这台机器，称为<code>backup-task</code>。一旦<code>original-task</code>或是<code>backup-task</code>完成，那么该任务就算完成</li>
+</ul>
 </li>
 </ul>
 </li>
@@ -862,19 +913,19 @@
           
       <div class="tabs tabs-comment">
         <ul class="nav-tabs">
-            <li class="tab"><a href="#comment-livere">livere</a></li>
             <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
         </ul>
         <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
             <div class="tab-pane livere" id="comment-livere">
               
   <div class="comments">
     <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
   </div>
   
-            </div>
-            <div class="tab-pane valine" id="comment-valine">
-              <div class="comments" id="valine-comments"></div>
             </div>
         </div>
       </div>
@@ -940,14 +991,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">321</span>
+          <span class="site-state-item-count">323</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">120</span>
+        <span class="site-state-item-count">121</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -1059,22 +1110,6 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
-<script>
-NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
-  window.livereOptions = {
-    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
-  };
-  (function(d, s) {
-    var j, e = d.getElementsByTagName(s)[0];
-    if (typeof LivereTower === 'function') { return; }
-    j = d.createElement(s);
-    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-    j.async = true;
-    e.parentNode.insertBefore(j, e);
-  })(document, 'script');
-});
-</script>
-
 
 <script>
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
@@ -1101,6 +1136,22 @@ NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
       serverURLs : ''
     });
   }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
 });
 </script>
 
