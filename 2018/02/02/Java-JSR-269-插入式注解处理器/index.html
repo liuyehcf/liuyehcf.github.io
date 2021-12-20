@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-02-02T11:04:57.000Z">
-<meta property="article:modified_time" content="2021-09-11T07:50:53.281Z">
+<meta property="article:modified_time" content="2021-12-20T13:21:43.127Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-11 15:50:53" itemprop="dateModified" datetime="2021-09-11T15:50:53+08:00">2021-09-11</time>
+                <time title="修改时间：2021-12-20 21:21:43" itemprop="dateModified" datetime="2021-12-20T21:21:43+08:00">2021-12-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -286,7 +286,20 @@
 <li>插入式注解处理器的注解处理过程</li>
 <li>分析与字节码生成过程</li>
 </ol>
-<div id="flowchart-0" class="flow-chart"></div>
+<pre class="mermaid">graph TD
+st(["开始"])
+en(["结束"])
+op1["解析与填充符号表"]
+op2["插入式注解处理器进行注解处理"]
+op3["分析与字节码生成"]
+cond{"语法树没有变动 ?"}
+
+st --> op1
+op1 --> op2
+op2 --> cond
+cond --> |yes| op3
+cond --> |no| op1
+op3 --> en</pre>
 <p><strong>Javac编译动作的入口是<code>com.sun.tools.javac.main.JavaCompiler</code>类</strong>，上述3个过程的代码逻辑集中在这个类的<code>compile()</code>和<code>compile2()</code>方法中，下面给出整个编译过程中最关键的几个步骤</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">compile</span><span class="params">(List&lt;JavaFileObject&gt; var1, List&lt;String&gt; var2, Iterable&lt;? extends Processor&gt; var3)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//... </span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">this</span>.initProcessAnnotations(var3); <span class="comment">//(1)</span></span><br><span class="line">        <span class="keyword">this</span>.delegateCompiler = <span class="keyword">this</span>.processAnnotations( <span class="comment">//(4)</span></span><br><span class="line">            <span class="keyword">this</span>.enterTrees( <span class="comment">//(3)</span></span><br><span class="line">                <span class="keyword">this</span>.stopIfError(</span><br><span class="line">                    CompileState.PARSE, </span><br><span class="line">                    <span class="keyword">this</span>.parseFiles(var1)  <span class="comment">//(2)</span></span><br><span class="line">                )</span><br><span class="line">            ), </span><br><span class="line">            var2</span><br><span class="line">        );</span><br><span class="line">        <span class="keyword">this</span>.delegateCompiler.compile2(); <span class="comment">//(5)</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">//... </span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">compile2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">this</span>.generate( <span class="comment">//(9)</span></span><br><span class="line">        <span class="keyword">this</span>.desugar( <span class="comment">//(8)</span></span><br><span class="line">            <span class="keyword">this</span>.flow( <span class="comment">//(7)</span></span><br><span class="line">                <span class="keyword">this</span>.attribute( <span class="comment">//(6)</span></span><br><span class="line">                    (Env)<span class="keyword">this</span>.todo.remove()</span><br><span class="line">                )</span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line">    );</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
@@ -542,19 +555,7 @@
 <li><a target="_blank" rel="noopener" href="https://github.com/liuyehcf/javac/tree/master/src/main/java/com/sun/tools/javac/tree">soucecode-github</a></li>
 <li><a target="_blank" rel="noopener" href="http://wiki.netbeans.org/JavaHT_TreeMakerQA">TreeMake Q&amp;A</a></li>
 </ul>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.7/raphael.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script><textarea id="flowchart-0-code" style="display: none">st=>start: 开始
-en=>end: 结束
-op1=>operation: 解析与填充符号表
-op2=>operation: 插入式注解处理器进行注解处理
-op3=>operation: 分析与字节码生成
-cond=>condition: 语法树没有变动 ?
 
-st->op1
-op1->op2
-op2->cond
-cond(yes)->op3
-cond(no)->op1
-op3->en</textarea><textarea id="flowchart-0-options" style="display: none">{"theme":"simple","scale":1,"line-width":2,"line-length":50,"text-margin":10,"font-size":12}</textarea><script>  var code = document.getElementById("flowchart-0-code").value;  var options = JSON.parse(decodeURIComponent(document.getElementById("flowchart-0-options").value));  var diagram = flowchart.parse(code);  diagram.drawSVG("flowchart-0", options);</script>
     </div>
 
     

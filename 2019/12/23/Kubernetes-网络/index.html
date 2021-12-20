@@ -35,7 +35,7 @@
 <meta property="og:image" content="http://example.com/images/Kubernetes-Concept/proxy-mode-ipvs.svg">
 <meta property="og:image" content="http://example.com/images/Kubernetes-%E7%BD%91%E7%BB%9C/iptables-chains.svg">
 <meta property="article:published_time" content="2019-12-23T06:43:11.000Z">
-<meta property="article:modified_time" content="2021-07-25T02:50:54.942Z">
+<meta property="article:modified_time" content="2021-12-20T13:21:43.128Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -237,7 +237,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-25 10:50:54" itemprop="dateModified" datetime="2021-07-25T10:50:54+08:00">2021-07-25</time>
+                <time title="修改时间：2021-12-20 21:21:43" itemprop="dateModified" datetime="2021-12-20T21:21:43+08:00">2021-12-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -372,14 +372,24 @@
 <p>可以看到，在<code>k8s-n-1</code>节点上，直接路由到了<code>flannel.1</code>这样网卡，然后通过<code>flannel</code>的网络（主机网络或覆盖网络）到达<code>k8s-n-1</code>上</p>
 <p><strong>iptables规则链</strong></p>
 <pre class="mermaid">graph TD
-A[PREROUTING/INPUT/OUTPUT/FORWARD] -->B[KUBE-SERVICES]
-B -->|nginx, srcIp not in cidr| C1[KUBE-MARK-MASQ]
-B -->|nginx, srcIp in cidr| C2[KUBE-SVC-nginx]
-B -->|tomcat, srcIp not in cidr| C3[KUBE-MARK-MASQ]
-B -->|tomcat, srcIp in cidr| C4[KUBE-SVC-tomcat]
-B -->|last rule in the chain 'KUBE-SERVICES'| C5[KUBE-NODEPORTS]
-C2 --> D1[KUBE-SEP-nginx]
-D1 --> E1[DNAT redirect to nginx pod's ip and port]</pre>
+A["PREROUTING/INPUT/OUTPUT/FORWARD"]
+B["KUBE-SERVICES"]
+C1["KUBE-MARK-MASQ"]
+C2["KUBE-SVC-nginx"]
+C3["KUBE-MARK-MASQ"]
+C4["KUBE-SVC-tomcat"]
+C5["KUBE-NODEPORTS"]
+D1["KUBE-SEP-nginx"]
+E1["DNAT redirect to nginx pod's ip and port"]
+
+A --> B
+B --> |nginx, srcIp not in cidr| C1
+B --> |nginx, srcIp in cidr| C2
+B --> |tomcat, srcIp not in cidr| C3
+B --> |tomcat, srcIp in cidr| C4
+B --> |last rule in the chain 'KUBE-SERVICES'| C5
+C2 --> D1
+D1 --> E1</pre>
 <h3 id="232-nodeport-多副本"><a class="markdownIt-Anchor" href="#232-nodeport-多副本"></a> 2.3.2 nodeport-多副本</h3>
 <p><strong>deployment（hello-world-deployment.yml）</strong></p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">hello-world-deployment</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">mylabel:</span> <span class="string">label_hello_world_deployment</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span> <span class="comment"># 这里改成3副本</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">mylabel:</span> <span class="string">label_hello_world</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">hello-world</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">registry.cn-hangzhou.aliyuncs.com/liuyehcf_default/liuye_repo:v1</span></span><br><span class="line">        <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, <span class="string">&quot;lib/spring-boot-1.0-SNAPSHOT.jar&quot;</span>]</span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br></pre></td></tr></table></figure>
@@ -398,18 +408,32 @@ D1 --> E1[DNAT redirect to nginx pod's ip and port]</pre>
 <p>这里，可以看到，三个<code>Chain</code>，每个<code>Chain</code>分别配置了一个DNAT，指向某一个<code>pod</code>。后续的链路，如果在<code>pod</code>在本机，则走<code>cni0</code>网桥，否则就走<code>flannel</code></p>
 <p><strong>iptables规则链</strong></p>
 <pre class="mermaid">graph TD
-A[PREROUTING/INPUT/OUTPUT/FORWARD] -->B[KUBE-SERVICES]
-B -->|nginx, srcIp not in cidr| C1[KUBE-MARK-MASQ]
-B -->|nginx, srcIp in cidr| C2[KUBE-SVC-NGINX]
-B -->|tomcat, srcIp not in cidr| C3[KUBE-MARK-MASQ]
-B -->|tomcat, srcIp in cidr| C4[KUBE-SVC-TOMCAT]
-B -->|last rule in the chain 'KUBE-SERVICES'| C5[KUBE-NODEPORTS]
-C2 -->|random| D1[KUBE-SEP-nginx1]
-C2 -->|random| D2[KUBE-SEP-nginx2]
-C2 -->|random| D3[KUBE-SEP-nginx3]
-D1 --> E1[DNAT redirect to nginx pod1's ip and port]
-D2 --> E2[DNAT redirect to nginx pod2's ip and port]
-D3 --> E3[DNAT redirect to nginx pod3's ip and port]</pre>
+A["PREROUTING/INPUT/OUTPUT/FORWARD"]
+B["KUBE-SERVICES"]
+C1["KUBE-MARK-MASQ"]
+C2["KUBE-SVC-NGINX"]
+C3["KUBE-MARK-MASQ"]
+C4["KUBE-SVC-TOMCAT"]
+C5["KUBE-NODEPORTS"]
+D1["KUBE-SEP-nginx1"]
+D2["KUBE-SEP-nginx2"]
+D3["KUBE-SEP-nginx3"]
+E1["DNAT redirect to nginx pod1's ip and port"]
+E2["DNAT redirect to nginx pod2's ip and port"]
+E3["DNAT redirect to nginx pod3's ip and port"]
+
+A --> B
+B --> |nginx, srcIp not in cidr| C1
+B --> |nginx, srcIp in cidr| C2
+B --> |tomcat, srcIp not in cidr| C3
+B --> |tomcat, srcIp in cidr| C4
+B --> |last rule in the chain 'KUBE-SERVICES'| C5
+C2 --> |random| D1
+C2 --> |random| D2
+C2 --> |random| D3
+D1 --> E1
+D2 --> E2
+D3 --> E3</pre>
 <h2 id="24-总结"><a class="markdownIt-Anchor" href="#24-总结"></a> 2.4 总结</h2>
 <ol>
 <li>每个<code>node</code>上的<code>pod</code>，其子网都相同</li>
