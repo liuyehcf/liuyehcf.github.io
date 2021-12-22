@@ -30,8 +30,11 @@
 <meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/3-1">
 <meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/3-2">
 <meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/3-3.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/6-1">
+<meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/6-2.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/6-3.png">
 <meta property="article:published_time" content="2021-11-16T01:19:25.000Z">
-<meta property="article:modified_time" content="2021-12-20T13:21:43.134Z">
+<meta property="article:modified_time" content="2021-12-22T14:13:30.698Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -233,7 +236,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-20 21:21:43" itemprop="dateModified" datetime="2021-12-20T21:21:43+08:00">2021-12-20</time>
+                <time title="修改时间：2021-12-22 22:13:30" itemprop="dateModified" datetime="2021-12-22T22:13:30+08:00">2021-12-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2812,7 +2815,163 @@ $\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW
 <li><a href="/resources/System-Architecture/5-7.pdf">Chapter-5.7</a></li>
 </ul>
 <h1 id="6-数据级并行"><a class="markdownIt-Anchor" href="#6-数据级并行"></a> 6 数据级并行</h1>
-<h2 id="61-相关课件"><a class="markdownIt-Anchor" href="#61-相关课件"></a> 6.1 相关课件</h2>
+<p><strong>动机：</strong></p>
+<ul>
+<li><strong>传统指令级并行技术的问题</strong>
+<ul>
+<li>程序内在的并行性</li>
+<li>提高流水线的时钟频率：提高时钟频率，有时导致<code>CPI</code>随着增加（<code>branches, other hazards</code>）</li>
+<li>指令预取和译码：有时在每个时钟周期很难预取和译码多条指令</li>
+<li>提高<code>Cache</code>命中率：在有些计算量较大的应用中（科学计算）需要大量的数据，其局部性较差，有些程序处理的是连续的媒体流（multimedia），其局部性也较差</li>
+</ul>
+</li>
+<li><strong><code>ata-Level Parallelism, DLP</code>的兴起</strong>
+<ul>
+<li>应用需求和技术发展推动着体系结构的发展</li>
+<li>图形、机器视觉、语音识别、机器学习等新的应用均需要大量的数值计算，其算法通常具有数据并行特征</li>
+<li><code>SIMD-based</code>结构（<code>vector-SIMD,subword-SIMD, SIMT/GPUs</code>）是执行这些算法的最有效途径</li>
+</ul>
+</li>
+<li><strong><code>SIMD</code>结构的优势</strong>
+<ul>
+<li><code>SIMD</code>结构可有效地挖掘数据级并行
+<ul>
+<li>基于矩阵运算的科学计算</li>
+<li>图像和声音处理</li>
+<li>…</li>
+</ul>
+</li>
+<li><code>SIMD</code>比<code>MIMD</code>更节能
+<ul>
+<li>针对每组数据操作仅需要取指一次</li>
+<li><code>SIMD</code>对<code>PMD</code>（<code>personal mobile devices</code>）更具吸引力</li>
+</ul>
+</li>
+<li><code>SIMD</code>允许程序员继续以串行模式思维</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>SIMD</code>结构的种类</strong></p>
+<ul>
+<li>向量体系结构</li>
+<li>多媒体<code>SIMD</code>指令集扩展</li>
+<li><code>Graphics Processor Units, GPUs</code></li>
+<li>对于x86处理器：
+<ul>
+<li>每年增加<code>2cores/chip</code></li>
+<li><code>SIMD</code>宽度每4年翻一番</li>
+<li><code>SIMD</code>潜在加速比是<code>MIMD</code>的2倍</li>
+</ul>
+</li>
+</ul>
+<h2 id="61-向量处理机模型"><a class="markdownIt-Anchor" href="#61-向量处理机模型"></a> 6.1 向量处理机模型</h2>
+<p><strong>向量处理机具有更高层次的操作，一条向量指令可以处理<code>N</code>个或<code>N</code>对操作数（处理对象是向量）</strong></p>
+<p><img src="/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/6-1" alt="6-1" /></p>
+<p><strong>向量处理机的基本特性：</strong></p>
+<ul>
+<li>基本思想：两个向量的对应分量进行运算，产生一个结果向量</li>
+<li>简单的一条向量指令包含了多个操作：<code>fewer instruction fetches</code></li>
+<li>每一结果独立于前面的结果
+<ul>
+<li>长流水线，编译器保证操作间没有相关性</li>
+<li>硬件仅需检测两条向量指令间的相关性</li>
+<li>较高的时钟频率</li>
+</ul>
+</li>
+<li>向量指令以已知的模式访问存储器
+<ul>
+<li>可有效发挥多体交叉存储器的优势</li>
+<li>可通过重叠减少存储器操作的延时。例如：一个向量包含64个元素</li>
+<li>不需要数据<code>Cache</code>，仅使用指令<code>Cache</code>（为什么？指的是一个指令的操作数会一次性取到寄存器？）</li>
+</ul>
+</li>
+<li>在流水线控制中减少了控制相关</li>
+</ul>
+<p><strong>向量处理机的基本结构：</strong></p>
+<ul>
+<li><code>memory-memory vector processors</code>：所有的向量操作是存储器到存储器</li>
+<li><code>vector-register processors</code>：除了<code>Load</code>和<code>Store</code>操作外，所有的操作是向量寄存器与向量寄存器间的操作
+<ul>
+<li>向量机的<code>Load/Store</code>结构</li>
+<li>1980年以后的所有的向量处理机都是这种结构：Cray, Convex, Fujitsu, Hitachi, NEC</li>
+</ul>
+</li>
+</ul>
+<p><strong>向量指令的优势：</strong></p>
+<ul>
+<li>格式紧凑
+<ul>
+<li>一条指令包含N个操作</li>
+</ul>
+</li>
+<li>表达能力强
+<ul>
+<li>一条指令包含N个操作</li>
+<li>使用同样的功能部件</li>
+<li>访问不相交的寄存器</li>
+<li>访问存储器中的连续块</li>
+<li>以已知的模式访问存储器</li>
+</ul>
+</li>
+<li>可扩展性好
+<ul>
+<li>可以在多个并行的流水线上运行同样的代码</li>
+</ul>
+</li>
+</ul>
+<p><strong>向量处理机的基本组成单元：</strong></p>
+<ul>
+<li><strong><code>Vector Register</code></strong>：固定长度的一块区域，存放单个向量
+<ul>
+<li>至少2个读端口和一个写端口（一般最少16个读端口，8个写端口）</li>
+<li>典型的有8-32向量寄存器，每个寄存器存放<code>64</code>到<code>128</code>个<code>64</code>位元素</li>
+</ul>
+</li>
+<li><strong><code>Vector Functional Units (FUs)</code></strong>：全流水化的，每一个<code>clock</code>启动一个新的操作
+<ul>
+<li>一般4到8个<code>FUs</code>：<code>FP add</code>、<code>FP mult</code>、<code>FP reciprocal (1/X)</code>、<code>integer add</code>、<code>logical</code>、<code>shift</code>。可能有些重复设置的部件</li>
+</ul>
+</li>
+<li><strong><code>Vector Load-Store Units (LSUs)</code></strong>: 全流水化地<code>Load</code>或<code>Store</code>一个向量，可能会配置多个<code>LSU</code>部件</li>
+<li><strong><code>Scalar registers</code></strong>：存放单个元素用于标量处理或存储地址</li>
+</ul>
+<h2 id="62-向量处理机模型优化"><a class="markdownIt-Anchor" href="#62-向量处理机模型优化"></a> 6.2 向量处理机模型优化</h2>
+<h3 id="621-链接优化"><a class="markdownIt-Anchor" href="#621-链接优化"></a> 6.2.1 链接优化</h3>
+<p><strong>不采用链接技术，必须处理完前一条指令的最后一个元素，才能启动下一条相关的指令</strong></p>
+<p><img src="/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/6-2.png" alt="6-2" /></p>
+<p><strong>采用链接技术，前一条指令的第一个结果出来后，就可以启动下一条相关指令的执行</strong></p>
+<p><img src="/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/6-3.png" alt="6-3" /></p>
+<h3 id="622-条件执行"><a class="markdownIt-Anchor" href="#622-条件执行"></a> 6.2.2 条件执行</h3>
+<p>例如下面这段伪代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for i from 1 to 64</span><br><span class="line">    if (A(i) != 0) </span><br><span class="line">        A(i) = A(i) - B(i)</span><br></pre></td></tr></table></figure>
+<p><strong>原理：</strong></p>
+<ul>
+<li><code>vector-mask control</code>使用长度为<code>MVL</code>的布尔向量控制向量指令的执行</li>
+<li>当<code>vector-mask register</code>使能时，向量指令操作仅对<code>vector-mask register中</code>对应位为1的分量起作用</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>简单实现时，条件不满足时向量指令仍然需要花费时间</li>
+<li>有些向量处理器带条件的向量执行仅控制向目标寄存器的写操作，可能会有除法错</li>
+</ul>
+<h3 id="623-稀疏矩阵"><a class="markdownIt-Anchor" href="#623-稀疏矩阵"></a> 6.2.3 稀疏矩阵</h3>
+<p>看下面这段伪代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">for i from 1 to n</span><br><span class="line">    A(K(i)) = A(K(i)) - B(M(i))</span><br></pre></td></tr></table></figure>
+<p><strong>原理：</strong></p>
+<ul>
+<li><code>gather (LVI) operation</code>：使用<code>index vector</code>（伪代码中的<code>K</code>和<code>M</code>）中给出的偏移再加基址来读取 =&gt; <code>a nonsparse vector in a vector register</code></li>
+<li>这些元素以密集的方式操作完成后，再使用同样的<code>index vector</code>存储到稀疏矩阵的对应位置</li>
+<li>这些操作编译时可能无法完成。主要原因：编译器无法预知<code>K(i)</code>以及是否有数据相关</li>
+<li>使用<code>CVI</code>设置步长（<code>index 0, 1xm, 2xm, ..., 63xm</code>）</li>
+</ul>
+<h2 id="63-面向多媒体应用的simd指令集扩展"><a class="markdownIt-Anchor" href="#63-面向多媒体应用的simd指令集扩展"></a> 6.3 面向多媒体应用的SIMD指令集扩展</h2>
+<h2 id="64-gpu-1"><a class="markdownIt-Anchor" href="#64-gpu-1"></a> 6.4 GPU-1</h2>
+<h2 id="65-gpu-2"><a class="markdownIt-Anchor" href="#65-gpu-2"></a> 6.5 GPU-2</h2>
+<h2 id="66-小结"><a class="markdownIt-Anchor" href="#66-小结"></a> 6.6 小结</h2>
+<div class="markmap-container" style="height:undefined">
+                <svg class="markmap-svg">{"t":"list_item","d":2,"p":{"lines":[0,1]},"v":"向量体系结构","c":[{"t":"list_item","d":4,"p":{"lines":[1,2]},"v":"基本概念","c":[{"t":"list_item","d":6,"p":{"lines":[2,3]},"v":"两个向量的对应分量进行运算，产生一个结果向量"}]},{"t":"list_item","d":4,"p":{"lines":[3,4]},"v":"基本特征","c":[{"t":"list_item","d":6,"p":{"lines":[4,5]},"v":"VSIW，一条指令包含多个操作"},{"t":"list_item","d":6,"p":{"lines":[5,6]},"v":"单条向量指令内包含多个操作"},{"t":"list_item","d":6,"p":{"lines":[6,7]},"v":"以已知模式访问存储器-多体交叉存储系统"},{"t":"list_item","d":6,"p":{"lines":[7,8]},"v":"控制相关少"}]},{"t":"list_item","d":4,"p":{"lines":[8,9]},"v":"基本结构","c":[{"t":"list_item","d":6,"p":{"lines":[9,10]},"v":"向量指令并行执行"},{"t":"list_item","d":6,"p":{"lines":[10,11]},"v":"向量运算部件以流水线方式执行"},{"t":"list_item","d":6,"p":{"lines":[11,12]},"v":"向量部件结构-多条运算流水线"}]},{"t":"list_item","d":4,"p":{"lines":[12,13]},"v":"性能优化","c":[{"t":"list_item","d":6,"p":{"lines":[13,14]},"v":"链接技术"},{"t":"list_item","d":6,"p":{"lines":[14,15]},"v":"条件执行"},{"t":"list_item","d":6,"p":{"lines":[15,16]},"v":"稀疏矩阵"}]}]}</svg>
+              </div>
+<h2 id="67-相关课件"><a class="markdownIt-Anchor" href="#67-相关课件"></a> 6.7 相关课件</h2>
 <ul>
 <li><a href="/resources/System-Architecture/6-1.pdf">Chapter-6.1</a></li>
 <li><a href="/resources/System-Architecture/6-2.pdf">Chapter-6.2</a></li>
@@ -2976,6 +3135,14 @@ $\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW
 <td style="text-align:left">Instruction-Level Parallelism</td>
 </tr>
 <tr>
+<td style="text-align:left"><code>TLP</code></td>
+<td style="text-align:left">Thread-Level Parallelism</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>DLP</code></td>
+<td style="text-align:left">Data-Level Parallelism</td>
+</tr>
+<tr>
 <td style="text-align:left"><code>FU</code></td>
 <td style="text-align:left">Reservation stations</td>
 </tr>
@@ -3113,7 +3280,7 @@ $\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text"> 1 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%BC%95%E8%A8%80"><span class="nav-text"> 1.1 引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E9%87%8F%E5%8C%96%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80"><span class="nav-text"> 1.2 量化设计与分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%AE%9A%E9%87%8F%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80"><span class="nav-text"> 1.3 定量分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 1.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-isa"><span class="nav-text"> 2 ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-isa%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 2.1 ISA的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-isa%E7%9A%84%E5%8A%9F%E8%83%BD%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 2.2 ISA的功能设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-cisc"><span class="nav-text"> 2.2.1 CISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-risc"><span class="nav-text"> 2.2.2 RISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#223-%E5%85%B8%E5%9E%8Bisa"><span class="nav-text"> 2.2.3 典型ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2231-mips"><span class="nav-text"> 2.2.3.1 MIPS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2232-sparc"><span class="nav-text"> 2.2.3.2 SPARC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2233-alphadec"><span class="nav-text"> 2.2.3.3 Alpha（DEC）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2234-armv7"><span class="nav-text"> 2.2.3.4 ARMv7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2235-armv8"><span class="nav-text"> 2.2.3.5 ARMv8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2236-openrisc"><span class="nav-text"> 2.2.3.6 OpenRISC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2237-80x86"><span class="nav-text"> 2.2.3.7 80x86</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2238-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 2.2.3.8 小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-isa%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 2.3 ISA的实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 2.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text"> 3 基本流水线</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text"> 3.1 基本流水线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF%E7%9A%84%E6%89%A9%E5%B1%95"><span class="nav-text"> 3.2 基本流水线的扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-text"> 3.2.1 异常处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#322-%E5%A4%9A%E5%91%A8%E6%9C%9F%E6%93%8D%E4%BD%9C"><span class="nav-text"> 3.2.2 多周期操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#323-mips-r4000"><span class="nav-text"> 3.2.3 MIPS R4000</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 3.3 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 3.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%AD%98%E5%82%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 4 存储层次结构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-cache%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 4.1 Cache的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-cache%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.2 Cache的基本优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#421-%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.2.1 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#422-%E5%87%8F%E5%B0%8F%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80"><span class="nav-text"> 4.2.2 减小失效开销</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-cache%E7%9A%84%E9%AB%98%E7%BA%A7%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.3 Cache的高级优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-%E7%BC%A9%E7%9F%AD%E5%91%BD%E4%B8%AD%E6%97%B6%E9%97%B4"><span class="nav-text"> 4.3.1 缩短命中时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-%E5%A2%9E%E5%8A%A0cache%E5%B8%A6%E5%AE%BD"><span class="nav-text"> 4.3.2 增加Cache带宽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#433-%E5%87%8F%E5%B0%8F%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80"><span class="nav-text"> 4.3.3 减小失效开销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#434-%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.3.4 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#435-%E9%80%9A%E8%BF%87%E5%B9%B6%E8%A1%8C%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80%E6%88%96%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.3.5 通过并行降低失效开销或失效率</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-%E5%AD%98%E5%82%A8%E5%99%A8%E6%8A%80%E6%9C%AF%E4%B8%8E%E4%BC%98%E5%8C%96"><span class="nav-text"> 4.4 存储器技术与优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E5%99%A8-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="nav-text"> 4.5 虚拟存储器-基本原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#46-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 4.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#47-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 4.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 5 指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%8F%8A%E9%9D%99%E6%80%81%E6%8C%87%E4%BB%A4%E6%B5%81%E8%B0%83%E5%BA%A6"><span class="nav-text"> 5.1 指令级并行的基本概念及静态指令流调度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-%E7%A1%AC%E4%BB%B6%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 5.2 硬件方法挖掘指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-%E6%8C%87%E4%BB%A4%E6%B5%81%E5%8A%A8%E6%80%81%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E4%B9%8B%E4%B8%80scoreboard"><span class="nav-text"> 5.2.1 指令流动态调度方法之一：Scoreboard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-%E6%8C%87%E4%BB%A4%E6%B5%81%E5%8A%A8%E6%80%81%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E4%B9%8B%E4%BA%8Ctomasulo"><span class="nav-text"> 5.2.2 指令流动态调度方法之二：Tomasulo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E6%96%B9%E6%B3%95"><span class="nav-text"> 5.3 分支预测方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#531-%E6%8E%A7%E5%88%B6%E7%9B%B8%E5%85%B3%E5%AF%B9%E4%BA%8E%E6%80%A7%E8%83%BD%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-text"> 5.3.1 控制相关对于性能的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#532-%E5%9F%BA%E4%BA%8Ebht%E7%9A%84%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B"><span class="nav-text"> 5.3.2 基于BHT的分支预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#533-%E5%9F%BA%E4%BA%8Ebtb%E7%9A%84%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B"><span class="nav-text"> 5.3.3 基于BTB的分支预测</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E5%9F%BA%E4%BA%8E%E7%A1%AC%E4%BB%B6%E7%9A%84%E6%8E%A8%E6%B5%8B%E6%89%A7%E8%A1%8C"><span class="nav-text"> 5.4 基于硬件的推测执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#55-%E5%AD%98%E5%82%A8%E5%99%A8%E8%AE%BF%E9%97%AE%E5%86%B2%E7%AA%81%E6%B6%88%E8%A7%A3%E5%8F%8A%E5%A4%9A%E5%8F%91%E5%B0%84%E6%8A%80%E6%9C%AF"><span class="nav-text"> 5.5 存储器访问冲突消解及多发射技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#56-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF"><span class="nav-text"> 5.6 多线程技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#57-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 5.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%95%B0%E6%8D%AE%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 6 数据级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 6.1 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%A4%9A%E5%A4%84%E7%90%86%E5%99%A8%E5%8F%8A%E7%BA%BF%E7%A8%8B%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 7 多处理器及线程级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 7.1 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 8 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%8F%82%E8%80%83"><span class="nav-text"> 9 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text"> 1 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%BC%95%E8%A8%80"><span class="nav-text"> 1.1 引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E9%87%8F%E5%8C%96%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80"><span class="nav-text"> 1.2 量化设计与分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%AE%9A%E9%87%8F%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80"><span class="nav-text"> 1.3 定量分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 1.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-isa"><span class="nav-text"> 2 ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-isa%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 2.1 ISA的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-isa%E7%9A%84%E5%8A%9F%E8%83%BD%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 2.2 ISA的功能设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-cisc"><span class="nav-text"> 2.2.1 CISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-risc"><span class="nav-text"> 2.2.2 RISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#223-%E5%85%B8%E5%9E%8Bisa"><span class="nav-text"> 2.2.3 典型ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2231-mips"><span class="nav-text"> 2.2.3.1 MIPS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2232-sparc"><span class="nav-text"> 2.2.3.2 SPARC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2233-alphadec"><span class="nav-text"> 2.2.3.3 Alpha（DEC）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2234-armv7"><span class="nav-text"> 2.2.3.4 ARMv7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2235-armv8"><span class="nav-text"> 2.2.3.5 ARMv8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2236-openrisc"><span class="nav-text"> 2.2.3.6 OpenRISC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2237-80x86"><span class="nav-text"> 2.2.3.7 80x86</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2238-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 2.2.3.8 小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-isa%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 2.3 ISA的实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 2.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text"> 3 基本流水线</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text"> 3.1 基本流水线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF%E7%9A%84%E6%89%A9%E5%B1%95"><span class="nav-text"> 3.2 基本流水线的扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-text"> 3.2.1 异常处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#322-%E5%A4%9A%E5%91%A8%E6%9C%9F%E6%93%8D%E4%BD%9C"><span class="nav-text"> 3.2.2 多周期操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#323-mips-r4000"><span class="nav-text"> 3.2.3 MIPS R4000</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 3.3 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 3.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%AD%98%E5%82%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 4 存储层次结构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-cache%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 4.1 Cache的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-cache%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.2 Cache的基本优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#421-%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.2.1 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#422-%E5%87%8F%E5%B0%8F%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80"><span class="nav-text"> 4.2.2 减小失效开销</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-cache%E7%9A%84%E9%AB%98%E7%BA%A7%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.3 Cache的高级优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-%E7%BC%A9%E7%9F%AD%E5%91%BD%E4%B8%AD%E6%97%B6%E9%97%B4"><span class="nav-text"> 4.3.1 缩短命中时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-%E5%A2%9E%E5%8A%A0cache%E5%B8%A6%E5%AE%BD"><span class="nav-text"> 4.3.2 增加Cache带宽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#433-%E5%87%8F%E5%B0%8F%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80"><span class="nav-text"> 4.3.3 减小失效开销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#434-%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.3.4 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#435-%E9%80%9A%E8%BF%87%E5%B9%B6%E8%A1%8C%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80%E6%88%96%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.3.5 通过并行降低失效开销或失效率</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-%E5%AD%98%E5%82%A8%E5%99%A8%E6%8A%80%E6%9C%AF%E4%B8%8E%E4%BC%98%E5%8C%96"><span class="nav-text"> 4.4 存储器技术与优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E5%99%A8-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="nav-text"> 4.5 虚拟存储器-基本原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#46-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 4.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#47-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 4.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 5 指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%8F%8A%E9%9D%99%E6%80%81%E6%8C%87%E4%BB%A4%E6%B5%81%E8%B0%83%E5%BA%A6"><span class="nav-text"> 5.1 指令级并行的基本概念及静态指令流调度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-%E7%A1%AC%E4%BB%B6%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 5.2 硬件方法挖掘指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-%E6%8C%87%E4%BB%A4%E6%B5%81%E5%8A%A8%E6%80%81%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E4%B9%8B%E4%B8%80scoreboard"><span class="nav-text"> 5.2.1 指令流动态调度方法之一：Scoreboard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-%E6%8C%87%E4%BB%A4%E6%B5%81%E5%8A%A8%E6%80%81%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E4%B9%8B%E4%BA%8Ctomasulo"><span class="nav-text"> 5.2.2 指令流动态调度方法之二：Tomasulo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E6%96%B9%E6%B3%95"><span class="nav-text"> 5.3 分支预测方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#531-%E6%8E%A7%E5%88%B6%E7%9B%B8%E5%85%B3%E5%AF%B9%E4%BA%8E%E6%80%A7%E8%83%BD%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-text"> 5.3.1 控制相关对于性能的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#532-%E5%9F%BA%E4%BA%8Ebht%E7%9A%84%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B"><span class="nav-text"> 5.3.2 基于BHT的分支预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#533-%E5%9F%BA%E4%BA%8Ebtb%E7%9A%84%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B"><span class="nav-text"> 5.3.3 基于BTB的分支预测</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E5%9F%BA%E4%BA%8E%E7%A1%AC%E4%BB%B6%E7%9A%84%E6%8E%A8%E6%B5%8B%E6%89%A7%E8%A1%8C"><span class="nav-text"> 5.4 基于硬件的推测执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#55-%E5%AD%98%E5%82%A8%E5%99%A8%E8%AE%BF%E9%97%AE%E5%86%B2%E7%AA%81%E6%B6%88%E8%A7%A3%E5%8F%8A%E5%A4%9A%E5%8F%91%E5%B0%84%E6%8A%80%E6%9C%AF"><span class="nav-text"> 5.5 存储器访问冲突消解及多发射技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#56-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF"><span class="nav-text"> 5.6 多线程技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#57-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 5.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%95%B0%E6%8D%AE%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 6 数据级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-%E5%90%91%E9%87%8F%E5%A4%84%E7%90%86%E6%9C%BA%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.1 向量处理机模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-%E5%90%91%E9%87%8F%E5%A4%84%E7%90%86%E6%9C%BA%E6%A8%A1%E5%9E%8B%E4%BC%98%E5%8C%96"><span class="nav-text"> 6.2 向量处理机模型优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-%E9%93%BE%E6%8E%A5%E4%BC%98%E5%8C%96"><span class="nav-text"> 6.2.1 链接优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-%E6%9D%A1%E4%BB%B6%E6%89%A7%E8%A1%8C"><span class="nav-text"> 6.2.2 条件执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-%E7%A8%80%E7%96%8F%E7%9F%A9%E9%98%B5"><span class="nav-text"> 6.2.3 稀疏矩阵</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-%E9%9D%A2%E5%90%91%E5%A4%9A%E5%AA%92%E4%BD%93%E5%BA%94%E7%94%A8%E7%9A%84simd%E6%8C%87%E4%BB%A4%E9%9B%86%E6%89%A9%E5%B1%95"><span class="nav-text"> 6.3 面向多媒体应用的SIMD指令集扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#64-gpu-1"><span class="nav-text"> 6.4 GPU-1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#65-gpu-2"><span class="nav-text"> 6.5 GPU-2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#66-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 6.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#67-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 6.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%A4%9A%E5%A4%84%E7%90%86%E5%99%A8%E5%8F%8A%E7%BA%BF%E7%A8%8B%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 7 多处理器及线程级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 7.1 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 8 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%8F%82%E8%80%83"><span class="nav-text"> 9 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -3129,14 +3296,14 @@ $\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">325</span>
+          <span class="site-state-item-count">286</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">123</span>
+        <span class="site-state-item-count">106</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
