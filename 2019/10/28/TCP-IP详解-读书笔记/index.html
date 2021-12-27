@@ -36,8 +36,10 @@
 <meta property="og:image" content="http://example.com/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/13-6-1.jpg">
 <meta property="og:image" content="http://example.com/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/14-3-1.jpg">
 <meta property="og:image" content="http://example.com/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/14-3-2.jpg">
+<meta property="og:image" content="http://example.com/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/flow_control.jpeg">
+<meta property="og:image" content="http://example.com/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/cwnd.png">
 <meta property="article:published_time" content="2019-10-28T09:46:22.000Z">
-<meta property="article:modified_time" content="2021-10-10T09:02:29.128Z">
+<meta property="article:modified_time" content="2021-12-25T05:46:06.746Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -239,7 +241,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-10 17:02:29" itemprop="dateModified" datetime="2021-10-10T17:02:29+08:00">2021-10-10</time>
+                <time title="修改时间：2021-12-25 13:46:06" itemprop="dateModified" datetime="2021-12-25T13:46:06+08:00">2021-12-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -456,10 +458,10 @@
 <ul>
 <li>接收方是否已收到分组</li>
 <li>接收方收到的分组是否与之前发送方发送的一样</li>
-<li>接收方给发送方发信号以确认自己已经接收到一个分组，这种方法称为确认（acknowledgment），或ACK。当发送方接收到这个ACK，它再发送另一个分组，这个过程就这样继续，但是会出现一些有意思的问题
+<li>接收方给发送方发信号以确认自己已经接收到一个分组，这种方法称为确认（acknowledgment），或<code>ACK</code>。当发送方接收到这个<code>ACK</code>，它再发送另一个分组，这个过程就这样继续，但是会出现一些有意思的问题
 <ol>
-<li>发送方对一个ACK应该等待多长时间？</li>
-<li>如果ACK丢失了怎么办？</li>
+<li>发送方对一个<code>ACK</code>应该等待多长时间？</li>
+<li>如果<code>ACK</code>丢失了怎么办？</li>
 <li>如果分组被接收到了，但是里面有错怎么办？</li>
 </ol>
 </li>
@@ -474,7 +476,7 @@
 <li>术语窗口来自这样的想法：如果你把在一个通信对话中发送的所有分组排成长长的一行，但只能通过一个小孔来观察它们，你就只能看到它们的一个自己—通过一个窗口观看一样</li>
 </ul>
 </li>
-<li>当分组窗口中最左边的分组已收到ACK之后，窗口左侧的边界便可向右移动一格；窗口原右侧边界之外的第一个分组可以进入发送状态，随机进入分组窗口中，于是窗口的右侧边界便可向右移动一格，这便形成了分组窗口的滑动</li>
+<li>当分组窗口中最左边的分组已收到<code>ACK</code>之后，窗口左侧的边界便可向右移动一格；窗口原右侧边界之外的第一个分组可以进入发送状态，随机进入分组窗口中，于是窗口的右侧边界便可向右移动一格，这便形成了分组窗口的滑动</li>
 </ol>
 <p><strong>变量窗口：流量控制和拥塞控制</strong></p>
 <ol>
@@ -492,16 +494,16 @@
 <li>发送方在重发一个分组之前应等待的时间量大概是下面时间的总和
 <ol>
 <li>发送分组所用的时间</li>
-<li>接收方处理它和发送一个ACK所用的时间</li>
-<li>ACK返回到发送方所用的时间</li>
-<li>以及发送方处理ACK所用的时间</li>
+<li>接收方处理它和发送一个<code>ACK</code>所用的时间</li>
+<li><code>ACK</code>返回到发送方所用的时间</li>
+<li>以及发送方处理<code>ACK</code>所用的时间</li>
 </ol>
 <ul>
 <li>遗憾的是，上述这些时间没有一个是固定不变的，都是随着环境的变化而变化的</li>
 </ul>
 </li>
-<li>一个更好的策略是让协议实现尝试去估计这个重传超时时间，这称为往返时间估计（round-trip-time estimation, RTT），这是一个统计过程。总的来说，选择一组RTT样本的样本均值作为真实的RTT是最有可能的，这个平均值很自然地会随着时间而改变，因为通信穿过的网络路径可能会改变</li>
-<li>把重传超时时间设置为RTT均值是不合理的，因为很有可能许多实际的RTT将会比较大，从而会导致不必要的重传</li>
+<li>一个更好的策略是让协议实现尝试去估计这个重传超时时间，这称为往返时间估计（<code>round-trip-time estimation, RTT</code>），这是一个统计过程。总的来说，选择一组<code>RTT</code>样本的样本均值作为真实的<code>RTT</code>是最有可能的，这个平均值很自然地会随着时间而改变，因为通信穿过的网络路径可能会改变</li>
+<li>把重传超时时间设置为<code>RTT</code>均值是不合理的，因为很有可能许多实际的<code>RTT</code>将会比较大，从而会导致不必要的重传</li>
 </ol>
 <p><strong>TCP服务模型</strong></p>
 <ol>
@@ -525,19 +527,19 @@
 </li>
 <li>TCP建连步骤如下：
 <ol>
-<li>主动开启者（通常称为客户端）发送一个SYN报文段，并指明自己想要连接的端口号和它的客户端初始序列号（<code>ISN(c)</code>）</li>
-<li>服务器也发送自己的SYN报文段作为响应，并包含了它的初始序列号（<code>ISN(s)</code>）。此外，为了确认客户端的SYN，服务器将其包含的<code>ISN(c)</code>数值加1后作为返回的ACK数值。因此，每发送一个SYN，序列号就会自动加1。这样如果出现丢失的情况，该SYN段将会重传</li>
-<li>为了确认服务器的SYN，客户端将<code>ISN(s)</code>的数值加1后作为返回的ACK值</li>
+<li>主动开启者（通常称为客户端）发送一个<code>SYN</code>报文段，并指明自己想要连接的端口号和它的客户端初始序列号（<code>ISN(c)</code>）</li>
+<li>服务器也发送自己的<code>SYN</code>报文段作为响应，并包含了它的初始序列号（<code>ISN(s)</code>）。此外，为了确认客户端的<code>SYN</code>，服务器将其包含的<code>ISN(c)</code>数值加1后作为返回的<code>ACK</code>数值。因此，每发送一个<code>SYN</code>，序列号就会自动加<code>1</code>。这样如果出现丢失的情况，该<code>SYN</code>段将会重传</li>
+<li>为了确认服务器的<code>SYN</code>，客户端将<code>ISN(s)</code>的数值加<code>1</code>后作为返回的<code>ACK</code>值</li>
 </ol>
 <ul>
-<li>三次握手的目的不仅在于让通信双方了解一个连接正在建立，还在于利用数据包的选项来承载特殊的信息，交换初始序列号（Initial Sequence Number, ISN）</li>
+<li>三次握手的目的不仅在于让通信双方了解一个连接正在建立，还在于利用数据包的选项来承载特殊的信息，交换初始序列号（<code>Initial Sequence Number, ISN</code>）</li>
 </ul>
 </li>
 <li>TCP关闭步骤如下：
 <ol>
-<li>连接的主动关闭者发送一个FIN报文段，指明接受者希望看到的自己当前的序列号（图中的<code>K</code>），FIN段还包含了一个ACK段用于确认对方最近一次发来的数据（图中的<code>L</code>）</li>
-<li>连接的被动关闭者将<code>K</code>的数值加1作为响应的ACK值，以表明它已经成功接收到主动关闭者发送的<code>FIN</code>。此时，上层的应用程序会被告知连接的另一端已经提出了关闭的请求。通常，这将导致应用程序发起自己的关闭操作。接着，被动关闭者将身份转变为主动关闭者，并发送自己的FIN。该报文段的序列号为<code>L</code></li>
-<li>为了完成连接的关闭，最后发送的报文段还包含一个ACK用于确认上一个FIN。值得注意的是，如果出现FIN丢失的情况，那么发送方将重新传输直到接收到一个ACK确认为止</li>
+<li>连接的主动关闭者发送一个<code>FIN</code>报文段，指明接受者希望看到的自己当前的序列号（图中的<code>K</code>），<code>FIN</code>段还包含了一个<code>ACK</code>段用于确认对方最近一次发来的数据（图中的<code>L</code>）</li>
+<li>连接的被动关闭者将<code>K</code>的数值加1作为响应的<code>ACK</code>值，以表明它已经成功接收到主动关闭者发送的<code>FIN</code>。此时，上层的应用程序会被告知连接的另一端已经提出了关闭的请求。通常，这将导致应用程序发起自己的关闭操作。接着，被动关闭者将身份转变为主动关闭者，并发送自己的<code>FIN</code>。该报文段的序列号为<code>L</code></li>
+<li>为了完成连接的关闭，最后发送的报文段还包含一个<code>ACK</code>用于确认上一个<code>FIN</code>。值得注意的是，如果出现<code>FIN</code>丢失的情况，那么发送方将重新传输直到接收到一个<code>ACK</code>确认为止</li>
 </ol>
 </li>
 <li>通常情况下，建立一个TCP连接需要3个报文段，而关闭一个TCP连接需要4个报文段。此外，TCP的通信模型是双向的，因此还支持半开启/半关闭（很少见）
@@ -549,14 +551,14 @@
 </li>
 <li>伯克利套接字的API提供了半关闭操作，用<code>shutdown()</code>来代替<code>close()</code>
 <ul>
-<li>首次发送的两个报文段，与TCP正常关闭时完全相同：主动关闭者发送FIN，被动关闭者回应该FIN的ACK</li>
+<li>首次发送的两个报文段，与TCP正常关闭时完全相同：主动关闭者发送<code>FIN</code>，被动关闭者回应该<code>FIN</code>的<code>ACK</code></li>
 <li>被动关闭者可以发送任意数量的数据段</li>
-<li>当被动关闭者完成数据发送后，他将会发送一个FIN来关闭本方连接，同时向发起半关闭的应用程序发出一个文件尾提示</li>
-<li>当第二个FIN被确认后，整个连接完全关闭</li>
+<li>当被动关闭者完成数据发送后，他将会发送一个<code>FIN</code>来关闭本方连接，同时向发起半关闭的应用程序发出一个文件尾提示</li>
+<li>当第二个<code>FIN</code>被确认后，整个连接完全关闭</li>
 <li><img src="/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/13-2-2.jpg" alt="fig" /></li>
 </ul>
 </li>
-<li>同时打开：通信双方在接收到来自对方的SYN之前必须先发送一个SYN（这种情况其实非常少见，但是对于TCP协议的实现来说，必须要考虑这种情况）。
+<li>同时打开：通信双方在接收到来自对方的<code>SYN</code>之前必须先发送一个<code>SYN</code>（这种情况其实非常少见，但是对于TCP协议的实现来说，必须要考虑这种情况）。
 <ul>
 <li>同时打开过程需要交换4个报文段，比普通的三次握手增加了一个</li>
 <li><img src="/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/13-2-3.jpg" alt="fig" /></li>
@@ -569,7 +571,7 @@
 </li>
 <li>初始序列号：TCP报文段在经过网络路由后可能会存在延迟抵达与排序混乱的情况，初始序列号就是为了解决这个问题
 <ul>
-<li>在发送用于建立连接的SYN之前通信双方都会选择一个初始序列号。初始序列号会随着时间递增，它被设计成一个32位的计数器，该计数器每4微妙增加1</li>
+<li>在发送用于建立连接的<code>SYN</code>之前通信双方都会选择一个初始序列号。初始序列号会随着时间递增，它被设计成一个32位的计数器，该计数器每4微妙增加1</li>
 <li>TCP连接由四元组确定，因此即便是同一个连接也会出现不同的实例（同样的四元组建连关闭，再建连再关闭，就是2个不同的实例）</li>
 <li>一个TCP报文段只有同时具备连接的四元组与当前活动窗口的序列号，才会在通信过程中被对方认为是正确的的。这也侧面反映了TCP的脆弱性。如果不加以限制，任何人只要知道四元组，就能伪造TCP报文段，从而干扰正常连接</li>
 <li>现代系统通常采用半随机的方法选择初始序列号</li>
@@ -577,8 +579,8 @@
 </li>
 <li>连接建立超时
 <ul>
-<li><code>net.ipv4.tcp_syn_retries(/proc/sys/net/ipv4/tcp_syn_retries)</code>：一次主动打开申请中尝试重新发送SYN报文段的最大次数</li>
-<li><code>net.ipv4.tcp_synack_retries(/proc/sys/net/ipv4/tcp_synack_retries)</code>：表示响应对方的一个主动打开请求时尝试重新发送SYNC+ACK报文段的最大次数</li>
+<li><code>net.ipv4.tcp_syn_retries(/proc/sys/net/ipv4/tcp_syn_retries)</code>：一次主动打开申请中尝试重新发送<code>SYN</code>报文段的最大次数</li>
+<li><code>net.ipv4.tcp_synack_retries(/proc/sys/net/ipv4/tcp_synack_retries)</code>：表示响应对方的一个主动打开请求时尝试重新发送<code>SYN+ACK</code>报文段的最大次数</li>
 </ul>
 </li>
 </ol>
@@ -597,77 +599,77 @@
 <tr>
 <td style="text-align:left">0</td>
 <td style="text-align:left">1</td>
-<td style="text-align:left">EOL</td>
+<td style="text-align:left"><code>EOL</code></td>
 <td style="text-align:left">[RFC0793]</td>
 <td style="text-align:left">选项列表结束</td>
 </tr>
 <tr>
 <td style="text-align:left">1</td>
 <td style="text-align:left">1</td>
-<td style="text-align:left">NOP</td>
+<td style="text-align:left"><code>NOP</code></td>
 <td style="text-align:left">[RFC0793]</td>
 <td style="text-align:left">无操作（用于填补）</td>
 </tr>
 <tr>
 <td style="text-align:left">2</td>
 <td style="text-align:left">4</td>
-<td style="text-align:left">MSS</td>
+<td style="text-align:left"><code>MSS</code></td>
 <td style="text-align:left">[RFC0793]</td>
 <td style="text-align:left">最大段大小</td>
 </tr>
 <tr>
 <td style="text-align:left">3</td>
 <td style="text-align:left">3</td>
-<td style="text-align:left"><strong>WSOPT</strong></td>
+<td style="text-align:left"><strong><code>WSOPT</code></strong></td>
 <td style="text-align:left">[RFC01323]</td>
 <td style="text-align:left"><strong>窗口放缩因子</strong></td>
 </tr>
 <tr>
 <td style="text-align:left">4</td>
 <td style="text-align:left">2</td>
-<td style="text-align:left">SACK-Permitted</td>
+<td style="text-align:left"><code>SACK-Permitted</code></td>
 <td style="text-align:left">[RFC02018]</td>
-<td style="text-align:left">发送者支持SACK选项</td>
+<td style="text-align:left">发送者支持<code>SACK</code>选项</td>
 </tr>
 <tr>
 <td style="text-align:left">5</td>
 <td style="text-align:left">可变</td>
-<td style="text-align:left">SACK</td>
+<td style="text-align:left"><code>SACK</code></td>
 <td style="text-align:left">[RFC02018]</td>
-<td style="text-align:left">SACK阻塞（接收到乱序数据）</td>
+<td style="text-align:left"><code>SACK</code>阻塞（接收到乱序数据）</td>
 </tr>
 <tr>
 <td style="text-align:left">8</td>
 <td style="text-align:left">10</td>
-<td style="text-align:left">TSOPT</td>
+<td style="text-align:left"><code>TSOPT</code></td>
 <td style="text-align:left">[RFC01323]</td>
 <td style="text-align:left">时间戳选项</td>
 </tr>
 <tr>
 <td style="text-align:left">28</td>
 <td style="text-align:left">4</td>
-<td style="text-align:left">UTO</td>
+<td style="text-align:left"><code>UTO</code></td>
 <td style="text-align:left">[RFC05482]</td>
 <td style="text-align:left">用户超时（一段空闲时间后的终止）</td>
 </tr>
 <tr>
 <td style="text-align:left">29</td>
 <td style="text-align:left">可变</td>
-<td style="text-align:left">TCP-AO</td>
+<td style="text-align:left"><code>TCP-AO</code></td>
 <td style="text-align:left">[RFC05925]</td>
 <td style="text-align:left">认证选项（使用多种算法)</td>
 </tr>
 <tr>
 <td style="text-align:left">253</td>
 <td style="text-align:left">可变</td>
-<td style="text-align:left">Experimental</td>
+<td style="text-align:left"><code>Experimental</code></td>
 <td style="text-align:left">[RFC04727]</td>
 <td style="text-align:left">保留供实验室所用</td>
 </tr>
 <tr>
 <td style="text-align:left">254</td>
 <td style="text-align:left">可变</td>
-<td style="text-align:left">Experimental</td>
+<td style="text-align:left"><code>Experimental</code></td>
 <td style="text-align:left">[RFC04727]</td>
 <td style="text-align:left">保留供实验室所用</td>
 </tr>
@@ -682,21 +684,21 @@
 </ol>
 <h3 id="922-选择确认选项"><a class="markdownIt-Anchor" href="#922-选择确认选项"></a> 9.2.2 选择确认选项</h3>
 <ol>
-<li>TCP的选择确认选项（SACK）能够让发送方了解到接收方的窗口信息，从而能够更好地进行重传</li>
-<li>SACK选项包含了一组SACK块，每个SACK块包含了接收方已经成功接收的数据块的序列号范围，由一对32位的序列号表示。因此，一个SACK选项包含了n个SACK块，长度为(8n+2)</li>
-<li>同时，由于TCP头部选项空间是有限的。因此，一个报文段中发送的最大SACK块的数量为3</li>
+<li>TCP的选择确认选项（<code>SACK</code>）能够让发送方了解到接收方的窗口信息，从而能够更好地进行重传</li>
+<li><code>SACK</code>选项包含了一组<code>SACK</code>块，每个<code>SACK</code>块包含了接收方已经成功接收的数据块的序列号范围，由一对32位的序列号表示。因此，一个<code>SACK</code>选项包含了n个<code>SACK</code>块，长度为(8n+2)</li>
+<li>同时，由于TCP头部选项空间是有限的。因此，一个报文段中发送的最大<code>SACK</code>块的数量为3</li>
 </ol>
 <h3 id="923-窗口缩放因子"><a class="markdownIt-Anchor" href="#923-窗口缩放因子"></a> 9.2.3 窗口缩放因子</h3>
 <ol>
 <li>根据[RFC1323]，窗口缩放选项（表示为<code>WSCALE</code>或<code>WSOPT</code>）能够有效地将TCP窗口字段的范围从16位增加至30位。TCP头部不需要改变窗口字段的大小，仍然维持16位的数值。同时，使用另一个选项作为这16位数值的比例因子。该比例因子能够使窗口字段有效地左移</li>
 <li>比例因子最小是0，最大是14，当比例因子是14时，能提供一个最大为$(65536\ *\ 2^{14})$的窗口，该数据接近1GB。因此TCP使用一个32位的值来维护这个&quot;真实&quot;的窗口大小</li>
-<li>该选项只能出现于一个SYN报文段中。因此当连接建立之后，比例因子也是与方向有关的。为了保证窗口的调整，通信双方都需要在SYN报文段中包含该选项</li>
+<li>该选项只能出现于一个<code>SYN</code>报文段中。因此当连接建立之后，比例因子也是与方向有关的。为了保证窗口的调整，通信双方都需要在<code>SYN</code>报文段中包含该选项</li>
 <li>默认的比例因子是0</li>
 </ol>
 <h3 id="924-时间戳选项与防回绕序列号"><a class="markdownIt-Anchor" href="#924-时间戳选项与防回绕序列号"></a> 9.2.4 时间戳选项与防回绕序列号</h3>
 <ol>
-<li>时间戳选项（TSOPT）要求发送方在每个报文段中添加2个4字节的时间戳数值。接收方会在确认中反映这些数值（<code>原封不动传回去</code>），允许发送方针对每一个接收到的ACK估算TCP连接的往返时间（由于TCP协议经常利用一个ACK来确认多个报文段，此处必须指出“是每个接收到的ACK”而不是“每个报文段”）。关于这部分细节，在<code>TCP数据流与窗口管理</code>一章中会详细讨论，这里不展开</li>
-<li>该选项并不要求在两台主机之间进行任何形式的时钟同步（比如一端用的是北京时间，一端用的是纽约时间），<strong>两个时间戳都是同一侧产生的（发送方发包时产生一个时间戳，发送方接收ACK时产生一个时间戳，根据这两个时间戳的差值便可计算）</strong>，因此只要每一端保证单调递增即可</li>
+<li>时间戳选项（<code>TSOPT</code>）要求发送方在每个报文段中添加2个4字节的时间戳数值。接收方会在确认中反映这些数值（<code>原封不动传回去</code>），允许发送方针对每一个接收到的<code>ACK</code>估算TCP连接的往返时间（由于TCP协议经常利用一个<code>ACK</code>来确认多个报文段，此处必须指出“是每个接收到的<code>ACK</code>”而不是“每个报文段”）。关于这部分细节，在<code>TCP数据流与窗口管理</code>一章中会详细讨论，这里不展开</li>
+<li>该选项并不要求在两台主机之间进行任何形式的时钟同步（比如一端用的是北京时间，一端用的是纽约时间），<strong>两个时间戳都是同一侧产生的（发送方发包时产生一个时间戳，发送方接收<code>ACK</code>时产生一个时间戳，根据这两个时间戳的差值便可计算）</strong>，因此只要每一端保证单调递增即可</li>
 <li>TCP的序列号是32位的，是个有限的数值，因此它是会循环的。而时间戳选项可以帮助<code>接收者</code>有效区分新旧报文，这被称为<code>防回绕序列号（Protection Against Wrapped Sequence numbers, PAWS）</code>
 <ul>
 <li>如果报文段的时间戳与当前时间戳的间隔超过<code>MSL（一个报文段在网络中存在的最大时间）</code>时，根据防回绕序列号算法，会将其丢弃</li>
@@ -706,7 +708,7 @@
 </ol>
 <h3 id="925-用户超时选项"><a class="markdownIt-Anchor" href="#925-用户超时选项"></a> 9.2.5 用户超时选项</h3>
 <ol>
-<li><code>用户超时（UTO）</code>选项的数值<code>USER_TIMEOUT</code>指明了TCP发送者在确认对方未能成功接收数据之前愿意等待该数据ACK确认的时间</li>
+<li><code>用户超时（UTO）</code>选项的数值<code>USER_TIMEOUT</code>指明了TCP发送者在确认对方未能成功接收数据之前愿意等待该数据<code>ACK</code>确认的时间</li>
 <li>用户超时选项的数值是建议性的，另一端并不一定要遵从</li>
 <li>一般建议值如下
 <ul>
@@ -731,7 +733,7 @@
 </li>
 <li>TCP常规的路径最大传输单元发现过程如下：
 <ol>
-<li>在一个连接建立时，TCP使用对外接口的最大传输单元的最小值，或者根据通信对方声明的最大段大小来选择发送方的最大段大小（SMSS）。<code>路径最大传输单元发现</code>不允许TCP发送方有超过另一方声明的最大段大小的行为。如果对方没有指明最大段大小的数值，发送方将假设采用默认的536字节</li>
+<li>在一个连接建立时，TCP使用对外接口的最大传输单元的最小值，或者根据通信对方声明的最大段大小来选择发送方的最大段大小（<code>SMSS</code>）。<code>路径最大传输单元发现</code>不允许TCP发送方有超过另一方声明的最大段大小的行为。如果对方没有指明最大段大小的数值，发送方将假设采用默认的536字节</li>
 <li>一旦为发送方的最大段大小选定了初始值，TCP通过这条连接发送的所有IPv4数据报都会对DF位字段进行设置。<strong>TCP/IP没有DF位字段，因此只需要假设所有的数据报都已经设置了该字段而不必进行实际操作</strong></li>
 <li>如果接收到了PTB消息，TCP就会减少段的大小，然后用修改过的段进行重传。如果在PTB消息中已经包含了下一跳推荐的最大传输单元，数据段大小的数值可以设置为下一跳最大传输单元的数值减去IPv4（或IPv6）与TCP头部的大小；如果下一跳最大传输单元的数值不存在，发现者可能需要尝试多个数值（例如二分法）</li>
 <li>由于路由是动态变化的，在减少段大小的数值一段时间后需要尝试一个更大的数值（接近初始的发送方最大段大小），该时间间隔大约为10分钟</li>
@@ -762,81 +764,101 @@
 </ol>
 <p><img src="/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/13-5-2.jpg" alt="fig" /></p>
 <ol>
-<li><code>SYN_SENT</code>：主动发起者发出SYN(K)后，进入到该状态，等待对方回复ACK(K+1)</li>
-<li><code>SYN_RCVD</code>：被动发起者收到SYN(K)，且回复ACK(K+1)以及SYN(L)之后，进入到该状态，等待对方回复ACK(L+1)</li>
-<li><code>ESTABLISHED</code>：有两种情况
+<li><strong><code>SYN_SENT</code></strong>：主动发起者发出<code>SYN(K)</code>后，进入到该状态，等待对方回复<code>ACK(K+1)</code></li>
+<li><strong><code>SYN_RCVD</code></strong>：被动发起者收到<code>SYN(K)</code>，且回复<code>ACK(K+1)</code>以及<code>SYN(L)</code>之后，进入到该状态，等待对方回复<code>ACK(L+1)</code></li>
+<li><strong><code>ESTABLISHED</code></strong>：有两种情况
 <ul>
-<li>主动发起者收到ACK(K+1)以及SYN(L)，并回复ACK(L+1)之后，进入到该状态</li>
-<li>被动发起者收到ACK(L+1)之后，进入到该状态</li>
+<li>主动发起者收到<code>ACK(K+1)</code>以及<code>SYN(L)</code>，并回复<code>ACK(L+1)</code>之后，进入到该状态</li>
+<li>被动发起者收到<code>ACK(L+1)</code>之后，进入到该状态</li>
 </ul>
 </li>
-<li><code>FIN_WAIT_1</code>：主动关闭者发送FIN(M)之后，进入到该状态</li>
-<li><code>CLOSE_WAIT</code>：被动关闭者收到FIN(M)之后，并回复ACK(M+1)之后，进入到该状态。此时，连接的一个方向已关闭，等待另一个方向的数据传输完毕并发送FIN</li>
-<li><code>FIN_WAIT_2</code>：主动关闭者收到对方发送的ACK(M+1)之后，进入到该状态。此时，连接的一个方向已关闭，等待另一个方向的数据传输完毕并发送FIN</li>
-<li><code>LAST_ACK</code>：被动关闭者传输完毕所有数据，发送FIN(N)之后，进入到该状态</li>
-<li><code>TIME_WAIT</code>：主动关闭者收到FIN(N)，且回复ACK(N+1)之后，进入到该状态</li>
-<li><code>CLOSED</code>：有两种情况
+<li><strong><code>FIN_WAIT_1</code></strong>：主动关闭者发送<code>FIN(M)</code>之后，进入到该状态</li>
+<li><strong><code>CLOSE_WAIT</code></strong>：被动关闭者收到<code>FIN(M)</code>之后，并回复<code>ACK(M+1)</code>之后，进入到该状态。此时，连接的一个方向已关闭，等待另一个方向的数据传输完毕并发送<code>FIN</code></li>
+<li><strong><code>FIN_WAIT_2</code></strong>：主动关闭者收到对方发送的<code>ACK(M+1)</code>之后，进入到该状态。此时，连接的一个方向已关闭，等待另一个方向的数据传输完毕并发送<code>FIN</code></li>
+<li><strong><code>LAST_ACK</code></strong>：被动关闭者传输完毕所有数据，发送<code>FIN(N)</code>之后，进入到该状态</li>
+<li><strong><code>TIME_WAIT</code></strong>：主动关闭者收到<code>FIN(N)</code>，且回复<code>ACK(N+1)</code>之后，进入到该状态</li>
+<li><strong><code>CLOSED</code></strong>：有两种情况
 <ul>
-<li>当被动关闭者收到ACK(N+1)之后，进入到该状态</li>
+<li>当被动关闭者收到<code>ACK(N+1)</code>之后，进入到该状态</li>
 <li>当主动关闭者等待<code>2MSL</code>之后，将会从<code>TIME_WAIT</code>进入到该状态</li>
 </ul>
 </li>
 </ol>
 <h3 id="941-time_wait状态"><a class="markdownIt-Anchor" href="#941-time_wait状态"></a> 9.4.1 TIME_WAIT状态</h3>
 <ol>
-<li><code>TIME_WAIT</code>状态也称为<code>2MSL</code>等待状态。在该状态中，TCP将会等待两倍于最大段生存期（Maximum Segment Lifetime，MSL）的时间，有时也被称作加倍等待。它代表任何报文段在被丢弃前在网络中被允许存在的最长时间。这个时间是有限的，因为TCP报文段是以IP数据报的形式传输的，IP数据报拥有TTL字段和条数限制字段。这两个字段限制了IP数据报的有效生存时间</li>
+<li><code>TIME_WAIT</code>状态也称为<code>2MSL</code>等待状态。在该状态中，TCP将会等待两倍于最大段生存期（<code>Maximum Segment Lifetime，MSL</code>）的时间，有时也被称作加倍等待。它代表任何报文段在被丢弃前在网络中被允许存在的最长时间。这个时间是有限的，因为TCP报文段是以IP数据报的形式传输的，IP数据报拥有TTL字段和条数限制字段。这两个字段限制了IP数据报的有效生存时间</li>
 <li>[RFC0793]将最大段生存期设置为2分钟。在常见的实现中，最大段生存期的数值可以为30秒、1分钟或2分钟。在linux系统中，<code>net.ipv4.tcp_fin_timeout（/proc/sys/net/ipv4/tcp_fin_timeout）</code>记录了<code>2MSL</code>状态需要等待的超时时间</li>
-<li>当TCP执行一个主动关闭并发送最终的ACK时，连接必须处于<code>TIME_WAIT</code>状态并持续两倍于最大生存期的时间。这样就能够让TCP重新发送最终的ACK以避免出现丢失的情况。重新发送最终的ACK并不是因为TCP重传了ACK（ACK不消耗序列号，也不会被TCP重传），而是因为通信另一方重传了它的FIN（它消耗一个序列号）。事实上，TCP总是重传FIN，直到它收到一个最终的ACK</li>
+<li>当TCP执行一个主动关闭并发送最终的<code>ACK</code>时，连接必须处于<code>TIME_WAIT</code>状态并持续两倍于最大生存期的时间。这样就能够让TCP重新发送最终的<code>ACK</code>以避免出现丢失的情况。重新发送最终的<code>ACK</code>并不是因为TCP重传了<code>ACK</code>（<code>ACK</code>不消耗序列号，也不会被TCP重传），而是因为通信另一方重传了它的<code>FIN</code>（它消耗一个序列号）。事实上，TCP总是重传<code>FIN</code>，直到它收到一个最终的<code>ACK</code></li>
 <li><strong>当TCP处于<code>2MSL</code>等待状态时，该连接（四元组）不可重新使用（一些实现施加了更加严格的约束，在这些系统中，如果一个端口号处于<code>2MSL</code>等待状态，那么该端口号将不能再次被使用）。许多实现和API都提供了绕开这一约束的方法，在伯克利套接字API中<code>SO_REUSEADDR</code>套接字选项就支持绕开该操作</strong></li>
 <li>对于交互式的应用程序而言，客户端通常执行主动关闭操作并进入<code>TIME_WAIT</code>状态，服务器通常执行被动关闭操作并且不会直接进入<code>TIME_WAIT</code>状态</li>
 </ol>
-<h3 id="942-静默时间的概念"><a class="markdownIt-Anchor" href="#942-静默时间的概念"></a> 9.4.2 静默时间的概念</h3>
+<p><strong><code>TCP/IP</code>设计<code>TIME_WAIT</code>状态有两个原因：</strong></p>
+<ol>
+<li><strong>可靠地实现TCP全双工连接的终止</strong>
+<ul>
+<li>TCP协议在关闭连接的四次握手过程中，最终的<code>ACK</code>是由主动关闭连接的一端（后面统称A端）发出的，<strong>如果这个<code>ACK</code>丢失，对方（后面统称B端）将重发出最终的<code>FIN</code>，因此A端必须维护状态信息（<code>TIME_WAIT</code>）允许它重发最终的<code>ACK</code></strong>。如果A端不维持<code>TIME_WAIT</code>状态，而是处于<code>CLOSED</code>状态，那么A端在收到<code>FIN</code>后将会响应<code>RST</code>而不是<code>ACK</code>，B端收到<code>RST</code>后将此分节解释成一个错误</li>
+<li>因而，要实现TCP全双工连接的正常终止，必须处理终止过程中四个分节任何一个分节的丢失情况，主动关闭连接的A端必须维持<code>TIME_WAIT</code>状态</li>
+</ul>
+</li>
+<li><strong>允许老的重复分节在网络中消逝</strong>
+<ul>
+<li>TCP分节可能由于路由器异常而迷途，在迷途期间，TCP发送端可能因确认超时而重发这个分节，迷途的分节在路由器修复后也会被送到最终目的地，这个迟到的迷途分节到达时可能会引起问题。在关闭前一个连接之后，马上又重新建立起一个相同的IP和端口之间的新连接，<strong>前一个连接的迷途重复分组在前一个连接终止后到达，而被新连接收到了</strong>。为了避免这个情况，TCP协议不允许处于<code>TIME_WAIT</code>状态的连接启动一个新的可用连接，<strong>因为<code>TIME_WAIT</code>状态持续<code>2MSL</code>，就可以保证当成功建立一个新TCP连接的时候，来自旧连接重复分组已经在网络中消逝</strong></li>
+</ul>
+</li>
+</ol>
+<p><strong>此外，处于<code>TIME_WAIT</code>状态下的tcp连接，不会占用文件描述符</strong></p>
+<h3 id="942-close_wait状态"><a class="markdownIt-Anchor" href="#942-close_wait状态"></a> 9.4.2 CLOSE_WAIT状态</h3>
+<p><strong>处于<code>CLOSE_WAIT</code>状态下的tcp连接，会占用文件描述符。如果系统中出现了大量的<code>CLOSE_WAIT</code>状态，可能会导致新的连接无法正常建立</strong></p>
+<h3 id="943-静默时间的概念"><a class="markdownIt-Anchor" href="#943-静默时间的概念"></a> 9.4.3 静默时间的概念</h3>
 <ol>
 <li>在TCP四元组都相同的情况下，<code>2MSL</code>状态能够防止新的连接将前一个连接的延迟报文段解释成自身数据的情况。如果一台处于<code>TIME_WAIT</code>状态下的连接相关联的主机崩溃，然后在<code>MSL</code>内重新启动，并且使用与主机崩溃之前处于<code>TIME_WAIT</code>状态的连接相同的IP地址与端口号，那么该连接在主机崩溃之前产生的延迟报文段会被认为属于主机重启后创建的新连接。<strong>为了防止上述情况发生，[RFC0793]指出在崩溃或重启后TCP协议应当在创建新的连接之前等待相当于一个<code>MSL</code>的时间。该段时间被称为静默时间（只有极少数TCP的实现遵循了这一点，因为如果上层的应用程序自己做了校验或加密，那么这种错误会很容易判断出来）</strong></li>
 </ol>
-<h3 id="943-fin_wait_2状态"><a class="markdownIt-Anchor" href="#943-fin_wait_2状态"></a> 9.4.3 FIN_WAIT_2状态</h3>
+<h3 id="944-fin_wait_2状态"><a class="markdownIt-Anchor" href="#944-fin_wait_2状态"></a> 9.4.4 FIN_WAIT_2状态</h3>
 <ol>
-<li><code>FIN_WAIT_2</code>状态表达式：某TCP通信端已发送一个FIN并已得到另一端的确认</li>
-<li>只有收到了另一端的FIN之后，才会从<code>FIN_WAIT_2</code>状态转移到<code>TIME_WAIT</code>状态，这意味着连接的一端能够永远保持这种状态（另一端会处于<code>CLOSED_WAIT</code>状态）</li>
+<li><code>FIN_WAIT_2</code>状态表达式：某TCP通信端已发送一个<code>FIN</code>并已得到另一端的确认</li>
+<li>只有收到了另一端的<code>FIN</code>之后，才会从<code>FIN_WAIT_2</code>状态转移到<code>TIME_WAIT</code>状态，这意味着连接的一端能够永远保持这种状态（另一端会处于<code>CLOSED_WAIT</code>状态）</li>
 <li>许多方法都能防止连接进入<code>FIN_WAIT_2</code>这一无限等待状态：如果负责关闭的应用程序执行的是一个完全关闭操作，而不是用一个半关闭来指明它还期望接收数据，那么就会设置一个计时器。如果当计时器超时时，连接是空闲的，那么TCP连接就会转移到<code>CLOSED</code>状态。在Linux中，可以通过调整<code>net.ipv4.tcp_fin_timeout（/proc/sys/net/ipv4/tcp_fin_timeout（）</code>的数值来设置计时器的秒数，默认是60s</li>
 </ol>
-<h3 id="944-同时打开与关闭的转换"><a class="markdownIt-Anchor" href="#944-同时打开与关闭的转换"></a> 9.4.4 同时打开与关闭的转换</h3>
+<h3 id="945-同时打开与关闭的转换"><a class="markdownIt-Anchor" href="#945-同时打开与关闭的转换"></a> 9.4.5 同时打开与关闭的转换</h3>
 <ol>
 <li>同时打开
 <ol>
-<li>通信两端几乎在相同的时刻都会发送一个SYN报文段，然后它们进入<code>SYN_SENT</code>状态</li>
-<li>当它们接收到对方发来的SYN报文段时会将状态迁移至<code>SYN_RCVD</code>，然后重新发送一个新的SYN并确认之前收到的SYN</li>
-<li>当通信两端都收到了SYN与ACK，它们的状态都会迁移至<code>ESTABLISHED</code>状态</li>
+<li>通信两端几乎在相同的时刻都会发送一个<code>SYN</code>报文段，然后它们进入<code>SYN_SENT</code>状态</li>
+<li>当它们接收到对方发来的<code>SYN</code>报文段时会将状态迁移至<code>SYN_RCVD</code>，然后重新发送一个新的<code>SYN</code>并确认之前收到的<code>SYN</code></li>
+<li>当通信两端都收到了<code>SYN</code>与<code>ACK</code>，它们的状态都会迁移至<code>ESTABLISHED</code>状态</li>
 </ol>
 </li>
 <li>同时关闭
 <ol>
-<li>通信两端的状态都会从<code>ESTABLISHED</code>状态迁移至<code>FIN_WAIT_1</code>状态。与此同时，都会向对方发送一个FIN</li>
-<li>在接收到对方发来的FIN之后，本地通信段的状态将从<code>FIN_WAIT_1</code>状态迁移至<code>CLOSING</code>状态，通信双方还会发送最终的ACK</li>
-<li>当接收到最终的ACK后，每个通信段会将状态更改为<code>TIME_WAIT</code>，从而初始化<code>2MSL</code>等待过程</li>
+<li>通信两端的状态都会从<code>ESTABLISHED</code>状态迁移至<code>FIN_WAIT_1</code>状态。与此同时，都会向对方发送一个<code>FIN</code></li>
+<li>在接收到对方发来的<code>FIN</code>之后，本地通信段的状态将从<code>FIN_WAIT_1</code>状态迁移至<code>CLOSING</code>状态，通信双方还会发送最终的<code>ACK</code></li>
+<li>当接收到最终的<code>ACK</code>后，每个通信段会将状态更改为<code>TIME_WAIT</code>，从而初始化<code>2MSL</code>等待过程</li>
 </ol>
 </li>
 </ol>
-<h2 id="95-重置报文段"><a class="markdownIt-Anchor" href="#95-重置报文段"></a> 9.5 重置报文段</h2>
+<h2 id="95-重置报文段rst"><a class="markdownIt-Anchor" href="#95-重置报文段rst"></a> 9.5 重置报文段RST</h2>
+<p><strong>在TCP协议中<code>RST, Reset the connection</code>表示复位，用来异常的关闭连接，一个将<code>RST</code>字段置位的报文段被称作重置报文段或简称为重置，一般来说，当发现一个到达的报文段相对于关联连接而言是不正确时，TCP就会发送一个重置报文段</strong>。在TCP的设计中它是不可或缺的。发送<code>RST</code>包关闭连接时，不必等缓冲区的包都发出去，直接就丢弃缓存区的包发送<code>RST</code>包。而接收端收到<code>RST</code>包后，也不必发送<code>ACK</code>包来确认</p>
+<p><strong>在网络编程过程中，各种<code>RST</code>错误其实是比较难排查和找到原因的。下面我列出几种会出现<code>RST</code>的情况</strong></p>
 <ol>
-<li><strong>一个将<code>RST</code>字段置位的报文段被称作“重置报文段”或简称为“重置”</strong></li>
-<li>一般来说，当发现一个到达的报文段相对于关联连接而言是不正确时，TCP就会发送一个重置报文段</li>
-<li>重置报文段通常会导致TCP连接的快速拆卸</li>
+<li>端口未打开</li>
+<li>请求超时</li>
+<li>提前关闭</li>
+<li>在一个已关闭的socket上收到数据</li>
 </ol>
 <h3 id="951-针对不存在端口的连接请求"><a class="markdownIt-Anchor" href="#951-针对不存在端口的连接请求"></a> 9.5.1 针对不存在端口的连接请求</h3>
 <ol>
 <li>一般而言，当一个连接请求到达本地却没有相关进程在目的端口侦听时，就会产生一个重置报文段
 <ul>
-<li>UDP使用ICMP目的不可达（端口不可达）消息来表示端口不可用</li>
+<li>UDP使用<code>ICMP</code>目的不可达（端口不可达）消息来表示端口不可用</li>
 <li>TCP使用重置报文段来代替ICMP消息</li>
 </ul>
 </li>
-<li>对于一个被TCP端接收的重置报文段而言，它的ACK位字段必须被置位，并且ACK的序列号数值必须在正确的窗口范围内，这样有助于防止一种简单的攻击：在这种攻击中，任何人都能够生成一个与相应连接（4元组）匹配的重置报文段，从而扰乱这个连接</li>
+<li>对于一个被TCP端接收的重置报文段而言，它的<code>ACK</code>位字段必须被置位，并且<code>ACK</code>的序列号数值必须在正确的窗口范围内，这样有助于防止一种简单的攻击：在这种攻击中，任何人都能够生成一个与相应连接（4元组）匹配的重置报文段，从而扰乱这个连接</li>
 </ol>
 <h3 id="952-终止一条连接"><a class="markdownIt-Anchor" href="#952-终止一条连接"></a> 9.5.2 终止一条连接</h3>
 <ol>
-<li>终止一条连接的正常方法是由通信一方发送一个FIN，这种方法有时被称为<code>有序释放</code>，这种方式通常不会出现丢失数据的情况</li>
-<li>在任何时刻，我们都可以通过发送一个重置报文段替代FIN终止一条连接，这种方式有时被称为<code>终止释放</code></li>
+<li>终止一条连接的正常方法是由通信一方发送一个<code>FIN</code>，这种方法有时被称为<code>有序释放</code>，这种方式通常不会出现丢失数据的情况</li>
+<li>在任何时刻，我们都可以通过发送一个重置报文段替代<code>FIN</code>终止一条连接，这种方式有时被称为<code>终止释放</code></li>
 <li>终止一条连接可以为应用程序提供两大特性
 <ol>
 <li>任何排队的数据都将被抛弃，一个重置报文段会被立即发送出去</li>
@@ -854,18 +876,22 @@
 </ol>
 <h3 id="954-时间等待错误"><a class="markdownIt-Anchor" href="#954-时间等待错误"></a> 9.5.4 时间等待错误</h3>
 <ol>
-<li>设计<code>TIME_WAIT</code>状态的目的是允许任何受制于一条关闭连接的数据报被丢弃。在这段时期，等待的TCP通常不需要做任何操作，它只需要维持当前状态直到<code>2MSL</code>的计时结束。然而，如果它在这段时间期内接收到来自于这条连接的一些报文段，或是更加特殊的重置报文段，它将会被破坏。这种情况被称为<code>时间等待错误</code>（TIME_WAIT Assassination，TWA）</li>
+<li>设计<code>TIME_WAIT</code>状态的目的是允许任何受制于一条关闭连接的数据报被丢弃。在这段时期，等待的TCP通常不需要做任何操作，它只需要维持当前状态直到<code>2MSL</code>的计时结束。然而，如果它在这段时间期内接收到来自于这条连接的一些报文段，或是更加特殊的重置报文段，它将会被破坏。这种情况被称为时间等待错误（<code>TIME_WAIT Assassination，TWA</code>）</li>
 </ol>
 <p><img src="/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/13-6-1.jpg" alt="fig" /></p>
 <ol>
-<li>在上述例子中，服务器完成了其在连接中的角色所承担的工作并清除了所有状态，客户端依然保持<code>TIME_WAIT</code>状态。当完成FIN交换，客户端的下一个序列号为K，而服务器的下一个序列号为L。最近到达的报文段是由服务器发送至客户端，它使用的序列号为L-100，包含的ACK号为K-200。当客户端收到这个报文段时，它认为序列号与ACK号的数值都是旧的。因此发送一个ACK作为响应，其中包含了最新的序列号和ACK号（分别是K与L）。然而，当服务器收到这个报文段后，它没有关于这条连接的任何信息，因此发送一个重置报文段作为响应，这会使得客户端过早得从<code>TIME_WAIT</code>状态转移至<code>CLOSED</code>状态。因此，许多系统规定处于<code>TIME_WAIT</code>状态时不对重置报文段作出反应，从而避免了上述问题</li>
+<li>在上述例子中，服务器完成了其在连接中的角色所承担的工作并清除了所有状态，客户端依然保持<code>TIME_WAIT</code>状态。当完成<code>FIN</code>交换，客户端的下一个序列号为<code>K</code>，而服务器的下一个序列号为<code>L</code>。最近到达的报文段是由服务器发送至客户端，它使用的序列号为<code>L-100</code>，包含的<code>ACK</code>号为<code>K-200</code>。当客户端收到这个报文段时，它认为序列号与<code>ACK</code>号的数值都是旧的。因此发送一个<code>ACK</code>作为响应，其中包含了最新的序列号和<code>ACK</code>号（分别是K与L）。然而，当服务器收到这个报文段后，它没有关于这条连接的任何信息，因此发送一个重置报文段作为响应，这会使得客户端过早得从<code>TIME_WAIT</code>状态转移至<code>CLOSED</code>状态。因此，许多系统规定处于<code>TIME_WAIT</code>状态时不对重置报文段作出反应，从而避免了上述问题</li>
 </ol>
 <h2 id="96-与tcp连接管理相关的攻击"><a class="markdownIt-Anchor" href="#96-与tcp连接管理相关的攻击"></a> 9.6 与TCP连接管理相关的攻击</h2>
 <h3 id="961-syn泛洪"><a class="markdownIt-Anchor" href="#961-syn泛洪"></a> 9.6.1 SYN泛洪</h3>
 <ol>
-<li>SYN泛洪是一种TCP拒绝服务攻击，在这种攻击中一个或多个恶意的客户端产生一系列TCP连接尝试（SYN报文段），并将它们发送给一台服务器，它们通常采用“伪造”的源IP地址。服务器会为每一条连接分配一定数量的连接资源。由于连接尚未完全建立，服务器为了维护大量的板打开连接会耗尽自身内存后拒绝为后续的合法连接请求服务</li>
-<li><code>SYN cookies</code>是解决SYN泛洪问题的一种机制，<strong>它的主要思想是，当一个SYN到达时，这条连接存储的大部分信息都会被编码并保存在SYN+ACK报文段的序列号字段</strong>。采用<code>SYN cookies</code>的目标主机不需要为进入的连接请求分配任何存储资源–只有当SYN+ACK报文段本身被确认后（并且已返回初始序列号）才会分配真正的内存</li>
-<li>服务器在接收到一个SYN后会采用下面的方法设置初始序列号（保存于SYN+ACK报文段，供于客户端）的数值
+<li><code>SYN</code>泛洪是一种TCP拒绝服务攻击，在这种攻击中一个或多个恶意的客户端产生一系列TCP连接尝试（<code>SYN</code>报文段），并将它们发送给一台服务器，它们通常采用伪造的源IP地址，服务器会发送<code>ACK</code>以及<code>SYN</code>包给这个伪造的源IP，当然是收不到的，于是就阻塞在了半连接状态。服务器会为每一条连接分配一定数量的连接资源。由于连接尚未完全建立，服务器为了维护大量的板打开连接会耗尽自身内存后拒绝为后续的合法连接请求服务
+<ul>
+<li>检测<code>SYN</code>泛洪攻击的方式非常简单，即当服务器上有大量半连接状态且源IP地址是随机的，则可以断定遭到<code>SYN</code>泛洪攻击了，<code>netstat -nap | grep SYN_RECV</code></li>
+</ul>
+</li>
+<li><code>SYN cookies</code>是解决<code>SYN</code>泛洪问题的一种机制，<strong>它的主要思想是，当一个<code>SYN</code>到达时，这条连接存储的大部分信息都会被编码并保存在<code>SYN+ACK</code>报文段的序列号字段</strong>。采用<code>SYN cookies</code>的目标主机不需要为进入的连接请求分配任何存储资源–只有当<code>SYN+ACK</code>报文段本身被确认后（并且已返回初始序列号）才会分配真正的内存</li>
+<li>服务器在接收到一个<code>SYN</code>后会采用下面的方法设置初始序列号（保存于<code>SYN+ACK</code>报文段，供于客户端）的数值
 <ul>
 <li>首5位是t模32的结果，其中t是一个32位的计数器，每个64秒增加1</li>
 <li>接着3位是服务器最大段大小（8种可能之一）的编码值；剩余的24位保存了4元组与t值的散列值</li>
@@ -899,50 +925,48 @@
 <li>当数据段或确认信息丢失，TCP启动重传操作，重传尚未确认的数据</li>
 <li>TCP拥有两套独立机制来完成重传，一是基于时间，二是基于确认信息的构成。第二种方法通常比第一种方法更有效</li>
 <li>TCP在发送数据时会设置一个计时器，若至计时器超时仍未收到数据确认信息，则会引发相应的<code>超时</code>或<code>基于计时器的重传</code>操作，计时器超时称为<code>重传超时（RTO）</code></li>
-<li>另一种方式称为<code>快速重传</code>，通常发生在没有延时的情况下。若TCP累积确认无法返回新的ACK，或者当ACK包含的选择确认信息（SACK）表明出现失序报文段时，快速重传会推断出现丢包</li>
+<li>另一种方式称为<code>快速重传</code>，通常发生在没有延时的情况下。若TCP累积确认无法返回新的<code>ACK</code>，或者当<code>ACK</code>包含的选择确认信息（<code>SACK</code>）表明出现失序报文段时，快速重传会推断出现丢包</li>
 </ol>
 <h2 id="102-简单的超时与重传"><a class="markdownIt-Anchor" href="#102-简单的超时与重传"></a> 10.2 简单的超时与重传</h2>
 <h2 id="103-设置重传超时"><a class="markdownIt-Anchor" href="#103-设置重传超时"></a> 10.3 设置重传超时</h2>
 <ol>
-<li>RTT（Round Trip Time）和RTO（Retransmission Timeout）
+<li><code>Round Trip Time, RTT</code>和<code>Retransmission Timeout, RTO</code>
 <ul>
-<li>若TCP先于RTT开始重传，可能会在网络中引入不必要的重复数据</li>
-<li>若延迟远大于RTT的间隔发送重传数据，整体网络利用率（及单个连接吞吐量）会随之下降</li>
+<li>若TCP先于<code>RTT</code>开始重传，可能会在网络中引入不必要的重复数据</li>
+<li>若延迟远大于<code>RTT</code>的间隔发送重传数据，整体网络利用率（及单个连接吞吐量）会随之下降</li>
 </ul>
 </li>
-<li>RTT的测量较为复杂，根据路由与网络资源的不同，它会随时间而改变。TCP必须跟踪这些变化并适时做出调整来维持好的性能</li>
+<li><code>RTT</code>的测量较为复杂，根据路由与网络资源的不同，它会随时间而改变。TCP必须跟踪这些变化并适时做出调整来维持好的性能</li>
 <li><strong>TCP在收到数据后会返回确认信息，因此可在该信息中携带一个字节的数据（采用一个特殊序列号，注意，不是TCP的时间戳选项）来测量传输该确认信息所需的时间，每个此类的测量称为<code>RTT样本</code></strong></li>
 </ol>
 <h3 id="1031-经典方法"><a class="markdownIt-Anchor" href="#1031-经典方法"></a> 10.3.1 经典方法</h3>
 <ol>
-<li>最初的TCP规范[RFC0793]采用如下公式计算得到平滑的RTT估计值（称为SRTT）
+<li>最初的TCP规范[RFC0793]采用如下公式计算得到平滑的<code>RTT</code>估计值（称为<code>SRTT</code>）
 <ul>
 <li>
 $$SRTT ← \alpha(SRTT) + (1 - \alpha)RTT_s$$
 </li>
-<li>其中$RTT_s$是新的样本值，常量$\alpha$为平滑因子，推荐值为<code>0.8~0.9</code></li>
+<li>其中$RTT_s$是新的样本值，常量<code>α</code>为平滑因子，推荐值为<code>0.8~0.9</code></li>
 </ul>
 </li>
 <li>这种估算方法称为指数加权移动平均，或低通过滤器</li>
-<li>[RFC0793]推荐根据如下公式设置RTO
+<li>[RFC0793]推荐根据如下公式设置<code>RTO</code>
 <ul>
 <li>
 $$RTO = min(ubound, max(lbound, (SRTT)\beta)$$
 </li>
-<li>其中$\beta$为离散因子，推荐之为<code>1.3~2.0</code>，<code>ubound</code>为RTO的上边界（建议值1分钟），lbound为RTO的下边界（建议值1s）</li>
+<li>其中<code>β</code>为离散因子，推荐之为<code>1.3~2.0</code>，<code>ubound</code>为<code>RTO</code>的上边界（建议值1分钟），lbound为<code>RTO</code>的下边界（建议值1s）</li>
 </ul>
 </li>
-<li>对于相对稳定的RTT分布来说，这种方法能取得不错的性能。若TCP运行于RTT变化较大的网络中，则无法获得期望的效果</li>
+<li>对于相对稳定的<code>RTT</code>分布来说，这种方法能取得不错的性能。若TCP运行于<code>RTT</code>变化较大的网络中，则无法获得期望的效果</li>
 </ol>
 <h3 id="1032-标准方法"><a class="markdownIt-Anchor" href="#1032-标准方法"></a> 10.3.2 标准方法</h3>
 <ol>
-<li>可以通过记录RTT测量值的变化情况以及均值来得到较为准确的估计值。基于均值和估计值的变化来设置RTO，将比仅使用均值的常数倍来计算RTO更能适应RTT变化幅度较大的情况</li>
+<li>可以通过记录<code>RTT</code>测量值的变化情况以及均值来得到较为准确的估计值。基于均值和估计值的变化来设置<code>RTO</code>，将比仅使用均值的常数倍来计算<code>RTO</code>更能适应<code>RTT</code>变化幅度较大的情况</li>
 <li>平均偏差（mean deviation）是对标准偏差的一种好的逼近。计算标准差需要对方差进行平方根运算，对于快速TCP实现来说代价较大</li>
-<li>可对每个RTT测量值$M$（前面称为$RTT_s$）采用如下算式
+<li>可对每个<code>RTT</code>测量值<code>M</code>（前面称为$RTT_s$）采用如下算式
 <ul>
-<li>
-$srtt$值代替了之前的SRTT，且$rttvar$为平均偏差的EWMA，而非采用先前的$\beta$来设置RTO
-</li>
+<li><code>srtt</code>值代替了之前的<code>SRTT</code>，且<code>rttvar</code>为平均偏差的<code>EWMA</code>，而非采用先前的<code>β</code>来设置<code>RTO</code></li>
 </ul>
 </li>
 </ol>
@@ -954,15 +978,11 @@ RTO &= srtt + 4(rttvar)
 <ol>
 <li>上述算式可以简化为
 <ul>
-<li>
-$srtt$为均值的EWMA，$rttvar$为绝对误差$|Err|$的EWMA，$Err$为测量值$M$与当前RTT估计值$srtt$之间的偏差
-</li>
-<li>
-$srtt$与$rttvar$均用于计算RTO且随时间变化
-</li>
-<li>增量$g$为新RTT样本$M$占$srtt$估计值的权重，取$1/8$</li>
-<li>增量$h$为新平均偏差样本（新样本$M$与当前平均值$srtt$之间的绝对误差）占偏差估计值$rttvar$的权重，取$1/4$</li>
-<li>g和h取值为2的负幂次，使得计算过程较为简单，只需要移位和加法即可</li>
+<li><code>srtt</code>为均值的<code>EWMA</code>，<code>rttvar</code>为绝对误差<code>|Err|</code>的<code>EWMA</code>，<code>Err</code>为测量值<code>M</code>与当前<code>RTT</code>估计值<code>srtt</code>之间的偏差</li>
+<li><code>srtt</code>与<code>rttvar</code>均用于计算<code>RTO</code>且随时间变化</li>
+<li>增量<code>g</code>为新<code>RTT</code>样本<code>M</code>占<code>srtt</code>估计值的权重，取<code>1/8</code></li>
+<li>增量<code>h</code>为新平均偏差样本（新样本<code>M</code>与当前平均值<code>srtt</code>之间的绝对误差）占偏差估计值<code>rttvar</code>的权重，取<code>1/4</code></li>
+<li><code>g</code>和<code>h</code>取值为2的负幂次，使得计算过程较为简单，只需要移位和加法即可</li>
 </ul>
 </li>
 </ol>
@@ -974,9 +994,9 @@ RTO &= srtt + 4(rttvar)
 \end{split}$$
 <h4 id="10321-时钟粒度与rto边界"><a class="markdownIt-Anchor" href="#10321-时钟粒度与rto边界"></a> 10.3.2.1 时钟粒度与RTO边界</h4>
 <ol>
-<li>时钟粒度会影响RTT的测量以及RTO的设置。在[RFC6298]中，粒度用于优化RTO的更新情况，并给RTO设置一个下界
+<li>时钟粒度会影响<code>RTT</code>的测量以及<code>RTO</code>的设置。在[RFC6298]中，粒度用于优化<code>RTO</code>的更新情况，并给<code>RTO</code>设置一个下界
 <ul>
-<li>这里G为计时器粒度，1000ms为RTO的下界值。因此RTO至少为1s</li>
+<li>这里G为计时器粒度，1000ms为<code>RTO</code>的下界值。因此<code>RTO</code>至少为1s</li>
 </ul>
 </li>
 </ol>
@@ -985,9 +1005,9 @@ RTO = max(srtt + max(G, 4(rttvar)), 1000)
 $$
 <h4 id="10322-初始值"><a class="markdownIt-Anchor" href="#10322-初始值"></a> 10.3.2.2 初始值</h4>
 <ol>
-<li>在首个SYN交换前，TCP无法设置RTO初始值。除非系统提供（有些系统在转发表中缓存了该信息），否则也无法设置估计器的初始值</li>
-<li>根据[RFC6298]，RTO的初始值为1s，而初始SYN报文段采用的超时时间间隔为3s</li>
-<li>当接收到首个RTT的测量结果M，估计器按如下方式进行初始化</li>
+<li>在首个<code>SYN</code>交换前，TCP无法设置<code>RTO</code>初始值。除非系统提供（有些系统在转发表中缓存了该信息），否则也无法设置估计器的初始值</li>
+<li>根据[RFC6298]，<code>RTO</code>的初始值为1s，而初始<code>SYN</code>报文段采用的超时时间间隔为3s</li>
+<li>当接收到首个<code>RTT</code>的测量结果M，估计器按如下方式进行初始化</li>
 </ol>
 $$\begin{split}
 srtt &= M \\
@@ -995,32 +1015,32 @@ rttvar &= M/2
 \end{split}$$
 <h4 id="10323-重传二义性与karn算法"><a class="markdownIt-Anchor" href="#10323-重传二义性与karn算法"></a> 10.3.2.3 重传二义性与Karn算法</h4>
 <ol>
-<li>在测量RTT样本的过程中若出现重传，就可能导致某些问题。<strong>假设一个包的传输出现超时，该数据包会被重传，接着收到一个确认信息。那么该信息是对第一次还是第二次传输的确认就存在二义性</strong></li>
-<li>[KP87]指出，当出现超时重传时，接收到重传数据的确认信息时不能更新RTT估计值。<strong>这是Karn算法的第一部分</strong></li>
-<li>如果我们在设置RTO过程中简单将重传问题完全忽略，就可能将网络提供的一些有用信息也同时忽略</li>
-<li>TCP在计算RTO过程中采用一个退避系数（backoff factor），每当重传计时器出现超时，退避系数加倍，该过程一直持续至接收到非重传数据。此时，退避系数重新设为1，重传计时器返回正常值。<strong>这是Karn算法的第二部分</strong></li>
-<li><strong>Karn算法定义</strong>：当接收到重复传输（即至少重传一次）数据的确认信息时，不进行该数据包的RTT测量，可以避免重传二义性问题。另外，对数据后续的包采取退避策略。仅当接收到未经重传的数据时，该SRTT采用与计算RTO</li>
+<li>在测量<code>RTT</code>样本的过程中若出现重传，就可能导致某些问题。<strong>假设一个包的传输出现超时，该数据包会被重传，接着收到一个确认信息。那么该信息是对第一次还是第二次传输的确认就存在二义性</strong></li>
+<li>[KP87]指出，当出现超时重传时，接收到重传数据的确认信息时不能更新<code>RTT</code>估计值。<strong>这是Karn算法的第一部分</strong></li>
+<li>如果我们在设置<code>RTO</code>过程中简单将重传问题完全忽略，就可能将网络提供的一些有用信息也同时忽略</li>
+<li>TCP在计算<code>RTO</code>过程中采用一个退避系数（backoff factor），每当重传计时器出现超时，退避系数加倍，该过程一直持续至接收到非重传数据。此时，退避系数重新设为1，重传计时器返回正常值。<strong>这是Karn算法的第二部分</strong></li>
+<li><strong>Karn算法定义</strong>：当接收到重复传输（即至少重传一次）数据的确认信息时，不进行该数据包的<code>RTT</code>测量，可以避免重传二义性问题。另外，对数据后续的包采取退避策略。仅当接收到未经重传的数据时，该<code>SRTT</code>采用与计算<code>RTO</code></li>
 <li>Karn算法一直作为TCP实现的必要方法。当然也有例外情况，在使用TCP时间戳选项的情况下，可以避免二义性，因此在这种情况下，Karn算法的第一部分不适用</li>
 </ol>
 <h4 id="10324-带时间戳选项的rtt测量"><a class="markdownIt-Anchor" href="#10324-带时间戳选项的rtt测量"></a> 10.3.2.4 带时间戳选项的RTT测量</h4>
 <ol>
-<li>时间戳值（TSV）携带于初始SYN的TSOPT中，并在SYN+ACK的TSOPT的TSER部分返回，以此设定srtt、rttvar与RTO的初始值</li>
-<li>由于初始SYN可看做数据（即同样采取丢失重传策略且占用一个序列号），应测量其RTT值。其他报文段包含TSOPT，因此可结合其他样本值估算该连接的RTT</li>
-<li>该过程看似简单但实际存在很多不确定因素，因为TCP并非对接收到的每个报文段都返回ACK。例如，当传输大批量的数据时，TCP通常采取每两个报文段返回一个ACK的方法。另外，当数据出现丢失、失序、或重传成功时，TCP的累积确认机制表明报文段与其ACK之间并非严格的一一对应关系</li>
-<li>为了解决上述问题，采用如下算法来测量RTT样本值
+<li>时间戳值（<code>TSV</code>）携带于初始<code>SYN</code>的<code>TSOPT</code>中，并在<code>SYN+ACK</code>的<code>TSOPT</code>的<code>TSER</code>部分返回，以此设定<code>srtt</code>、<code>rttvar</code>与<code>RTO</code>的初始值</li>
+<li>由于初始<code>SYN</code>可看做数据（即同样采取丢失重传策略且占用一个序列号），应测量其<code>RTT</code>值。其他报文段包含<code>TSOPT</code>，因此可结合其他样本值估算该连接的<code>RTT</code></li>
+<li>该过程看似简单但实际存在很多不确定因素，因为TCP并非对接收到的每个报文段都返回<code>ACK</code>。例如，当传输大批量的数据时，TCP通常采取每两个报文段返回一个<code>ACK</code>的方法。另外，当数据出现丢失、失序、或重传成功时，TCP的累积确认机制表明报文段与其<code>ACK</code>之间并非严格的一一对应关系</li>
+<li>为了解决上述问题，采用如下算法来测量<code>RTT</code>样本值
 <ul>
 <li>TCP发送端：
 <ol>
-<li>在其发送的每个报文段的TSOPT的TSV部分携带一个32比特的时间戳值。该值包含数据发送时刻的TCP时钟值</li>
-<li>接收到ACK后，将当前TCP时钟减去TSOPT的TSER部分的值，得到的差值即为新的RTT样本估计值。<strong>注意，如果该ACK没有使得窗口前移，那么该ACK的TSER将被忽略，例如发生丢包时重复的ACK</strong></li>
+<li>在其发送的每个报文段的<code>TSOPT</code>的<code>TSV</code>部分携带一个32比特的时间戳值。该值包含数据发送时刻的TCP时钟值</li>
+<li>接收到<code>ACK</code>后，将当前TCP时钟减去<code>TSOPT</code>的<code>TSER</code>部分的值，得到的差值即为新的<code>RTT</code>样本估计值。<strong>注意，如果该<code>ACK</code>没有使得窗口前移，那么该<code>ACK</code>的<code>TSER</code>将被忽略，例如发生丢包时重复的<code>ACK</code></strong></li>
 </ol>
 </li>
 <li>TCP接收端：
 <ol>
-<li>用一个名为<code>TsRecent</code>的变量记录收到的TSV值</li>
-<li>用一个名为<code>LastACK</code>的变量记录其上一个发送的ACK序列号。回忆一下，ACK号代表接收端（即ACK的发送方）期望接收的下一个有序序号</li>
-<li>发送任何一个ACK都包含TSOPT，其中，TSER部分的值为变量<code>TsRecent</code>的值</li>
-<li>当一个新的报文段到达TCP接收端时，如果其序号与变量<code>LastACK</code>的值吻合（即为下一个期望接收的报文段），则将变量<code>TsRecent</code>的值更新为这个新报文段的TSV值</li>
+<li>用一个名为<code>TsRecent</code>的变量记录收到的<code>TSV</code>值</li>
+<li>用一个名为<code>LastACK</code>的变量记录其上一个发送的<code>ACK</code>序列号。回忆一下，<code>ACK</code>号代表接收端（即<code>ACK</code>的发送方）期望接收的下一个有序序号</li>
+<li>发送任何一个<code>ACK</code>都包含<code>TSOPT</code>，其中，<code>TSER</code>部分的值为变量<code>TsRecent</code>的值</li>
+<li>当一个新的报文段到达TCP接收端时，如果其序号与变量<code>LastACK</code>的值吻合（即为下一个期望接收的报文段），则将变量<code>TsRecent</code>的值更新为这个新报文段的<code>TSV</code>值</li>
 </ol>
 </li>
 </ul>
@@ -1028,19 +1048,19 @@ rttvar &= M/2
 </ol>
 <h3 id="1033-linux采用的方法"><a class="markdownIt-Anchor" href="#1033-linux采用的方法"></a> 10.3.3 Linux采用的方法</h3>
 <ol>
-<li>Linux的RTT测量过程与标准方法有所差别。它采用的时钟粒度为1ms，与其他实现方法相比，其粒度更细，TSOPT也是如此。采用更频繁的RTT测量与更细的时钟粒度，RTT测量也更为精确，但也易于导致rttvar值随时间减为最小。这是由于当累积了大量的平均偏差样本时，这些样本之间易产生相互抵消的效果。这是其RTO设置区别于标准方法的一个原因</li>
-<li><strong>此外，当某个RTT样本显著低于现有的RTT估计值srtt时，标准方法会增大rttvar</strong>。为了更好地理解这个问题，首先回顾一下RTO通常设置为$srtt + 4(rttvar)$。因此，无论最大RTT样本值是大于还是小于srtt，rttvar的任何大的变动都会导致RTO增大（这与直觉相反–若实际RTT大幅降低，RTO应该减小才对）Linux通过减小RTT样本值大幅下降对rttvar的影响来解决这一问题</li>
-<li>与标准方法一样，Linux也记录变量srtt与rttvar值，但同时还记录两个新的变量，即mdev和mdev_max
+<li>Linux的<code>RTT</code>测量过程与标准方法有所差别。它采用的时钟粒度为1ms，与其他实现方法相比，其粒度更细，<code>TSOPT</code>也是如此。采用更频繁的<code>RTT</code>测量与更细的时钟粒度，<code>RTT</code>测量也更为精确，但也易于导致<code>rttvar</code>值随时间减为最小。这是由于当累积了大量的平均偏差样本时，这些样本之间易产生相互抵消的效果。这是其<code>RTO</code>设置区别于标准方法的一个原因</li>
+<li><strong>此外，当某个<code>RTT</code>样本显著低于现有的<code>RTT</code>估计值<code>srtt</code>时，标准方法会增大<code>rttvar</code></strong>。为了更好地理解这个问题，首先回顾一下<code>RTO</code>通常设置为<code>srtt + 4(rttvar)</code>。因此，无论最大<code>RTT</code>样本值是大于还是小于<code>srtt</code>，<code>rttvar</code>的任何大的变动都会导致<code>RTO</code>增大（这与直觉相反–若实际<code>RTT</code>大幅降低，<code>RTO</code>应该减小才对）Linux通过减小<code>RTT</code>样本值大幅下降对<code>rttvar</code>的影响来解决这一问题</li>
+<li>与标准方法一样，Linux也记录变量<code>srtt</code>与<code>rttvar</code>值，但同时还记录两个新的变量，即<code>mdev</code>和<code>mdev_max</code>
 <ul>
-<li><strong>mdev为采用标准方法的瞬时平均偏差估计值，即前面方法的rttvar</strong></li>
-<li><strong>mdev_max则记录在测量RTT样本过程中的最大mdev，其最小值不小于50ms</strong></li>
-<li><strong>另外，rttvar需定期更新已保证其不小于mdev_max，因此RTO不会小于200ms</strong></li>
+<li><strong><code>mdev</code>为采用标准方法的瞬时平均偏差估计值，即前面方法的<code>rttvar</code></strong></li>
+<li><strong><code>mdev_max</code>则记录在测量<code>RTT</code>样本过程中的最大<code>mdev</code>，其最小值不小于50ms</strong></li>
+<li><strong>另外，<code>rttvar</code>需定期更新已保证其不小于<code>mdev_max</code>，因此<code>RTO</code>不会小于200ms</strong></li>
 </ul>
 </li>
 </ol>
 <p><img src="/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/14-3-1.jpg" alt="fig" /></p>
 <ul>
-<li>上述示例中，初始RTT测量值如下
+<li>上述示例中，初始<code>RTT</code>测量值如下
 <ul>
 <li>
 $srtt = 16ms$
@@ -1056,10 +1076,10 @@ $RTO = srtt + 4(rttvar) = 16 + 4(50) = 216ms$
 </li>
 </ul>
 </li>
-<li>在初始SYN交换后，发送端对接收端的SYN返回一个ACK，接收端则进行一次相应的窗口更新</li>
-<li>当应用首次执行写操作，发送端TCP发送两个报文段（seq=1，seq=1401），每个报文段包含一个值为127的TSV。由于两次发送间隔小于1ms（发送端TCP时钟粒度），因此这两个值相等</li>
-<li>接收端变量<code>LastACK</code>记录上一个发送ACK的序列号，此时是1。当序列号为1的报文段到达时，将<code>TsRecent</code>变量更新为新接收分组的TSV，即127；序列号为1401的报文段到达时，由于该序列号与<code>LastACK</code>记录的值不同，因此不更新<code>TsRecent</code>变量。接收端返回ACK时，需要在TSER部分包含<code>TsRecent</code>变量的值，同时更新<code>LastACK</code>的值为2801</li>
-<li>当序列号为2801的ACK到达发送端时，TCP就可以进行第二个RTT样本的测量。首先获得当前TCP时钟值，减去已接收ACK包含的TSER，即样本值$m = 233 - 127 = 96$，Linux按如下步骤更新变量
+<li>在初始<code>SYN</code>交换后，发送端对接收端的<code>SYN</code>返回一个<code>ACK</code>，接收端则进行一次相应的窗口更新</li>
+<li>当应用首次执行写操作，发送端TCP发送两个报文段（seq=1，seq=1401），每个报文段包含一个值为127的<code>TSV</code>。由于两次发送间隔小于1ms（发送端TCP时钟粒度），因此这两个值相等</li>
+<li>接收端变量<code>LastACK</code>记录上一个发送<code>ACK</code>的序列号，此时是1。当序列号为1的报文段到达时，将<code>TsRecent</code>变量更新为新接收分组的<code>TSV</code>，即127；序列号为1401的报文段到达时，由于该序列号与<code>LastACK</code>记录的值不同，因此不更新<code>TsRecent</code>变量。接收端返回<code>ACK</code>时，需要在<code>TSER</code>部分包含<code>TsRecent</code>变量的值，同时更新<code>LastACK</code>的值为2801</li>
+<li>当序列号为2801的<code>ACK</code>到达发送端时，TCP就可以进行第二个<code>RTT</code>样本的测量。首先获得当前TCP时钟值，减去已接收<code>ACK</code>包含的<code>TSER</code>，即样本值<code>m = 233 - 127 = 96</code>，Linux按如下步骤更新变量
 <ul>
 <li>
 $mdev = mdev(\frac{3}{4}) + |m - srtt|(\frac{1}{4}) = 8(\frac{3}{4}) + |80|(\frac{1}{4}) = 26ms$
@@ -1080,8 +1100,8 @@ $RTO = srtt + 4(rttvar) = 26 + 4(50) = 226ms$
 </li>
 </ul>
 <ol>
-<li>若每个窗口只测量一个RTT样本，rttvar相对变动则较小。利用时间戳和对每个包的测量就可以得到更多的样本值。但同时，短时间内得到的大量样本值可能导致平均偏差变小（接近0，基于大数定理）。为了解决这个问题，Linux维护瞬时平均偏差估计值mdev，但设置RTO时则基于rttvar（在一个窗口数据期间记录的最大mdev，且最小值为50ms）。仅当进入下一个窗口时，rttvar才可能减小</li>
-<li>标准方法中，rttvar所占权重较大（系数为4），因此即使当RTT减小时，也会导致RTO增长。在时钟粒度较粗时，这种情况不会造成很大影响，因为RTO可用值很少。若时钟粒度较细，如Linux的1ms，就可能出现问题。针对RTT减小的情况，若新样本值小于RTT估计范围的下界（srtt - mdev），则减小新样本的权重，完整的关系如下</li>
+<li>若每个窗口只测量一个<code>RTT</code>样本，<code>rttvar</code>相对变动则较小。利用时间戳和对每个包的测量就可以得到更多的样本值。但同时，短时间内得到的大量样本值可能导致平均偏差变小（接近0，基于大数定理）。为了解决这个问题，Linux维护瞬时平均偏差估计值<code>mdev</code>，但设置<code>RTO</code>时则基于<code>rttvar</code>（在一个窗口数据期间记录的最大<code>mdev</code>，且最小值为50ms）。仅当进入下一个窗口时，<code>rttvar</code>才可能减小</li>
+<li>标准方法中，<code>rttvar</code>所占权重较大（系数为4），因此即使当<code>RTT</code>减小时，也会导致<code>RTO</code>增长。在时钟粒度较粗时，这种情况不会造成很大影响，因为<code>RTO</code>可用值很少。若时钟粒度较细，如Linux的1ms，就可能出现问题。针对<code>RTT</code>减小的情况，若新样本值小于<code>RTT</code>估计范围的下界（<code>srtt - mdev</code>），则减小新样本的权重，完整的关系如下</li>
 </ol>
 $$\begin{split}
 &if (m < (srtt - mdev)) \\
@@ -1091,70 +1111,70 @@ $$\begin{split}
 \end{split}$$
 <h3 id="1034-rtt估计器行为"><a class="markdownIt-Anchor" href="#1034-rtt估计器行为"></a> 10.3.4 RTT估计器行为</h3>
 <ol>
-<li>Linux的RTO始终保持在200ms以上，且避免了所有不必要的重传（尽管可能由于RTO较大，计时器未超时，导致丢包时性能降低）</li>
+<li>Linux的<code>RTO</code>始终保持在200ms以上，且避免了所有不必要的重传（尽管可能由于<code>RTO</code>较大，计时器未超时，导致丢包时性能降低）</li>
 <li>标准方法可能出现<code>伪重传</code>的问题</li>
 </ol>
 <h3 id="1035-rttm对丢包和失序的鲁棒性"><a class="markdownIt-Anchor" href="#1035-rttm对丢包和失序的鲁棒性"></a> 10.3.5 RTTM对丢包和失序的鲁棒性</h3>
 <ol>
-<li>当没有丢包情况时，不论接收端是否延迟发送ACK，TSOPT可以很好地工作。该算法在以下几种情况下都能正确运行
+<li>当没有丢包情况时，不论接收端是否延迟发送<code>ACK</code>，<code>TSOPT</code>可以很好地工作。该算法在以下几种情况下都能正确运行
 <ul>
-<li>失序报文段：当接收端收到失序报文段时，通常是由于在此之前出现了丢包，应当立即返回ACK以启动快速重传算法。<strong>该ACK的TSER部分包含了TSV值为接收端收到最近的有序报文段的时刻（即最新的使窗口前进的报文段，通常不会是失序报文段）</strong>。这会使得发送端RTT样本增大，由此导致相应的RTO增大。这在一定程度上是有利的，即当包失序时，发送端有更多的时间去发现是出现了失序而非丢包，由此可避免不必要的重传</li>
-<li>成功重传：当收到接收端缓存中缺失的报文段时（如成功接收重传报文段），窗口通常会前移。此时对应ACK中的TSV值来自最新到达的报文段，这是比较有利的。若采用原来报文段中的TSV，可能对应的是前一个RTO，导致发送端RTT估算的偏离</li>
+<li>失序报文段：当接收端收到失序报文段时，通常是由于在此之前出现了丢包，应当立即返回<code>ACK</code>以启动快速重传算法。<strong>该<code>ACK</code>的<code>TSER</code>部分包含了<code>TSV</code>值为接收端收到最近的有序报文段的时刻（即最新的使窗口前进的报文段，通常不会是失序报文段）</strong>。这会使得发送端<code>RTT</code>样本增大，由此导致相应的<code>RTO</code>增大。这在一定程度上是有利的，即当包失序时，发送端有更多的时间去发现是出现了失序而非丢包，由此可避免不必要的重传</li>
+<li>成功重传：当收到接收端缓存中缺失的报文段时（如成功接收重传报文段），窗口通常会前移。此时对应<code>ACK</code>中的<code>TSV</code>值来自最新到达的报文段，这是比较有利的。若采用原来报文段中的<code>TSV</code>，可能对应的是前一个<code>RTO</code>，导致发送端<code>RTT</code>估算的偏离</li>
 </ul>
 </li>
 </ol>
 <p><img src="/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/14-3-2.jpg" alt="fig" /></p>
 <ul>
-<li>第一个ACK，序号为1025，时间戳为1（正常的数据确认）</li>
-<li>第二个ACK，序号为1025，时间戳为1（失序的数据确认）</li>
-<li>第三个ACK，序号为3073，时间戳为2，该时间戳是报文2而非报文3的时间戳</li>
-<li>当分组失序（或丢失）时，RTT会被过高估算。较大的RTT估计值使得RTO也更大，由此发送端也不会急于重传。在失序的情况下这是很有利的，因为过分积极的重传可能导致伪重传</li>
+<li>第一个<code>ACK</code>，序号为1025，时间戳为1（正常的数据确认）</li>
+<li>第二个<code>ACK</code>，序号为1025，时间戳为1（失序的数据确认）</li>
+<li>第三个<code>ACK</code>，序号为3073，时间戳为2，该时间戳是报文2而非报文3的时间戳</li>
+<li>当分组失序（或丢失）时，<code>RTT</code>会被过高估算。较大的<code>RTT</code>估计值使得<code>RTO</code>也更大，由此发送端也不会急于重传。在失序的情况下这是很有利的，因为过分积极的重传可能导致伪重传</li>
 </ul>
 <h2 id="104-基于计时器的重传"><a class="markdownIt-Anchor" href="#104-基于计时器的重传"></a> 10.4 基于计时器的重传</h2>
 <ol>
-<li>在设定计时器之前，需要记录被计时的报文段序列号，若计时收到了该报文段的ACK，那么计时器被取消。之后发送端发送一个新的数据包时，需设定一个新的计时器，并记录新的序列号。因此每个TCP连接的发送端不断地设定和取消一个重传计时器；如果没有数据丢失，则不会出现计时器超时</li>
-<li>若在连接设定的RTO内，TCP没有收到被计时的报文段的ACK，将会触发超时重传。当发送重传时，它通过降低当前数据发送率率对此进行快速响应，实现它有两种方法：
+<li>在设定计时器之前，需要记录被计时的报文段序列号，若计时收到了该报文段的<code>ACK</code>，那么计时器被取消。之后发送端发送一个新的数据包时，需设定一个新的计时器，并记录新的序列号。因此每个TCP连接的发送端不断地设定和取消一个重传计时器；如果没有数据丢失，则不会出现计时器超时</li>
+<li>若在连接设定的<code>RTO</code>内，TCP没有收到被计时的报文段的<code>ACK</code>，将会触发超时重传。当发送重传时，它通过降低当前数据发送率率对此进行快速响应，实现它有两种方法：
 <ul>
 <li>第一种方法：基于拥塞控制机制减小发送窗口大小</li>
-<li>第二种方法：重传时，增大RTO的退避因子$RTO = \gamma RTO$。通常情况下，$\gamma$为1，随着多次重传$\gamma$呈加倍增长，同时$\gamma$不能超过最大的退避因子，通常是120s。一旦收到ACK，$\gamma$会重置为1</li>
+<li>第二种方法：重传时，增大<code>RTO</code>的退避因子<code>RTO = γRTO</code>。通常情况下，<code>γ</code>为1，随着多次重传<code>γ</code>呈加倍增长，同时<code>γ</code>不能超过最大的退避因子，通常是120s。一旦收到<code>ACK</code>，<code>γ</code>会重置为1</li>
 </ul>
 </li>
 </ol>
 <h2 id="105-快速重传"><a class="markdownIt-Anchor" href="#105-快速重传"></a> 10.5 快速重传</h2>
 <ol>
 <li>快速重传机制[RFC5681]，基于接收端的反馈信息来引发重传，而非重传计时器的超时。因此与超时重传相比，快速重传能更加及时有效地修复丢包情况。典型的TCP同时实现了两者</li>
-<li>当接收到失序报文段时，TCP需要立即生成确认信息（重复ACK），并且失序情况表明在后续数据到达前出现了丢段，即接收端缓存出现了空缺。<strong>当采用SACK时，重复ACK通常也包含SACK信息，利用该信息可以获知多个空缺</strong></li>
-<li>重复ACK（不论是否包含SACK信息）到达发送端表明先前发送的某个分组已丢失。但是重复ACK也可能在另一种情况出现，即当网络中出现失序分组时—若接收端收到当前期盼序列号的后续分组时，当前期盼的包可能丢失，也可能仅为延迟到达。<strong>通常我们无法得知是哪种情况，因此TCP等待一定数据的重复ACK（称为重复ACK阈值或dupthresh，通常为常量值3），来决定数据是否丢失并触发快速重传</strong></li>
-<li>快速重传算法概括如下：TCP发送端在观测到至少dupthresh个重复ACK后，即重传可能丢失的数据分组，而不必等到重传计时器超时。当然也可以同时发送新的数据。根据重复ACK推断的包通常与网络拥塞有关，因此伴随快速重传应触发拥塞控制机制。不采用SACK时，接收到有效ACK前之多只能重传一个报文段。采用SACK，ACK可包含额外信息，是的发送端在每个RTT时间内可以填补多个空缺</li>
+<li>当接收到失序报文段时，TCP需要立即生成确认信息（重复<code>ACK</code>），并且失序情况表明在后续数据到达前出现了丢段，即接收端缓存出现了空缺。<strong>当采用<code>SACK</code>时，重复<code>ACK</code>通常也包含<code>SACK</code>信息，利用该信息可以获知多个空缺</strong></li>
+<li>重复<code>ACK</code>（不论是否包含<code>SACK</code>信息）到达发送端表明先前发送的某个分组已丢失。但是重复<code>ACK</code>也可能在另一种情况出现，即当网络中出现失序分组时—若接收端收到当前期盼序列号的后续分组时，当前期盼的包可能丢失，也可能仅为延迟到达。<strong>通常我们无法得知是哪种情况，因此TCP等待一定数据的重复<code>ACK</code>（称为重复<code>ACK</code>阈值或dupthresh，通常为常量值3），来决定数据是否丢失并触发快速重传</strong></li>
+<li>快速重传算法概括如下：TCP发送端在观测到至少dupthresh个重复<code>ACK</code>后，即重传可能丢失的数据分组，而不必等到重传计时器超时。当然也可以同时发送新的数据。根据重复<code>ACK</code>推断的包通常与网络拥塞有关，因此伴随快速重传应触发拥塞控制机制。不采用<code>SACK</code>时，接收到有效<code>ACK</code>前之多只能重传一个报文段。采用<code>SACK</code>，<code>ACK</code>可包含额外信息，是的发送端在每个<code>RTT</code>时间内可以填补多个空缺</li>
 </ol>
 <h2 id="106-带选择确认的重传"><a class="markdownIt-Anchor" href="#106-带选择确认的重传"></a> 10.6 带选择确认的重传</h2>
 <ol>
-<li>TCP接收端可提供SACK功能，通过TCP头部的累积ACK号字段来描述其接收到的数据。之前提到过，ACK号与接收端缓存中的其他数据之间的间隔称为空缺。序列号高于空缺的数据称为失序数据，因为这些数据和之前接收的序列号不连续</li>
-<li>TCP发送端的任务是通过重传丢失的数据来填补接收端缓存中的空缺，但同时也要尽可能保证不重传已正确接收到的数据。在很多环境下，合理采用SACK信息能更快地实现空缺填补，且能减少不必要的重传，原因在于其在一个RTT内能获知多个空缺。当采用SACK选项时，一个ACK可包含三四个告知失序数据的SACK信息。每个SACK信息包含32位的序列号，代表接收端存储的失序数据的起始至最后一个序列号</li>
-<li>SACK选项指定n个块的长度为<code>8n + 2</code>字节，因此40字节可能包含最多4个块。通常SACK会与TSOPT一同使用，因此需要额外的10个字节，这意味着SACK在每个ACK中只能包含3个块
+<li>TCP接收端可提供<code>SACK</code>功能，通过TCP头部的累积<code>ACK</code>号字段来描述其接收到的数据。之前提到过，<code>ACK</code>号与接收端缓存中的其他数据之间的间隔称为空缺。序列号高于空缺的数据称为失序数据，因为这些数据和之前接收的序列号不连续</li>
+<li>TCP发送端的任务是通过重传丢失的数据来填补接收端缓存中的空缺，但同时也要尽可能保证不重传已正确接收到的数据。在很多环境下，合理采用<code>SACK</code>信息能更快地实现空缺填补，且能减少不必要的重传，原因在于其在一个<code>RTT</code>内能获知多个空缺。当采用<code>SACK</code>选项时，一个<code>ACK</code>可包含三四个告知失序数据的<code>SACK</code>信息。每个<code>SACK</code>信息包含32位的序列号，代表接收端存储的失序数据的起始至最后一个序列号</li>
+<li><code>SACK</code>选项指定n个块的长度为<code>8n + 2</code>字节，因此40字节可能包含最多4个块。通常<code>SACK</code>会与<code>TSOPT</code>一同使用，因此需要额外的10个字节，这意味着<code>SACK</code>在每个<code>ACK</code>中只能包含3个块
 <ul>
-<li>每个SACK块包含8个字节，指明了一个序列号空间（左闭右开），<code>[leftSeqNum, rightSeqNum)</code>，这个序列号空间中的数据已被接收端接收</li>
+<li>每个<code>SACK</code>块包含8个字节，指明了一个序列号空间（左闭右开），<code>[leftSeqNum, rightSeqNum)</code>，这个序列号空间中的数据已被接收端接收</li>
 </ul>
 </li>
-<li>包含一个或多个SACK块的ACK有时也简单称为SACK</li>
+<li>包含一个或多个<code>SACK</code>块的<code>ACK</code>有时也简单称为<code>SACK</code></li>
 </ol>
 <h3 id="1061-sack接收端行为"><a class="markdownIt-Anchor" href="#1061-sack接收端行为"></a> 10.6.1 SACK接收端行为</h3>
 <ol>
-<li>接收端在TCP连接建立时期收到SACK许可选项即可生成SACK</li>
-<li>通常来说，每当缓存中存在失序数据时，接收端就可生成SACK</li>
-<li><strong>在一个SACK中，第一个SACK块内包含的是<code>最近接收到的（most recently received）</code>报文段的序列号范围。其余的SACK块包含的内容也按照接收的先后依次排列。也就是说，SACK除了包含最近接收的序列号信息之外，还需重复之前的SACK块</strong></li>
-<li>一个SACK选项中包含多个SACK块，并且在多个SACK中重复这些块信息的目的在于，为了防止SACK丢失提供一些备份。若SACK不丢失，那么每个SACK包含一个SACK块即可实现SACK的全部功能。不幸的是，SACK和普通的ACK有时会丢失，且不会被重传（没有数据）</li>
+<li>接收端在TCP连接建立时期收到<code>SACK</code>许可选项即可生成<code>SACK</code></li>
+<li>通常来说，每当缓存中存在失序数据时，接收端就可生成<code>SACK</code></li>
+<li><strong>在一个<code>SACK</code>中，第一个<code>SACK</code>块内包含的是<code>最近接收到的（most recently received）</code>报文段的序列号范围。其余的<code>SACK</code>块包含的内容也按照接收的先后依次排列。也就是说，<code>SACK</code>除了包含最近接收的序列号信息之外，还需重复之前的<code>SACK</code>块</strong></li>
+<li>一个<code>SACK</code>选项中包含多个<code>SACK</code>块，并且在多个<code>SACK</code>中重复这些块信息的目的在于，为了防止<code>SACK</code>丢失提供一些备份。若<code>SACK</code>不丢失，那么每个<code>SACK</code>包含一个<code>SACK</code>块即可实现<code>SACK</code>的全部功能。不幸的是，<code>SACK</code>和普通的<code>ACK</code>有时会丢失，且不会被重传（没有数据）</li>
 </ol>
 <h3 id="1062-sack发送端行为"><a class="markdownIt-Anchor" href="#1062-sack发送端行为"></a> 10.6.2 SACK发送端行为</h3>
 <ol>
-<li>发送端也应提供SACK功能，并且合理地利用接收到的SACK块来进行丢失重传，该过程也称为<code>选择性重传（selective retransmission）</code>或<code>选择性重发（selective repeat）</code></li>
-<li>发送端记录接收到的累积ACK信息（像大多数TCP发送端一样），还需记录接收到的SACK信息，并利用该信息来避免重传正确接收的数据。一种方法是当接收到相应序列号范围的ACK时，则在其重传缓存中标记该报文段的选择重传成功</li>
-<li>当SACK发送端执行重传时，通常是由于其收到了SACK或重复ACK，它可以选择发送新数据或重传旧数据。SACK信息提供接收端数据的序列号范围，因此发送端可据此推断需要重传的空缺数据。最简单的方法是使发送方首先填补接收端的空缺，然后再继续发送新数据，这也是最常用的方法</li>
-<li>在[RFC2018]中，SACK选项和SACK块的当前规范是<code>建议性的（advisory）</code>。这意味着，接收端可能提供一个SACK告诉发送端已成功接收一定序列号范围的数据，而之后作出变更（食言）。<strong>由于这个原因，SACK发送端不能在收到一个SACK后立即清空其重传缓存中的数据；只有当接收端的普通TCP ACK号大于其最大序列号值时才可清除</strong>。这一规则同样影响重传计时器的行为，当TCP发送端启用基于计时器的重传时，应忽略SACK显示的任何关于接收端失序的信息。如果接收端仍存在失序数据，那么重传报文的ACK就包含附加的SACK块，以便发送者使用</li>
+<li>发送端也应提供<code>SACK</code>功能，并且合理地利用接收到的<code>SACK</code>块来进行丢失重传，该过程也称为<code>选择性重传（selective retransmission）</code>或<code>选择性重发（selective repeat）</code></li>
+<li>发送端记录接收到的累积<code>ACK</code>信息（像大多数TCP发送端一样），还需记录接收到的<code>SACK</code>信息，并利用该信息来避免重传正确接收的数据。一种方法是当接收到相应序列号范围的<code>ACK</code>时，则在其重传缓存中标记该报文段的选择重传成功</li>
+<li>当<code>SACK</code>发送端执行重传时，通常是由于其收到了<code>SACK</code>或重复<code>ACK</code>，它可以选择发送新数据或重传旧数据。<code>SACK</code>信息提供接收端数据的序列号范围，因此发送端可据此推断需要重传的空缺数据。最简单的方法是使发送方首先填补接收端的空缺，然后再继续发送新数据，这也是最常用的方法</li>
+<li>在[RFC2018]中，<code>SACK</code>选项和<code>SACK</code>块的当前规范是<code>建议性的（advisory）</code>。这意味着，接收端可能提供一个<code>SACK</code>告诉发送端已成功接收一定序列号范围的数据，而之后作出变更（食言）。<strong>由于这个原因，<code>SACK</code>发送端不能在收到一个<code>SACK</code>后立即清空其重传缓存中的数据；只有当接收端的普通TCP <code>ACK</code>号大于其最大序列号值时才可清除</strong>。这一规则同样影响重传计时器的行为，当TCP发送端启用基于计时器的重传时，应忽略<code>SACK</code>显示的任何关于接收端失序的信息。如果接收端仍存在失序数据，那么重传报文的<code>ACK</code>就包含附加的<code>SACK</code>块，以便发送者使用</li>
 </ol>
 <h2 id="107-伪超时与重传"><a class="markdownIt-Anchor" href="#107-伪超时与重传"></a> 10.7 伪超时与重传</h2>
 <ol>
-<li>在很多情况下，即使数据没有出现丢失也可能引发重传。这种不必要的重传称为<code>伪重传（spurious retransmission）</code>，其主要原因是<code>伪超时（spurious timeout）</code>，其他因素如包失序、包重复，或ACK丢失也可能导致该现象。在实际RTT显著增长，超过当前RTO时，可能出现伪超时</li>
+<li>在很多情况下，即使数据没有出现丢失也可能引发重传。这种不必要的重传称为<code>伪重传（spurious retransmission）</code>，其主要原因是<code>伪超时（spurious timeout）</code>，其他因素如包失序、包重复，或<code>ACK</code>丢失也可能导致该现象。在实际<code>RTT</code>显著增长，超过当前<code>RTO</code>时，可能出现伪超时</li>
 <li>为处理伪超时问题提出了许多方法，这些方法通常包含<code>检测（detection）算法</code>与<code>响应（response）算法</code>
 <ul>
 <li>检测算法用于判断某个超时或基于计时器的重传是否真实，一旦认定出现伪超时则执行响应算法，用于撤销或减轻该超时带来的影响</li>
@@ -1163,51 +1183,49 @@ $$\begin{split}
 </ol>
 <h3 id="1071-重复sackdsack扩展"><a class="markdownIt-Anchor" href="#1071-重复sackdsack扩展"></a> 10.7.1 重复SACK（DSACK）扩展</h3>
 <ol>
-<li>在非SACK的TCP中，ACK只能向发送端告知最大的有序报文段。采用SACK则可告知其他的（失序）报文段。基本的SACK机制对接收端收到重复数据段时怎样运作没有规定</li>
-<li><strong>在SACK接收端采用DSACK（或称作D-SACK），及重复SACK，并结合通常的SACK发送端，可在第一个SACK块中告知接收端收到的重复报文段序列号</strong>。DSACK的主要目的是判断何时的重传是不必要的，并了解网络中的其他事项。因此发送端至少可以推断是否发生了包失序、ACK丢失、包重复或伪重传</li>
-<li>DSACK相比于传统SACK并不需要额外的协商过程。为使其正常工作，接收端返回的SACK的内容会有所改变，对应的发送端的响应也会随之变化</li>
-<li><strong>DSACK相比于传统SACK，其接收端的变化在于：第一个SACK块允许包含序列号小于（或等于）累积ACK号字段的SACK</strong>
+<li>在非<code>SACK</code>的TCP中，<code>ACK</code>只能向发送端告知最大的有序报文段。采用<code>SACK</code>则可告知其他的（失序）报文段。基本的<code>SACK</code>机制对接收端收到重复数据段时怎样运作没有规定</li>
+<li><strong>在<code>SACK</code>接收端采用<code>DSACK</code>（或称作<code>D-SACK</code>），及重复<code>SACK</code>，并结合通常的<code>SACK</code>发送端，可在第一个<code>SACK</code>块中告知接收端收到的重复报文段序列号</strong>。<code>DSACK</code>的主要目的是判断何时的重传是不必要的，并了解网络中的其他事项。因此发送端至少可以推断是否发生了包失序、<code>ACK</code>丢失、包重复或伪重传</li>
+<li><code>DSACK</code>相比于传统<code>SACK</code>并不需要额外的协商过程。为使其正常工作，接收端返回的<code>SACK</code>的内容会有所改变，对应的发送端的响应也会随之变化</li>
+<li><strong><code>DSACK</code>相比于传统<code>SACK</code>，其接收端的变化在于：第一个<code>SACK</code>块允许包含序列号小于（或等于）累积<code>ACK</code>号字段的<code>SACK</code></strong>
 <ul>
-<li>如果第一个SACK块允许包含序列号小于累积ACK，则表明第一个SACK块的数据空间被至少接收了两次</li>
-<li>如果第一个SACK块允许包含序列号大于累积ACK，则需要比较第一个SACK块的序列号空间与第二个SACK块的序列号空间是否有重复（如果有第二个SACK块的话）</li>
+<li>如果第一个<code>SACK</code>块允许包含序列号小于累积<code>ACK</code>，则表明第一个<code>SACK</code>块的数据空间被至少接收了两次</li>
+<li>如果第一个<code>SACK</code>块允许包含序列号大于累积<code>ACK</code>，则需要比较第一个<code>SACK</code>块的序列号空间与第二个<code>SACK</code>块的序列号空间是否有重复（如果有第二个<code>SACK</code>块的话）</li>
 </ul>
 </li>
-<li>DSACK信息不会再多个SACK中重复。因此DSACK较通常的SACK鲁棒性低</li>
+<li><code>DSACK</code>信息不会再多个<code>SACK</code>中重复。因此<code>DSACK</code>较通常的<code>SACK</code>鲁棒性低</li>
 </ol>
 <h3 id="1072-eifel检测算法"><a class="markdownIt-Anchor" href="#1072-eifel检测算法"></a> 10.7.2 Eifel检测算法</h3>
 <ol>
-<li>实验性的<code>Eifel检测算法</code>[RFC3522]利用了TCP的TSOPT来检测伪重传。在发生超时重传后，Eifel算法等待接收下一个ACK，若为针对第一次传输（即原始传输）的确认，则判定该重传为伪重传</li>
-<li>利用Eifel检测算法能比仅采用DSACK更早检测到伪重传行为，因为它判断伪重传的ACK是在启动丢失恢复之前生成的。相反，DSACK只有在重复报文段到达接收端后才能发送，并且在DSACK返回至发送端才能有所响应</li>
-<li>Eifel检测算法的机制很简单，他需要使用TCP的TSOPT，当发送一个重传（不论是基于计时器的重传还是快速重传）后，保存其TSV值。当接收到相应分组的ACK后，检查该ACK的TSER部分：若TSER值小于之前存储的TSV值，则可判断该ACK对应的是原始传输分组，即该重传是伪重传</li>
-<li>Eifel检测算法可与DSACK结合使用，这样可以解决整个窗口的ACK信息均丢失，但原始传输和重传分组都成功到达接收端的情况。在这种特殊情况下，重传分组的到达会生成一个DSACK。Eifel检测算法会理所当然地认定出现了伪重传。然而，在出现了如此多的的ACK丢失的情况下，使得TCP相信该重传不是伪重传是有用的（例如，使其减慢发送速率–采用拥塞控制的后果）。因此，DSACK的到达会使得Eifel检测算法认定相应的重传不是伪重传</li>
+<li>实验性的<code>Eifel检测算法</code>[RFC3522]利用了TCP的<code>TSOPT</code>来检测伪重传。在发生超时重传后，<code>Eifel</code>算法等待接收下一个<code>ACK</code>，若为针对第一次传输（即原始传输）的确认，则判定该重传为伪重传</li>
+<li>利用<code>Eifel</code>检测算法能比仅采用<code>DSACK</code>更早检测到伪重传行为，因为它判断伪重传的<code>ACK</code>是在启动丢失恢复之前生成的。相反，<code>DSACK</code>只有在重复报文段到达接收端后才能发送，并且在<code>DSACK</code>返回至发送端才能有所响应</li>
+<li><code>Eifel</code>检测算法的机制很简单，他需要使用TCP的<code>TSOPT</code>，当发送一个重传（不论是基于计时器的重传还是快速重传）后，保存其<code>TSV</code>值。当接收到相应分组的<code>ACK</code>后，检查该<code>ACK</code>的<code>TSER</code>部分：若<code>TSER</code>值小于之前存储的<code>TSV</code>值，则可判断该<code>ACK</code>对应的是原始传输分组，即该重传是伪重传</li>
+<li><code>Eifel</code>检测算法可与<code>DSACK</code>结合使用，这样可以解决整个窗口的<code>ACK</code>信息均丢失，但原始传输和重传分组都成功到达接收端的情况。在这种特殊情况下，重传分组的到达会生成一个<code>DSACK</code>。<code>Eifel</code>检测算法会理所当然地认定出现了伪重传。然而，在出现了如此多的的<code>ACK</code>丢失的情况下，使得TCP相信该重传不是伪重传是有用的（例如，使其减慢发送速率–采用拥塞控制的后果）。因此，<code>DSACK</code>的到达会使得<code>Eifel</code>检测算法认定相应的重传不是伪重传</li>
 </ol>
 <h3 id="1073-前移rto恢复f-rto"><a class="markdownIt-Anchor" href="#1073-前移rto恢复f-rto"></a> 10.7.3 前移RTO恢复（F-RTO）</h3>
 <ol>
-<li><code>前移RTO恢复（Forward-RTO Recovery，F-RTO）</code>是检测伪重传的标准算法。它不需要任何TCP选项，因此只要在发送端实现该方法后，即使针对不支持TSOPT的接收端也能有效工作。该算法只检测由重传计时器引发的伪重传；对之前提到的其他原因引起的伪重传则无法判断</li>
-<li>在一次基于计时器的重传之后，F-RTO会对TCP的常用行为作出一定修改。由于这类重传针对的是没有收到ACK信息的最小序列号，通常情况下，TCP会继续按序发送相邻的分组，这就是前面描述的“回退N”行为</li>
-<li><strong>F-RTO会修改TCP的行为，基本思路是：在超时之后发送新数据（非重传数据），并观察之后的两个ACK，若两个ACK都不是重复ACK（是否与超时之前收到的ACK序列号相同），那么就认为是伪重传</strong>
+<li><code>前移RTO恢复（Forward-RTO Recovery，F-RTO）</code>是检测伪重传的标准算法。它不需要任何TCP选项，因此只要在发送端实现该方法后，即使针对不支持<code>TSOPT</code>的接收端也能有效工作。该算法只检测由重传计时器引发的伪重传；对之前提到的其他原因引起的伪重传则无法判断</li>
+<li>在一次基于计时器的重传之后，<code>F-RTO</code>会对TCP的常用行为作出一定修改。由于这类重传针对的是没有收到<code>ACK</code>信息的最小序列号，通常情况下，TCP会继续按序发送相邻的分组，这就是前面描述的“回退N”行为</li>
+<li><strong><code>F-RTO</code>会修改TCP的行为，基本思路是：在超时之后发送新数据（非重传数据），并观察之后的两个<code>ACK</code>，若两个<code>ACK</code>都不是重复<code>ACK</code>（是否与超时之前收到的<code>ACK</code>序列号相同），那么就认为是伪重传</strong>
 <ul>
-<li>可能情况1：数据包并未丢失而只是delay了，接收端在收到该delay数据包后，回复相应的ACK，使得窗口前移（该ACK肯定不是重复ACK）</li>
-<li>可能情况2：数据包正常接收，只是ACK丢失了，那么接收端在收到新的数据后（计时器超时后发送的新数据），回复相应的ACK，使得窗口前移（该ACK肯定不是冗余重复ACK）</li>
+<li>可能情况1：数据包并未丢失而只是delay了，接收端在收到该delay数据包后，回复相应的<code>ACK</code>，使得窗口前移（该<code>ACK</code>肯定不是重复<code>ACK</code>）</li>
+<li>可能情况2：数据包正常接收，只是<code>ACK</code>丢失了，那么接收端在收到新的数据后（计时器超时后发送的新数据），回复相应的<code>ACK</code>，使得窗口前移（该<code>ACK</code>肯定不是冗余重复<code>ACK</code>）</li>
 </ul>
 </li>
 </ol>
 <h3 id="1074-eifel响应算法"><a class="markdownIt-Anchor" href="#1074-eifel响应算法"></a> 10.7.4 Eifel响应算法</h3>
 <ol>
 <li>一旦判断出现伪重传，则会引发一套标准操作，即<code>Eifel响应算法</code>[RFC4015]</li>
-<li>响应算法逻辑上与Eifel检测算法分离，所以它可以与我们前面讨论的任何一种检测方法结合使用。原则上超时重传和快速重传都可使用Eifel响应算法，单目前只针对超时重传做了相关规定</li>
-<li>尽管Eifel响应算法可结合其他检测算法使用，但根据是否能尽早（如Eifel检测算法或F-RTO）或较迟（如DSACK）检测出伪超时的不同而有所区别
+<li>响应算法逻辑上与<code>Eifel</code>检测算法分离，所以它可以与我们前面讨论的任何一种检测方法结合使用。原则上超时重传和快速重传都可使用<code>Eifel</code>响应算法，单目前只针对超时重传做了相关规定</li>
+<li>尽管<code>Eifel</code>响应算法可结合其他检测算法使用，但根据是否能尽早（如<code>Eifel</code>检测算法或<code>F-RTO</code>）或较迟（如<code>DSACK</code>）检测出伪超时的不同而有所区别
 <ul>
-<li>前者称为<code>伪超时</code>，通过检查ACK或原始传输来实现</li>
-<li>后者称为<code>迟伪超时</code>，基于由（伪）超时而引发的重传所返回的ACK来判定</li>
+<li>前者称为<code>伪超时</code>，通过检查<code>ACK</code>或原始传输来实现</li>
+<li>后者称为<code>迟伪超时</code>，基于由（伪）超时而引发的重传所返回的<code>ACK</code>来判定</li>
 </ul>
 </li>
-<li>响应算法只针对第一种重传事件。若在恢复阶段完成之前再次发生超时，则不会执行响应算法。在重传计时器超时后，它会查看srtt和rttvar的值，并按如下方式记录新的变量<code>srtt_prev</code>和<code>rttvar_prev</code>
+<li>响应算法只针对第一种重传事件。若在恢复阶段完成之前再次发生超时，则不会执行响应算法。在重传计时器超时后，它会查看<code>srtt</code>和<code>rttvar</code>的值，并按如下方式记录新的变量<code>srtt_prev</code>和<code>rttvar_prev</code>
 <ul>
-<li>在任何一次计时器超时后，都会指定这两个变量，但只有在判定出现伪超时时才会使用它们，用于设定新的RTO</li>
-<li>
-$G$代表时钟粒度。$srtt\_prev$设置为$srtt$加上两倍的时钟粒度是由于：$srtt$的值过小，可能出现伪超时。如果$srtt$稍大，就可能不会发生超时
-</li>
+<li>在任何一次计时器超时后，都会指定这两个变量，但只有在判定出现伪超时时才会使用它们，用于设定新的<code>RTO</code></li>
+<li><code>G</code>代表时钟粒度。$srtt\_prev$设置为<code>srtt</code>加上两倍的时钟粒度是由于：<code>srtt</code>的值过小，可能出现伪超时。如果<code>srtt</code>稍大，就可能不会发生超时</li>
 </ul>
 </li>
 </ol>
@@ -1217,12 +1235,10 @@ rttvar\_prev &= rttvar
 \end{split}$$
 <ol>
 <li>完成$srtt\_prev$和$rttvar\_prev$的存储后，就要触发某种检测算法。运行检测算法后可得到一个特殊的值，称为<code>伪恢复（SpuriousRecovery）</code>。如果检测到一次<code>伪超时</code>，则将<code>伪恢复</code>设置为<code>SPUR_TO</code>。如果检测到<code>迟伪超时</code>，则将其设置为<code>LATE_SPUR_TO</code>。否则，该次超时为正常超时，TCP继续执行正常的响应行为</li>
-<li>若<code>伪恢复</code>为<code>SPUR_TO</code>，TCP可在恢复阶段完成之前进行操作，通过将下一个要发送的报文段（称为<code>SND.NXT</code>）的序列号修改为最新的未发送过的报文段（称为<code>SND.MAX</code>），这样就可在首次重传后避免不必要的“回退N”行为。若<code>伪恢复</code>为<code>LATE_SPUR_TO</code>，此时已收到首次重传的ACK，则<code>SND.NXT</code>不改变。以上两种情况中，都要重新设置拥塞控制状态，并且一旦接收到重传计时器超时后发送的报文段的ACK，就要按如下方式更新$srtt$、$rttvar$和RTO
+<li>若<code>伪恢复</code>为<code>SPUR_TO</code>，TCP可在恢复阶段完成之前进行操作，通过将下一个要发送的报文段（称为<code>SND.NXT</code>）的序列号修改为最新的未发送过的报文段（称为<code>SND.MAX</code>），这样就可在首次重传后避免不必要的“回退N”行为。若<code>伪恢复</code>为<code>LATE_SPUR_TO</code>，此时已收到首次重传的<code>ACK</code>，则<code>SND.NXT</code>不改变。以上两种情况中，都要重新设置拥塞控制状态，并且一旦接收到重传计时器超时后发送的报文段的<code>ACK</code>，就要按如下方式更新<code>srtt</code>、<code>rttvar</code>和<code>RTO</code>
 <ul>
-<li>
-$m$是一个RTT样本值，它是基于超时后收个发送数据收到的ACK而计算得到的
-</li>
-<li>进行这些变量更新的目的在于：实际的RTT值可能发生了很大变化，RTT当前估计值已不适用于设置RTO。若路径上的实际RTT突然增大，当前的$srtt$和$rttvar$就显得过小，应重新设置；而另一方面，RTT的增大可能只是暂时的，这时重新设置$srtt$和$rttvar$就不那么明智了，因为它们原先的值可能更为精确</li>
+<li><code>m</code>是一个<code>RTT</code>样本值，它是基于超时后收个发送数据收到的<code>ACK</code>而计算得到的</li>
+<li>进行这些变量更新的目的在于：实际的<code>RTT</code>值可能发生了很大变化，<code>RTT</code>当前估计值已不适用于设置<code>RTO</code>。若路径上的实际<code>RTT</code>突然增大，当前的<code>srtt</code>和<code>rttvar</code>就显得过小，应重新设置；而另一方面，<code>RTT</code>的增大可能只是暂时的，这时重新设置<code>srtt</code>和<code>rttvar</code>就不那么明智了，因为它们原先的值可能更为精确</li>
 </ul>
 </li>
 </ol>
@@ -1232,39 +1248,39 @@ rttvar &= max(rttvar\_prev, \frac{m}{2}) \\
 RTO &= srtt + max(G, 4(rttvar))
 \end{split}$$
 <ol>
-<li>在新RTT样本值较大的情况下，上述等式尽力获得上述两种情况的平衡。这样做可以有效地抛弃之前的RTT历史值（和RTT的历史变化情况）。只有在响应算法中$srtt$和$rttvar$的值才会增大。若RTT不会增大，则维持估计值不变，这本质上是忽略超时情况发生。两种情况中，RTO还是按正常方式进行鞥新，并针对此次超时设置新的重传计时器值</li>
+<li>在新<code>RTT</code>样本值较大的情况下，上述等式尽力获得上述两种情况的平衡。这样做可以有效地抛弃之前的<code>RTT</code>历史值（和<code>RTT</code>的历史变化情况）。只有在响应算法中<code>srtt</code>和<code>rttvar</code>的值才会增大。若<code>RTT</code>不会增大，则维持估计值不变，这本质上是忽略超时情况发生。两种情况中，<code>RTO</code>还是按正常方式进行鞥新，并针对此次超时设置新的重传计时器值</li>
 </ol>
 <h2 id="108-包失序与包重复"><a class="markdownIt-Anchor" href="#108-包失序与包重复"></a> 10.8 包失序与包重复</h2>
 <h3 id="1081-失序"><a class="markdownIt-Anchor" href="#1081-失序"></a> 10.8.1 失序</h3>
 <ol>
 <li>在IP网络中出现包失序的原因在于IP层不能保证包传输是有序进行的。对IP层来说，这样做是有利的，因为IP可以选择另一条传输链路（例如传输速度更快的路径），而不用担心新发送的分组会先于旧数据到达，这就导致数据的接收顺序与发送顺序不一致。此外，在硬件方面一些高性能路由器会采用多个并行数据链路，不同的处理延时也会导致包的离开顺序与到达顺序不匹配</li>
-<li>失序问题也可能存在于TCP连接的正向或反向链路中。数据段的失序与ACK包的失序对TCP的影响有一定差别
+<li>失序问题也可能存在于TCP连接的正向或反向链路中。数据段的失序与<code>ACK</code>包的失序对TCP的影响有一定差别
 <ul>
-<li>如果失序发生在反向（ACK）链路，就会使得TCP发送端窗口快速前移，接着有可能收到一些显然重复而应被丢弃的ACK。由于TCP的拥塞控制行为，这种情况会导致发送端出现不必要的流量突发（瞬时高速发送）行为，影响可用网络带宽</li>
+<li>如果失序发生在反向（<code>ACK</code>）链路，就会使得TCP发送端窗口快速前移，接着有可能收到一些显然重复而应被丢弃的<code>ACK</code>。由于TCP的拥塞控制行为，这种情况会导致发送端出现不必要的流量突发（瞬时高速发送）行为，影响可用网络带宽</li>
 <li>如果失序发生在正向链路，TCP可能无法正确识别失序和丢包。数据的丢失和失序都会导致接收端收到无序的包，造成数据之间的空缺。当失序程度不是很大（如两个相邻的包交换顺序），这种情况可以迅速得到处理。反之，当出现严重失序时，TCP会误认为数据包已经丢失，这种情况会造成伪重传，主要来自快速重传算法</li>
 </ul>
 </li>
-<li>区分丢包与失序不是一个很重要的问题。要解决它要判断发送端是否已经等待了足够长的时间来填补空缺。幸运的是，互联网中严重的失序并不常见，因此将<code>dupthresh</code>（快速重传的ACK重复次数）设置为相对较小的值（默认是3）就能处理绝大部分情况。其他严重的情况可以通过调整<code>dupthresh</code>来应对</li>
+<li>区分丢包与失序不是一个很重要的问题。要解决它要判断发送端是否已经等待了足够长的时间来填补空缺。幸运的是，互联网中严重的失序并不常见，因此将<code>dupthresh</code>（快速重传的<code>ACK</code>重复次数）设置为相对较小的值（默认是3）就能处理绝大部分情况。其他严重的情况可以通过调整<code>dupthresh</code>来应对</li>
 </ol>
 <h3 id="1082-重复"><a class="markdownIt-Anchor" href="#1082-重复"></a> 10.8.2 重复</h3>
 <ol>
 <li>尽管出现的比较少，IP协议也可能出现将单个包传输多次的情况。例如，当链路层网络协议执行一次重传，并生成同一个包的两个副本。当重复生成时，TCP可能出现混淆</li>
-<li>包的多次重复会使得接收端生成一系列重复ACK，有可能触发伪快速重传，对于非SACK的发送端就会产生误解。利用SACK（特别是DSACK）可以简单地忽略这个问题</li>
+<li>包的多次重复会使得接收端生成一系列重复<code>ACK</code>，有可能触发伪快速重传，对于非<code>SACK</code>的发送端就会产生误解。利用<code>SACK</code>（特别是<code>DSACK</code>）可以简单地忽略这个问题</li>
 </ol>
 <h2 id="109-目的度量"><a class="markdownIt-Anchor" href="#109-目的度量"></a> 10.9 目的度量</h2>
 <ol>
-<li>TCP能不断“学习”发送端与接收端之间的链路特征。学习的结果显示为发送端记录一些状态变量，如$srtt$和$rttvar$。一些TCP实现也记录一段时间内已出现的失序包的估计值。一般来说，一旦该连接关闭，这些学习结果也会丢失。即与一个接收端建立一个新的TCP连接后，他必须从头开始获得状态变量值</li>
-<li>较新的TCP实现维护了这些度量值，即使在连接断开后，也能保存之前存在的路由或转发表项，或其他的一些系统数据结构。当创立一个新的连接时，首先查看数据结构中是否存在于该目的端的先前通信信息。如果存在，则选择较近的信息，据此为$srtt$和$rttvar$以及其他变量设初值。在Linux中可以通过命令<code>ip route show cache 1.1.1.1</code>查看这些变量值</li>
+<li>TCP能不断“学习”发送端与接收端之间的链路特征。学习的结果显示为发送端记录一些状态变量，如<code>srtt</code>和<code>rttvar</code>。一些TCP实现也记录一段时间内已出现的失序包的估计值。一般来说，一旦该连接关闭，这些学习结果也会丢失。即与一个接收端建立一个新的TCP连接后，他必须从头开始获得状态变量值</li>
+<li>较新的TCP实现维护了这些度量值，即使在连接断开后，也能保存之前存在的路由或转发表项，或其他的一些系统数据结构。当创立一个新的连接时，首先查看数据结构中是否存在于该目的端的先前通信信息。如果存在，则选择较近的信息，据此为<code>srtt</code>和<code>rttvar</code>以及其他变量设初值。在Linux中可以通过命令<code>ip route show cache 1.1.1.1</code>查看这些变量值</li>
 </ol>
 <h2 id="1010-重新组包"><a class="markdownIt-Anchor" href="#1010-重新组包"></a> 10.10 重新组包</h2>
 <ol>
-<li>当TCP超时重传，他并不需要完全重传相同的报文段。TCP允许执行<code>重新组包（repacketization）</code>，发送一个更大的报文段来提高性能（通常该更大的报文段不能超过接收端通告的MSS，也不能大于路径MTU）</li>
+<li>当TCP超时重传，他并不需要完全重传相同的报文段。TCP允许执行<code>重新组包（repacketization）</code>，发送一个更大的报文段来提高性能（通常该更大的报文段不能超过接收端通告的<code>MSS</code>，也不能大于路径MTU）</li>
 <li>TCP能重传一个与元报文段不同大小的报文段，这从一定意义上解决了重传二义性的问题。STODER[TZZ05]就是基于该思想，采用重新组包的方法来检测伪超时</li>
 </ol>
 <h2 id="1011-与tcp重传相关的攻击"><a class="markdownIt-Anchor" href="#1011-与tcp重传相关的攻击"></a> 10.11 与TCP重传相关的攻击</h2>
 <ol>
-<li>有一类DoS攻击称为低速率DoS攻击[KK03]。在这类攻击中，攻击者向网关或主机发送大量数据，使得受害系统持续处于重传超时的状态。由于攻击者可预知受害者TCP何时启动重传，并在每次重传时生成并发送大量数据。因此，受害TCP总能感知到拥塞的存在，根据Karn算法不断减小发送速率并退避发送，导致无法正常使用网络带宽。针对此类攻击的预防方法就是随机选择RTO，使得攻击者无法预知确切的重传时间</li>
-<li>与DoS相关但不同的一种攻击为减慢受害者TCP的发送，使得RTT估计值过大。这样受害者在丢包后不会立即重传。相反的攻击也是有可能的：攻击者在数据发送完成但还未到达接收端时伪造ACK。这样攻击者就能使受害者TCP认为连接的RTT远小于实际值，导致过分发送，造成大量的无效传输</li>
+<li>有一类DoS攻击称为低速率DoS攻击[KK03]。在这类攻击中，攻击者向网关或主机发送大量数据，使得受害系统持续处于重传超时的状态。由于攻击者可预知受害者TCP何时启动重传，并在每次重传时生成并发送大量数据。因此，受害TCP总能感知到拥塞的存在，根据Karn算法不断减小发送速率并退避发送，导致无法正常使用网络带宽。针对此类攻击的预防方法就是随机选择<code>RTO</code>，使得攻击者无法预知确切的重传时间</li>
+<li>与DoS相关但不同的一种攻击为减慢受害者TCP的发送，使得<code>RTT</code>估计值过大。这样受害者在丢包后不会立即重传。相反的攻击也是有可能的：攻击者在数据发送完成但还未到达接收端时伪造<code>ACK</code>。这样攻击者就能使受害者TCP认为连接的<code>RTT</code>远小于实际值，导致过分发送，造成大量的无效传输</li>
 </ol>
 <h1 id="11-tcp数据流与窗口管理"><a class="markdownIt-Anchor" href="#11-tcp数据流与窗口管理"></a> 11 TCP数据流与窗口管理</h1>
 <h2 id="111-引言"><a class="markdownIt-Anchor" href="#111-引言"></a> 11.1 引言</h2>
@@ -1287,9 +1303,40 @@ RTO &= srtt + max(G, 4(rttvar))
 </ul>
 </li>
 </ol>
-<h1 id="12-参考"><a class="markdownIt-Anchor" href="#12-参考"></a> 12 参考</h1>
+<h1 id="12-其他"><a class="markdownIt-Anchor" href="#12-其他"></a> 12 其他</h1>
+<h2 id="121-流量控制"><a class="markdownIt-Anchor" href="#121-流量控制"></a> 12.1 流量控制</h2>
+<p><img src="/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/flow_control.jpeg" alt="flow_control" /></p>
+<p><strong>流量控制，是利用灵活可变的滑动窗口控制流量，是为了解决发送数据扩快导致接收方来不及接收的问题</strong></p>
+<p><strong>发送方缓存中的数据可以分成如下4类</strong></p>
+<ol>
+<li>已发送，并且收到ack</li>
+<li>已发送，未收到ack</li>
+<li>未发送，允许发送</li>
+<li>未发送，不允许发送</li>
+</ol>
+<ul>
+<li>其中<code>2</code>和<code>3</code>这两类属于滑动窗口的范围</li>
+</ul>
+<h2 id="122-拥塞控制"><a class="markdownIt-Anchor" href="#122-拥塞控制"></a> 12.2 拥塞控制</h2>
+<p><img src="/images/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/cwnd.png" alt="cwnd" /></p>
+<p><strong>拥塞控制，是为了避免过多的流量注入网络使得网络过载。具体方法包括：慢开始、拥塞避免、快重传和快恢复</strong></p>
+<ul>
+<li><strong>慢开始</strong>：拥塞窗口从一个较小的值开始，指数增长</li>
+<li><strong>拥塞避免</strong>：拥塞窗口增长到指定阈值后，线性增长</li>
+<li><strong>快重传</strong>：同一个ack重复发3次，触发发送端的快速重传，避免等待超时浪费时间</li>
+<li><strong>快恢复</strong>：当触发快速重传时，可能仅发生了乱序，而网络实际上还是正常的，因此没必要将拥塞窗口调成最小值，而是将拥塞窗口调整到阈值附近</li>
+</ul>
+<h1 id="13-参考"><a class="markdownIt-Anchor" href="#13-参考"></a> 13 参考</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/shenwansangz/article/details/38400919">传输层学习之五（TCP的SACK，F-RTO）</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.2cto.com/net/201310/251896.html">TCP/IP协议三次握手与四次握手流程解析</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/zhushuai1221/article/details/51008950">TCP/IP为什么要进行三次握手？</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/a987073381/article/details/52206215">计算机网络——TCP协议中的三次握手四次挥手以及11种状态转换</a></li>
+<li><a target="_blank" rel="noopener" href="https://my.oschina.net/woyaoxue/blog/510669?p=1">TIME_WAIT状态作用!</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.huaweicloud.com/articles/ba31660f82bbdd3a3e8615ec68d85bc3.html">TCP流量控制和拥塞控制简述</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.huaweicloud.com/articles/912cb7c3b49f2a5bc792a140bb4d7a87.html">TCP的拥塞控制（详解）</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/32255109/answer/898371009">TCP协议的滑动窗口具体是怎样控制流量的？</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/102382380">TCP的拥塞避免</a></li>
 </ul>
 
     </div>
@@ -1330,19 +1377,19 @@ RTO &= srtt + max(G, 4(rttvar))
           
       <div class="tabs tabs-comment">
         <ul class="nav-tabs">
-            <li class="tab"><a href="#comment-livere">livere</a></li>
             <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
         </ul>
         <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
             <div class="tab-pane livere" id="comment-livere">
               
   <div class="comments">
     <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
   </div>
   
-            </div>
-            <div class="tab-pane valine" id="comment-valine">
-              <div class="comments" id="valine-comments"></div>
             </div>
         </div>
       </div>
@@ -1392,7 +1439,7 @@ RTO &= srtt + max(G, 4(rttvar))
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text"> 1 概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="nav-text"> 2 链路层</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 3 网际协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-arp-%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 4 ARP: 地址解析协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-rarp-%E9%80%86%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 5 RARP: 逆地址解析协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-icmp-internet%E6%8E%A7%E5%88%B6%E6%8A%A5%E6%96%87%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 6 ICMP: Internet控制报文协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E9%98%B2%E7%81%AB%E5%A2%99%E5%92%8C%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="nav-text"> 7 防火墙和网络地址转换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-text"> 7.1 防火墙</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#711-%E5%8C%85%E8%BF%87%E6%BB%A4%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-text"> 7.1.1 包过滤防火墙</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#712-%E4%BB%A3%E7%90%86%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-text"> 7.1.2 代理防火墙</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-tcp-%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%AD%A5"><span class="nav-text"> 8 TCP: 传输控制协议（初步）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-tcp%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86"><span class="nav-text"> 9 TCP连接管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-tcp%E8%BF%9E%E6%8E%A5%E7%9A%84%E5%BB%BA%E7%AB%8B%E4%B8%8E%E7%BB%88%E6%AD%A2"><span class="nav-text"> 9.1 TCP连接的建立与终止</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-tcp%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2 TCP选项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#921-%E6%9C%80%E5%A4%A7%E6%AE%B5%E5%A4%A7%E5%B0%8F%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2.1 最大段大小选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#922-%E9%80%89%E6%8B%A9%E7%A1%AE%E8%AE%A4%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2.2 选择确认选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#923-%E7%AA%97%E5%8F%A3%E7%BC%A9%E6%94%BE%E5%9B%A0%E5%AD%90"><span class="nav-text"> 9.2.3 窗口缩放因子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#924-%E6%97%B6%E9%97%B4%E6%88%B3%E9%80%89%E9%A1%B9%E4%B8%8E%E9%98%B2%E5%9B%9E%E7%BB%95%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="nav-text"> 9.2.4 时间戳选项与防回绕序列号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#925-%E7%94%A8%E6%88%B7%E8%B6%85%E6%97%B6%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2.5 用户超时选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#926-%E8%AE%A4%E8%AF%81%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2.6 认证选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-tcp%E7%9A%84%E8%B7%AF%E5%BE%84%E6%9C%80%E5%A4%A7%E4%BC%A0%E8%BE%93%E5%8D%95%E5%85%83%E5%8F%91%E7%8E%B0"><span class="nav-text"> 9.3 TCP的路径最大传输单元发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-tcp%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2"><span class="nav-text"> 9.4 TCP状态转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#941-time_wait%E7%8A%B6%E6%80%81"><span class="nav-text"> 9.4.1 TIME_WAIT状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#942-%E9%9D%99%E9%BB%98%E6%97%B6%E9%97%B4%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="nav-text"> 9.4.2 静默时间的概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#943-fin_wait_2%E7%8A%B6%E6%80%81"><span class="nav-text"> 9.4.3 FIN_WAIT_2状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#944-%E5%90%8C%E6%97%B6%E6%89%93%E5%BC%80%E4%B8%8E%E5%85%B3%E9%97%AD%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="nav-text"> 9.4.4 同时打开与关闭的转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#95-%E9%87%8D%E7%BD%AE%E6%8A%A5%E6%96%87%E6%AE%B5"><span class="nav-text"> 9.5 重置报文段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#951-%E9%92%88%E5%AF%B9%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%AB%AF%E5%8F%A3%E7%9A%84%E8%BF%9E%E6%8E%A5%E8%AF%B7%E6%B1%82"><span class="nav-text"> 9.5.1 针对不存在端口的连接请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#952-%E7%BB%88%E6%AD%A2%E4%B8%80%E6%9D%A1%E8%BF%9E%E6%8E%A5"><span class="nav-text"> 9.5.2 终止一条连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#953-%E5%8D%8A%E5%BC%80%E8%BF%9E%E6%8E%A5"><span class="nav-text"> 9.5.3 半开连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#954-%E6%97%B6%E9%97%B4%E7%AD%89%E5%BE%85%E9%94%99%E8%AF%AF"><span class="nav-text"> 9.5.4 时间等待错误</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#96-%E4%B8%8Etcp%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB"><span class="nav-text"> 9.6 与TCP连接管理相关的攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#961-syn%E6%B3%9B%E6%B4%AA"><span class="nav-text"> 9.6.1 SYN泛洪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#962-%E5%8A%AB%E6%8C%81"><span class="nav-text"> 9.6.2 劫持</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#963-%E6%AC%BA%E9%AA%97%E6%94%BB%E5%87%BB"><span class="nav-text"> 9.6.3 欺骗攻击</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-tcp%E8%B6%85%E6%97%B6%E4%B8%8E%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10 TCP超时与重传</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#101-%E6%A6%82%E8%A6%81"><span class="nav-text"> 10.1 概要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#102-%E7%AE%80%E5%8D%95%E7%9A%84%E8%B6%85%E6%97%B6%E4%B8%8E%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.2 简单的超时与重传</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#103-%E8%AE%BE%E7%BD%AE%E9%87%8D%E4%BC%A0%E8%B6%85%E6%97%B6"><span class="nav-text"> 10.3 设置重传超时</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1031-%E7%BB%8F%E5%85%B8%E6%96%B9%E6%B3%95"><span class="nav-text"> 10.3.1 经典方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1032-%E6%A0%87%E5%87%86%E6%96%B9%E6%B3%95"><span class="nav-text"> 10.3.2 标准方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#10321-%E6%97%B6%E9%92%9F%E7%B2%92%E5%BA%A6%E4%B8%8Erto%E8%BE%B9%E7%95%8C"><span class="nav-text"> 10.3.2.1 时钟粒度与RTO边界</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10322-%E5%88%9D%E5%A7%8B%E5%80%BC"><span class="nav-text"> 10.3.2.2 初始值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10323-%E9%87%8D%E4%BC%A0%E4%BA%8C%E4%B9%89%E6%80%A7%E4%B8%8Ekarn%E7%AE%97%E6%B3%95"><span class="nav-text"> 10.3.2.3 重传二义性与Karn算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10324-%E5%B8%A6%E6%97%B6%E9%97%B4%E6%88%B3%E9%80%89%E9%A1%B9%E7%9A%84rtt%E6%B5%8B%E9%87%8F"><span class="nav-text"> 10.3.2.4 带时间戳选项的RTT测量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1033-linux%E9%87%87%E7%94%A8%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-text"> 10.3.3 Linux采用的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1034-rtt%E4%BC%B0%E8%AE%A1%E5%99%A8%E8%A1%8C%E4%B8%BA"><span class="nav-text"> 10.3.4 RTT估计器行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1035-rttm%E5%AF%B9%E4%B8%A2%E5%8C%85%E5%92%8C%E5%A4%B1%E5%BA%8F%E7%9A%84%E9%B2%81%E6%A3%92%E6%80%A7"><span class="nav-text"> 10.3.5 RTTM对丢包和失序的鲁棒性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#104-%E5%9F%BA%E4%BA%8E%E8%AE%A1%E6%97%B6%E5%99%A8%E7%9A%84%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.4 基于计时器的重传</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#105-%E5%BF%AB%E9%80%9F%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.5 快速重传</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#106-%E5%B8%A6%E9%80%89%E6%8B%A9%E7%A1%AE%E8%AE%A4%E7%9A%84%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.6 带选择确认的重传</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1061-sack%E6%8E%A5%E6%94%B6%E7%AB%AF%E8%A1%8C%E4%B8%BA"><span class="nav-text"> 10.6.1 SACK接收端行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1062-sack%E5%8F%91%E9%80%81%E7%AB%AF%E8%A1%8C%E4%B8%BA"><span class="nav-text"> 10.6.2 SACK发送端行为</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#107-%E4%BC%AA%E8%B6%85%E6%97%B6%E4%B8%8E%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.7 伪超时与重传</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1071-%E9%87%8D%E5%A4%8Dsackdsack%E6%89%A9%E5%B1%95"><span class="nav-text"> 10.7.1 重复SACK（DSACK）扩展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1072-eifel%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95"><span class="nav-text"> 10.7.2 Eifel检测算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1073-%E5%89%8D%E7%A7%BBrto%E6%81%A2%E5%A4%8Df-rto"><span class="nav-text"> 10.7.3 前移RTO恢复（F-RTO）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1074-eifel%E5%93%8D%E5%BA%94%E7%AE%97%E6%B3%95"><span class="nav-text"> 10.7.4 Eifel响应算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#108-%E5%8C%85%E5%A4%B1%E5%BA%8F%E4%B8%8E%E5%8C%85%E9%87%8D%E5%A4%8D"><span class="nav-text"> 10.8 包失序与包重复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1081-%E5%A4%B1%E5%BA%8F"><span class="nav-text"> 10.8.1 失序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1082-%E9%87%8D%E5%A4%8D"><span class="nav-text"> 10.8.2 重复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#109-%E7%9B%AE%E7%9A%84%E5%BA%A6%E9%87%8F"><span class="nav-text"> 10.9 目的度量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1010-%E9%87%8D%E6%96%B0%E7%BB%84%E5%8C%85"><span class="nav-text"> 10.10 重新组包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1011-%E4%B8%8Etcp%E9%87%8D%E4%BC%A0%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB"><span class="nav-text"> 10.11 与TCP重传相关的攻击</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-tcp%E6%95%B0%E6%8D%AE%E6%B5%81%E4%B8%8E%E7%AA%97%E5%8F%A3%E7%AE%A1%E7%90%86"><span class="nav-text"> 11 TCP数据流与窗口管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#111-%E5%BC%95%E8%A8%80"><span class="nav-text"> 11.1 引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#112-%E4%BA%A4%E4%BA%92%E5%BC%8F%E9%80%9A%E4%BF%A1"><span class="nav-text"> 11.2 交互式通信</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-%E5%8F%82%E8%80%83"><span class="nav-text"> 12 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text"> 1 概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="nav-text"> 2 链路层</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 3 网际协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-arp-%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 4 ARP: 地址解析协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-rarp-%E9%80%86%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 5 RARP: 逆地址解析协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-icmp-internet%E6%8E%A7%E5%88%B6%E6%8A%A5%E6%96%87%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 6 ICMP: Internet控制报文协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E9%98%B2%E7%81%AB%E5%A2%99%E5%92%8C%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="nav-text"> 7 防火墙和网络地址转换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-text"> 7.1 防火墙</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#711-%E5%8C%85%E8%BF%87%E6%BB%A4%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-text"> 7.1.1 包过滤防火墙</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#712-%E4%BB%A3%E7%90%86%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-text"> 7.1.2 代理防火墙</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-tcp-%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%AD%A5"><span class="nav-text"> 8 TCP: 传输控制协议（初步）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-tcp%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86"><span class="nav-text"> 9 TCP连接管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-tcp%E8%BF%9E%E6%8E%A5%E7%9A%84%E5%BB%BA%E7%AB%8B%E4%B8%8E%E7%BB%88%E6%AD%A2"><span class="nav-text"> 9.1 TCP连接的建立与终止</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-tcp%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2 TCP选项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#921-%E6%9C%80%E5%A4%A7%E6%AE%B5%E5%A4%A7%E5%B0%8F%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2.1 最大段大小选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#922-%E9%80%89%E6%8B%A9%E7%A1%AE%E8%AE%A4%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2.2 选择确认选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#923-%E7%AA%97%E5%8F%A3%E7%BC%A9%E6%94%BE%E5%9B%A0%E5%AD%90"><span class="nav-text"> 9.2.3 窗口缩放因子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#924-%E6%97%B6%E9%97%B4%E6%88%B3%E9%80%89%E9%A1%B9%E4%B8%8E%E9%98%B2%E5%9B%9E%E7%BB%95%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="nav-text"> 9.2.4 时间戳选项与防回绕序列号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#925-%E7%94%A8%E6%88%B7%E8%B6%85%E6%97%B6%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2.5 用户超时选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#926-%E8%AE%A4%E8%AF%81%E9%80%89%E9%A1%B9"><span class="nav-text"> 9.2.6 认证选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-tcp%E7%9A%84%E8%B7%AF%E5%BE%84%E6%9C%80%E5%A4%A7%E4%BC%A0%E8%BE%93%E5%8D%95%E5%85%83%E5%8F%91%E7%8E%B0"><span class="nav-text"> 9.3 TCP的路径最大传输单元发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-tcp%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2"><span class="nav-text"> 9.4 TCP状态转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#941-time_wait%E7%8A%B6%E6%80%81"><span class="nav-text"> 9.4.1 TIME_WAIT状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#942-close_wait%E7%8A%B6%E6%80%81"><span class="nav-text"> 9.4.2 CLOSE_WAIT状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#943-%E9%9D%99%E9%BB%98%E6%97%B6%E9%97%B4%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="nav-text"> 9.4.3 静默时间的概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#944-fin_wait_2%E7%8A%B6%E6%80%81"><span class="nav-text"> 9.4.4 FIN_WAIT_2状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#945-%E5%90%8C%E6%97%B6%E6%89%93%E5%BC%80%E4%B8%8E%E5%85%B3%E9%97%AD%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="nav-text"> 9.4.5 同时打开与关闭的转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#95-%E9%87%8D%E7%BD%AE%E6%8A%A5%E6%96%87%E6%AE%B5rst"><span class="nav-text"> 9.5 重置报文段RST</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#951-%E9%92%88%E5%AF%B9%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%AB%AF%E5%8F%A3%E7%9A%84%E8%BF%9E%E6%8E%A5%E8%AF%B7%E6%B1%82"><span class="nav-text"> 9.5.1 针对不存在端口的连接请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#952-%E7%BB%88%E6%AD%A2%E4%B8%80%E6%9D%A1%E8%BF%9E%E6%8E%A5"><span class="nav-text"> 9.5.2 终止一条连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#953-%E5%8D%8A%E5%BC%80%E8%BF%9E%E6%8E%A5"><span class="nav-text"> 9.5.3 半开连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#954-%E6%97%B6%E9%97%B4%E7%AD%89%E5%BE%85%E9%94%99%E8%AF%AF"><span class="nav-text"> 9.5.4 时间等待错误</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#96-%E4%B8%8Etcp%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB"><span class="nav-text"> 9.6 与TCP连接管理相关的攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#961-syn%E6%B3%9B%E6%B4%AA"><span class="nav-text"> 9.6.1 SYN泛洪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#962-%E5%8A%AB%E6%8C%81"><span class="nav-text"> 9.6.2 劫持</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#963-%E6%AC%BA%E9%AA%97%E6%94%BB%E5%87%BB"><span class="nav-text"> 9.6.3 欺骗攻击</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-tcp%E8%B6%85%E6%97%B6%E4%B8%8E%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10 TCP超时与重传</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#101-%E6%A6%82%E8%A6%81"><span class="nav-text"> 10.1 概要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#102-%E7%AE%80%E5%8D%95%E7%9A%84%E8%B6%85%E6%97%B6%E4%B8%8E%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.2 简单的超时与重传</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#103-%E8%AE%BE%E7%BD%AE%E9%87%8D%E4%BC%A0%E8%B6%85%E6%97%B6"><span class="nav-text"> 10.3 设置重传超时</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1031-%E7%BB%8F%E5%85%B8%E6%96%B9%E6%B3%95"><span class="nav-text"> 10.3.1 经典方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1032-%E6%A0%87%E5%87%86%E6%96%B9%E6%B3%95"><span class="nav-text"> 10.3.2 标准方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#10321-%E6%97%B6%E9%92%9F%E7%B2%92%E5%BA%A6%E4%B8%8Erto%E8%BE%B9%E7%95%8C"><span class="nav-text"> 10.3.2.1 时钟粒度与RTO边界</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10322-%E5%88%9D%E5%A7%8B%E5%80%BC"><span class="nav-text"> 10.3.2.2 初始值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10323-%E9%87%8D%E4%BC%A0%E4%BA%8C%E4%B9%89%E6%80%A7%E4%B8%8Ekarn%E7%AE%97%E6%B3%95"><span class="nav-text"> 10.3.2.3 重传二义性与Karn算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10324-%E5%B8%A6%E6%97%B6%E9%97%B4%E6%88%B3%E9%80%89%E9%A1%B9%E7%9A%84rtt%E6%B5%8B%E9%87%8F"><span class="nav-text"> 10.3.2.4 带时间戳选项的RTT测量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1033-linux%E9%87%87%E7%94%A8%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-text"> 10.3.3 Linux采用的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1034-rtt%E4%BC%B0%E8%AE%A1%E5%99%A8%E8%A1%8C%E4%B8%BA"><span class="nav-text"> 10.3.4 RTT估计器行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1035-rttm%E5%AF%B9%E4%B8%A2%E5%8C%85%E5%92%8C%E5%A4%B1%E5%BA%8F%E7%9A%84%E9%B2%81%E6%A3%92%E6%80%A7"><span class="nav-text"> 10.3.5 RTTM对丢包和失序的鲁棒性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#104-%E5%9F%BA%E4%BA%8E%E8%AE%A1%E6%97%B6%E5%99%A8%E7%9A%84%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.4 基于计时器的重传</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#105-%E5%BF%AB%E9%80%9F%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.5 快速重传</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#106-%E5%B8%A6%E9%80%89%E6%8B%A9%E7%A1%AE%E8%AE%A4%E7%9A%84%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.6 带选择确认的重传</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1061-sack%E6%8E%A5%E6%94%B6%E7%AB%AF%E8%A1%8C%E4%B8%BA"><span class="nav-text"> 10.6.1 SACK接收端行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1062-sack%E5%8F%91%E9%80%81%E7%AB%AF%E8%A1%8C%E4%B8%BA"><span class="nav-text"> 10.6.2 SACK发送端行为</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#107-%E4%BC%AA%E8%B6%85%E6%97%B6%E4%B8%8E%E9%87%8D%E4%BC%A0"><span class="nav-text"> 10.7 伪超时与重传</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1071-%E9%87%8D%E5%A4%8Dsackdsack%E6%89%A9%E5%B1%95"><span class="nav-text"> 10.7.1 重复SACK（DSACK）扩展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1072-eifel%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95"><span class="nav-text"> 10.7.2 Eifel检测算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1073-%E5%89%8D%E7%A7%BBrto%E6%81%A2%E5%A4%8Df-rto"><span class="nav-text"> 10.7.3 前移RTO恢复（F-RTO）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1074-eifel%E5%93%8D%E5%BA%94%E7%AE%97%E6%B3%95"><span class="nav-text"> 10.7.4 Eifel响应算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#108-%E5%8C%85%E5%A4%B1%E5%BA%8F%E4%B8%8E%E5%8C%85%E9%87%8D%E5%A4%8D"><span class="nav-text"> 10.8 包失序与包重复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1081-%E5%A4%B1%E5%BA%8F"><span class="nav-text"> 10.8.1 失序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1082-%E9%87%8D%E5%A4%8D"><span class="nav-text"> 10.8.2 重复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#109-%E7%9B%AE%E7%9A%84%E5%BA%A6%E9%87%8F"><span class="nav-text"> 10.9 目的度量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1010-%E9%87%8D%E6%96%B0%E7%BB%84%E5%8C%85"><span class="nav-text"> 10.10 重新组包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1011-%E4%B8%8Etcp%E9%87%8D%E4%BC%A0%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%BB%E5%87%BB"><span class="nav-text"> 10.11 与TCP重传相关的攻击</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-tcp%E6%95%B0%E6%8D%AE%E6%B5%81%E4%B8%8E%E7%AA%97%E5%8F%A3%E7%AE%A1%E7%90%86"><span class="nav-text"> 11 TCP数据流与窗口管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#111-%E5%BC%95%E8%A8%80"><span class="nav-text"> 11.1 引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#112-%E4%BA%A4%E4%BA%92%E5%BC%8F%E9%80%9A%E4%BF%A1"><span class="nav-text"> 11.2 交互式通信</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-%E5%85%B6%E4%BB%96"><span class="nav-text"> 12 其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#121-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="nav-text"> 12.1 流量控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#122-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6"><span class="nav-text"> 12.2 拥塞控制</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-%E5%8F%82%E8%80%83"><span class="nav-text"> 13 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -1408,14 +1455,14 @@ RTO &= srtt + max(G, 4(rttvar))
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">286</span>
+          <span class="site-state-item-count">279</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">106</span>
+        <span class="site-state-item-count">102</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -1580,22 +1627,6 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
-<script>
-NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
-  window.livereOptions = {
-    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
-  };
-  (function(d, s) {
-    var j, e = d.getElementsByTagName(s)[0];
-    if (typeof LivereTower === 'function') { return; }
-    j = d.createElement(s);
-    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-    j.async = true;
-    e.parentNode.insertBefore(j, e);
-  })(document, 'script');
-});
-</script>
-
 
 <script>
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
@@ -1622,6 +1653,22 @@ NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
       serverURLs : ''
     });
   }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
 });
 </script>
 
