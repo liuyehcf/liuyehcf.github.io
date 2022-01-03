@@ -38,8 +38,10 @@
 <meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/6-6.png">
 <meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/6-7.png">
 <meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/7-1.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/7-2.png">
+<meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/7-3.png">
 <meta property="article:published_time" content="2021-11-16T01:19:25.000Z">
-<meta property="article:modified_time" content="2021-12-27T14:18:24.798Z">
+<meta property="article:modified_time" content="2022-01-03T15:05:14.794Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -241,7 +243,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-27 22:18:24" itemprop="dateModified" datetime="2021-12-27T22:18:24+08:00">2021-12-27</time>
+                <time title="修改时间：2022-01-03 23:05:14" itemprop="dateModified" datetime="2022-01-03T23:05:14+08:00">2022-01-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -3400,6 +3402,7 @@ $\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW
 </ul>
 </li>
 </ul>
+<h3 id="711-msi-protocol"><a class="markdownIt-Anchor" href="#711-msi-protocol"></a> 7.1.1 MSI Protocol</h3>
 <p><strong><code>MSI Write-Back Invalidate Protocol</code>（为什么有2个<code>4 bus transactions</code>）</strong></p>
 <ul>
 <li><code>3 states</code>：
@@ -3529,12 +3532,476 @@ $\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW
 </ul>
 </li>
 </ul>
+<p><strong><code>Snoopy Cache-Coherence Protocols</code>：</strong></p>
+<ul>
+<li>总线作为广播的媒介，<code>Caches</code>可知总线的行为
+<ul>
+<li>总线上的事务对所有<code>Cache</code>是可见的</li>
+<li>这些事务对所有控制器以同样的顺序可见</li>
+</ul>
+</li>
+<li><code>Cache</code>控制器监测（<code>snoop</code>）共享总线上的所有事务
+<ul>
+<li>根据<code>Cache</code>中块的状态不同会产生不同的事务</li>
+<li>通过执行不同的总线事务来保证<code>Cache</code>的一致性</li>
+</ul>
+</li>
+</ul>
+<h3 id="712-mesi-protocol"><a class="markdownIt-Anchor" href="#712-mesi-protocol"></a> 7.1.2 MESI Protocol</h3>
+<p><strong><code>MESI Write-Back Invalidation Protocol</code></strong></p>
+<ul>
+<li><code>MSI Protocol</code>的缺陷
+<ul>
+<li>读进+修改一个<code>block</code>，产生2个总线事务
+<ul>
+<li>首先是读操作产生<code>BusRd</code> (<code>I→S</code>)，并置状态为<code>Shared</code>，写更新时产生BusRdX (<code>S→M</code>)</li>
+</ul>
+</li>
+<li>即使一个块是<code>Cache</code>独占的这种情况仍然存在</li>
+<li>使用多道程序负载时，这种情况很普遍</li>
+</ul>
+</li>
+<li>增加<code>exclusive state</code>，减少总线事务
+<ul>
+<li><code>Exclusive state</code>表示仅当前<code>Cache</code>包含该块，并且是干净的块</li>
+<li>区分独占块的<code>clean</code>和<code>dirty</code></li>
+<li>一个处于<code>exclusive state</code>的块，更新时不产生总线事务</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Four States: MESI</code>：</strong></p>
+<ul>
+<li><code>M, Modified</code>
+<ul>
+<li>仅当前<code>Cache</code>含有该块，并且该块被修改过</li>
+<li>内存中的<code>Copy</code>是陈旧的值</li>
+</ul>
+</li>
+<li><code>E, Exclusive or exclusive-clean</code>
+<ul>
+<li>仅当前<code>Cache</code>含有该块，并且该块没被修改过</li>
+<li>内存中的数据是最新的</li>
+</ul>
+</li>
+<li><code>S, Shared</code>
+<ul>
+<li>多个<code>Cache</code>中都含有本块，而且都没有修改过</li>
+<li>内存中的数据是最新的</li>
+</ul>
+</li>
+<li><code>I, Invalid</code>
+<ul>
+<li>该块是无效块</li>
+</ul>
+</li>
+<li>也称<code>Illinois protocol</code>
+<ul>
+<li>首先是由<code>Illinois</code>的研究人员研制并发表论文</li>
+<li><code>MESI</code>协议的变种广泛应用于现代微处理器中</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Hardware Support for MESI</code>：</strong></p>
+<ul>
+<li>总线互连的新要求
+<ul>
+<li>增加一个称为<code>shared signal S</code>，必须对所有<code>Cache</code>控制器可用</li>
+<li>可以实现成<code>wired-OR line</code></li>
+</ul>
+</li>
+<li>所有<code>cache controllers</code>监测<code>BusRd</code>
+<ul>
+<li>如果所访问的块的状态是（<code>state S, E, or M</code>）</li>
+<li>请求<code>Cache</code>根据<code>shared signal</code>选择<code>E</code>或<code>S</code></li>
+</ul>
+</li>
+</ul>
+<p><strong><code>MESI State Transition Diagram</code>：</strong></p>
+<ul>
+<li><img src="/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/7-2.png" alt="7-2" /></li>
+<li><code>Processor Read</code>
+<ul>
+<li>读失效时产生<code>BusRd</code>事务，进而有可能产生<code>replace</code>动作？</li>
+<li><code>BusRd(S) =&gt; shared line asserted</code>
+<ul>
+<li>在其他<code>Cache</code>中有有效的<code>copy</code></li>
+<li><code>Goto state S</code></li>
+</ul>
+</li>
+<li><code>BusRd(~S) =&gt; shared line not asserted</code>
+<ul>
+<li>在其他<code>Cache</code>中不存在该块</li>
+<li><code>Goto state E</code></li>
+</ul>
+</li>
+<li>读命中时不产生总线事务</li>
+</ul>
+</li>
+<li><code>Processor Write</code>
+<ul>
+<li>该<code>Cache</code>块的状态转至<code>M</code></li>
+<li>在<code>I</code>或<code>S</code>态（命中）产生<code>BusRdX/BusUpgr</code>
+<ul>
+<li>作废其他<code>Cache</code>中的<code>Copies</code></li>
+</ul>
+</li>
+<li>写命中且<code>Cache</code>块处于<code>E</code>和<code>M</code>态时，不产生总线事务</li>
+<li>写失效时，<code>E</code>或<code>S</code>态的块有可能引起<code>replace</code>动作</li>
+<li>写失效时，<code>M</code>态的块有可能引起<code>replace</code>和<code>BusWB</code></li>
+</ul>
+</li>
+<li><code>Observing a BusRd</code>
+<ul>
+<li>该块的状态从<code>E</code>降至<code>S</code>
+<ul>
+<li>因为存在其他<code>copy</code></li>
+</ul>
+</li>
+<li>该块从<code>M</code>降至<code>S</code>
+<ul>
+<li>将引起更新过的块刷新操作</li>
+<li>刷新内存和其他有需求的<code>Cache</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Observing a BusRdX or BusUpgr</code>
+<ul>
+<li>将作废相应的<code>block</code></li>
+<li>对于处于<code>modified</code>状态的块，将产生<code>flush</code>事务</li>
+<li><code>BusUpgr</code>：仅引起作废其他块，不产生读块操作</li>
+</ul>
+</li>
+<li><code>Cache-to-Cache (C2C) Sharing</code>
+<ul>
+<li>原来的<code>Illinois version</code>支持这种共享</li>
+<li>由<code>Cache</code>提供数据，而不是由内存提供数据</li>
+</ul>
+</li>
+</ul>
+<h3 id="713-moesi-protocol"><a class="markdownIt-Anchor" href="#713-moesi-protocol"></a> 7.1.3 MOESI Protocol</h3>
+<p><strong><code>MOESI</code>中的<code>Owned</code>和<code>Shared</code>状态：</strong></p>
+<ul>
+<li><code>Owned</code>位
+<ul>
+<li><code>O</code>位为<code>1</code>表示在当前<code>Cache</code>块中包含的数据是当前处理器系统最新的数据拷贝，而且在其他CPU中一定具有该<code>Cache</code>块的副本，其他CPU的<code>Cache</code>块状态为S</li>
+<li>如果存储器的数据在多个CPU的<code>Cache</code>中都具有副本时，有且仅有一个CPU的<code>Cache</code>块状态为O，其他CPU的<code>Cache</code>块状态只能为<code>S</code></li>
+<li>与MESI协议中的S状态不同，状态为<code>O</code>的<code>Cache</code>块中的数据与存储器中的数据并不一致</li>
+</ul>
+</li>
+<li><code>Shared</code>位
+<ul>
+<li>当<code>Cache</code>块状态为<code>S</code>时，其包含的数据并不一定与存储器一致</li>
+<li>如果在其他CPU的<code>Cache</code>中不存在状态为<code>O</code>的副本时，该<code>Cache</code>块中的数据与存储器一致</li>
+<li>如果在其他CPU的<code>Cache</code>中存在状态为<code>O</code>的副本时，<code>Cache</code>块中的数据与存储器不一致</li>
+</ul>
+</li>
+</ul>
+<h3 id="714-cache一致性引起的失效缺失"><a class="markdownIt-Anchor" href="#714-cache一致性引起的失效缺失"></a> 7.1.4 Cache一致性引起的失效（缺失）</h3>
+<p><strong><code>Coherency Misses</code>：</strong></p>
+<ul>
+<li>由于对共享块的写操作引起
+<ul>
+<li>共享块在多个本地<code>Cache</code>有副本</li>
+<li>当某处理器对共享块进行写操作时会 作废其他处理器的本地<code>Cache</code>的副本</li>
+<li>其他处理器对共享块进行读操作时会有<code>coherence miss</code></li>
+</ul>
+</li>
+<li><code>True sharing misses</code>：<code>Cache coherence</code>机制引起的数据通信
+<ul>
+<li>通常是不同的处理器写或读同一个变量</li>
+<li>对共享块（<code>S</code>态块）某一字的第一次写操作引起作废其他<code>cache</code>中的共享块</li>
+<li>处理器试图读一个存在于其他处理器的<code>Cache</code>中并且已经修改过的字（<code>modified</code>），这会导致失效，并将当前<code>Cache</code>中的对应块写回</li>
+<li>即时块大小为1个字，失效仍然会发生</li>
+</ul>
+</li>
+<li><code>False sharing misses</code>：由于某个字在某个失效块中
+<ul>
+<li>读写同一块中的不同变量</li>
+<li>失效并没有通过通信产生新的值，仅仅是产生了额外的失效</li>
+<li>块是共享的，但块中没有真正共享的字</li>
+<li>如果块的大小为1个字，那么就不会产生这种失效</li>
+</ul>
+</li>
+</ul>
 <h2 id="72-分布式共享存储器体系结构"><a class="markdownIt-Anchor" href="#72-分布式共享存储器体系结构"></a> 7.2 分布式共享存储器体系结构</h2>
+<h3 id="721-问题分析"><a class="markdownIt-Anchor" href="#721-问题分析"></a> 7.2.1 问题分析</h3>
+<p><strong><code>Limitations of Snooping Protocols</code>：</strong></p>
+<ul>
+<li>总线的可扩放性受到一定限制
+<ul>
+<li>总线上能够连接的处理器数目有限</li>
+<li>共享总线存在竞争使用问题</li>
+<li>在由大量处理器构成的多处理器系统中，监听带宽是瓶颈</li>
+</ul>
+</li>
+<li>解决方案之一：片上互连网络 -&gt; 并行通信
+<ul>
+<li>多个处理器可并行访问共享的<code>Cache banks</code></li>
+<li>允许片上多处理器包含有更多的处理器</li>
+<li>可扩放性仍然受到限制</li>
+</ul>
+</li>
+<li>在非总线或环的网络上监听是比较困难的
+<ul>
+<li>将一致性相关信息广播到所有处理器，这是比较低效的</li>
+</ul>
+</li>
+<li><strong>如何不采用广播方式而保持<code>Cache coherence</code></strong>
+<ul>
+<li>使用目录（<code>directory</code>）来记录每个<code>Cached</code>块的状态</li>
+<li>目录项说明了哪个私有<code>Cache</code>包含了该块的副本</li>
+</ul>
+</li>
+</ul>
+<p><strong>解决<code>Cache</code>一致性问题的关键：</strong></p>
+<ul>
+<li>寻找替代监听协议的一致性协议</li>
+<li>目录协议
+<ul>
+<li>目录：用于记录共享块相关信息的数据结构，它记录着可以进入<code>Cache</code>的每个数据块的访问状态、该块在各个处理器的共享状态以及是否修改过等信息</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/7-3.png" alt="7-3" /></p>
+<h3 id="722-基于目录的一致性协议"><a class="markdownIt-Anchor" href="#722-基于目录的一致性协议"></a> 7.2.2 基于目录的一致性协议</h3>
+<p><strong>目录（<code>Home directory</code>）：</strong></p>
+<ul>
+<li>目录在所有处理器共享的最外层<code>Cache</code>（共享<code>Cache</code>）中
+<ul>
+<li>目录记录了每个私有<code>Cache</code>中块的相关信息</li>
+</ul>
+</li>
+<li>最外层<code>Cache</code>分成若干个<code>banks</code>，以便并行访问
+<ul>
+<li><code>Cache</code>的<code>banks</code>数可以与<code>cores</code>的数量相同，也可以不同</li>
+</ul>
+</li>
+<li><code>Shared Cache</code>包含所有的私有<code>Cache</code>
+<ul>
+<li>共享<code>Cache</code>是私有<code>Cache</code>块的超集</li>
+</ul>
+</li>
+<li>目录在共享<code>Cache</code>中
+<ul>
+<li>共享<code>Cache</code>中的每个块增加若干<code>presence bits</code></li>
+<li>如果有<code>k</code>个<code>processors</code>，那么共享Cache中每个块都含有<code>k</code>位的<code>presence bits</code>以及<code>state</code>位</li>
+<li><code>presence bits</code>指示了包含该块<code>copy</code>的<code>cores</code></li>
+<li>每个块都有其在私有<code>Cache</code>和共享<code>Cache</code>中的状态信息</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>States for Local and Shared Cache</code>：</strong></p>
+<ul>
+<li>对于私有<code>Cache</code>块，存在3种状态：
+<ol>
+<li><code>Modified</code>：仅当前Cache具有该块修改过的副本</li>
+<li><code>Shared</code>：该块可能在多个Cache中有副本</li>
+<li><code>Invalid</code>：该块无效</li>
+</ol>
+</li>
+<li>对于共享<code>Cache</code>中的块 ，存在4种状态:
+<ol>
+<li><code>Modified</code>：只有一个本地<code>Cache</code>是这个块的拥有者
+<ul>
+<li>只有一个本地<code>Cache</code>具有该块修改后的副本</li>
+</ul>
+</li>
+<li><code>Owned</code>：共享<code>Cache</code>是<code>Modified</code>块的拥有者
+<ul>
+<li><code>Modified block</code>被写回到共享<code>Cache</code>，但不是内存</li>
+<li>处于<code>Owned</code>态的块可以被多个本地<code>Cache</code>共享</li>
+</ul>
+</li>
+<li><code>Shared</code>：该块可能被复制到多个<code>Cache</code>中</li>
+<li><code>Uncached</code>：该块不在任何本地或共享<code>Cache</code>中</li>
+</ol>
+</li>
+</ul>
+<p><strong><code>Read Miss by Processor P</code>：</strong></p>
+<ul>
+<li><strong><code>Processor P</code>发送<code>Read Miss</code>消息给<code>Home directory</code></strong></li>
+<li><strong><code>Home Directory</code>：<code>block</code>是<code>Modified</code>状态</strong>
+<ul>
+<li><code>Directory</code>发送<code>Fetch Message</code>给拥有该块的<code>Remote Cache</code></li>
+<li><code>Remote Cache</code>发送<code>Write-Back Message</code>到<code>Directory(SharedCache)</code></li>
+<li><code>Remote Cache</code>将该块状态修改为<code>Shared</code></li>
+<li><code>Directory</code>将其所对应的共享块状态修改为<code>Owned</code></li>
+<li><code>Directory</code>发送数据给<code>P</code>，并将对应于<code>P</code>的<code>presence bit</code>置位</li>
+<li><code>P</code>的<code>Local Cache</code>将所接收到的块状态置为<code>shared</code></li>
+</ul>
+</li>
+<li><strong><code>Home Directory</code>：<code>block</code>是<code>Shared</code>或<code>Owned</code>状态</strong>
+<ul>
+<li><code>Directory</code>发送数据给<code>P</code>，并将对应<code>P</code>的<code>presence bit</code>置位</li>
+<li><code>P</code>的<code>Local cache</code>将所接收到的块状态置为<code>Shared</code></li>
+</ul>
+</li>
+<li><strong><code>Home Directory</code>：<code>Uncached</code></strong>
+<ul>
+<li>从存储器中获取块</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Write Miss Message by P to Directory</code>：</strong></p>
+<ul>
+<li><strong><code>Home Directory</code>：<code>block</code>是<code>Modified</code>状态</strong>
+<ul>
+<li><code>Directory</code>发送<code>Fetch-Invalidate Message</code>给处理器<code>Q</code>的<code>Cache(Remote Cache)</code></li>
+<li>处理器<code>Q</code>的<code>Cache</code>直接发送数据应答消息给<code>P</code></li>
+<li><code>Q</code>的<code>Cache</code>将对应块的状态修改为<code>Invalid</code></li>
+<li><code>P</code>的<code>Cache(Local)</code>将接收到的块的状态信息修改为<code>Modified</code></li>
+<li><code>Directory</code>将对应于Q的<code>presence bit</code>复位，并将对应于<code>P</code>的<code>presence bit</code>置位</li>
+</ul>
+</li>
+<li><strong><code>Home Directory</code>：<code>block</code>是<code>Shared</code>或<code>Owned</code>状态</strong>
+<ul>
+<li><code>Directory</code>根据<code>presence bit</code>位给所有的共享者发送<code>Invalidate Message</code></li>
+<li><code>Directory</code>接收<code>Acknowledge Message</code>并将对应的<code>presence bits</code>复位</li>
+<li><code>Directory</code>发送数据回复信息给<code>P</code>，并将<code>P</code>对应的<code>presence bit</code>置位</li>
+<li><code>P</code>的<code>Cache</code>和<code>Directory</code>将该块的状态修改为<code>Modified</code></li>
+</ul>
+</li>
+<li><strong><code>Home Directory</code>：<code>Uncached</code></strong>
+<ul>
+<li>从存储器获取数据</li>
+</ul>
+</li>
+</ul>
 <h2 id="73-存储同一性"><a class="markdownIt-Anchor" href="#73-存储同一性"></a> 7.3 存储同一性</h2>
+<p><strong>存储同一性的定义：共享地址空间的存储同一性模型是在多个处理器对存储单元并发读写操作时，每个进程看到的这些操作被完成的序的一种约定</strong></p>
+<ul>
+<li>
+<p><code>Cache</code>一致性（<code>Coherence</code>）保证的是当对共享存储空间中的某一单元修改后，对所有读取者是可见的。即每个单元都能返回最后一次写<br />
+操作的值</p>
+</li>
+<li>
+<p>没有明确所写入的数据何时成为可见的</p>
+</li>
+<li>
+<p><code>Cache</code>一致性协议没有涉及处理器<code>P1</code>和<code>P2</code>对不同地址单元的访问顺序</p>
+</li>
+<li>
+<p><code>Cache</code>一致性协议没有涉及到<code>P2</code>对不同存储单元的读操作相对于<code>P1</code>所见到的顺序</p>
+</li>
+</ul>
+<p><strong>顺序同一性（<code>Sequential Consistency，Lamport</code>）：该模型要求所有处理器的读、写和交换（<code>swap</code>）操作以某种序执行所形成的全局存储器次序，符合各处理器的原有程序次序。即：不论指令流如何交叠执行，全局序必须保持所有进程的程序序</strong></p>
+<ul>
+<li>所有读写操作执行以某种顺序执行</li>
+<li>每一进程的操作以程序序（<code>program order</code>）执行</li>
+</ul>
+<p><strong>多处理器操作的困难：</strong></p>
+<ul>
+<li><strong>大多数并行计算机体系结构所研究的问题：</strong>
+<ul>
+<li>如何克服顺序执行和并行执行的瓶颈，以得到更高的性能和效率</li>
+<li>如何为用户提供良好的编程模型，以便编写正确而高性能的并行程序</li>
+</ul>
+</li>
+<li><strong>Load/store操作的顺序问题</strong>
+<ul>
+<li><code>Operations: A, B, C, D</code>
+<ul>
+<li>硬件以何种顺序执行（和报告结果）这些操作？</li>
+</ul>
+</li>
+<li>程序员与微结构设计人员的协议由<code>ISA</code>来约定</li>
+<li>保留程序员所希望的执行顺序
+<ul>
+<li>可降低编程的难度，如：易于<code>debugging</code>、易于状态恢复、异常处理等</li>
+<li>通常会使得硬件设计变得困难，特别是当我们的设计目标为高性能处理器时，乱序<code>Load-Store</code>的执行，使得问题变得复杂</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>单个处理器存储器操作的序：</strong></p>
+<ul>
+<li>操作顺序由<code>Von Neumann</code>模型约定</li>
+<li>顺序串行执行
+<ul>
+<li>硬件执行<code>Load</code>和<code>Store</code>操作以程序序顺序执行</li>
+</ul>
+</li>
+<li>乱序执行不改变程序语义
+<ul>
+<li>硬件以程序序报告<code>Load</code>和<code>Store</code>操作的结果</li>
+</ul>
+</li>
+<li>优点：
+<ul>
+<li>在执行时机器状态是确定的</li>
+<li>程序的不同次运行机器状态是一致的，有利于程序调试</li>
+</ul>
+</li>
+<li>缺点：维护这种序的额外开销，降低了性能，增加了复杂性，降低了可扩放性</li>
+</ul>
+<p><strong>数据流处理器的存储器操作的序：</strong></p>
+<ul>
+<li>当操作数准备好就可以执行存储器操作</li>
+<li>操作的顺序仅仅由数据依赖性来确定</li>
+<li>相互独立的操作可以以任意序执行和提交</li>
+<li>结果
+<ul>
+<li>优点：并行度高，性能高</li>
+<li>缺点：相同程序的不同次运行次序可以不同，使得调试困难</li>
+</ul>
+</li>
+</ul>
+<p><strong>序的重要性：</strong></p>
+<ul>
+<li>易于调试
+<ul>
+<li>若程序的每次执行都是相同的序有利于程序的调试</li>
+</ul>
+</li>
+<li>正确性
+<ul>
+<li>从不同处理器看到的存储器操作序可能会不同</li>
+<li>性能和代价权衡</li>
+<li>强制符合严格<code>Sequential Ordering</code>使得硬件设计人员实现性能增强技术变得十分复杂</li>
+</ul>
+</li>
+<li><code>&lt;p</code>：程序序（<code>program order</code>）</li>
+<li><code>&lt;m</code>：存储器操作序（<code>memory order</code>）</li>
+</ul>
+<p><strong>顺序同一性的充分条件：</strong></p>
+<ul>
+<li>多个进程可以交织执行，但顺序同一性模型没有定义具体的交织方式，满足每个进程程序序的总体执行序可能会很多。因此有下列定义
+<ul>
+<li>顺序同一性的执行：如果程序的一次执行产生的结果与前面定义的任意一种可能的总体序产生的结果一致，那么程序的这次执行就称为是顺序同一的</li>
+<li>顺序同一性的系统：如果在一个系统上的任何可能的执行都是顺序同一的，那么这个系统就是顺序同一的</li>
+</ul>
+</li>
+<li>每个进程按照程序执行序发出存储操作</li>
+<li>发出写操作后，进程要等待写的完成，才能发出它的下一个操作</li>
+<li>发出读操作后，进程不仅要等待读的完成，还要等待产生所读数据的那个写操作完成，才能发出它的下个操作。即：如果该写操作对这个处理器来说完成了，那么这个处理器应该等待该写操作对所有处理器都完成了</li>
+<li>第三个条件保证了写操作的原子性。即读操作必须等待逻辑上先前的写操作变得全局可见</li>
+</ul>
+<p><strong><code>Memory Fences</code></strong></p>
+<ul>
+<li>实现弱同一性或放松的存储器模型的处理器（允许针对不同地址的<code>Loads</code>和<code>Stores</code>操作乱序）需要提供存储器栅栏指令来强制对某些存储<br />
+器操作串行化</li>
+</ul>
 <h2 id="74-同步与通信"><a class="markdownIt-Anchor" href="#74-同步与通信"></a> 7.4 同步与通信</h2>
+<p><strong><code>Synchronization</code>：</strong></p>
+<ul>
+<li>系统中只要存在并发进程，即使是单核系统都需要同步操作</li>
+<li>总体上存在两类同步操作问题
+<ol>
+<li>生产者-消费者问题：一个消费者进程必须等待生产者进程产生数据</li>
+<li>互斥问题（<code>Mutual Exclusion</code>）：保证在一个给定的时间内只有一个进程使用共享资源（临界区）</li>
+</ol>
+</li>
+</ul>
+<p><strong><code>Atomic Operations</code>：</strong></p>
+<ul>
+<li>顺序一致性并不保证操作的原子性</li>
+<li>原子性：存储器操作使用原子性操作，操作序列一次全部完成。例如<code>exchange</code>（交换操作）</li>
+</ul>
 <h2 id="75-小结"><a class="markdownIt-Anchor" href="#75-小结"></a> 7.5 小结</h2>
 <div class="markmap-container" style="height:undefined">
-                <svg class="markmap-svg">{"t":"root","d":0,"v":"","c":[{"t":"list_item","d":2,"p":{"lines":[0,1]},"v":"并行计算机体系结构","c":[{"t":"list_item","d":4,"p":{"lines":[1,2]},"v":"SISD"},{"t":"list_item","d":4,"p":{"lines":[2,3]},"v":"SIMD"},{"t":"list_item","d":4,"p":{"lines":[3,4]},"v":"MISD"},{"t":"list_item","d":4,"p":{"lines":[4,5]},"v":"MIMD"}]},{"t":"list_item","d":2,"p":{"lines":[5,6]},"v":"MIMD的通信模型及存储器结构","c":[{"t":"list_item","d":4,"p":{"lines":[6,7]},"v":"地址空间的组织模式","c":[{"t":"list_item","d":6,"p":{"lines":[7,8]},"v":"共享存储（多处理机）"},{"t":"list_item","d":6,"p":{"lines":[8,9]},"v":"非共享存储（多计算机）"}]},{"t":"list_item","d":4,"p":{"lines":[9,10]},"v":"共享存储的MIMD结构","c":[{"t":"list_item","d":6,"p":{"lines":[10,11]},"v":"集中式共享存储（SMP）"},{"t":"list_item","d":6,"p":{"lines":[11,12]},"v":"分布式共享存储（DSM）"}]},{"t":"list_item","d":4,"p":{"lines":[12,13]},"v":"共享存储器结构的存储器行为","c":[{"t":"list_item","d":6,"p":{"lines":[13,14]},"v":"Cache一致性问题 (Coherence)：使得多处理机系统的Cache像单处理机的Cache一样对程序员而言是透明的"},{"t":"list_item","d":6,"p":{"lines":[14,15]},"v":"存储器同一性问题(Consistency)：在多线程并发执行的情况下，提供一些规则来定义正确的共享存储器行为。通常允许有多种运行顺序"}]},{"t":"list_item","d":4,"p":{"lines":[15,16]},"v":"Cache一致性（定义）","c":[{"t":"list_item","d":6,"p":{"lines":[16,17]},"v":"处理器P对X写之后又对X进行读，读和写之间没有其它处理器对X进行写，则读的返回值总是写进的值。"},{"t":"list_item","d":6,"p":{"lines":[17,18]},"v":"处理器对X写之后，另一处理器对X进行读，读和写之间无其它写，则读X的返回值应为写进的值。"},{"t":"list_item","d":6,"p":{"lines":[18,19]},"v":"对同一单元的写是顺序化的，即任意两个处理器对同一单元的两次写，从所有处理器看来顺序是相同的。"}]},{"t":"list_item","d":4,"p":{"lines":[19,20]},"v":"共享数据块的跟踪：监听和目录"},{"t":"list_item","d":4,"p":{"lines":[20,21]},"v":"Cache一致性协议实现","c":[{"t":"list_item","d":6,"p":{"lines":[21,22]},"v":"写作废"},{"t":"list_item","d":6,"p":{"lines":[22,23]},"v":"写更新"}]},{"t":"list_item","d":4,"p":{"lines":[23,24]},"v":"集中式共享存储体系结构","c":[{"t":"list_item","d":6,"p":{"lines":[24,25]},"v":"Snoopy Cache-Coherence Protocols","c":[{"t":"list_item","d":8,"p":{"lines":[25,26]},"v":"MSI"},{"t":"list_item","d":8,"p":{"lines":[26,27]},"v":"MESI"},{"t":"list_item","d":8,"p":{"lines":[27,28]},"v":"MOESI"}]}]},{"t":"list_item","d":4,"p":{"lines":[28,29]},"v":"Coherency Misses","c":[{"t":"list_item","d":6,"p":{"lines":[29,30]},"v":"True Sharing"},{"t":"list_item","d":6,"p":{"lines":[30,31]},"v":"False Sharing"}]}]}],"p":{}}</svg>
+                <svg class="markmap-svg">{"t":"root","d":0,"v":"","c":[{"t":"list_item","d":2,"p":{"lines":[0,1]},"v":"并行计算机体系结构","c":[{"t":"list_item","d":4,"p":{"lines":[1,2]},"v":"SISD"},{"t":"list_item","d":4,"p":{"lines":[2,3]},"v":"SIMD"},{"t":"list_item","d":4,"p":{"lines":[3,4]},"v":"MISD"},{"t":"list_item","d":4,"p":{"lines":[4,5]},"v":"MIMD"}]},{"t":"list_item","d":2,"p":{"lines":[5,6]},"v":"MIMD的通信模型及存储器结构","c":[{"t":"list_item","d":4,"p":{"lines":[6,7]},"v":"地址空间的组织模式","c":[{"t":"list_item","d":6,"p":{"lines":[7,8]},"v":"共享存储（多处理机）"},{"t":"list_item","d":6,"p":{"lines":[8,9]},"v":"非共享存储（多计算机）"}]},{"t":"list_item","d":4,"p":{"lines":[9,10]},"v":"共享存储的MIMD结构","c":[{"t":"list_item","d":6,"p":{"lines":[10,11]},"v":"集中式共享存储（SMP）"},{"t":"list_item","d":6,"p":{"lines":[11,12]},"v":"分布式共享存储（DSM）"}]},{"t":"list_item","d":4,"p":{"lines":[12,13]},"v":"共享存储器结构的存储器行为","c":[{"t":"list_item","d":6,"p":{"lines":[13,14]},"v":"Cache一致性问题 (Coherence)：使得多处理机系统的Cache像单处理机的Cache一样对程序员而言是透明的"},{"t":"list_item","d":6,"p":{"lines":[14,15]},"v":"存储器同一性问题(Consistency)：在多线程并发执行的情况下，提供一些规则来定义正确的共享存储器行为。通常允许有多种运行顺序"}]},{"t":"list_item","d":4,"p":{"lines":[15,16]},"v":"Cache一致性（定义）","c":[{"t":"list_item","d":6,"p":{"lines":[16,17]},"v":"处理器P对X写之后又对X进行读，读和写之间没有其它处理器对X进行写，则读的返回值总是写进的值"},{"t":"list_item","d":6,"p":{"lines":[17,18]},"v":"处理器对X写之后，另一处理器对X进行读，读和写之间无其它写，则读X的返回值应为写进的值"},{"t":"list_item","d":6,"p":{"lines":[18,19]},"v":"对同一单元的写是顺序化的，即任意两个处理器对同一单元的两次写，从所有处理器看来顺序是相同的"}]},{"t":"list_item","d":4,"p":{"lines":[19,20]},"v":"共享数据块的跟踪：监听和目录"},{"t":"list_item","d":4,"p":{"lines":[20,21]},"v":"Cache一致性协议实现","c":[{"t":"list_item","d":6,"p":{"lines":[21,22]},"v":"写作废"},{"t":"list_item","d":6,"p":{"lines":[22,23]},"v":"写更新"}]},{"t":"list_item","d":4,"p":{"lines":[23,24]},"v":"集中式共享存储体系结构","c":[{"t":"list_item","d":6,"p":{"lines":[24,25]},"v":"Snoopy Cache-Coherence Protocols","c":[{"t":"list_item","d":8,"p":{"lines":[25,26]},"v":"MSI"},{"t":"list_item","d":8,"p":{"lines":[26,27]},"v":"MESI"},{"t":"list_item","d":8,"p":{"lines":[27,28]},"v":"MOESI"}]}]},{"t":"list_item","d":4,"p":{"lines":[28,29]},"v":"Coherency Misses","c":[{"t":"list_item","d":6,"p":{"lines":[29,30]},"v":"True Sharing"},{"t":"list_item","d":6,"p":{"lines":[30,31]},"v":"False Sharing"}]}]}],"p":{}}</svg>
               </div>
 <h2 id="76-相关课件"><a class="markdownIt-Anchor" href="#76-相关课件"></a> 7.6 相关课件</h2>
 <ul>
@@ -3869,7 +4336,7 @@ $\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text"> 1 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%BC%95%E8%A8%80"><span class="nav-text"> 1.1 引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E9%87%8F%E5%8C%96%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80"><span class="nav-text"> 1.2 量化设计与分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%AE%9A%E9%87%8F%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80"><span class="nav-text"> 1.3 定量分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 1.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-isa"><span class="nav-text"> 2 ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-isa%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 2.1 ISA的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-isa%E7%9A%84%E5%8A%9F%E8%83%BD%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 2.2 ISA的功能设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-cisc"><span class="nav-text"> 2.2.1 CISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-risc"><span class="nav-text"> 2.2.2 RISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#223-%E5%85%B8%E5%9E%8Bisa"><span class="nav-text"> 2.2.3 典型ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2231-mips"><span class="nav-text"> 2.2.3.1 MIPS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2232-sparc"><span class="nav-text"> 2.2.3.2 SPARC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2233-alphadec"><span class="nav-text"> 2.2.3.3 Alpha（DEC）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2234-armv7"><span class="nav-text"> 2.2.3.4 ARMv7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2235-armv8"><span class="nav-text"> 2.2.3.5 ARMv8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2236-openrisc"><span class="nav-text"> 2.2.3.6 OpenRISC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2237-80x86"><span class="nav-text"> 2.2.3.7 80x86</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2238-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 2.2.3.8 小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-isa%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 2.3 ISA的实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 2.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text"> 3 基本流水线</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text"> 3.1 基本流水线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF%E7%9A%84%E6%89%A9%E5%B1%95"><span class="nav-text"> 3.2 基本流水线的扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-text"> 3.2.1 异常处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#322-%E5%A4%9A%E5%91%A8%E6%9C%9F%E6%93%8D%E4%BD%9C"><span class="nav-text"> 3.2.2 多周期操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#323-mips-r4000"><span class="nav-text"> 3.2.3 MIPS R4000</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 3.3 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 3.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%AD%98%E5%82%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 4 存储层次结构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-cache%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 4.1 Cache的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-cache%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.2 Cache的基本优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#421-%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.2.1 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#422-%E5%87%8F%E5%B0%8F%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80"><span class="nav-text"> 4.2.2 减小失效开销</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-cache%E7%9A%84%E9%AB%98%E7%BA%A7%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.3 Cache的高级优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-%E7%BC%A9%E7%9F%AD%E5%91%BD%E4%B8%AD%E6%97%B6%E9%97%B4"><span class="nav-text"> 4.3.1 缩短命中时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-%E5%A2%9E%E5%8A%A0cache%E5%B8%A6%E5%AE%BD"><span class="nav-text"> 4.3.2 增加Cache带宽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#433-%E5%87%8F%E5%B0%8F%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80"><span class="nav-text"> 4.3.3 减小失效开销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#434-%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.3.4 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#435-%E9%80%9A%E8%BF%87%E5%B9%B6%E8%A1%8C%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80%E6%88%96%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.3.5 通过并行降低失效开销或失效率</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-%E5%AD%98%E5%82%A8%E5%99%A8%E6%8A%80%E6%9C%AF%E4%B8%8E%E4%BC%98%E5%8C%96"><span class="nav-text"> 4.4 存储器技术与优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E5%99%A8-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="nav-text"> 4.5 虚拟存储器-基本原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#46-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 4.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#47-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 4.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 5 指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%8F%8A%E9%9D%99%E6%80%81%E6%8C%87%E4%BB%A4%E6%B5%81%E8%B0%83%E5%BA%A6"><span class="nav-text"> 5.1 指令级并行的基本概念及静态指令流调度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-%E7%A1%AC%E4%BB%B6%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 5.2 硬件方法挖掘指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-%E6%8C%87%E4%BB%A4%E6%B5%81%E5%8A%A8%E6%80%81%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E4%B9%8B%E4%B8%80scoreboard"><span class="nav-text"> 5.2.1 指令流动态调度方法之一：Scoreboard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-%E6%8C%87%E4%BB%A4%E6%B5%81%E5%8A%A8%E6%80%81%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E4%B9%8B%E4%BA%8Ctomasulo"><span class="nav-text"> 5.2.2 指令流动态调度方法之二：Tomasulo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E6%96%B9%E6%B3%95"><span class="nav-text"> 5.3 分支预测方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#531-%E6%8E%A7%E5%88%B6%E7%9B%B8%E5%85%B3%E5%AF%B9%E4%BA%8E%E6%80%A7%E8%83%BD%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-text"> 5.3.1 控制相关对于性能的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#532-%E5%9F%BA%E4%BA%8Ebht%E7%9A%84%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B"><span class="nav-text"> 5.3.2 基于BHT的分支预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#533-%E5%9F%BA%E4%BA%8Ebtb%E7%9A%84%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B"><span class="nav-text"> 5.3.3 基于BTB的分支预测</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E5%9F%BA%E4%BA%8E%E7%A1%AC%E4%BB%B6%E7%9A%84%E6%8E%A8%E6%B5%8B%E6%89%A7%E8%A1%8C"><span class="nav-text"> 5.4 基于硬件的推测执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#55-%E5%AD%98%E5%82%A8%E5%99%A8%E8%AE%BF%E9%97%AE%E5%86%B2%E7%AA%81%E6%B6%88%E8%A7%A3%E5%8F%8A%E5%A4%9A%E5%8F%91%E5%B0%84%E6%8A%80%E6%9C%AF"><span class="nav-text"> 5.5 存储器访问冲突消解及多发射技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#56-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF"><span class="nav-text"> 5.6 多线程技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#57-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 5.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%95%B0%E6%8D%AE%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 6 数据级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-%E5%90%91%E9%87%8F%E5%A4%84%E7%90%86%E6%9C%BA%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.1 向量处理机模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-%E5%90%91%E9%87%8F%E5%A4%84%E7%90%86%E6%9C%BA%E6%A8%A1%E5%9E%8B%E4%BC%98%E5%8C%96"><span class="nav-text"> 6.2 向量处理机模型优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-%E9%93%BE%E6%8E%A5%E4%BC%98%E5%8C%96"><span class="nav-text"> 6.2.1 链接优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-%E6%9D%A1%E4%BB%B6%E6%89%A7%E8%A1%8C"><span class="nav-text"> 6.2.2 条件执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-%E7%A8%80%E7%96%8F%E7%9F%A9%E9%98%B5"><span class="nav-text"> 6.2.3 稀疏矩阵</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-%E9%9D%A2%E5%90%91%E5%A4%9A%E5%AA%92%E4%BD%93%E5%BA%94%E7%94%A8%E7%9A%84simd%E6%8C%87%E4%BB%A4%E9%9B%86%E6%89%A9%E5%B1%95"><span class="nav-text"> 6.3 面向多媒体应用的SIMD指令集扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#64-gpu-1"><span class="nav-text"> 6.4 GPU-1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#641-gpu%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.4.1 GPU编程模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#642-gpu%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.4.2 GPU执行模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#643-gpu%E5%AD%98%E5%82%A8%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.4.3 GPU存储模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#65-gpu-2"><span class="nav-text"> 6.5 GPU-2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#651-%E5%88%86%E6%94%AF%E5%A4%84%E7%90%86"><span class="nav-text"> 6.5.1 分支处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#66-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 6.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#67-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 6.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%A4%9A%E5%A4%84%E7%90%86%E5%99%A8%E5%8F%8A%E7%BA%BF%E7%A8%8B%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 7 多处理器及线程级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E9%9B%86%E4%B8%AD%E5%BC%8F%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8%E5%99%A8%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-text"> 7.1 集中式共享存储器体系结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-%E5%88%86%E5%B8%83%E5%BC%8F%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8%E5%99%A8%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-text"> 7.2 分布式共享存储器体系结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-%E5%AD%98%E5%82%A8%E5%90%8C%E4%B8%80%E6%80%A7"><span class="nav-text"> 7.3 存储同一性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-%E5%90%8C%E6%AD%A5%E4%B8%8E%E9%80%9A%E4%BF%A1"><span class="nav-text"> 7.4 同步与通信</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 7.5 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#76-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 7.6 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 8 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%8F%82%E8%80%83"><span class="nav-text"> 9 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text"> 1 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%BC%95%E8%A8%80"><span class="nav-text"> 1.1 引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E9%87%8F%E5%8C%96%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80"><span class="nav-text"> 1.2 量化设计与分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%AE%9A%E9%87%8F%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80"><span class="nav-text"> 1.3 定量分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 1.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-isa"><span class="nav-text"> 2 ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-isa%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 2.1 ISA的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-isa%E7%9A%84%E5%8A%9F%E8%83%BD%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 2.2 ISA的功能设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-cisc"><span class="nav-text"> 2.2.1 CISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-risc"><span class="nav-text"> 2.2.2 RISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#223-%E5%85%B8%E5%9E%8Bisa"><span class="nav-text"> 2.2.3 典型ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2231-mips"><span class="nav-text"> 2.2.3.1 MIPS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2232-sparc"><span class="nav-text"> 2.2.3.2 SPARC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2233-alphadec"><span class="nav-text"> 2.2.3.3 Alpha（DEC）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2234-armv7"><span class="nav-text"> 2.2.3.4 ARMv7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2235-armv8"><span class="nav-text"> 2.2.3.5 ARMv8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2236-openrisc"><span class="nav-text"> 2.2.3.6 OpenRISC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2237-80x86"><span class="nav-text"> 2.2.3.7 80x86</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2238-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 2.2.3.8 小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-isa%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text"> 2.3 ISA的实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 2.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text"> 3 基本流水线</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text"> 3.1 基本流水线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E5%9F%BA%E6%9C%AC%E6%B5%81%E6%B0%B4%E7%BA%BF%E7%9A%84%E6%89%A9%E5%B1%95"><span class="nav-text"> 3.2 基本流水线的扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-text"> 3.2.1 异常处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#322-%E5%A4%9A%E5%91%A8%E6%9C%9F%E6%93%8D%E4%BD%9C"><span class="nav-text"> 3.2.2 多周期操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#323-mips-r4000"><span class="nav-text"> 3.2.3 MIPS R4000</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 3.3 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 3.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%AD%98%E5%82%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-text"> 4 存储层次结构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-cache%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text"> 4.1 Cache的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-cache%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.2 Cache的基本优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#421-%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.2.1 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#422-%E5%87%8F%E5%B0%8F%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80"><span class="nav-text"> 4.2.2 减小失效开销</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-cache%E7%9A%84%E9%AB%98%E7%BA%A7%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text"> 4.3 Cache的高级优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-%E7%BC%A9%E7%9F%AD%E5%91%BD%E4%B8%AD%E6%97%B6%E9%97%B4"><span class="nav-text"> 4.3.1 缩短命中时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-%E5%A2%9E%E5%8A%A0cache%E5%B8%A6%E5%AE%BD"><span class="nav-text"> 4.3.2 增加Cache带宽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#433-%E5%87%8F%E5%B0%8F%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80"><span class="nav-text"> 4.3.3 减小失效开销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#434-%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.3.4 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#435-%E9%80%9A%E8%BF%87%E5%B9%B6%E8%A1%8C%E9%99%8D%E4%BD%8E%E5%A4%B1%E6%95%88%E5%BC%80%E9%94%80%E6%88%96%E5%A4%B1%E6%95%88%E7%8E%87"><span class="nav-text"> 4.3.5 通过并行降低失效开销或失效率</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-%E5%AD%98%E5%82%A8%E5%99%A8%E6%8A%80%E6%9C%AF%E4%B8%8E%E4%BC%98%E5%8C%96"><span class="nav-text"> 4.4 存储器技术与优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E5%99%A8-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="nav-text"> 4.5 虚拟存储器-基本原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#46-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 4.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#47-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 4.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 5 指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%8F%8A%E9%9D%99%E6%80%81%E6%8C%87%E4%BB%A4%E6%B5%81%E8%B0%83%E5%BA%A6"><span class="nav-text"> 5.1 指令级并行的基本概念及静态指令流调度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-%E7%A1%AC%E4%BB%B6%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%8C%87%E4%BB%A4%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 5.2 硬件方法挖掘指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-%E6%8C%87%E4%BB%A4%E6%B5%81%E5%8A%A8%E6%80%81%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E4%B9%8B%E4%B8%80scoreboard"><span class="nav-text"> 5.2.1 指令流动态调度方法之一：Scoreboard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-%E6%8C%87%E4%BB%A4%E6%B5%81%E5%8A%A8%E6%80%81%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E4%B9%8B%E4%BA%8Ctomasulo"><span class="nav-text"> 5.2.2 指令流动态调度方法之二：Tomasulo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E6%96%B9%E6%B3%95"><span class="nav-text"> 5.3 分支预测方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#531-%E6%8E%A7%E5%88%B6%E7%9B%B8%E5%85%B3%E5%AF%B9%E4%BA%8E%E6%80%A7%E8%83%BD%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-text"> 5.3.1 控制相关对于性能的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#532-%E5%9F%BA%E4%BA%8Ebht%E7%9A%84%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B"><span class="nav-text"> 5.3.2 基于BHT的分支预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#533-%E5%9F%BA%E4%BA%8Ebtb%E7%9A%84%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B"><span class="nav-text"> 5.3.3 基于BTB的分支预测</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E5%9F%BA%E4%BA%8E%E7%A1%AC%E4%BB%B6%E7%9A%84%E6%8E%A8%E6%B5%8B%E6%89%A7%E8%A1%8C"><span class="nav-text"> 5.4 基于硬件的推测执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#55-%E5%AD%98%E5%82%A8%E5%99%A8%E8%AE%BF%E9%97%AE%E5%86%B2%E7%AA%81%E6%B6%88%E8%A7%A3%E5%8F%8A%E5%A4%9A%E5%8F%91%E5%B0%84%E6%8A%80%E6%9C%AF"><span class="nav-text"> 5.5 存储器访问冲突消解及多发射技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#56-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%80%E6%9C%AF"><span class="nav-text"> 5.6 多线程技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#57-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 5.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%95%B0%E6%8D%AE%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 6 数据级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-%E5%90%91%E9%87%8F%E5%A4%84%E7%90%86%E6%9C%BA%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.1 向量处理机模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-%E5%90%91%E9%87%8F%E5%A4%84%E7%90%86%E6%9C%BA%E6%A8%A1%E5%9E%8B%E4%BC%98%E5%8C%96"><span class="nav-text"> 6.2 向量处理机模型优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-%E9%93%BE%E6%8E%A5%E4%BC%98%E5%8C%96"><span class="nav-text"> 6.2.1 链接优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-%E6%9D%A1%E4%BB%B6%E6%89%A7%E8%A1%8C"><span class="nav-text"> 6.2.2 条件执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-%E7%A8%80%E7%96%8F%E7%9F%A9%E9%98%B5"><span class="nav-text"> 6.2.3 稀疏矩阵</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-%E9%9D%A2%E5%90%91%E5%A4%9A%E5%AA%92%E4%BD%93%E5%BA%94%E7%94%A8%E7%9A%84simd%E6%8C%87%E4%BB%A4%E9%9B%86%E6%89%A9%E5%B1%95"><span class="nav-text"> 6.3 面向多媒体应用的SIMD指令集扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#64-gpu-1"><span class="nav-text"> 6.4 GPU-1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#641-gpu%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.4.1 GPU编程模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#642-gpu%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.4.2 GPU执行模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#643-gpu%E5%AD%98%E5%82%A8%E6%A8%A1%E5%9E%8B"><span class="nav-text"> 6.4.3 GPU存储模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#65-gpu-2"><span class="nav-text"> 6.5 GPU-2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#651-%E5%88%86%E6%94%AF%E5%A4%84%E7%90%86"><span class="nav-text"> 6.5.1 分支处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#66-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 6.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#67-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 6.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%A4%9A%E5%A4%84%E7%90%86%E5%99%A8%E5%8F%8A%E7%BA%BF%E7%A8%8B%E7%BA%A7%E5%B9%B6%E8%A1%8C"><span class="nav-text"> 7 多处理器及线程级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E9%9B%86%E4%B8%AD%E5%BC%8F%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8%E5%99%A8%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-text"> 7.1 集中式共享存储器体系结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#711-msi-protocol"><span class="nav-text"> 7.1.1 MSI Protocol</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#712-mesi-protocol"><span class="nav-text"> 7.1.2 MESI Protocol</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#713-moesi-protocol"><span class="nav-text"> 7.1.3 MOESI Protocol</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#714-cache%E4%B8%80%E8%87%B4%E6%80%A7%E5%BC%95%E8%B5%B7%E7%9A%84%E5%A4%B1%E6%95%88%E7%BC%BA%E5%A4%B1"><span class="nav-text"> 7.1.4 Cache一致性引起的失效（缺失）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-%E5%88%86%E5%B8%83%E5%BC%8F%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8%E5%99%A8%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-text"> 7.2 分布式共享存储器体系结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#721-%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="nav-text"> 7.2.1 问题分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#722-%E5%9F%BA%E4%BA%8E%E7%9B%AE%E5%BD%95%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%E5%8D%8F%E8%AE%AE"><span class="nav-text"> 7.2.2 基于目录的一致性协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-%E5%AD%98%E5%82%A8%E5%90%8C%E4%B8%80%E6%80%A7"><span class="nav-text"> 7.3 存储同一性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-%E5%90%8C%E6%AD%A5%E4%B8%8E%E9%80%9A%E4%BF%A1"><span class="nav-text"> 7.4 同步与通信</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 7.5 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#76-%E7%9B%B8%E5%85%B3%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 7.6 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 8 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%8F%82%E8%80%83"><span class="nav-text"> 9 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -3925,7 +4392,7 @@ $\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW
 <div class="copyright">
   
   &copy; 2017 – 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
