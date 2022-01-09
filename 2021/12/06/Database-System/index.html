@@ -27,11 +27,28 @@
 <meta property="og:site_name" content="Liuye Notebook">
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Database-System/3-1.png">
+<meta property="og:image" content="http://example.com/images/Database-System/3-2.png">
+<meta property="og:image" content="http://example.com/images/Database-System/3-3.png">
+<meta property="og:image" content="http://example.com/images/Database-System/3-4.png">
+<meta property="og:image" content="http://example.com/images/Database-System/3-5.png">
+<meta property="og:image" content="http://example.com/images/Database-System/3-6.png">
+<meta property="og:image" content="http://example.com/images/Database-System/3-7.png">
+<meta property="og:image" content="http://example.com/images/Database-System/3-8.png">
+<meta property="og:image" content="http://example.com/images/Database-System/3-9.png">
+<meta property="og:image" content="http://example.com/images/Database-System/4-1.png">
+<meta property="og:image" content="http://example.com/images/Database-System/4-2.png">
+<meta property="og:image" content="http://example.com/images/Database-System/4-3.png">
+<meta property="og:image" content="http://example.com/images/Database-System/4-4.png">
+<meta property="og:image" content="http://example.com/images/Database-System/4-5.png">
+<meta property="og:image" content="http://example.com/images/Database-System/4-6.png">
+<meta property="og:image" content="http://example.com/images/Database-System/5-1.png">
 <meta property="article:published_time" content="2021-12-06T01:39:17.000Z">
-<meta property="article:modified_time" content="2021-12-20T13:21:43.124Z">
+<meta property="article:modified_time" content="2022-01-09T13:42:03.667Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Database-System/3-1.png">
 
 <link rel="canonical" href="http://example.com/2021/12/06/Database-System/">
 
@@ -229,7 +246,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-20 21:21:43" itemprop="dateModified" datetime="2021-12-20T21:21:43+08:00">2021-12-20</time>
+                <time title="修改时间：2022-01-09 21:42:03" itemprop="dateModified" datetime="2022-01-09T21:42:03+08:00">2022-01-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -339,7 +356,332 @@
 </tr>
 </tbody>
 </table>
-<h1 id="2-缩写表"><a class="markdownIt-Anchor" href="#2-缩写表"></a> 2 缩写表</h1>
+<h1 id="2-advanced-sql"><a class="markdownIt-Anchor" href="#2-advanced-sql"></a> 2 Advanced Sql</h1>
+<p><code>Relational Languages</code>：用户只需要描述结果，而无需描述如何获取结果</p>
+<p><strong>Sql支持的语法：</strong></p>
+<ol>
+<li><code>Aggregations + Group By</code></li>
+<li><code>String / Date / Time Operations</code></li>
+<li><code>Output Control + Redirection</code>
+<ul>
+<li><code>SORT</code></li>
+<li><code>LIMIT</code></li>
+</ul>
+</li>
+<li><code>Nested Queries</code></li>
+<li><code>Window Functions</code></li>
+<li><code>Common Table Expressions</code>
+<ul>
+<li><code>WITH</code></li>
+<li><code>WITH RECURSIVE</code></li>
+</ul>
+</li>
+</ol>
+<p><code>COMMON TABLE EXPRESSIONS</code></p>
+<h1 id="3-storage-1"><a class="markdownIt-Anchor" href="#3-storage-1"></a> 3 Storage 1</h1>
+<p><strong>存储架构，从上往下依次是：</strong></p>
+<ol>
+<li><code>Registers</code></li>
+<li><code>L1 Cache</code>、<code>L2 Cache</code>、<code>L3 Cache</code></li>
+<li><code>DRAM</code></li>
+<li><code>SSD</code></li>
+<li><code>HDD</code></li>
+<li><code>Network Storage</code></li>
+</ol>
+<ul>
+<li>1-3是易失性存储（<code>volatile storage</code>）</li>
+<li>4-6是非易失性存储（<code>non-volatile storage</code>）</li>
+</ul>
+<p><strong>设计目标：</strong></p>
+<ol>
+<li>允许<code>DBMS</code>管理超过内存大小的数据</li>
+<li>由于直接读写磁盘的开销很大，因此需要避免产生大停顿</li>
+</ol>
+<p><img src="/images/Database-System/3-1.png" alt="3-1" /></p>
+<p><img src="/images/Database-System/3-2.png" alt="3-2" /></p>
+<p><img src="/images/Database-System/3-3.png" alt="3-3" /></p>
+<p><img src="/images/Database-System/3-4.png" alt="3-4" /></p>
+<p><strong>为什么不直接使用OS？几乎所有的<code>DMBS</code>都希望完全掌控如下事情：</strong></p>
+<ul>
+<li>将脏页（<code>Dirty Page</code>）以合适的顺序刷入磁盘</li>
+<li><code>Prefetching</code>以提高缓存命中率</li>
+<li>缓存替换策略</li>
+<li>线程调度</li>
+</ul>
+<h2 id="31-file-storage"><a class="markdownIt-Anchor" href="#31-file-storage"></a> 3.1 File Storage</h2>
+<p><strong><code>Storage Manager</code>：</strong></p>
+<ul>
+<li>管理文件，对读写任务进行调度，以提高时间上以及空间上的局部性</li>
+<li>以<code>Page</code>的形式管理文件</li>
+</ul>
+<p><strong><code>Database Pages</code>：</strong></p>
+<ul>
+<li>一个<code>Page</code>指的是固定大小的数据</li>
+<li>每个<code>Page</code>都由一个唯一的标识，该标识可以映射到物理位置</li>
+<li>该<code>Page</code>不是<code>Hardware Page</code>也不是<code>OS Page</code></li>
+<li>组织<code>Page</code>的形式有如下几种
+<ol>
+<li><code>Heap File Organization</code>
+<ul>
+<li><code>Heap File</code>中包含了一组无序的<code>Page</code></li>
+<li>实现方式有2种：
+<ol>
+<li><code>Linked List</code>
+<ul>
+<li>每个<code>Heap File</code>存储2个指针，分别指向<code>Free Page List</code>以及<code>Data Page List</code></li>
+<li>每个<code>Page</code>存储2个指针，分别指向<code>Next</code>以及<code>Prev</code></li>
+<li><img src="/images/Database-System/3-5.png" alt="3-5" /></li>
+</ul>
+</li>
+<li><code>Page Directory</code>
+<ul>
+<li><img src="/images/Database-System/3-6.png" alt="3-6" /></li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><code>Sequential / Sorted File Organization</code></li>
+<li><code>Hashing File Organization</code></li>
+</ol>
+</li>
+</ul>
+<h2 id="32-page-layout"><a class="markdownIt-Anchor" href="#32-page-layout"></a> 3.2 Page Layout</h2>
+<p><strong><code>Page Header</code>：每个<code>Page</code>都包含一个<code>Header</code>用以存储元数据，包括：</strong></p>
+<ol>
+<li><code>Page Size</code></li>
+<li><code>Checksum</code></li>
+<li><code>DBMS Version</code></li>
+<li><code>Transaction Visibility</code></li>
+<li><code>Compression Information</code></li>
+</ol>
+<p><strong><code>Slotted Pages</code>：</strong></p>
+<ul>
+<li><code>Slot Array</code>中的<code>Slots</code>存储的是对应<code>Tuple</code>的起始偏移量</li>
+<li>同时<code>Header</code>还需要维护<code>Slot</code>的占用情况以及最后一个<code>Slot</code>的起始偏移量</li>
+<li><img src="/images/Database-System/3-7.png" alt="3-7" /></li>
+</ul>
+<p><strong><code>Log-Structured File Organization</code>：</strong></p>
+<ul>
+<li>不同于<code>Slotted Pages</code>存储<code>Tuple</code>，<code>Log-Structured File Organization</code>只存储日志记录，包括
+<ul>
+<li><code>Insert</code>：存储整个<code>Tuple</code></li>
+<li><code>Delete</code>：标记<code>Tuple</code>被删除</li>
+<li><code>Update</code>：只包含待更新的属性</li>
+</ul>
+</li>
+<li>在读取记录时，<code>DBMS</code>扫描日志，并依据日志重建<code>Tuple</code></li>
+<li>构建索引，用于在不同记录之间进行跳转</li>
+<li>定期整理精简日志</li>
+<li><img src="/images/Database-System/3-8.png" alt="3-8" /></li>
+</ul>
+<h2 id="33-tuple-layout"><a class="markdownIt-Anchor" href="#33-tuple-layout"></a> 3.3 Tuple Layout</h2>
+<p><strong><code>Tuple</code>本质上就是一个字节序列，<code>DBMS</code>需要将<code>Tuple</code>对应的字节序列解析成对应的属性和数值</strong></p>
+<p><img src="/images/Database-System/3-9.png" alt="3-9" /></p>
+<p><strong><code>Tuple Header</code>用于存储元数据，包括：</strong></p>
+<ul>
+<li>可见性（并发控制）</li>
+<li>针对<code>NULL</code>的<code>Bit Map</code></li>
+</ul>
+<p><strong><code>Tuple Data</code>：</strong></p>
+<ul>
+<li>按照创建<code>Table</code>时定义的顺序依次存储每个属性</li>
+</ul>
+<p><strong><code>Records ids</code>：</strong></p>
+<ul>
+<li>每个<code>Tuple</code>都由一个唯一标识，通常是<code>page_id + offset/slot</code></li>
+</ul>
+<h1 id="4-storage-2"><a class="markdownIt-Anchor" href="#4-storage-2"></a> 4 Storage 2</h1>
+<h2 id="41-data-representation"><a class="markdownIt-Anchor" href="#41-data-representation"></a> 4.1 Data Representation</h2>
+<ol>
+<li><code>integer/bigint/smallint/tinyint</code>：<code>C/C++ Representation</code></li>
+<li><code>float/real/numeric/decimal</code>：<code>IEEE-754 Standard</code>/<code>Fixed-point Decimals</code></li>
+<li><code>varchar/varbinary/text/blob</code>：<code>header + bytes</code>，其中<code>header</code>中记录长度信息</li>
+<li><code>time/date/timestamp</code>：<code>32/64</code>位的整数来存储unix时间戳</li>
+</ol>
+<p><strong><code>Variable Precision Numbers</code>：</strong></p>
+<ul>
+<li>这些类型包括：<code>float/real/double</code></li>
+<li><code>precision</code>以及<code>scale</code>会变化</li>
+<li>一般用<code>C/C++</code>的原生类型来表示</li>
+<li>效率很高，但是存在<code>Rounding Errors</code>，比如<code>0.1 + 0.2 != 0.3</code></li>
+</ul>
+<p><strong><code>Fixed Precision Numbers</code>：</strong></p>
+<ul>
+<li>这些类型包括：<code>numeric/decimal</code></li>
+<li><code>precision</code>以及<code>scale</code>固定</li>
+<li>不会出现<code>Rounding Errors</code></li>
+</ul>
+<p><strong><code>Postgres</code>对<code>numeric</code>的定义如下：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> NumericDigit;</span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> ndigits;</span><br><span class="line">    <span class="keyword">int</span> weight;</span><br><span class="line">    <span class="keyword">int</span> scale;</span><br><span class="line">    <span class="keyword">int</span> sign;</span><br><span class="line">    NumericDigit* digits;</span><br><span class="line">&#125; numeric;</span><br></pre></td></tr></table></figure>
+<p><strong><code>Larget Values</code>：</strong></p>
+<ul>
+<li>大多数<code>DBMS</code>系统不允许<code>Tuple</code>的大小超过单个<code>Page</code>的大小</li>
+<li>部分<code>DBMS</code>则允许，它们会用一个<code>Overflow Page</code>来存储</li>
+<li><img src="/images/Database-System/4-1.png" alt="4-1" /></li>
+</ul>
+<p><strong><code>External Value Storage</code>：</strong></p>
+<ul>
+<li>部分系统允许在外部文件中存储一个特别大的数值，它会被当成<code>Blob</code>类型</li>
+<li><code>DBMS</code>无法操作外部文件的内容</li>
+<li><img src="/images/Database-System/4-2.png" alt="4-2" /></li>
+</ul>
+<h2 id="42-system-catalogs"><a class="markdownIt-Anchor" href="#42-system-catalogs"></a> 4.2 System Catalogs</h2>
+<p><strong><code>DBMS</code>会在<code>catalogs</code>中存储数据库的元数据，包括</strong></p>
+<ul>
+<li>表、列、索引、视图</li>
+<li>用户、权限</li>
+<li>内部统计数据</li>
+</ul>
+<p><strong>几乎所有的<code>DBMS</code>都会存储其数据库的目录本身：</strong></p>
+<ul>
+<li>我们可以通过查询<code>INFORMATION_SCHEMA</code>来获取数据库的元数据信息</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="keyword">WHERE</span> table_catalog <span class="operator">=</span> <span class="string">&#x27;&lt;db name&gt;&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="keyword">WHERE</span> table_name <span class="operator">=</span> <span class="string">&#x27;&lt;table name&gt;&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>关系模型并不要求我们将一个<code>Tuple</code>的所有属性都存储在同一个<code>Page</code>中，不同的存储布局适用于不同的工作负载：</strong></p>
+<ul>
+<li><code>OLTP</code>：查询或更新单一实体的部分数据</li>
+<li><code>OLAP</code>：查询横跨多实体的大量数据</li>
+<li><img src="/images/Database-System/4-3.png" alt="4-3" /></li>
+</ul>
+<h2 id="43-storage-models"><a class="markdownIt-Anchor" href="#43-storage-models"></a> 4.3 Storage Models</h2>
+<p><code>DBMS</code>可以通过不同的存储方式来适应<code>OLTP</code>或者<code>OLAP</code>的工作负载</p>
+<h3 id="431-n-ary-storege-model"><a class="markdownIt-Anchor" href="#431-n-ary-storege-model"></a> 4.3.1 N-ARY Storege Model</h3>
+<p><code>N-ARY Storage Model</code>又称为行存（<code>Row Storage</code>）</p>
+<p><strong>在行存中，<code>DBMS</code>会将一个<code>Tuple</code>中的属性连续存储。对于<code>OLTP</code>而言，这是一种理想的存储模型，因为在<code>OLTP</code>中，大部分的查询只操作单个实体，并且伴随着大量的插入操作</strong></p>
+<p><img src="/images/Database-System/4-4.png" alt="4-4" /></p>
+<p><strong>优势：</strong></p>
+<ul>
+<li>插入、更新、删除效率高</li>
+<li>对于需要获取全量属性的查询友好</li>
+</ul>
+<p><strong>劣势：</strong></p>
+<ul>
+<li>对于需要全量扫描某几个属性的查询不友好</li>
+</ul>
+<h3 id="432-decomposition-storage-model"><a class="markdownIt-Anchor" href="#432-decomposition-storage-model"></a> 4.3.2 Decomposition Storage Model</h3>
+<p><code>Decomposition Storage Model</code>又称为列存（<code>Column Store</code>）</p>
+<p><strong>在列存中，<code>DBMS</code>会独立存储不同的属性。对于<code>OLAP</code>而言，这是一种理想的存储模型，因为在<code>OLAP</code>中，大部分查询都需要扫描全表中的某几个属性</strong></p>
+<p><img src="/images/Database-System/4-5.png" alt="4-5" /></p>
+<p><strong><code>Tuple Identification</code>：</strong></p>
+<ul>
+<li>方案1：约定同一个<code>Tuple</code>的不同属性，在其列存中的索引都一样</li>
+<li>方案2：每个列中的元素，额外存储行信息</li>
+<li><img src="/images/Database-System/4-6.png" alt="4-6" /></li>
+</ul>
+<p><strong>优势：</strong></p>
+<ul>
+<li><code>I/O</code>友好，因为只需要查询需要的列</li>
+<li>对数据压缩更友好，同一列中，数据同质化，能达到更好的压缩效率</li>
+</ul>
+<p><strong>劣势：</strong></p>
+<ul>
+<li>全量属性点查、插入、更新、删除不友好</li>
+</ul>
+<h1 id="5-buffer-pool"><a class="markdownIt-Anchor" href="#5-buffer-pool"></a> 5 Buffer Pool</h1>
+<p><strong><code>Database Storage</code>的两个问题：</strong></p>
+<ol>
+<li><code>DBMS</code>如何用磁盘上的文件表示数据库</li>
+<li><code>DBMS</code>如何管理其内存并从磁盘来回移动数据</li>
+</ol>
+<p><strong><code>Spatial Control</code>：</strong></p>
+<ul>
+<li>将<code>Page</code>刷到磁盘上的什么位置</li>
+<li>目标是让经常一起使用的页面在磁盘上尽可能地靠近在一起</li>
+</ul>
+<p><strong><code>Temporal Control</code>：</strong></p>
+<ul>
+<li>何时将<code>Page</code>读入内存，何时将其写入磁盘</li>
+<li>目标是最大限度地减少从磁盘读取数据的延时</li>
+</ul>
+<h2 id="51-buffer-pool-manager"><a class="markdownIt-Anchor" href="#51-buffer-pool-manager"></a> 5.1 Buffer Pool Manager</h2>
+<p><strong>内存结构</strong></p>
+<ul>
+<li><strong>内存区域被组织成由多个定长<code>Page</code>构成的数组，数组中的每个元素称为<code>Frame</code>（<code>Page</code>需要放置到<code>Frame</code>中）</strong></li>
+<li><strong>每个在内存中的<code>Page</code>都会记录在<code>Page Table</code>中</strong></li>
+<li><img src="/images/Database-System/5-1.png" alt="5-1" /></li>
+</ul>
+<p><strong><code>Locks vs. Latches</code></strong></p>
+<ul>
+<li><code>Locks</code>
+<ul>
+<li>保护数据库的逻辑内容免受其他事务的影响</li>
+<li>在事务期间持有</li>
+<li>需要支持回滚</li>
+</ul>
+</li>
+<li><code>Latches</code>
+<ul>
+<li>保护<code>DBMS</code>中的关键数据避免收到其其他线程的影响</li>
+<li>在操作期间持有</li>
+<li>无需支持回滚</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Page Table vs. Page Directory</code></strong></p>
+<ul>
+<li><code>Page Table</code>
+<ul>
+<li>存储的是<code>Page Id</code>到<code>Buffer Pool Frame</code>的映射关系</li>
+</ul>
+</li>
+<li><code>Page Directory</code>
+<ul>
+<li>存储的是<code>Page Id</code>到该<code>Page</code>对应的磁盘文件的位置</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Buffer Pool Optimization</code>：</strong></p>
+<ul>
+<li><code>Multiple Buffer Pool</code>
+<ul>
+<li><code>Per-database buffer pool</code></li>
+<li><code>Per-page type buffer pool</code></li>
+<li>分成多个<code>Pool</code>可以减少<code>Latch</code>的竞争</li>
+</ul>
+</li>
+<li><code>Pre-Fetching</code>
+<ul>
+<li>针对部分查询，比如<code>Sequential Scans</code>、<code>Index Scans</code>，可以将<code>Page</code>预取到<code>Buffer Poll</code>中的<code>Frame</code></li>
+</ul>
+</li>
+<li><code>Scan Sharing</code>
+<ul>
+<li>相同或者不同的查询（只要<code>Scan</code>部分相同或相似），可以复用同一份数据（这里指的是内存中的<code>Page</code>，无需取多次）</li>
+</ul>
+</li>
+<li><code>Buffer Pool Bypass</code>
+<ul>
+<li><code>Sequential Scan</code>不会将从存储层取到的<code>Page</code>放入<code>Buffer Pool</code>，从而降低负载</li>
+<li>在<code>Informix</code>中被称为<code>Light Scans</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="52-replacement-policies"><a class="markdownIt-Anchor" href="#52-replacement-policies"></a> 5.2 Replacement Policies</h2>
+<h2 id="53-other-memory-pools"><a class="markdownIt-Anchor" href="#53-other-memory-pools"></a> 5.3 Other Memory Pools</h2>
+<h1 id="6-hash-tables"><a class="markdownIt-Anchor" href="#6-hash-tables"></a> 6 Hash Tables</h1>
+<h1 id="7-trees1"><a class="markdownIt-Anchor" href="#7-trees1"></a> 7 Trees1</h1>
+<h1 id="8-trees2"><a class="markdownIt-Anchor" href="#8-trees2"></a> 8 Trees2</h1>
+<h1 id="9-index-concurrency"><a class="markdownIt-Anchor" href="#9-index-concurrency"></a> 9 Index Concurrency</h1>
+<h1 id="10-sorting"><a class="markdownIt-Anchor" href="#10-sorting"></a> 10 Sorting</h1>
+<h1 id="11-joins"><a class="markdownIt-Anchor" href="#11-joins"></a> 11 Joins</h1>
+<h1 id="12-query-execution-1"><a class="markdownIt-Anchor" href="#12-query-execution-1"></a> 12 Query Execution 1</h1>
+<h1 id="13-query-execution-2"><a class="markdownIt-Anchor" href="#13-query-execution-2"></a> 13 Query Execution 2</h1>
+<h1 id="14-optimization-1"><a class="markdownIt-Anchor" href="#14-optimization-1"></a> 14 Optimization 1</h1>
+<h1 id="15-optimization-2"><a class="markdownIt-Anchor" href="#15-optimization-2"></a> 15 Optimization 2</h1>
+<h1 id="16-concurrency-control"><a class="markdownIt-Anchor" href="#16-concurrency-control"></a> 16 Concurrency Control</h1>
+<h1 id="17-two-phase-locking"><a class="markdownIt-Anchor" href="#17-two-phase-locking"></a> 17 Two Phase Locking</h1>
+<h1 id="18-timestamp-ordering"><a class="markdownIt-Anchor" href="#18-timestamp-ordering"></a> 18 Timestamp Ordering</h1>
+<h1 id="19-multiversoning"><a class="markdownIt-Anchor" href="#19-multiversoning"></a> 19 Multiversoning</h1>
+<h1 id="20-logging"><a class="markdownIt-Anchor" href="#20-logging"></a> 20 Logging</h1>
+<h1 id="21-recovery"><a class="markdownIt-Anchor" href="#21-recovery"></a> 21 Recovery</h1>
+<h1 id="22-distributed"><a class="markdownIt-Anchor" href="#22-distributed"></a> 22 Distributed</h1>
+<h1 id="23-distributed-oltp"><a class="markdownIt-Anchor" href="#23-distributed-oltp"></a> 23 Distributed OLTP</h1>
+<h1 id="24-distributed-olap"><a class="markdownIt-Anchor" href="#24-distributed-olap"></a> 24 Distributed OLAP</h1>
+<h1 id="25-oracle"><a class="markdownIt-Anchor" href="#25-oracle"></a> 25 Oracle</h1>
+<h1 id="26-potpourri"><a class="markdownIt-Anchor" href="#26-potpourri"></a> 26 Potpourri</h1>
+<h1 id="27-缩写表"><a class="markdownIt-Anchor" href="#27-缩写表"></a> 27 缩写表</h1>
 <table>
 <thead>
 <tr>
@@ -349,17 +691,49 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align:left">DBMS</td>
+<td style="text-align:left"><code>DBMS</code></td>
 <td style="text-align:left">Database Management System</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>DML</code></td>
+<td style="text-align:left">Data Manipulation Language</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>DDL</code></td>
+<td style="text-align:left">Data Definition Language</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>DCL</code></td>
+<td style="text-align:left">Data Control Language</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>CTE</code></td>
+<td style="text-align:left">Common Table Expressions</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HDD</code></td>
+<td style="text-align:left">Hard Disk Drive</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>SSD</code></td>
+<td style="text-align:left">Solid-state Drive</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>OLTP</code></td>
+<td style="text-align:left">On-line Transaction Processing</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>OLAP</code></td>
+<td style="text-align:left">On-line Analytical Processing</td>
 </tr>
 </tbody>
 </table>
-<h1 id="3-cmu-课件"><a class="markdownIt-Anchor" href="#3-cmu-课件"></a> 3 CMU-课件</h1>
+<h1 id="28-cmu-课件"><a class="markdownIt-Anchor" href="#28-cmu-课件"></a> 28 CMU-课件</h1>
 <ol>
 <li><a href="/resources/Database-System/01-introduction.pdf">01-introduction</a></li>
 <li><a href="/resources/Database-System/02-advancedsql.pdf">02-advancedsql</a></li>
 <li><a href="/resources/Database-System/03-storage1.pdf">03-storage1</a></li>
-<li><a href="/resources/Database-System/03-storage2.pdf">04-storage2</a></li>
+<li><a href="/resources/Database-System/04-storage2.pdf">04-storage2</a></li>
 <li><a href="/resources/Database-System/05-bufferpool.pdf">05-bufferpool</a></li>
 <li><a href="/resources/Database-System/06-hashtables.pdf">06-hashtables</a></li>
 <li><a href="/resources/Database-System/07-trees1.pdf">07-trees1</a></li>
@@ -485,7 +859,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 2 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-cmu-%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 3 CMU-课件</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-advanced-sql"><span class="nav-text"> 2 Advanced Sql</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-storage-1"><span class="nav-text"> 3 Storage 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-file-storage"><span class="nav-text"> 3.1 File Storage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-page-layout"><span class="nav-text"> 3.2 Page Layout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-tuple-layout"><span class="nav-text"> 3.3 Tuple Layout</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-storage-2"><span class="nav-text"> 4 Storage 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-data-representation"><span class="nav-text"> 4.1 Data Representation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-system-catalogs"><span class="nav-text"> 4.2 System Catalogs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-storage-models"><span class="nav-text"> 4.3 Storage Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-n-ary-storege-model"><span class="nav-text"> 4.3.1 N-ARY Storege Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-decomposition-storage-model"><span class="nav-text"> 4.3.2 Decomposition Storage Model</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-buffer-pool"><span class="nav-text"> 5 Buffer Pool</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-buffer-pool-manager"><span class="nav-text"> 5.1 Buffer Pool Manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-replacement-policies"><span class="nav-text"> 5.2 Replacement Policies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-other-memory-pools"><span class="nav-text"> 5.3 Other Memory Pools</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-hash-tables"><span class="nav-text"> 6 Hash Tables</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-trees1"><span class="nav-text"> 7 Trees1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-trees2"><span class="nav-text"> 8 Trees2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-index-concurrency"><span class="nav-text"> 9 Index Concurrency</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-sorting"><span class="nav-text"> 10 Sorting</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-joins"><span class="nav-text"> 11 Joins</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-query-execution-1"><span class="nav-text"> 12 Query Execution 1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-query-execution-2"><span class="nav-text"> 13 Query Execution 2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-optimization-1"><span class="nav-text"> 14 Optimization 1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-optimization-2"><span class="nav-text"> 15 Optimization 2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-concurrency-control"><span class="nav-text"> 16 Concurrency Control</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-two-phase-locking"><span class="nav-text"> 17 Two Phase Locking</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-timestamp-ordering"><span class="nav-text"> 18 Timestamp Ordering</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-multiversoning"><span class="nav-text"> 19 Multiversoning</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-logging"><span class="nav-text"> 20 Logging</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-recovery"><span class="nav-text"> 21 Recovery</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-distributed"><span class="nav-text"> 22 Distributed</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-distributed-oltp"><span class="nav-text"> 23 Distributed OLTP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-distributed-olap"><span class="nav-text"> 24 Distributed OLAP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#25-oracle"><span class="nav-text"> 25 Oracle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#26-potpourri"><span class="nav-text"> 26 Potpourri</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#27-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 27 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#28-cmu-%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 28 CMU-课件</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
