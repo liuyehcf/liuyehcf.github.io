@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-08-19T01:38:42.000Z">
-<meta property="article:modified_time" content="2021-12-27T14:18:24.769Z">
+<meta property="article:modified_time" content="2022-01-23T14:40:04.462Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-27 22:18:24" itemprop="dateModified" datetime="2021-12-27T22:18:24+08:00">2021-12-27</time>
+                <time title="修改时间：2022-01-23 22:40:04" itemprop="dateModified" datetime="2022-01-23T22:40:04+08:00">2022-01-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -304,17 +304,132 @@ linker --> result_target
 linker --> exec
 linker --> result_lib</pre>
 <h1 id="2-lib"><a class="markdownIt-Anchor" href="#2-lib"></a> 2 lib</h1>
-<h2 id="21-什么是libc-glic"><a class="markdownIt-Anchor" href="#21-什么是libc-glic"></a> 2.1 什么是<code>libc</code>、<code>glic</code></h2>
-<p><code>libc</code>实现了C的标准库函数（例如<code>strcpy()</code>），以及<code>POSIX</code>函数（例如系统调用<code>getpid()</code>）。此外，不是所有的C标准库函数都包含在<code>libc</code>中，比如大多数<code>math</code>相关的库函数都封装在<code>libm</code>中</p>
+<h2 id="21-静态链接库"><a class="markdownIt-Anchor" href="#21-静态链接库"></a> 2.1 静态链接库</h2>
+<p><strong>后缀：<code>*.a</code></strong></p>
+<h2 id="22-动态链接库"><a class="markdownIt-Anchor" href="#22-动态链接库"></a> 2.2 动态链接库</h2>
+<p><strong>后缀：<code>*.so</code></strong></p>
+<h3 id="221-动态库搜索顺序"><a class="markdownIt-Anchor" href="#221-动态库搜索顺序"></a> 2.2.1 动态库搜索顺序</h3>
+<p><strong>搜索如下：详见<code>man ld.so</code></strong></p>
+<ol>
+<li>在环境变量<code>LD_LIBRARY_PATH</code>指定的目录下搜索</li>
+<li>在<code>/etc/ld.so.cache</code>指定的目录中搜索</li>
+<li>在<code>/lib</code>、<code>/lib64</code>中搜索（系统发行版安装的）</li>
+<li>在<code>/usr/lib</code>、<code>/usr/lib64</code>中搜索（其他软件安装的）</li>
+</ol>
+<h3 id="222-linux下so的版本机制介绍"><a class="markdownIt-Anchor" href="#222-linux下so的版本机制介绍"></a> 2.2.2 Linux下so的版本机制介绍</h3>
+<p><strong>本小节转载摘录自<a target="_blank" rel="noopener" href="https://blog.ideawand.com/2020/02/15/how-does-linux-shared-library-versioning-works/">一文读懂Linux下动态链接库版本管理及查找加载方式</a></strong></p>
+<p>在<code>/lib64</code>、<code>/usr/lib64</code>、<code>/usr/local/lib64</code>目录下，会看到很多具有下列特征的软连接，其中<code>x</code>、<code>y</code>、<code>z</code>为数字, 那么这些软连接和他们后面的数字有什么用途呢？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">libfoo.so    -&gt;  libfoo.so.x</span><br><span class="line">libfoo.so.x  -&gt;  libfoo.so.x.y.z</span><br><span class="line">libbar.so.x  -&gt;  libbar.so.x.y</span><br></pre></td></tr></table></figure>
+<p>这里的<code>x</code>、<code>y</code>、<code>z</code>分别代表的是这个<code>so</code>的主版本号（<code>MAJOR</code>），次版本号（<code>MINOR</code>），以及发行版本号（<code>RELEASE</code>），对于这三个数字各自的含义，以及什么时候会进行增长，不同的文献上有不同的解释，不同的组织遵循的规定可能也有细微的差别，但有一个可以肯定的事情是：主版本号（<code>MAJOR</code>）不同的两个<code>so</code>库，所暴露出的<code>API</code>接口是不兼容的。而对于次版本号，和发行版本号，则有着不同定义，其中一种定义是：次要版本号表示<code>API</code>接口的定义发生了改变（比如参数的含义发生了变化），但是保持向前兼容；而发行版本号则是函数内部的一些功能调整、优化、BUG修复，不涉及<code>API</code>接口定义的修改</p>
+<h4 id="2221-几个so库有关名字的介绍"><a class="markdownIt-Anchor" href="#2221-几个so库有关名字的介绍"></a> 2.2.2.1 几个so库有关名字的介绍</h4>
+<p><strong>介绍一下在<code>so</code>查找过程中的几个名字</strong></p>
+<ul>
+<li><strong><code>SONAME</code>：一组具有兼容<code>API</code>的<code>so</code>库所共有的名字，其命名特征是<code>lib&lt;库名&gt;.so.&lt;数字&gt;</code>这种形式的</strong></li>
+<li><strong><code>real name</code>：是真实具有<code>so</code>库可执行代码的那个文件，之所以叫<code>real</code>是相对于<code>SONAME</code>和<code>linker name</code>而言的，因为另外两种名字一般都是一个软连接，这些软连接最终指向的文件都是具有<code>real name</code>命名形式的文件。<code>real name</code>的命名格式中，可能有<code>2</code>个数字尾缀，也可能有<code>3</code>个数字尾缀，但这不重要。你只要记住，真实的那个，不是以软连接形式存在的，就是一个<code>real name</code></strong></li>
+<li><strong><code>linker name</code>：这个名字只是给编译工具链中的连接器使用的名字，和程序运行并没有什么关系，仅仅在链接得到可执行文件的过程中才会用到。它的命名特征是以<code>lib</code>开头，以<code>.so</code>结尾，不带任何数字后缀的格式</strong></li>
+</ul>
+<h4 id="2222-soname的作用"><a class="markdownIt-Anchor" href="#2222-soname的作用"></a> 2.2.2.2 SONAME的作用</h4>
+<p>假设在你的Linux系统中有3个不同版本的<code>bar</code>共享库，他们在磁盘上保存的文件名如下：</p>
+<ul>
+<li><code>/usr/lib64/libbar.so.1.3</code></li>
+<li><code>/usr/lib64/libbar.so.1.5</code></li>
+<li><code>/usr/lib64/libbar.so.2.1</code></li>
+</ul>
+<p>假设以上三个文件，都是真实的<code>so</code>库文件，而不是软连接，也就是说，上面列出的名字都是<code>real name</code></p>
+<p>根据我们之前对版本号的定义，我们可以知道：</p>
+<ul>
+<li><code>libbar.so.1.3</code>和<code>libbar.so.1.5</code>之间是互相兼容的</li>
+<li><code>libbar.so.2.1</code>和上述两个库之间互相不兼容</li>
+</ul>
+<p><strong>引入软连接的好处是什么呢？假设有一天，<code>libbar.so.2.1</code>库进行了升级，但<code>API</code>接口仍然保持兼容，升级后的库文件为<code>libbar.so.2.2</code>，这时候，我们只要将之前的软连接重新指向升级后的文件，然后重新启动B程序，B程序就可以使用全新版本的<code>so</code>库了，我们并不需要去重新编译链接来更新B程序</strong></p>
+<p><strong>总结一下上面的逻辑：</strong></p>
+<ul>
+<li>通常<code>SONAME</code>是一个指向<code>real name</code>的软连接</li>
+<li>应用程序中存储自己所依赖的<code>so</code>库的<code>SONAME</code>，也就是仅保证主版本号能匹配就行</li>
+<li>通过修改软连接的指向，可以让应用程序在互相兼容的<code>so</code>库中方便切换使用哪一个</li>
+<li>通常情况下，大家使用最新版本即可，除非是为了在特定版本下做一些调试、开发工作</li>
+</ul>
+<h4 id="2223-linker-name的作用"><a class="markdownIt-Anchor" href="#2223-linker-name的作用"></a> 2.2.2.3 linker name的作用</h4>
+<p>上一节中我们提到，可执行文件里会存储精确到主版本号的<code>SONAME</code>，但是在编译生成可执行文件的过程中，编译器怎么知道应该用哪个主版本号呢？为了回答这个问题，我们从编译链接的过程来梳理一下</p>
+<p>假设我们使用<code>gcc</code>编译生成一个依赖<code>foo</code>库的可执行文件<code>A</code>：<code>gcc A.c -lfoo -o A</code></p>
+<p>熟悉<code>gcc</code>编译的读者们肯定知道，上述的<code>-l</code>标记后跟随了<code>foo</code>参数，表示我们告诉<code>gcc</code>在编译的过程中需要用到一个外部的名为<code>foo</code>的库，但这里有一个问题，我们并没有说使用哪一个主版本，我们只给出了一个名字。为了解决这个问题，软链接再次发挥作用，具体流程如下：</p>
+<p><strong>根据linux下动态链接库的命名规范，<code>gcc</code>会根据<code>-lfoo</code>这个标识拼接出<code>libfoo.so</code>这个文件名，这个文件名就是<code>linker name</code>，然后去尝试读取这个文件，并将这个库链接到生成的可执行文件<code>A</code>中。在执行编译前，我们可以通过软链接的形式，将<code>libfoo.so</code>指向一个具体<code>so</code>库，也就是指向一个<code>real name</code>，在编译过程中，<code>gcc</code>会从这个真实的库中读取出<code>SONAME</code>并将它写入到生成的可执行文件<code>A</code>中。例如，若<code>libfoo.so</code>指向<code>libfoo.so.1.5</code>,则生成的可执行文件A使用主版本号为<code>1</code>的<code>SONAME</code>，即<code>libfoo.so.1</code></strong></p>
+<p>在上述编译过程完成之后，<code>SONAME</code>已经被写入可执行文件<code>A</code>中了，因此可以看到<code>linker name</code>仅仅在编译的过程中，可以起到指定连接那个库版本的作用，除此之外，再无其他作用</p>
+<p><strong>总结一下上面的逻辑：</strong></p>
+<ul>
+<li>通常<code>linker name</code>是一个指向<code>real name</code>的软连接</li>
+<li>通过修改软连接的指向，可以指定编译生成的可执行文件使用那个主版本号<code>so</code>库</li>
+<li>编译器从软链接指向的文件里找到其<code>SONAME</code>，并将<code>SONAME</code>写入到生成的可执行文件中</li>
+<li>通过改变<code>linker name</code>软连接的指向，可以将不同主版本号的<code>SONAME</code>写入到生成的可执行文件中</li>
+</ul>
+<h2 id="23-ld_preload"><a class="markdownIt-Anchor" href="#23-ld_preload"></a> 2.3 LD_PRELOAD</h2>
+<p><strong>环境变量<code>LD_PRELOAD</code>指定的目录拥有最高优先级</strong></p>
+<h3 id="231-demo"><a class="markdownIt-Anchor" href="#231-demo"></a> 2.3.1 demo</h3>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">cat &gt; sample.c &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;stdio.h&gt;</span></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Calling the fopen() function...\n&quot;</span>);</span><br><span class="line">    FILE *fd = fopen(<span class="string">&quot;test.txt&quot;</span>,<span class="string">&quot;r&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (!fd) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;fopen() returned NULL\n&quot;</span>);</span><br><span class="line">        <span class="built_in">return</span> 1;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;fopen() succeeded\n&quot;</span>);</span><br><span class="line">    <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">gcc -o sample sample.c</span><br><span class="line"></span><br><span class="line">./sample </span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">fopen() returned NULL</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">touch test.txt</span><br><span class="line">./sample</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">fopen() succeeded</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">cat &gt; myfopen.c &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;stdio.h&gt;</span></span><br><span class="line">FILE *fopen(const char *path, const char *mode) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;This is my fopen!\n&quot;</span>);</span><br><span class="line">    <span class="built_in">return</span> NULL;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">gcc -o myfopen.so myfopen.c -Wall -fPIC -shared</span><br><span class="line"></span><br><span class="line">LD_PRELOAD=./myfopen.so ./sample</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">This is my fopen!</span><br><span class="line">fopen() returned NULL</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<h2 id="24-libc-glic-libm-libz以及其他常用动态库"><a class="markdownIt-Anchor" href="#24-libc-glic-libm-libz以及其他常用动态库"></a> 2.4 libc、glic、libm、libz以及其他常用动态库</h2>
+<p><code>libc</code>实现了C的标准库函数（例如<code>strcpy()</code>），以及<code>POSIX</code>函数（例如系统调用<code>getpid()</code>）。此外，不是所有的C标准库函数都包含在<code>libc</code>中，比如大多数<code>math</code>相关的库函数都封装在<code>libm</code>中，大多数压缩相关的库函数都封装在<code>libz</code>中</p>
 <p>系统调用有别于普通函数，它无法被链接器解析。实现系统调用必须引入平台相关的汇编指令。我们可以通过手动实现这些汇编指令来完成系统调用，或者直接使用<code>libc</code>（它已经为我们封装好了）</p>
 <p><code>glibc, GNU C Library</code>可以看做是<code>libc</code>的另一种实现，它不仅包含<code>libc</code>的所有功能还包含<code>libm</code>以及其他核心库，比如<code>libpthread</code></p>
-<h2 id="22-静态动态链接库"><a class="markdownIt-Anchor" href="#22-静态动态链接库"></a> 2.2 静态/动态链接库</h2>
-<p><strong>后缀</strong></p>
+<p><strong>其他常用动态库可以参考<a target="_blank" rel="noopener" href="https://docs.oracle.com/cd/E86824_01/html/E54772/makehtml-id-7.html#scrolltoc">Library Interfaces and Headers</a>中的介绍</strong></p>
+<ol>
+<li><code>libdl</code>：dynamic linking library
 <ul>
-<li>静态链接库：<code>*.a</code></li>
-<li>动态链接库：<code>*.so</code></li>
+<li><strong><code>libdl</code>主要作用是将那些早已存在于<code>libc</code>中的<code>private dl functions</code>对外露出，便于用户实现一些特殊的需求</strong></li>
+<li>可以通过<code>readelf -s /lib64/ld-linux-x86-64.so.2 | grep PRIVATE</code>查看露出的这些方法</li>
 </ul>
-<h1 id="3-gun工具链"><a class="markdownIt-Anchor" href="#3-gun工具链"></a> 3 gun工具链</h1>
+</li>
+</ol>
+<h2 id="25-参考"><a class="markdownIt-Anchor" href="#25-参考"></a> 2.5 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html">Program Library HOWTO</a></li>
+<li><a target="_blank" rel="noopener" href="https://amir.rachum.com/blog/2016/09/17/shared-libraries/">Shared Libraries: Understanding Dynamic Loading</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Rpath">wiki-Rpath</a></li>
+<li><a target="_blank" rel="noopener" href="https://gitlab.kitware.com/cmake/community/-/wikis/doc/cmake/RPATH-handling">RPATH handling</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/reuodut/articles/13723437.html">Linux hook：Ring3下动态链接库.so函数劫持</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/14715175/what-is-the-difference-between-ld-preload-path-and-ld-library-path">What is the difference between LD_PRELOAD_PATH and LD_LIBRARY_PATH?</a></li>
+<li><a target="_blank" rel="noopener" href="https://unix.stackexchange.com/questions/557919/what-is-libstdc-so-6-and-glibcxx-3-4-20">What is libstdc++.so.6 and GLIBCXX_3.4.20?</a></li>
+</ul>
+<h1 id="3-内存管理"><a class="markdownIt-Anchor" href="#3-内存管理"></a> 3 内存管理</h1>
+<p><strong>涉及的系统调用（只涉及虚拟内存，物理内存只能通过缺页异常来分配）</strong></p>
+<ul>
+<li><code>brk</code>：详见<code>man brk</code></li>
+<li><code>sbrk</code>：详见<code>man sbrk</code></li>
+<li><code>mmap/munmap</code>：详见<code>man mmap/munmap</code></li>
+</ul>
+<p>而内存管理的<code>lib</code>工作在用户态，底层还是通过上述系统调用来分配虚拟内存，不同的<code>lib</code>管理内存的算法可能有差异</p>
+<h2 id="31-tcmalloc"><a class="markdownIt-Anchor" href="#31-tcmalloc"></a> 3.1 <a target="_blank" rel="noopener" href="https://github.com/google/tcmalloc">tcmalloc</a></h2>
+<p><strong>如何安装：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum -y install gperftools gperftools-devel</span><br></pre></td></tr></table></figure>
+<h3 id="311-heapprofile"><a class="markdownIt-Anchor" href="#311-heapprofile"></a> 3.1.1 heapprofile</h3>
+<p><strong><code>main.cpp</code>：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">create</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> size)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">malloc</span>(size);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">create_destory</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> size)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">void</span>* p = <span class="built_in">create</span>(size);</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> loop = <span class="number">4</span>;</span><br><span class="line">    <span class="keyword">char</span>* a[loop];</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> mega = <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; loop; i++) &#123;</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> create_size = <span class="number">1024</span> * mega;</span><br><span class="line">        <span class="built_in">create</span>(create_size);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> malloc_size = <span class="number">1024</span> * mega;</span><br><span class="line">        a[i] = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(malloc_size);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> create_destory_size = mega;</span><br><span class="line">        <span class="built_in">create_destory</span>(create_destory_size);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; loop; i++) &#123;</span><br><span class="line">        <span class="built_in">free</span>(a[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>编译：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -o main main.cpp -Wall -O3 -lstdc++ -ltcmalloc -std=gnu++17</span><br></pre></td></tr></table></figure>
+<p><strong>运行：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 开启 heap profile 功能</span></span><br><span class="line"><span class="built_in">export</span> HEAPPROFILE=/tmp/test-profile</span><br><span class="line"></span><br><span class="line">./main</span><br></pre></td></tr></table></figure>
+<p><strong>输出如下：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Starting tracking the heap</span><br><span class="line">tcmalloc: large alloc 1073741824 bytes == 0x2c46000 @  0x7f6a8fd244ef 0x7f6a8fd43e76 0x400571 0x7f6a8f962555 0x4005bf</span><br><span class="line">Dumping heap profile to /tmp/test-profile.0001.heap (1024 MB allocated cumulatively, 1024 MB currently in use)</span><br><span class="line">Dumping heap profile to /tmp/test-profile.0002.heap (2048 MB allocated cumulatively, 2048 MB currently in use)</span><br><span class="line">Dumping heap profile to /tmp/test-profile.0003.heap (3072 MB allocated cumulatively, 3072 MB currently in use)</span><br><span class="line">Dumping heap profile to /tmp/test-profile.0004.heap (4096 MB allocated cumulatively, 4096 MB currently in use)</span><br><span class="line">Dumping heap profile to /tmp/test-profile.0005.heap (Exiting, 0 bytes in use)</span><br></pre></td></tr></table></figure>
+<p><strong>使用<code>pprof</code>分析内存：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 文本格式</span></span><br><span class="line">pprof --text ./main /tmp/test-profile.0001.heap | head -30</span><br><span class="line"></span><br><span class="line"><span class="comment"># 图片格式</span></span><br><span class="line">pprof --svg ./main /tmp/test-profile.0001.heap &gt; heap.svg </span><br></pre></td></tr></table></figure>
+<h2 id="32-jemalloc"><a class="markdownIt-Anchor" href="#32-jemalloc"></a> 3.2 <a target="_blank" rel="noopener" href="https://github.com/jemalloc/jemalloc">jemalloc</a></h2>
+<h2 id="33-mimalloc"><a class="markdownIt-Anchor" href="#33-mimalloc"></a> 3.3 <a target="_blank" rel="noopener" href="https://github.com/microsoft/mimalloc">mimalloc</a></h2>
+<h2 id="34-参考"><a class="markdownIt-Anchor" href="#34-参考"></a> 3.4 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://gperftools.github.io/gperftools/heapprofile.html">heapprofile.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://doris.apache.org/developer-guide/debug-tool.html">Apache Doris-调试工具</a></li>
+</ul>
+<h1 id="4-address-sanitizer"><a class="markdownIt-Anchor" href="#4-address-sanitizer"></a> 4 Address Sanitizer</h1>
+<h2 id="41-memory-leak"><a class="markdownIt-Anchor" href="#41-memory-leak"></a> 4.1 memory leak</h2>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">cat &gt; test_memory_leak.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    int *p = new int(5);</span><br><span class="line">    std::cout &lt;&lt; *p &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">gcc test_memory_leak.cpp -o test_memory_leak -g -lstdc++ -fsanitize=address -static-libasan</span></span><br><span class="line"><span class="string">./test_memory_leak</span></span><br></pre></td></tr></table></figure>
+<h2 id="42-stack-buffer-underflow"><a class="markdownIt-Anchor" href="#42-stack-buffer-underflow"></a> 4.2 stack buffer underflow</h2>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">cat &gt; test_stack_buffer_underflow.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    char buffer[5] = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    uint8_t num = 5;</span><br><span class="line"></span><br><span class="line">    buffer[-1] = 7;</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; (void*)buffer &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    std</span>::cout &lt;&lt; (void*)&amp;buffer[-1] &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    std</span>::cout &lt;&lt; (void*)&amp;num &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    std</span>::cout &lt;&lt; (uint32_t)num &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 非asan模式</span></span><br><span class="line"><span class="string">gcc test_stack_buffer_underflow.cpp -o test_stack_buffer_underflow -g -lstdc++ </span></span><br><span class="line"><span class="string">./test_stack_buffer_underflow</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># asan模式</span></span><br><span class="line"><span class="string">gcc test_stack_buffer_underflow.cpp -o test_stack_buffer_underflow -g -lstdc++ -fsanitize=address -static-libasan</span></span><br><span class="line"><span class="string">./test_stack_buffer_underflow</span></span><br></pre></td></tr></table></figure>
+<h2 id="43-参考"><a class="markdownIt-Anchor" href="#43-参考"></a> 4.3 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_41644391/article/details/103450401">c++ Asan(address-sanitize)的配置和使用</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.osc.edu/resources/getting_started/howto/howto_use_address_sanitizer">HOWTO: Use Address Sanitizer</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/google/sanitizers">google/sanitizers</a></li>
+</ul>
+<h1 id="5-gun工具链"><a class="markdownIt-Anchor" href="#5-gun工具链"></a> 5 gun工具链</h1>
 <ol>
 <li><code>ld</code>：the GNU linker</li>
 <li><code>as</code>：the GNU assembler</li>
@@ -337,8 +452,8 @@ linker --> result_lib</pre>
 <li><code>windmc</code> - A Windows compatible message compiler.</li>
 <li><code>windres</code> - A compiler for Windows resource files.</li>
 </ol>
-<h2 id="31-gcc"><a class="markdownIt-Anchor" href="#31-gcc"></a> 3.1 gcc</h2>
-<h3 id="311-编译选项"><a class="markdownIt-Anchor" href="#311-编译选项"></a> 3.1.1 编译选项</h3>
+<h2 id="51-gcc"><a class="markdownIt-Anchor" href="#51-gcc"></a> 5.1 gcc</h2>
+<h3 id="511-编译选项"><a class="markdownIt-Anchor" href="#511-编译选项"></a> 5.1.1 编译选项</h3>
 <ol>
 <li><code>-E</code>：生成预处理文件（<code>.i</code>）</li>
 <li><code>-S</code>：生成汇编文件（<code>.s</code>）
@@ -349,7 +464,7 @@ linker --> result_lib</pre>
 <li><code>-c</code>：生成目标文件（<code>.o</code>）</li>
 <li>默认生成可执行文件</li>
 </ol>
-<h3 id="312-编译优化"><a class="markdownIt-Anchor" href="#312-编译优化"></a> 3.1.2 编译优化</h3>
+<h3 id="512-编译优化"><a class="markdownIt-Anchor" href="#512-编译优化"></a> 5.1.2 编译优化</h3>
 <ol>
 <li><strong><code>-O0</code>（默认）：不做任何优化</strong></li>
 <li><strong><code>-O/-O1</code>：在不影响编译速度的前提下，尽量采用一些优化算法降低代码大小和可执行代码的运行速度</strong></li>
@@ -359,12 +474,25 @@ linker --> result_lib</pre>
 <ul>
 <li><strong>不同优化等级对应开启的优化参数参考<code>man page</code></strong></li>
 </ul>
-<h3 id="313-其他参数"><a class="markdownIt-Anchor" href="#313-其他参数"></a> 3.1.3 其他参数</h3>
+<h3 id="513-其他参数"><a class="markdownIt-Anchor" href="#513-其他参数"></a> 5.1.3 其他参数</h3>
 <ol>
 <li><code>-fsized-deallocation</code>：启用接收<code>size</code>参数的<code>delete</code>运算符。<a target="_blank" rel="noopener" href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3778.html">C++ Sized Deallocation</a>。现代内存分配器在给对象分配内存时，需要指定大小，出于空间利用率的考虑，不会在对象内存周围存储对象的大小信息。因此在释放对象时，需要查找对象占用的内存大小，查找的开销很大，因为通常不在缓存中。因此，编译器允许提供接受一个<code>size</code>参数的<code>global delete operator</code>，并用这个版本来对对象进行析构</li>
 </ol>
-<h2 id="32-参考"><a class="markdownIt-Anchor" href="#32-参考"></a> 3.2 参考</h2>
-<h1 id="4-clang-format"><a class="markdownIt-Anchor" href="#4-clang-format"></a> 4 clang-format</h1>
+<h2 id="52-ld"><a class="markdownIt-Anchor" href="#52-ld"></a> 5.2 ld</h2>
+<p><strong>种类</strong></p>
+<ul>
+<li><code>GNU gold</code></li>
+<li><code>LLVM lld</code></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/rui314/mold">mold</a></li>
+</ul>
+<p><strong><code>Flags</code></strong></p>
+<ul>
+<li>-fuse-ld=gold</li>
+<li>-B/usr/local/bin/gcc-mold</li>
+</ul>
+<h2 id="53-参考"><a class="markdownIt-Anchor" href="#53-参考"></a> 5.3 参考</h2>
+<h1 id="6-llvm工具链"><a class="markdownIt-Anchor" href="#6-llvm工具链"></a> 6 llvm工具链</h1>
+<h2 id="61-clang-format"><a class="markdownIt-Anchor" href="#61-clang-format"></a> 6.1 clang-format</h2>
 <p><strong>如何安装<code>clang-format</code></strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g clang-format</span><br></pre></td></tr></table></figure>
 <p><strong>如何使用：在<code>用户目录</code>或者<code>项目根目录</code>中创建<code>.clang-format</code>文件用于指定格式化的方式，下面给一个示例</strong></p>
@@ -372,7 +500,8 @@ linker --> result_lib</pre>
 <li><strong>优先使用项目根目录中的<code>.clang-format</code>；如果不存在，则使用用户目录中的<code>~/.clang-format</code></strong></li>
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">Language: Cpp</span><br><span class="line">BasedOnStyle: Google</span><br><span class="line">AccessModifierOffset: -4</span><br><span class="line">AllowShortFunctionsOnASingleLine: Inline</span><br><span class="line">ColumnLimit: 120</span><br><span class="line">ConstructorInitializerIndentWidth: 8 # double of IndentWidth</span><br><span class="line">ContinuationIndentWidth: 8 # double of IndentWidth</span><br><span class="line">DerivePointerAlignment: false # always use PointerAlignment</span><br><span class="line">IndentCaseLabels: false</span><br><span class="line">IndentWidth: 4</span><br><span class="line">PointerAlignment: Left</span><br><span class="line">ReflowComments: false</span><br><span class="line">SortUsingDeclarations: false</span><br><span class="line">SpacesBeforeTrailingComments: 1</span><br></pre></td></tr></table></figure>
-<h1 id="5-头文件搜索路径"><a class="markdownIt-Anchor" href="#5-头文件搜索路径"></a> 5 头文件搜索路径</h1>
+<h1 id="7-其他"><a class="markdownIt-Anchor" href="#7-其他"></a> 7 其他</h1>
+<h2 id="71-头文件搜索路径"><a class="markdownIt-Anchor" href="#71-头文件搜索路径"></a> 7.1 头文件搜索路径</h2>
 <p><strong>头文件<code>#include &quot;xxx.h&quot;</code>的搜索顺序</strong></p>
 <ol>
 <li>先搜索当前目录</li>
@@ -398,29 +527,19 @@ linker --> result_lib</pre>
 </ul>
 </li>
 </ol>
-<h2 id="51-参考"><a class="markdownIt-Anchor" href="#51-参考"></a> 5.1 参考</h2>
+<h2 id="72-doc"><a class="markdownIt-Anchor" href="#72-doc"></a> 7.2 doc</h2>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/">cpp reference</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/aitjcize/cppman/">cppman</a>
+<ul>
+<li>安装：<code>pip install cppman</code></li>
+<li>示例：<code>cppman vector::begin</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="73-参考"><a class="markdownIt-Anchor" href="#73-参考"></a> 7.3 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/crylearner/article/details/17013187">C/C++ 头文件以及库的搜索路径</a></li>
-</ul>
-<h1 id="6-address-sanitizer"><a class="markdownIt-Anchor" href="#6-address-sanitizer"></a> 6 Address Sanitizer</h1>
-<h2 id="61-memory-leak"><a class="markdownIt-Anchor" href="#61-memory-leak"></a> 6.1 memory leak</h2>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">cat &gt; test_memory_leak.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    int *p = new int(5);</span><br><span class="line">    std::cout &lt;&lt; *p &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">gcc test_memory_leak.cpp -o test_memory_leak -g -lstdc++ -fsanitize=address -static-libasan</span></span><br><span class="line"><span class="string">./test_memory_leak</span></span><br></pre></td></tr></table></figure>
-<h2 id="62-stack-buffer-underflow"><a class="markdownIt-Anchor" href="#62-stack-buffer-underflow"></a> 6.2 stack buffer underflow</h2>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">cat &gt; test_stack_buffer_underflow.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    char buffer[5] = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    uint8_t num = 5;</span><br><span class="line"></span><br><span class="line">    buffer[-1] = 7;</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; (void*)buffer &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    std</span>::cout &lt;&lt; (void*)&amp;buffer[-1] &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    std</span>::cout &lt;&lt; (void*)&amp;num &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    std</span>::cout &lt;&lt; (uint32_t)num &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 非asan模式</span></span><br><span class="line"><span class="string">gcc test_stack_buffer_underflow.cpp -o test_stack_buffer_underflow -g -lstdc++ </span></span><br><span class="line"><span class="string">./test_stack_buffer_underflow</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># asan模式</span></span><br><span class="line"><span class="string">gcc test_stack_buffer_underflow.cpp -o test_stack_buffer_underflow -g -lstdc++ -fsanitize=address -static-libasan</span></span><br><span class="line"><span class="string">./test_stack_buffer_underflow</span></span><br></pre></td></tr></table></figure>
-<h2 id="63-参考"><a class="markdownIt-Anchor" href="#63-参考"></a> 6.3 参考</h2>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_41644391/article/details/103450401">c++ Asan(address-sanitize)的配置和使用</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.osc.edu/resources/getting_started/howto/howto_use_address_sanitizer">HOWTO: Use Address Sanitizer</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/google/sanitizers">google/sanitizers</a></li>
-</ul>
-<h1 id="7-doc"><a class="markdownIt-Anchor" href="#7-doc"></a> 7 doc</h1>
-<h2 id="71-cpp-reference"><a class="markdownIt-Anchor" href="#71-cpp-reference"></a> 7.1 <a target="_blank" rel="noopener" href="https://en.cppreference.com/w/">cpp reference</a></h2>
-<h2 id="72-cppman"><a class="markdownIt-Anchor" href="#72-cppman"></a> 7.2 <a target="_blank" rel="noopener" href="https://github.com/aitjcize/cppman/">cppman</a></h2>
-<p><strong>如何安装：</strong></p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install cppman</span><br></pre></td></tr></table></figure>
-<p><strong>示例：</strong></p>
-<ul>
-<li><code>cppman vector::begin</code></li>
 </ul>
 
     </div>
@@ -523,7 +642,7 @@ linker --> result_lib</pre>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B"><span class="nav-text"> 1 编译过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-lib"><span class="nav-text"> 2 lib</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E4%BB%80%E4%B9%88%E6%98%AFlibc-glic"><span class="nav-text"> 2.1 什么是libc、glic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E9%9D%99%E6%80%81%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-text"> 2.2 静态&#x2F;动态链接库</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-gun%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="nav-text"> 3 gun工具链</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-gcc"><span class="nav-text"> 3.1 gcc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#311-%E7%BC%96%E8%AF%91%E9%80%89%E9%A1%B9"><span class="nav-text"> 3.1.1 编译选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#312-%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96"><span class="nav-text"> 3.1.2 编译优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#313-%E5%85%B6%E4%BB%96%E5%8F%82%E6%95%B0"><span class="nav-text"> 3.1.3 其他参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E5%8F%82%E8%80%83"><span class="nav-text"> 3.2 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-clang-format"><span class="nav-text"> 4 clang-format</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%A4%B4%E6%96%87%E4%BB%B6%E6%90%9C%E7%B4%A2%E8%B7%AF%E5%BE%84"><span class="nav-text"> 5 头文件搜索路径</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E5%8F%82%E8%80%83"><span class="nav-text"> 5.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-address-sanitizer"><span class="nav-text"> 6 Address Sanitizer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-memory-leak"><span class="nav-text"> 6.1 memory leak</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-stack-buffer-underflow"><span class="nav-text"> 6.2 stack buffer underflow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-%E5%8F%82%E8%80%83"><span class="nav-text"> 6.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-doc"><span class="nav-text"> 7 doc</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-cpp-reference"><span class="nav-text"> 7.1 cpp reference</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-cppman"><span class="nav-text"> 7.2 cppman</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B"><span class="nav-text"> 1 编译过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-lib"><span class="nav-text"> 2 lib</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E9%9D%99%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-text"> 2.1 静态链接库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-text"> 2.2 动态链接库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-%E5%8A%A8%E6%80%81%E5%BA%93%E6%90%9C%E7%B4%A2%E9%A1%BA%E5%BA%8F"><span class="nav-text"> 2.2.1 动态库搜索顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-linux%E4%B8%8Bso%E7%9A%84%E7%89%88%E6%9C%AC%E6%9C%BA%E5%88%B6%E4%BB%8B%E7%BB%8D"><span class="nav-text"> 2.2.2 Linux下so的版本机制介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2221-%E5%87%A0%E4%B8%AAso%E5%BA%93%E6%9C%89%E5%85%B3%E5%90%8D%E5%AD%97%E7%9A%84%E4%BB%8B%E7%BB%8D"><span class="nav-text"> 2.2.2.1 几个so库有关名字的介绍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2222-soname%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text"> 2.2.2.2 SONAME的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2223-linker-name%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text"> 2.2.2.3 linker name的作用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-ld_preload"><span class="nav-text"> 2.3 LD_PRELOAD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#231-demo"><span class="nav-text"> 2.3.1 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-libc-glic-libm-libz%E4%BB%A5%E5%8F%8A%E5%85%B6%E4%BB%96%E5%B8%B8%E7%94%A8%E5%8A%A8%E6%80%81%E5%BA%93"><span class="nav-text"> 2.4 libc、glic、libm、libz以及其他常用动态库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-%E5%8F%82%E8%80%83"><span class="nav-text"> 2.5 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-text"> 3 内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-tcmalloc"><span class="nav-text"> 3.1 tcmalloc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#311-heapprofile"><span class="nav-text"> 3.1.1 heapprofile</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-jemalloc"><span class="nav-text"> 3.2 jemalloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-mimalloc"><span class="nav-text"> 3.3 mimalloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E5%8F%82%E8%80%83"><span class="nav-text"> 3.4 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-address-sanitizer"><span class="nav-text"> 4 Address Sanitizer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-memory-leak"><span class="nav-text"> 4.1 memory leak</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-stack-buffer-underflow"><span class="nav-text"> 4.2 stack buffer underflow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-%E5%8F%82%E8%80%83"><span class="nav-text"> 4.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-gun%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="nav-text"> 5 gun工具链</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-gcc"><span class="nav-text"> 5.1 gcc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#511-%E7%BC%96%E8%AF%91%E9%80%89%E9%A1%B9"><span class="nav-text"> 5.1.1 编译选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#512-%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96"><span class="nav-text"> 5.1.2 编译优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#513-%E5%85%B6%E4%BB%96%E5%8F%82%E6%95%B0"><span class="nav-text"> 5.1.3 其他参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-ld"><span class="nav-text"> 5.2 ld</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E5%8F%82%E8%80%83"><span class="nav-text"> 5.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-llvm%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="nav-text"> 6 llvm工具链</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-clang-format"><span class="nav-text"> 6.1 clang-format</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%85%B6%E4%BB%96"><span class="nav-text"> 7 其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E5%A4%B4%E6%96%87%E4%BB%B6%E6%90%9C%E7%B4%A2%E8%B7%AF%E5%BE%84"><span class="nav-text"> 7.1 头文件搜索路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-doc"><span class="nav-text"> 7.2 doc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-%E5%8F%82%E8%80%83"><span class="nav-text"> 7.3 参考</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -539,7 +658,7 @@ linker --> result_lib</pre>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">279</span>
+          <span class="site-state-item-count">280</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Database-Products">
+<meta property="og:url" content="http://example.com/2022/01/14/Database-Products/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Database-Products/druid_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/greenplum_architecture.jpeg">
+<meta property="og:image" content="http://example.com/images/Database-Products/hawq_high_level_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/hawq_architecture_components.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/hbase_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/hive_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/hudi_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/impala_architecture.jpeg">
+<meta property="og:image" content="http://example.com/images/Database-Products/kudu_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/kylin_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/pinot_architecture.svg">
+<meta property="og:image" content="http://example.com/images/Database-Products/presto_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/snowflake_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/spark_ecology.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/tidb_architecture.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/trino_architecture_01.png">
+<meta property="og:image" content="http://example.com/images/Database-Products/trino_architecture_02.png">
+<meta property="article:published_time" content="2022-01-14T06:31:10.000Z">
+<meta property="article:modified_time" content="2022-01-23T14:40:04.465Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Database-Products/druid_architecture.png">
+
+<link rel="canonical" href="http://example.com/2022/01/14/Database-Products/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Database-Products | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/14/Database-Products/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Database-Products
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-14 14:31:10" itemprop="dateCreated datePublished" datetime="2022-01-14T14:31:10+08:00">2022-01-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-01-23 22:40:04" itemprop="dateModified" datetime="2022-01-23T22:40:04+08:00">2022-01-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/" itemprop="url" rel="index"><span itemprop="name">Database</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/01/14/Database-Products/" class="post-meta-item leancloud_visitors" data-flag-title="Database-Products" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/01/14/Database-Products/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/01/14/Database-Products/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-clickhouse"><a class="markdownIt-Anchor" href="#1-clickhouse"></a> 1 <a target="_blank" rel="noopener" href="https://clickhouse.com/">ClickHouse</a></h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>列存</li>
+<li>压缩性能高。由于列存，数据同质化，便于压缩，较易获得较高的压缩比</li>
+<li>多核并行处理</li>
+<li><code>MPP</code>架构</li>
+<li>支持<code>ANSI SQL</code>标准</li>
+<li>向量化。数据按列组织，具有较好的空间局部性，对<code>Cache</code>友好，向量化效果好</li>
+<li>支持数据实时写入</li>
+<li>索引</li>
+<li>支持在线查询</li>
+<li>不支持事务</li>
+</ol>
+<p><strong>架构：</strong></p>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://clickhouse.com/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ClickHouse/ClickHouse">github</a></li>
+</ul>
+<h1 id="2-delta"><a class="markdownIt-Anchor" href="#2-delta"></a> 2 Delta</h1>
+<p><strong>类型：<code>Data Lake</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>基于<code>Spark</code>上的<code>ACID</code>事务：可序列化的隔离级别确保读者永远不会看到不一致的数据</li>
+<li>可扩展的元数据处理：利用<code>Spark</code>分布式处理能力轻松处理具有数十亿文件的<code>PB</code>级表的所有元数据</li>
+<li>流和批处理统一</li>
+<li><code>Schema enforcement</code>：自动处理<code>Schema</code>的变化，以防止在变更过程冲插入异常记录</li>
+<li><code>Time travel</code>：数据版本控制支持回滚、完整的历史审计跟踪</li>
+<li><code>Upserts</code>和<code>Deletes</code>：支持合并、更新和删除操作，以启用复杂的用例</li>
+</ol>
+<p><strong>架构：</strong></p>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://delta.io/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/delta-io/delta">github</a></li>
+</ul>
+<h1 id="3-doris"><a class="markdownIt-Anchor" href="#3-doris"></a> 3 Doris</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<p><strong>架构：</strong></p>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://doris.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/incubator-doris">github</a></li>
+</ul>
+<h1 id="4-druid"><a class="markdownIt-Anchor" href="#4-druid"></a> 4 Druid</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>列存储架构</li>
+<li>可扩展的分布式架构</li>
+<li><code>MPP</code>架构</li>
+<li>支持实时和批处理</li>
+<li>具有自动异常恢复、自动负载均衡等能力，运维简单</li>
+<li>云原生</li>
+<li>使用<code>bitmap</code>索引来加速数据过滤</li>
+<li>支持数据分区，默认以时间分区</li>
+<li>支持近似算法，比如近似计算<code>count-discount</code>等，用于应对一些正确性不敏感，但是时间敏感的场景</li>
+<li>在查询数据时进行自动汇总，以提高效率</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://druid.apache.org/docs/latest/design/architecture.html">Design</a></li>
+<li><img src="/images/Database-Products/druid_architecture.png" alt="druid_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://druid.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/druid/">github</a></li>
+</ul>
+<h1 id="5-gbase"><a class="markdownIt-Anchor" href="#5-gbase"></a> 5 Gbase</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<p><strong>架构：</strong></p>
+<p><strong>主页：</strong></p>
+<h1 id="6-greenplum"><a class="markdownIt-Anchor" href="#6-greenplum"></a> 6 GreenPlum</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>先进的基于开销的优化器（<code>Cost-Based Optimizer, CBO</code>）</li>
+<li><code>MPP</code>架构</li>
+<li>基于<code>PostgreSQL 9.4</code></li>
+<li><code>Append-optimized storage</code></li>
+<li>列存</li>
+<li>执行引擎采用火山模型（<code>Volcano-style</code>）</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://gpdb.docs.pivotal.io/5280/admin_guide/intro/arch_overview.html">About the Greenplum Architecture</a></li>
+<li><img src="/images/Database-Products/greenplum_architecture.jpeg" alt="greenplum_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://greenplum.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/greenplum-db/gpdb">github</a></li>
+</ul>
+<h1 id="7-hadoop"><a class="markdownIt-Anchor" href="#7-hadoop"></a> 7 Hadoop</h1>
+<p><strong>包含三大组件：</strong></p>
+<ol>
+<li><code>HDFS</code>：存储</li>
+<li><code>MapReduce</code>：计算</li>
+<li><code>YARN</code>：调度</li>
+</ol>
+<p><strong>类型：<code>Framework</code></strong></p>
+<p><strong>特性：</strong></p>
+<p><strong>架构：</strong></p>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://hadoop.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/hadoop">github</a></li>
+</ul>
+<h1 id="8-hawq"><a class="markdownIt-Anchor" href="#8-hawq"></a> 8 Hawq</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>支持<code>SQL-92</code>、<code>SQL-99</code>、<code>SQL-2003</code>、<code>OLAP extension</code></li>
+<li>比<code>Hadoop SQL engines</code>快</li>
+<li>优秀的并行优化器</li>
+<li>完整的事务支持</li>
+<li>基于<code>UDP</code>的流引擎</li>
+<li>弹性执行引擎</li>
+<li>支持多级分区和基于列表/范围的分区表</li>
+<li>支持多种压缩算法</li>
+<li>支持多用语言的<code>UDF</code>，包括：<code>Python</code>、<code>Perl</code>、<code>Java</code>、<code>C/C++</code>、<code>R</code></li>
+<li>易接入其他数据源</li>
+<li><code>Hadoop Native</code></li>
+<li>支持标准链接，包括<code>JDBC/ODBC</code></li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://hawq.apache.org/docs/userguide/2.3.0.0-incubating/overview/HAWQArchitecture.html">HAWQ Architecture</a></li>
+<li><img src="/images/Database-Products/hawq_high_level_architecture.png" alt="hawq_high_level_architecture" /></li>
+<li><img src="/images/Database-Products/hawq_architecture_components.png" alt="hawq_architecture_components" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://hawq.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/hawq">github</a></li>
+</ul>
+<h1 id="9-hbase"><a class="markdownIt-Anchor" href="#9-hbase"></a> 9 HBase</h1>
+<p><strong>类型：<code>NoSQL</code>/<code>Storage</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>线性和模块化的可扩展性</li>
+<li>强一致性的读写</li>
+<li>自动和可配置的表分片</li>
+<li>自动异常恢复</li>
+<li>面向Java的连接器</li>
+<li>通过<code>Block Cache</code>以及布隆过滤器支持实时查询</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.geeksforgeeks.org/architecture-of-hbase/">Architecture of HBase</a></li>
+<li><img src="/images/Database-Products/hbase_architecture.png" alt="hbase_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://hbase.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/hbase">github</a></li>
+</ul>
+<h1 id="10-hive"><a class="markdownIt-Anchor" href="#10-hive"></a> 10 Hive</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>通过<code>SQL</code>访问管理数据，<code>hive</code>会将其转换成数仓的任务，例如提取/转换/加载（<code>extract/transform/load, ETL</code>）、报告和数据分析</li>
+<li>支持多种数据格式</li>
+<li>支持<code>HDFS</code>、<code>HBase</code>等存储层</li>
+<li>执行引擎通过<code>Apache Tez</code>、<code>Apache Spark</code>、<code>MapReduce</code>等系统来完成具体的操作</li>
+<li>通过<code>Hive LLAP</code>、<code>Apache YARN</code>和<code>Apache Slider</code>进行亚秒级查询检索。</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/hive/design">Design</a></li>
+<li><img src="/images/Database-Products/hive_architecture.png" alt="hive_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://hive.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/hive">github</a></li>
+</ul>
+<h1 id="11-hudi"><a class="markdownIt-Anchor" href="#11-hudi"></a> 11 Hudi</h1>
+<p><strong>类型：<code>Data Lake</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>更新、删除性能好，索引插件化</li>
+<li>事务、回滚、并发控制</li>
+<li>自动调整文件大小、数据集群、压缩、清理</li>
+<li>用于可扩展存储访问的内置元数据跟踪</li>
+<li>增量查询，记录级别更改流</li>
+<li>支持多种数据源，包括<code>Spark</code>、<code>Presto</code>、<code>Trino</code>、<code>Hive</code></li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/HUDI/Design+And+Architecture">Design And Architecture</a></li>
+<li><img src="/images/Database-Products/hudi_architecture.png" alt="hudi_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://hudi.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/hudi">github</a></li>
+</ul>
+<h1 id="12-iceberg"><a class="markdownIt-Anchor" href="#12-iceberg"></a> 12 Iceberg</h1>
+<p><strong>类型：<code>Data Lake</code></strong></p>
+<p><strong>特性：</strong></p>
+<p><strong>架构：</strong></p>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://iceberg.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/iceberg">github</a></li>
+</ul>
+<h1 id="13-impala"><a class="markdownIt-Anchor" href="#13-impala"></a> 13 Impala</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>支持SQL</li>
+<li>支持在<code>Hadoop</code>上查询大量数据</li>
+<li>分布式架构</li>
+<li>无需复制或导出/导入步骤即可在不同组件之间共享数据文件；例如，用<code>Pig</code>编写，用<code>Hive</code>转换，用<code>Impala</code>查询。<code>Impala</code>可以读取和写入<code>Hive</code>表，从而使用<code>Impala</code>实现简单的数据交换，以分析<code>Hive</code>生成的数据</li>
+<li>用于大数据处理和分析的单一系统，因此客户可以避免仅用于分析的昂贵建模和<code>ETL</code></li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.tutorialspoint.com/impala/impala_architecture.htm">Impala-Architecture</a></li>
+<li><img src="/images/Database-Products/impala_architecture.jpeg" alt="impala_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://impala.apache.org/">impala-home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/impala">impala-github</a></li>
+</ul>
+<h1 id="14-kudu"><a class="markdownIt-Anchor" href="#14-kudu"></a> 14 Kudu</h1>
+<p><strong>类型：<code>Columnar Storage</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>能快速处理<code>OLAP</code>的工作负载</li>
+<li>与<code>MapReduce</code>、<code>Spark</code>和其他<code>Hadoop</code>生态系统组件集成较好</li>
+<li>与<code>Apache Impala</code>高度集成</li>
+<li>强大但灵活的一致性模型，允许基于每个请求选择不同的一致性模型，包括严格序列化一致性的选项</li>
+<li>同时支持顺序和随机的工作负载，且性能较好</li>
+<li>便于管理</li>
+<li>高可用</li>
+<li>结构化的数据模型</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://kudu.apache.org/docs/#_architectural_overview">Architectural Overview</a></li>
+<li><img src="/images/Database-Products/kudu_architecture.png" alt="kudu_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://kudu.apache.org/">kudu-home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/kudu">kudu-github</a></li>
+</ul>
+<h1 id="15-kylin"><a class="markdownIt-Anchor" href="#15-kylin"></a> 15 Kylin</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>为<code>Hadoop</code>提供标准<code>SQL</code>支持大部分查询功能</li>
+<li>多维体立方</li>
+<li>实时多维分析</li>
+<li>与<code>BI</code>工具无缝整合，包括<code>Tableau</code>，<code>PowerBI/Excel</code>，<code>MSTR</code>，<code>QlikSense</code>，<code>Hue</code>和 <code>SuperSet</code></li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><img src="/images/Database-Products/kylin_architecture.png" alt="kylin_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://kylin.apache.org/cn/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/kylin">github</a></li>
+</ul>
+<h1 id="16-pinot"><a class="markdownIt-Anchor" href="#16-pinot"></a> 16 Pinot</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>列存</li>
+<li>索引插件化，支持包括<code>Sorted Index</code>、<code>Bitmap Index</code>、<code>Inverted Index</code>、<code>StarTree Index</code>、<code>Bloom Filter</code>、<code>Range Index</code>、<code>Text Search Index(Lucence/FST)</code>、<code>Json Index</code>、<code>Geospatial Index</code></li>
+<li>可以基于元数据进行查询优化</li>
+<li>支持从<code>Kafka</code>、<code>Kinesis</code>中实时获取数据</li>
+<li>支持从<code>Hadoop</code>、<code>S3</code>、<code>Azure</code>、<code>GCS</code>中批量获取数据</li>
+<li>提供类似于<code>SQL</code>的语言，用于聚合、过滤、分组、排序等操作</li>
+<li>易于水平扩展，容错性好</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li>[Architecture(<a target="_blank" rel="noopener" href="https://docs.pinot.apache.org/basics/architecture">https://docs.pinot.apache.org/basics/architecture</a>)</li>
+<li><img src="/images/Database-Products/pinot_architecture.svg" alt="pinot_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://pinot.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/pinot">github</a></li>
+</ul>
+<h1 id="17-presto"><a class="markdownIt-Anchor" href="#17-presto"></a> 17 Presto</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>支持就地分析（<code>In-place analysis</code>）。直接对接数据源，包括<code>Hive</code>、<code>Cassandra</code>、<code>Relational Databases</code>甚至是专有数据存储</li>
+<li>允许单个查询的数据来自不同的数据源</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://prestodb.io/overview.html">Introduction to Presto</a></li>
+<li><img src="/images/Database-Products/presto_architecture.png" alt="presto_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://prestodb.io/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/prestodb/presto">github</a></li>
+</ul>
+<h1 id="18-starrocks"><a class="markdownIt-Anchor" href="#18-starrocks"></a> 18 Starrocks</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<p><strong>架构：</strong></p>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.starrocks.com/zh-CN/index">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/StarRocks/starrocks">github</a></li>
+</ul>
+<h1 id="19-snowflake"><a class="markdownIt-Anchor" href="#19-snowflake"></a> 19 Snowflake</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>数据安全</li>
+<li>支持标准以及扩展<code>SQL</code></li>
+<li>大量的工具</li>
+<li>面向各类语言的连接器，包括<code>Python</code>、<code>Spark</code>、<code>Node.js</code>、<code>Go</code>、<code>.NET</code>、<code>JDBC</code>、<code>ODBC</code>、<code>PHP</code>等等</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.snowflake.com/en/user-guide/intro-key-concepts.html">Key Concepts &amp; Architecture</a></li>
+<li><img src="/images/Database-Products/snowflake_architecture.png" alt="snowflake_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.snowflake.com/">home</a></li>
+</ul>
+<h1 id="20-spark"><a class="markdownIt-Anchor" href="#20-spark"></a> 20 Spark</h1>
+<p><strong>类型：<code>Analytics Engine</code>（<code>Alternative to MapReduce</code>）</strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>支持流批</li>
+<li>支持<code>ANSI SQL</code></li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><img src="/images/Database-Products/spark_ecology.png" alt="spark_ecology" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://spark.apache.org/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/spark">github</a></li>
+</ul>
+<h1 id="21-tidb"><a class="markdownIt-Anchor" href="#21-tidb"></a> 21 TiDB</h1>
+<p><strong>类型：<code>OLTP</code></strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>一键水平扩容或者缩容</li>
+<li>金融级高可用</li>
+<li>实时<code>HTAP</code></li>
+<li>云原生的分布式数据库</li>
+<li>兼容<code>MySQL 5.7</code>协议和<code>MySQL</code>生态</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.pingcap.com/zh/tidb/stable/tidb-architecture">TiDB 整体架构</a></li>
+<li><img src="/images/Database-Products/tidb_architecture.png" alt="tidb_architecture" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.pingcap.com/zh/tidb/stable/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/pingcap/tidb">github</a></li>
+</ul>
+<h1 id="22-trino"><a class="markdownIt-Anchor" href="#22-trino"></a> 22 Trino</h1>
+<p><strong>类型：</strong></p>
+<p><strong>特性：</strong></p>
+<ol>
+<li>并行化、分布式的查询引擎，查询速度快</li>
+<li>兼容<code>ANSI SQL</code>，与<code>BI</code>工具集成较好，包括<code>R</code>、<code>Tablau</code>、<code>Power BI</code>、<code>Superset</code></li>
+<li>支持多种工作负载，包括实时分析、批处理、亚秒级查询</li>
+<li>支持就地分析（<code>In-place analysis</code>）。直接对接数据源，包括<code>Hadoop</code>、<code>S3</code>、<code>Cassandra</code>、<code>MySQL</code>等</li>
+<li>允许单个查询的数据来自不同的数据源</li>
+<li>支持云原生</li>
+</ol>
+<p><strong>架构：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.oreilly.com/library/view/trino-the-definitive/9781098107703/ch04.html">Trino Architecture</a></li>
+<li><img src="/images/Database-Products/trino_architecture_01.png" alt="trino_architecture_01" /></li>
+<li><img src="/images/Database-Products/trino_architecture_02.png" alt="trino_architecture_02" /></li>
+</ul>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://trino.io/">home</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/trinodb/trino">github</a></li>
+</ul>
+<h1 id="23-vertica"><a class="markdownIt-Anchor" href="#23-vertica"></a> 23 Vertica</h1>
+<p><strong>类型：<code>OLAP</code></strong></p>
+<p><strong>特性：</strong></p>
+<p><strong>架构：</strong></p>
+<p><strong>主页：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.vertica.com/">home</a></li>
+</ul>
+<h1 id="24-参考"><a class="markdownIt-Anchor" href="#24-参考"></a> 24 参考</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000020385432">你需要的不是实时数仓 | 你需要的是一款合适且强大的OLAP数据库(上)</a></li>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000020385389">你需要的不是实时数仓 | 你需要的是一款强大的OLAP数据库(下)</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/oDaiLiDong/article/details/86570211">开源OLAP引擎测评报告(SparkSql、Presto、Impala、HAWQ、ClickHouse、GreenPlum)</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/21/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="prev" title="操作系统实战-读书笔记">
+      <i class="fa fa-chevron-left"></i> 操作系统实战-读书笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-clickhouse"><span class="nav-text"> 1 ClickHouse</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-delta"><span class="nav-text"> 2 Delta</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-doris"><span class="nav-text"> 3 Doris</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-druid"><span class="nav-text"> 4 Druid</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-gbase"><span class="nav-text"> 5 Gbase</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-greenplum"><span class="nav-text"> 6 GreenPlum</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-hadoop"><span class="nav-text"> 7 Hadoop</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-hawq"><span class="nav-text"> 8 Hawq</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-hbase"><span class="nav-text"> 9 HBase</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-hive"><span class="nav-text"> 10 Hive</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-hudi"><span class="nav-text"> 11 Hudi</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-iceberg"><span class="nav-text"> 12 Iceberg</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-impala"><span class="nav-text"> 13 Impala</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-kudu"><span class="nav-text"> 14 Kudu</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-kylin"><span class="nav-text"> 15 Kylin</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-pinot"><span class="nav-text"> 16 Pinot</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-presto"><span class="nav-text"> 17 Presto</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-starrocks"><span class="nav-text"> 18 Starrocks</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-snowflake"><span class="nav-text"> 19 Snowflake</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-spark"><span class="nav-text"> 20 Spark</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-tidb"><span class="nav-text"> 21 TiDB</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-trino"><span class="nav-text"> 22 Trino</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-vertica"><span class="nav-text"> 23 Vertica</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-%E5%8F%82%E8%80%83"><span class="nav-text"> 24 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">280</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">102</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
