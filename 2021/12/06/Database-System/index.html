@@ -65,8 +65,12 @@
 <meta property="og:image" content="http://example.com/images/Database-System/11-5.png">
 <meta property="og:image" content="http://example.com/images/Database-System/11-6.png">
 <meta property="og:image" content="http://example.com/images/Database-System/11-7.png">
+<meta property="og:image" content="http://example.com/images/Database-System/12-1.png">
+<meta property="og:image" content="http://example.com/images/Database-System/12-3.png">
+<meta property="og:image" content="http://example.com/images/Database-System/12-4.png">
+<meta property="og:image" content="http://example.com/images/Database-System/12-5.png">
 <meta property="article:published_time" content="2021-12-06T01:39:17.000Z">
-<meta property="article:modified_time" content="2022-01-23T14:40:04.467Z">
+<meta property="article:modified_time" content="2022-01-26T04:48:48.892Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -268,7 +272,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-23 22:40:04" itemprop="dateModified" datetime="2022-01-23T22:40:04+08:00">2022-01-23</time>
+                <time title="修改时间：2022-01-26 12:48:48" itemprop="dateModified" datetime="2022-01-26T12:48:48+08:00">2022-01-26</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -861,7 +865,7 @@
 <li>维护成本</li>
 </ol>
 <h2 id="72-b-tree-overview"><a class="markdownIt-Anchor" href="#72-b-tree-overview"></a> 7.2 B+ Tree Overview</h2>
-<p><strong><code>B-Tree Family</code>包括：</strong>**</p>
+<p><strong><code>B-Tree Family</code>包括：</strong></p>
 <ol>
 <li><code>B-Tree</code></li>
 <li><code>B+Tree</code></li>
@@ -1179,7 +1183,7 @@
 <ul>
 <li><code>89、90</code>为啥要释放节点C上的<code>R-Latch</code>呢？这个时候C节点的数据已经读完了，然后就可以释放了？</li>
 </ul>
-<p>**由于<code>Latch</code>没有死锁检测或者避免的机制，只能依靠编码原则来规避死锁，因此最好能提供<code>no-wait</code>模式</p>
+<p><strong>由于<code>Latch</code>没有死锁检测或者避免的机制，只能依靠编码原则来规避死锁，因此最好能提供<code>no-wait</code>模式</strong></p>
 <h2 id="95-delayed-parent-updates"><a class="markdownIt-Anchor" href="#95-delayed-parent-updates"></a> 9.5 Delayed Parent Updates</h2>
 <p><strong>在<code>B+Truee</code>中，当叶节点<code>Overflow</code>时，会操作至少三个节点：</strong></p>
 <ol>
@@ -1421,6 +1425,132 @@ $Sort\ Cost(S) = 2N * (1 + \lceil log_{B-1}{\lceil \frac{N}{B} \rceil} \rceil)$
 </tbody>
 </table>
 <h1 id="12-query-execution-1"><a class="markdownIt-Anchor" href="#12-query-execution-1"></a> 12 Query Execution 1</h1>
+<h2 id="121-processing-models"><a class="markdownIt-Anchor" href="#121-processing-models"></a> 12.1 Processing Models</h2>
+<p><code>DBMS</code>的<code>Processing Model</code>决定了系统如何执行一个查询计划。不同的<code>Processing Model</code>有不同的工作负载</p>
+<ol>
+<li><code>Iterator Model</code></li>
+<li><code>Materialization Model</code></li>
+<li><code>Vectorized / Batch Model</code></li>
+</ol>
+<h3 id="1211-iterator-model"><a class="markdownIt-Anchor" href="#1211-iterator-model"></a> 12.1.1 Iterator Model</h3>
+<p><strong>每个算子都要实现<code>Next</code>方法</strong></p>
+<ul>
+<li>每次触发该方法，都会返回一个<code>Tuple</code>或者返回一个标记表示没有可返回的<code>Tuple</code></li>
+<li>每个算子的<code>Next</code>方法都通过调用孩子节点的<code>Next</code>方法来获取输入数据（1个<code>Tuple</code>），并进行处理，然后返回给上一级节点</li>
+</ul>
+<p><img src="/images/Database-System/12-1.png" alt="12-1" /></p>
+<p>也称为<code>Volcano</code>或者<code>Pipeline</code>模型</p>
+<p><strong>示意图参考课件中的<code>7 ~ 12</code>页</strong></p>
+<p><strong>特点：</strong></p>
+<ul>
+<li>易于进行输出控制，比如<code>limit</code>算子发现输出<code>Tuple</code>数量已经够了，非常容易实现提前结束</li>
+</ul>
+<h3 id="1212-materialization-model"><a class="markdownIt-Anchor" href="#1212-materialization-model"></a> 12.1.2 Materialization Model</h3>
+<p><strong>每个算子都要实现<code>Next</code>方法</strong></p>
+<ul>
+<li>每个算子一次处理所有的输入，并产生最终结果</li>
+<li><code>Next</code>方法拿到孩子节点的所有数据后，才会返回</li>
+<li><code>DBMS</code>通常需要进行谓词下推，以免扫描太多数据</li>
+</ul>
+<p><strong>示意图参考课件中的<code>15 ~ 18</code>页</strong></p>
+<p><strong>特点：</strong></p>
+<ul>
+<li>更少的函数调用次数</li>
+<li>适用于<code>OLTP</code>，因为每次查询一小部分数据</li>
+<li>不适用于<code>OLAP</code>，因为在查询中会产生非常大的中间结果</li>
+</ul>
+<h3 id="1213-vectorized-batch-model"><a class="markdownIt-Anchor" href="#1213-vectorized-batch-model"></a> 12.1.3 Vectorized / Batch Model</h3>
+<p><strong>每个算子都要实现<code>Next</code>方法</strong></p>
+<ul>
+<li><code>Next</code>方法一次最多返回<code>Batch</code>个<code>Tuple</code></li>
+<li><code>Batch</code>可以动态调整</li>
+</ul>
+<p><img src="/images/Database-System/12-3.png" alt="12-3" /></p>
+<p><strong>示意图参考课件中的<code>21 ~ 22</code>页</strong></p>
+<p><strong>特点：</strong></p>
+<ul>
+<li>较少的函数调用次数</li>
+<li>适用于<code>OLAP</code>，且更有利于使用<code>SIMD</code>指令</li>
+</ul>
+<h3 id="1214-plan-processing-direction"><a class="markdownIt-Anchor" href="#1214-plan-processing-direction"></a> 12.1.4 Plan Processing Direction</h3>
+<p><strong>执行方向（<code>Plan Processing Direction</code>）有两种：</strong></p>
+<ol>
+<li>自顶向下，<code>Pull</code>模型</li>
+<li>自底向上，<code>Push</code>模型</li>
+</ol>
+<h2 id="122-access-methods"><a class="markdownIt-Anchor" href="#122-access-methods"></a> 12.2 Access Methods</h2>
+<p><code>Access Method</code>是指<code>DBMS</code>如何访问表中的数据。该内容没有定义在关系型代数中</p>
+<p><strong>通常来说有三种方式：</strong></p>
+<ol>
+<li><code>Sequential Scan</code></li>
+<li><code>Index Scan</code></li>
+<li><code>Multi-Index/Bitmap Scan</code></li>
+</ol>
+<h3 id="1221-sequential-scan"><a class="markdownIt-Anchor" href="#1221-sequential-scan"></a> 12.2.1 Sequential Scan</h3>
+<p><strong>对于表中的每个<code>Page</code>：</strong></p>
+<ul>
+<li>从<code>Buffer Pool</code>获取该<code>Page</code></li>
+<li>遍历<code>Page</code>，检查是否满足条件</li>
+</ul>
+<p><strong>这种方式是效率最差，通常来说有如下几种优化方向：</strong></p>
+<ol>
+<li><code>Prefetching</code></li>
+<li><code>Buffer Pool Bypass</code></li>
+<li><code>Parallelization</code></li>
+<li><code>Zone Maps</code></li>
+<li><code>Late Materialization</code></li>
+<li><code>Heap Clustering</code></li>
+</ol>
+<h4 id="12211-zone-maps"><a class="markdownIt-Anchor" href="#12211-zone-maps"></a> 12.2.1.1 Zone Maps</h4>
+<p>提前计算好每个<code>Page</code>中的聚合信息，于是，在某些情况下，只需要先检查<code>Zone Map</code>中的数据，就可以判断出是否需要进一步扫描该<code>Page</code></p>
+<p><img src="/images/Database-System/12-4.png" alt="12-4" /></p>
+<h4 id="12212-late-materialization"><a class="markdownIt-Anchor" href="#12212-late-materialization"></a> 12.2.1.2 Late Materialization</h4>
+<p>其核心思路是，可以延迟将<code>Tuple</code>拼接在一起</p>
+<p><strong>示意图参考课件中的<code>29 ~ 32</code>页</strong></p>
+<h3 id="1222-index-scan"><a class="markdownIt-Anchor" href="#1222-index-scan"></a> 12.2.2 Index Scan</h3>
+<p><strong><code>DBMS</code>使用某个索引来查找所需的<code>Tuple</code>，使用哪个索引，取决于：</strong></p>
+<ul>
+<li>索引包含哪些属性</li>
+<li>查询需要哪些属性</li>
+<li>属性的值域空间</li>
+<li>谓词构成</li>
+<li>索引键是否唯一</li>
+</ul>
+<p><strong>如果选择的是非聚簇索引，即获取的<code>Tuple</code>以该索引排序，那么按这种顺序从<code>Page</code>中读取数据，效率会比较低。因此，通常会先按照<code>Page Id</code>进行排序，然后进行磁盘访问</strong></p>
+<ul>
+<li><strong>示意图参考课件中的<code>41 ~ 44</code>页</strong></li>
+</ul>
+<h3 id="1223-multi-indexbitmap-scan"><a class="markdownIt-Anchor" href="#1223-multi-indexbitmap-scan"></a> 12.2.3 Multi-Index/Bitmap Scan</h3>
+<p><strong>如果针对某个查询，有多个可用索引时：</strong></p>
+<ul>
+<li>用每个索引获取匹配集合</li>
+<li>合并这些集合，取交集</li>
+</ul>
+<p><strong>示意图参考课件中的<code>38 ~ 40</code>页</strong></p>
+<p><strong>集合如何取交集？可以通过<code>Bitmap</code>、<code>Hash Table</code>、<code>Bloom Filter</code></strong></p>
+<h2 id="123-expression-evaluation"><a class="markdownIt-Anchor" href="#123-expression-evaluation"></a> 12.3 Expression Evaluation</h2>
+<p><strong><code>DBMS</code>将<code>Where</code>子句表示为一颗<code>Expression Tree</code>，通常包含如下类型：</strong></p>
+<ul>
+<li><code>Comparisons</code>：包括<code>=, &lt;, &gt;, !=</code>等</li>
+<li><code>Conjunction</code>：包括<code>And</code></li>
+<li><code>Disjunction</code>：包括<code>Or</code></li>
+<li><code>Arithmetic Operators</code>：包括<code>+, -, *, /, %</code>等</li>
+<li><code>Const Values</code></li>
+<li><code>Tuple Attribute References</code></li>
+</ul>
+<p><img src="/images/Database-System/12-5.png" alt="12-5" /></p>
+<p><strong>示意图参考课件中的<code>46 ~ 53</code>页</strong></p>
+<p><strong>示意图这种方式的效率会比较低：</strong></p>
+<ul>
+<li><code>DBMS</code>会遍历整棵树，然后每个节点都需要计算一次</li>
+<li>如果表达式是<code>WHERE 1=1</code>，其实可以提前计算</li>
+</ul>
+<p><strong>常用优化手段：</strong></p>
+<ol>
+<li>常量部分，在<code>SQL</code>解析阶段直接计算</li>
+<li>提取公共表达式</li>
+<li>即时编译（<code>JIT</code>）</li>
+</ol>
 <h1 id="13-query-execution-2"><a class="markdownIt-Anchor" href="#13-query-execution-2"></a> 13 Query Execution 2</h1>
 <h1 id="14-optimization-1"><a class="markdownIt-Anchor" href="#14-optimization-1"></a> 14 Optimization 1</h1>
 <h1 id="15-optimization-2"><a class="markdownIt-Anchor" href="#15-optimization-2"></a> 15 Optimization 2</h1>
@@ -1467,6 +1597,10 @@ $Sort\ Cost(S) = 2N * (1 + \lceil log_{B-1}{\lceil \frac{N}{B} \rceil} \rceil)$
 <tr>
 <td style="text-align:left"><code>HDD</code></td>
 <td style="text-align:left">Hard Disk Drive</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>JIT</code></td>
+<td style="text-align:left">Just-In-Time</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>SSD</code></td>
@@ -1616,7 +1750,7 @@ $Sort\ Cost(S) = 2N * (1 + \lceil log_{B-1}{\lceil \frac{N}{B} \rceil} \rceil)$
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-advanced-sql"><span class="nav-text"> 2 Advanced Sql</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-storage-1"><span class="nav-text"> 3 Storage 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-file-storage"><span class="nav-text"> 3.1 File Storage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-page-layout"><span class="nav-text"> 3.2 Page Layout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-tuple-layout"><span class="nav-text"> 3.3 Tuple Layout</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-storage-2"><span class="nav-text"> 4 Storage 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-data-representation"><span class="nav-text"> 4.1 Data Representation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-system-catalogs"><span class="nav-text"> 4.2 System Catalogs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-storage-models"><span class="nav-text"> 4.3 Storage Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-n-ary-storege-model"><span class="nav-text"> 4.3.1 N-ARY Storege Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-decomposition-storage-model"><span class="nav-text"> 4.3.2 Decomposition Storage Model</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-buffer-pool"><span class="nav-text"> 5 Buffer Pool</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-buffer-pool-manager"><span class="nav-text"> 5.1 Buffer Pool Manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-replacement-policies"><span class="nav-text"> 5.2 Replacement Policies</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-least-recently-used"><span class="nav-text"> 5.2.1 Least-Recently Used</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-clock"><span class="nav-text"> 5.2.2 Clock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#523-lru-k"><span class="nav-text"> 5.2.3 LRU-K</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#524-localization"><span class="nav-text"> 5.2.4 Localization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#525-priority-hints"><span class="nav-text"> 5.2.5 Priority Hints</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#526-dirty-pages"><span class="nav-text"> 5.2.6 Dirty Pages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#527-background-writing"><span class="nav-text"> 5.2.7 Background Writing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-other-memory-pools"><span class="nav-text"> 5.3 Other Memory Pools</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E6%80%BB%E7%BB%93"><span class="nav-text"> 5.4 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-hash-tables"><span class="nav-text"> 6 Hash Tables</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-hash-functions"><span class="nav-text"> 6.1 Hash Functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-static-hashing-schemes"><span class="nav-text"> 6.2 Static Hashing Schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-linear-probe-hashing"><span class="nav-text"> 6.2.1 Linear Probe Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-robin-hood-hashing"><span class="nav-text"> 6.2.2 Robin Hood Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-cuckoo-hashing"><span class="nav-text"> 6.2.3 Cuckoo Hashing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-dynamic-hashing-schemes"><span class="nav-text"> 6.3 Dynamic Hashing Schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#631-chained-hashing"><span class="nav-text"> 6.3.1 Chained Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#632-extendible-hashing"><span class="nav-text"> 6.3.2 Extendible Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#633-linear-hashing"><span class="nav-text"> 6.3.3 Linear Hashing</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-trees1"><span class="nav-text"> 7 Trees1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-table-indexes"><span class="nav-text"> 7.1 Table Indexes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-b-tree-overview"><span class="nav-text"> 7.2 B+ Tree Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-design-decisions"><span class="nav-text"> 7.3 Design Decisions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-optimization"><span class="nav-text"> 7.4 Optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#741-prefix-compression"><span class="nav-text"> 7.4.1 Prefix Compression</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#742-suffix-truncation"><span class="nav-text"> 7.4.2 Suffix Truncation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#743-bulk-insert"><span class="nav-text"> 7.4.3 Bulk Insert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#744-pointer-swizzling"><span class="nav-text"> 7.4.4 Pointer Swizzling</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-trees2"><span class="nav-text"> 8 Trees2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-more-btree"><span class="nav-text"> 8.1 More B+Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-additional-index-magic"><span class="nav-text"> 8.2 Additional Index Magic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#83-tries-tree"><span class="nav-text"> 8.3 Tries Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#84-radix-tree"><span class="nav-text"> 8.4 Radix Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#85-inverted-indexe"><span class="nav-text"> 8.5 Inverted Indexe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#86-geo-spatial-tree-indexes"><span class="nav-text"> 8.6 Geo-Spatial Tree Indexes</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-index-concurrency"><span class="nav-text"> 9 Index Concurrency</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-latches-overviews"><span class="nav-text"> 9.1 Latches Overviews</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-hash-table-latching"><span class="nav-text"> 9.2 Hash Table Latching</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-btree-latching"><span class="nav-text"> 9.3 B+Tree Latching</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#931-%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%951"><span class="nav-text"> 9.3.1 优化算法1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-leafnode-scans"><span class="nav-text"> 9.4 LeafNode Scans</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#95-delayed-parent-updates"><span class="nav-text"> 9.5 Delayed Parent Updates</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-sorting-aggregate"><span class="nav-text"> 10 Sorting &amp; Aggregate</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#101-external-merge-sort"><span class="nav-text"> 10.1 External Merge Sort</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#102-aggregations"><span class="nav-text"> 10.2 Aggregations</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-joins"><span class="nav-text"> 11 Joins</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#111-simple-nested-loop-join"><span class="nav-text"> 11.1 Simple Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#112-block-nested-loop-join"><span class="nav-text"> 11.2 Block Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#113-index-nested-loop-join"><span class="nav-text"> 11.3 Index Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#114-sort-merge-join"><span class="nav-text"> 11.4 Sort Merge Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#115-hash-join"><span class="nav-text"> 11.5 Hash Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#116-grace-hash-join"><span class="nav-text"> 11.6 Grace Hash Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#117-%E6%80%BB%E7%BB%93"><span class="nav-text"> 11.7 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-query-execution-1"><span class="nav-text"> 12 Query Execution 1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-query-execution-2"><span class="nav-text"> 13 Query Execution 2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-optimization-1"><span class="nav-text"> 14 Optimization 1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-optimization-2"><span class="nav-text"> 15 Optimization 2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-concurrency-control"><span class="nav-text"> 16 Concurrency Control</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-two-phase-locking"><span class="nav-text"> 17 Two Phase Locking</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-timestamp-ordering"><span class="nav-text"> 18 Timestamp Ordering</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-multiversoning"><span class="nav-text"> 19 Multiversoning</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-logging"><span class="nav-text"> 20 Logging</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-recovery"><span class="nav-text"> 21 Recovery</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-distributed"><span class="nav-text"> 22 Distributed</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-distributed-oltp"><span class="nav-text"> 23 Distributed OLTP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-distributed-olap"><span class="nav-text"> 24 Distributed OLAP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#25-oracle"><span class="nav-text"> 25 Oracle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#26-potpourri"><span class="nav-text"> 26 Potpourri</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#27-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 27 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#28-cmu-%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 28 CMU-课件</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-advanced-sql"><span class="nav-text"> 2 Advanced Sql</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-storage-1"><span class="nav-text"> 3 Storage 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-file-storage"><span class="nav-text"> 3.1 File Storage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-page-layout"><span class="nav-text"> 3.2 Page Layout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-tuple-layout"><span class="nav-text"> 3.3 Tuple Layout</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-storage-2"><span class="nav-text"> 4 Storage 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-data-representation"><span class="nav-text"> 4.1 Data Representation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-system-catalogs"><span class="nav-text"> 4.2 System Catalogs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-storage-models"><span class="nav-text"> 4.3 Storage Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-n-ary-storege-model"><span class="nav-text"> 4.3.1 N-ARY Storege Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-decomposition-storage-model"><span class="nav-text"> 4.3.2 Decomposition Storage Model</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-buffer-pool"><span class="nav-text"> 5 Buffer Pool</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-buffer-pool-manager"><span class="nav-text"> 5.1 Buffer Pool Manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-replacement-policies"><span class="nav-text"> 5.2 Replacement Policies</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-least-recently-used"><span class="nav-text"> 5.2.1 Least-Recently Used</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-clock"><span class="nav-text"> 5.2.2 Clock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#523-lru-k"><span class="nav-text"> 5.2.3 LRU-K</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#524-localization"><span class="nav-text"> 5.2.4 Localization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#525-priority-hints"><span class="nav-text"> 5.2.5 Priority Hints</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#526-dirty-pages"><span class="nav-text"> 5.2.6 Dirty Pages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#527-background-writing"><span class="nav-text"> 5.2.7 Background Writing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-other-memory-pools"><span class="nav-text"> 5.3 Other Memory Pools</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E6%80%BB%E7%BB%93"><span class="nav-text"> 5.4 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-hash-tables"><span class="nav-text"> 6 Hash Tables</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-hash-functions"><span class="nav-text"> 6.1 Hash Functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-static-hashing-schemes"><span class="nav-text"> 6.2 Static Hashing Schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-linear-probe-hashing"><span class="nav-text"> 6.2.1 Linear Probe Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-robin-hood-hashing"><span class="nav-text"> 6.2.2 Robin Hood Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-cuckoo-hashing"><span class="nav-text"> 6.2.3 Cuckoo Hashing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-dynamic-hashing-schemes"><span class="nav-text"> 6.3 Dynamic Hashing Schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#631-chained-hashing"><span class="nav-text"> 6.3.1 Chained Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#632-extendible-hashing"><span class="nav-text"> 6.3.2 Extendible Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#633-linear-hashing"><span class="nav-text"> 6.3.3 Linear Hashing</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-trees1"><span class="nav-text"> 7 Trees1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-table-indexes"><span class="nav-text"> 7.1 Table Indexes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-b-tree-overview"><span class="nav-text"> 7.2 B+ Tree Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-design-decisions"><span class="nav-text"> 7.3 Design Decisions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-optimization"><span class="nav-text"> 7.4 Optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#741-prefix-compression"><span class="nav-text"> 7.4.1 Prefix Compression</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#742-suffix-truncation"><span class="nav-text"> 7.4.2 Suffix Truncation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#743-bulk-insert"><span class="nav-text"> 7.4.3 Bulk Insert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#744-pointer-swizzling"><span class="nav-text"> 7.4.4 Pointer Swizzling</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-trees2"><span class="nav-text"> 8 Trees2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-more-btree"><span class="nav-text"> 8.1 More B+Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-additional-index-magic"><span class="nav-text"> 8.2 Additional Index Magic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#83-tries-tree"><span class="nav-text"> 8.3 Tries Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#84-radix-tree"><span class="nav-text"> 8.4 Radix Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#85-inverted-indexe"><span class="nav-text"> 8.5 Inverted Indexe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#86-geo-spatial-tree-indexes"><span class="nav-text"> 8.6 Geo-Spatial Tree Indexes</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-index-concurrency"><span class="nav-text"> 9 Index Concurrency</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-latches-overviews"><span class="nav-text"> 9.1 Latches Overviews</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-hash-table-latching"><span class="nav-text"> 9.2 Hash Table Latching</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-btree-latching"><span class="nav-text"> 9.3 B+Tree Latching</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#931-%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%951"><span class="nav-text"> 9.3.1 优化算法1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-leafnode-scans"><span class="nav-text"> 9.4 LeafNode Scans</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#95-delayed-parent-updates"><span class="nav-text"> 9.5 Delayed Parent Updates</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-sorting-aggregate"><span class="nav-text"> 10 Sorting &amp; Aggregate</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#101-external-merge-sort"><span class="nav-text"> 10.1 External Merge Sort</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#102-aggregations"><span class="nav-text"> 10.2 Aggregations</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-joins"><span class="nav-text"> 11 Joins</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#111-simple-nested-loop-join"><span class="nav-text"> 11.1 Simple Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#112-block-nested-loop-join"><span class="nav-text"> 11.2 Block Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#113-index-nested-loop-join"><span class="nav-text"> 11.3 Index Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#114-sort-merge-join"><span class="nav-text"> 11.4 Sort Merge Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#115-hash-join"><span class="nav-text"> 11.5 Hash Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#116-grace-hash-join"><span class="nav-text"> 11.6 Grace Hash Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#117-%E6%80%BB%E7%BB%93"><span class="nav-text"> 11.7 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-query-execution-1"><span class="nav-text"> 12 Query Execution 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#121-processing-models"><span class="nav-text"> 12.1 Processing Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1211-iterator-model"><span class="nav-text"> 12.1.1 Iterator Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1212-materialization-model"><span class="nav-text"> 12.1.2 Materialization Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1213-vectorized-batch-model"><span class="nav-text"> 12.1.3 Vectorized &#x2F; Batch Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1214-plan-processing-direction"><span class="nav-text"> 12.1.4 Plan Processing Direction</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#122-access-methods"><span class="nav-text"> 12.2 Access Methods</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1221-sequential-scan"><span class="nav-text"> 12.2.1 Sequential Scan</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#12211-zone-maps"><span class="nav-text"> 12.2.1.1 Zone Maps</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#12212-late-materialization"><span class="nav-text"> 12.2.1.2 Late Materialization</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1222-index-scan"><span class="nav-text"> 12.2.2 Index Scan</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1223-multi-indexbitmap-scan"><span class="nav-text"> 12.2.3 Multi-Index&#x2F;Bitmap Scan</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#123-expression-evaluation"><span class="nav-text"> 12.3 Expression Evaluation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-query-execution-2"><span class="nav-text"> 13 Query Execution 2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-optimization-1"><span class="nav-text"> 14 Optimization 1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-optimization-2"><span class="nav-text"> 15 Optimization 2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-concurrency-control"><span class="nav-text"> 16 Concurrency Control</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-two-phase-locking"><span class="nav-text"> 17 Two Phase Locking</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-timestamp-ordering"><span class="nav-text"> 18 Timestamp Ordering</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-multiversoning"><span class="nav-text"> 19 Multiversoning</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-logging"><span class="nav-text"> 20 Logging</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-recovery"><span class="nav-text"> 21 Recovery</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-distributed"><span class="nav-text"> 22 Distributed</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-distributed-oltp"><span class="nav-text"> 23 Distributed OLTP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-distributed-olap"><span class="nav-text"> 24 Distributed OLAP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#25-oracle"><span class="nav-text"> 25 Oracle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#26-potpourri"><span class="nav-text"> 26 Potpourri</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#27-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 27 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#28-cmu-%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 28 CMU-课件</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -1632,7 +1766,7 @@ $Sort\ Cost(S) = 2N * (1 + \lceil log_{B-1}{\lceil \frac{N}{B} \rceil} \rceil)$
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">280</span>
+          <span class="site-state-item-count">282</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
