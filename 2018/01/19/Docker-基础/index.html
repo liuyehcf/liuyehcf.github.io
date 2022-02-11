@@ -29,7 +29,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/images/Docker-%E5%9F%BA%E7%A1%80/container_lifecycle.webp">
 <meta property="article:published_time" content="2018-01-19T05:18:39.000Z">
-<meta property="article:modified_time" content="2022-01-26T04:48:48.893Z">
+<meta property="article:modified_time" content="2022-02-11T14:10:38.851Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -231,7 +231,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-26 12:48:48" itemprop="dateModified" datetime="2022-01-26T12:48:48+08:00">2022-01-26</time>
+                <time title="修改时间：2022-02-11 22:10:38" itemprop="dateModified" datetime="2022-02-11T22:10:38+08:00">2022-02-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -457,7 +457,15 @@
 <li>查看img的详情：<code>docker inspect &lt;img&gt;</code></li>
 <li>查看容器资源占用情况：<code>docker stats &lt;container&gt;</code></li>
 </ol>
-<h2 id="71-跨平台运行容器"><a class="markdownIt-Anchor" href="#71-跨平台运行容器"></a> 7.1 跨平台运行容器</h2>
+<h2 id="71-修改存储路径"><a class="markdownIt-Anchor" href="#71-修改存储路径"></a> 7.1 修改存储路径</h2>
+<p>默认情况下，docker相关的数据会存储在<code>/var/lib/docker</code>。编辑配置文件<code>/etc/docker/daemon.json</code>（没有就新建），增加如下配置项：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;data-root&quot;</span>: <span class="string">&quot;&lt;some path&gt;&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后通过<code>systemctl restart docker</code>重启docker即可</p>
+<h2 id="72-修改镜像源"><a class="markdownIt-Anchor" href="#72-修改镜像源"></a> 7.2 修改镜像源</h2>
+<p>编辑配置文件<code>/etc/docker/daemon.json</code>（没有就新建），增加如下配置项：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;registry-mirrors&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;http://registry.docker-cn.com&quot;</span>,</span><br><span class="line">        <span class="string">&quot;http://docker.mirrors.ustc.edu.cn&quot;</span>,</span><br><span class="line">        <span class="string">&quot;http://hub-mirror.c.163.com&quot;</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;insecure-registries&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;registry.docker-cn.com&quot;</span>,</span><br><span class="line">        <span class="string">&quot;docker.mirrors.ustc.edu.cn&quot;</span></span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后通过<code>systemctl restart docker</code>重启docker即可</p>
+<h2 id="73-跨平台运行容器"><a class="markdownIt-Anchor" href="#73-跨平台运行容器"></a> 7.3 跨平台运行容器</h2>
 <p>默认情况下，docker是不支持<code>--platform</code>参数的，可以通过修改<code>/etc/docker/daemon.json</code>，添加如下配置项后，重启docker，开启该功能</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="attr">&quot;experimental&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>如果我们在x86的平台上运行arm64的docker镜像，会得到如下错误信息</p>
@@ -467,10 +475,10 @@
 <ul>
 <li><code>docker run --rm --privileged multiarch/qemu-user-static:register</code>是向内核注册了各异构平台的<code>binfmt handler</code>，包括<code>aarch64</code>等等，这些注册信息就包括了<code>binfmt handler</code>的路径，比如<code>/usr/bin/qemu-aarch64-static</code>等等，注册信息都在<code>/proc/sys/fs/binfmt_misc</code>目录下，每个注册项都是该目录下的一个文件。<strong>实际的<code>qemu-xxx-static</code>文件还得手动放置到对应目录中才能生效</strong></li>
 </ul>
-<h2 id="72-镜像裁剪工具-dockerslim"><a class="markdownIt-Anchor" href="#72-镜像裁剪工具-dockerslim"></a> 7.2 镜像裁剪工具-dockerslim</h2>
+<h2 id="74-镜像裁剪工具-dockerslim"><a class="markdownIt-Anchor" href="#74-镜像裁剪工具-dockerslim"></a> 7.4 镜像裁剪工具-dockerslim</h2>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-slim build --http-probe=<span class="literal">false</span> centos:7.6.1810</span><br></pre></td></tr></table></figure>
 <p>裁剪之后，镜像的体积从<code>202MB</code>变为<code>3.55MB</code>。但是裁剪之后，大部分的命令都被裁剪了（包括<code>ls</code>这种最基础的命令）</p>
-<h2 id="73-异常排查"><a class="markdownIt-Anchor" href="#73-异常排查"></a> 7.3 异常排查</h2>
+<h2 id="75-异常排查"><a class="markdownIt-Anchor" href="#75-异常排查"></a> 7.5 异常排查</h2>
 <p>在k8s环境中，若容器运行时用的是<code>docker</code>，那么该<code>docker</code>会依赖<code>containerd</code>，当<code>containerd</code>不正常的时候，<code>docker</code>也就不正常了。恢复<code>containerd</code>的办法：将<code>/var/lib/containerd/io.containerd.metadata.v1.bolt</code>这个文件删掉</p>
 <h1 id="8-参考"><a class="markdownIt-Anchor" href="#8-参考"></a> 8 参考</h1>
 <ul>
@@ -538,19 +546,19 @@
           
       <div class="tabs tabs-comment">
         <ul class="nav-tabs">
-            <li class="tab"><a href="#comment-valine">valine</a></li>
             <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
         </ul>
         <div class="tab-content">
-            <div class="tab-pane valine" id="comment-valine">
-              <div class="comments" id="valine-comments"></div>
-            </div>
             <div class="tab-pane livere" id="comment-livere">
               
   <div class="comments">
     <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
   </div>
   
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
             </div>
         </div>
       </div>
@@ -600,7 +608,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%AE%89%E8%A3%85docker"><span class="nav-text"> 1 安装docker</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-centos"><span class="nav-text"> 1.1 centos</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%AE%B9%E5%99%A8%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-text"> 2 容器的生命周期</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text"> 3 文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-overlay2"><span class="nav-text"> 3.1 overlay2</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%88%9B%E5%BB%BA%E9%95%9C%E5%83%8F"><span class="nav-text"> 4 创建镜像</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-docker%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7"><span class="nav-text"> 5 docker命令行工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%9F%BA%E7%A1%80%E9%95%9C%E5%83%8F"><span class="nav-text"> 6 基础镜像</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-alpine"><span class="nav-text"> 6.1 Alpine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-jib"><span class="nav-text"> 6.2 Jib</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-tips"><span class="nav-text"> 7 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E8%B7%A8%E5%B9%B3%E5%8F%B0%E8%BF%90%E8%A1%8C%E5%AE%B9%E5%99%A8"><span class="nav-text"> 7.1 跨平台运行容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-%E9%95%9C%E5%83%8F%E8%A3%81%E5%89%AA%E5%B7%A5%E5%85%B7-dockerslim"><span class="nav-text"> 7.2 镜像裁剪工具-dockerslim</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-%E5%BC%82%E5%B8%B8%E6%8E%92%E6%9F%A5"><span class="nav-text"> 7.3 异常排查</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%8F%82%E8%80%83"><span class="nav-text"> 8 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%AE%89%E8%A3%85docker"><span class="nav-text"> 1 安装docker</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-centos"><span class="nav-text"> 1.1 centos</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%AE%B9%E5%99%A8%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-text"> 2 容器的生命周期</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text"> 3 文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-overlay2"><span class="nav-text"> 3.1 overlay2</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%88%9B%E5%BB%BA%E9%95%9C%E5%83%8F"><span class="nav-text"> 4 创建镜像</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-docker%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7"><span class="nav-text"> 5 docker命令行工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%9F%BA%E7%A1%80%E9%95%9C%E5%83%8F"><span class="nav-text"> 6 基础镜像</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-alpine"><span class="nav-text"> 6.1 Alpine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-jib"><span class="nav-text"> 6.2 Jib</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-tips"><span class="nav-text"> 7 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E4%BF%AE%E6%94%B9%E5%AD%98%E5%82%A8%E8%B7%AF%E5%BE%84"><span class="nav-text"> 7.1 修改存储路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-%E4%BF%AE%E6%94%B9%E9%95%9C%E5%83%8F%E6%BA%90"><span class="nav-text"> 7.2 修改镜像源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-%E8%B7%A8%E5%B9%B3%E5%8F%B0%E8%BF%90%E8%A1%8C%E5%AE%B9%E5%99%A8"><span class="nav-text"> 7.3 跨平台运行容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-%E9%95%9C%E5%83%8F%E8%A3%81%E5%89%AA%E5%B7%A5%E5%85%B7-dockerslim"><span class="nav-text"> 7.4 镜像裁剪工具-dockerslim</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-%E5%BC%82%E5%B8%B8%E6%8E%92%E6%9F%A5"><span class="nav-text"> 7.5 异常排查</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%8F%82%E8%80%83"><span class="nav-text"> 8 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -616,7 +624,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">281</span>
+          <span class="site-state-item-count">282</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -735,6 +743,22 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
 
 <script>
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
@@ -761,22 +785,6 @@ NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
       serverURLs : ''
     });
   }, window.Valine);
-});
-</script>
-
-<script>
-NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
-  window.livereOptions = {
-    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
-  };
-  (function(d, s) {
-    var j, e = d.getElementsByTagName(s)[0];
-    if (typeof LivereTower === 'function') { return; }
-    j = d.createElement(s);
-    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-    j.async = true;
-    e.parentNode.insertBefore(j, e);
-  })(document, 'script');
 });
 </script>
 
