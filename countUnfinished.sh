@@ -1,6 +1,9 @@
 #!/bin/bash
 
-FILES=$(find . -name "*.md")
+ROOT=$(dirname "$0")
+ROOT=$(cd "$ROOT"; pwd)
+
+FILES=$(find ${ROOT}/_posts -name "*.md")
 
 for FILE in ${FILES}
 do
