@@ -81,8 +81,19 @@
 <meta property="og:image" content="http://example.com/images/Database-System/15-3.png">
 <meta property="og:image" content="http://example.com/images/Database-System/15-4.png">
 <meta property="og:image" content="http://example.com/images/Database-System/15-5.png">
+<meta property="og:image" content="http://example.com/images/Database-System/16-1.png">
+<meta property="og:image" content="http://example.com/images/Database-System/16-2.png">
+<meta property="og:image" content="http://example.com/images/Database-System/16-3.png">
+<meta property="og:image" content="http://example.com/images/Database-System/16-4.png">
+<meta property="og:image" content="http://example.com/images/Database-System/16-5.png">
+<meta property="og:image" content="http://example.com/images/Database-System/17-1.png">
+<meta property="og:image" content="http://example.com/images/Database-System/17-2.png">
+<meta property="og:image" content="http://example.com/images/Database-System/17-3.png">
+<meta property="og:image" content="http://example.com/images/Database-System/17-4.png">
+<meta property="og:image" content="http://example.com/images/Database-System/17-5.png">
+<meta property="og:image" content="http://example.com/images/Database-System/17-6.png">
 <meta property="article:published_time" content="2021-12-06T01:39:17.000Z">
-<meta property="article:modified_time" content="2022-02-11T14:10:38.848Z">
+<meta property="article:modified_time" content="2022-02-20T15:32:51.809Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -284,7 +295,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-02-11 22:10:38" itemprop="dateModified" datetime="2022-02-11T22:10:38+08:00">2022-02-11</time>
+                <time title="修改时间：2022-02-20 23:32:51" itemprop="dateModified" datetime="2022-02-20T23:32:51+08:00">2022-02-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1840,8 +1851,421 @@ $sel(P1 \cup P2) = sel(P1) + sel(P2）- sel(P1 \cap P2)$
 <p>对于复杂查询，优化器通常会将查询拆分成多个逻辑块，每次只关注一个逻辑块</p>
 <p><strong>示意图参考课件中的<code>59 ~ 66</code>页</strong></p>
 <h1 id="16-concurrency-control"><a class="markdownIt-Anchor" href="#16-concurrency-control"></a> 16 Concurrency Control</h1>
+<p>并发控制和恢复渗透到了整个<code>DBMS</code>的架构中</p>
+<p><img src="/images/Database-System/16-1.png" alt="16-1" /></p>
+<h2 id="161-transactions"><a class="markdownIt-Anchor" href="#161-transactions"></a> 16.1 Transactions</h2>
+<p>事务是<code>DBMS</code>中变更的最小单元</p>
+<p>从用户程序的视角来看，<code>Database</code>和<code>Transaction</code>的定义分别为：</p>
+<ul>
+<li><code>Database</code>：一组固定的命名数据对象</li>
+<li><code>Transaction</code>：一系列的读写操作</li>
+</ul>
+<p><strong>正确性标准：<code>ACID</code></strong></p>
+<ul>
+<li><code>Atomicity</code>：整个事务要么整体生效，要么整体不生效</li>
+<li><code>Consistency</code>：如果事务本身满足一致性，且开始事务前<code>DB</code>满足一致性，那么事务结束后（提交或者终止）<code>DB</code>也满足一致性（一致性的具体含义是由业务定义的）</li>
+<li><code>Isolation</code>：不同事务之间相互隔离</li>
+<li><code>Durability</code>：如果事务提交了，那么所有改动均已持久化</li>
+</ul>
+<h2 id="162-atomicity"><a class="markdownIt-Anchor" href="#162-atomicity"></a> 16.2 Atomicity</h2>
+<p><strong>通常来说，有如下机制可以实现<code>Atomicity</code></strong></p>
+<ul>
+<li><code>Logging</code>：<code>DBMS</code>将所有操作以日志的形式保存下来，这样在事务终止后可以通过日志进行回滚
+<ul>
+<li>内存和磁盘均会存储<code>undo records</code></li>
+<li>大多数系统都会采用这种做法，因为它便于进行审计追踪、且效率较高</li>
+</ul>
+</li>
+<li><code>Shadow Paging</code>：<code>DBMS</code>会将事务涉及到的<code>Page</code>进行拷贝，然后对拷贝进行修改操作。当事务提交后，这些拷贝才对外可见
+<ul>
+<li>由<code>System R</code>率先采用。<code>CouchDB</code>以及<code>LMDB</code>也采用</li>
+</ul>
+</li>
+</ul>
+<h2 id="163-consistency"><a class="markdownIt-Anchor" href="#163-consistency"></a> 16.3 Consistency</h2>
+<p><strong>一致性（<code>Consistency</code>）具体是指<code>DB</code>是否在逻辑上正确（业务定义），具体可分为：</strong></p>
+<ul>
+<li><code>Database Consistency</code>：数据库模型准确地描述了现实世界，且遵循了完整性约束
+<ul>
+<li>只要应用保证<code>Transaction Consistency</code>，那么<code>DBMS</code>会保证<code>Database Consistency</code></li>
+</ul>
+</li>
+<li><code>Transaction Consistency</code>：未来的事务会看到过去在数据库内部提交的事务所造成的影响
+<ul>
+<li><code>Transaction Consistency</code>是上层应用的责任。举个例子，A给B转钱100，包含两个操作：若A减少100，B只增加50，这就不满足一致性（钱的总数变少了）</li>
+</ul>
+</li>
+</ul>
+<h2 id="164-isolation-of-transactions"><a class="markdownIt-Anchor" href="#164-isolation-of-transactions"></a> 16.4 Isolation of Transactions</h2>
+<p><strong>通常来说，<code>DBMS</code>会将多个事务的操作交织在一起执行，但是从每个事务各自的视角来看，它会认为整个事务的执行是独立的，不受其他事务影响的。并发控制模型（<code>Concurrency Model</code>）定义了<code>DMBS</code>以何种方式，来交织这些操作</strong></p>
+<ul>
+<li><code>Pessimistic</code>：悲观的做法是，把问题扼杀在摇篮中</li>
+<li><code>Optimistic</code>：乐观的做法是，假设冲突不发生</li>
+</ul>
+<p><strong>两个操作冲突的条件：</strong></p>
+<ol>
+<li>两个操作属于不同的事务</li>
+<li>两个操作都针对同一个对象，且至少有一个写操作</li>
+</ol>
+<p><strong>冲突的种类包括：</strong></p>
+<ol>
+<li><code>Read-Write Conflicts (R-W)</code>
+<ul>
+<li><code>Unrepeatable Reads</code></li>
+<li><img src="/images/Database-System/16-2.png" alt="16-2" /></li>
+</ul>
+</li>
+<li><code>Write-Read Conflicts (W-R)</code>
+<ul>
+<li><code>Reading Uncommitted Data (&quot;Dirty Reads&quot;)</code></li>
+<li><img src="/images/Database-System/16-3.png" alt="16-3" /></li>
+</ul>
+</li>
+<li><code>Write-Write Conflicts (W-W)</code>
+<ul>
+<li><code>Overwriting Uncommitted Data</code></li>
+<li><img src="/images/Database-System/16-4.png" alt="16-4" /></li>
+</ul>
+</li>
+</ol>
+<p><strong>可串行化（<code>Serializability</code>）也存在两种维度：</strong></p>
+<ul>
+<li><code>Conflict Serializability</code>
+<ul>
+<li>大多数<code>DBMS</code>支持</li>
+<li>效率高</li>
+</ul>
+</li>
+<li><code>View Serializability</code>
+<ul>
+<li>大多数<code>DBMS</code>不支持</li>
+<li>效率低</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/Database-System/16-5.png" alt="16-5" /></p>
+<h3 id="1641-conflict-serializable-schedules"><a class="markdownIt-Anchor" href="#1641-conflict-serializable-schedules"></a> 16.4.1 Conflict Serializable Schedules</h3>
+<p><strong>如果两个<code>Schedule</code>是<code>Conflict Equivalent</code>的 ，意味着：</strong></p>
+<ul>
+<li>它们包含了相同的操作</li>
+<li>任意两个冲突操作之间的顺序是相同的</li>
+</ul>
+<p><strong>如果<code>Schedule S</code>与其中一个<code>Serial Schedule</code>是<code>Conflict Equivalent</code>的，那么我们就称<code>Schedule S</code>是<code>Conflict Serializable</code></strong></p>
+<ul>
+<li>我们可以通过交换<code>Schedule S</code>中相邻的非冲突操作，来将其转换成<code>Serial Schedule</code></li>
+<li><strong>示意图参考课件中的<code>51 ~ 60</code>页</strong></li>
+</ul>
+<p>当只有两个事务时，交换相邻的非冲突操作还是比较容易的，当事务变多时，这种方法的可行性就变差了。此时我们可以采用另一种算法，叫做优先图（<code>precedence graph</code>），当<code>Schedule S</code>对应的优先图不包含循环时，就称<code>Schedule S</code>是<code>Conflict Serializable</code></p>
+<ul>
+<li><strong>示意图参考课件中的<code>63 ~ 76</code>页</strong></li>
+</ul>
+<h3 id="1642-view-serializability"><a class="markdownIt-Anchor" href="#1642-view-serializability"></a> 16.4.2 View Serializability</h3>
+<p><strong>视图可串行化（<code>View Serializability</code>）是可串行化的替代（较弱）概念</strong></p>
+<p><strong>如果<code>Schedule S1</code>和<code>Schedule S2</code>满足如下条件，我们就称它们是<code>View Serializability</code>的：</strong></p>
+<ul>
+<li>在<code>S1</code>中，<code>T1</code>读取到了初始值<code>A</code>；在<code>S2</code>中，<code>T1</code>读取到的初始值也是<code>A</code></li>
+<li>在<code>S1</code>中，<code>T1</code>读取到了由<code>T2</code>写入的值；在<code>S2</code>中，<code>T1</code>读取到的同样是由<code>T2</code>写入的值</li>
+<li>在<code>S1</code>中，<code>T1</code>写入的最终值是<code>A</code>；在<code>S2</code>中，<code>T1</code>写入的最终值也是<code>A</code></li>
+</ul>
+<p><strong>示意图参考课件中的<code>78 ~ 84</code>页</strong></p>
+<h2 id="165-durability"><a class="markdownIt-Anchor" href="#165-durability"></a> 16.5 Durability</h2>
+<p><strong><code>DBMS</code>需要保证所有提交的事务的改动都要被持久化，所有取消的事务的改动都不会持久化</strong></p>
+<p><code>DBMS</code>可以采用日志或者<code>Shadow Paging</code>来实现这一约束</p>
 <h1 id="17-two-phase-locking"><a class="markdownIt-Anchor" href="#17-two-phase-locking"></a> 17 Two Phase Locking</h1>
+<h2 id="171-lock-types"><a class="markdownIt-Anchor" href="#171-lock-types"></a> 17.1 Lock Types</h2>
+<p><strong>我们必须在无法得知整体<code>Schedule</code>的情况下，确保所有的<code>Schedule</code>都能正确执行（可串行化）。因此，最直接的解决方式就是加锁</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">Locks</th>
+<th style="text-align:left">Latches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Separate</strong></td>
+<td style="text-align:left">User Transactions</td>
+<td style="text-align:left">Threads</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Protect</strong></td>
+<td style="text-align:left">Database Contents</td>
+<td style="text-align:left">In-Memory Data Structures</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>During</strong></td>
+<td style="text-align:left">Entire Transactions</td>
+<td style="text-align:left">Critical Sections</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Modes</strong></td>
+<td style="text-align:left">Shared, Exclusive, Update, Intention</td>
+<td style="text-align:left">Read, Write</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Deadlock</strong></td>
+<td style="text-align:left">Detection &amp; Resolution</td>
+<td style="text-align:left">Avoidance</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Avoid Deadlock By</strong></td>
+<td style="text-align:left">Waits-for, Timeout, Aborts</td>
+<td style="text-align:left">Coding Discipline</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Kept In</strong></td>
+<td style="text-align:left">Lock Manager</td>
+<td style="text-align:left">Protected Data Structure</td>
+</tr>
+</tbody>
+</table>
+<p><strong>简单来说，<code>Lock Type</code>可以分为如下两种：</strong></p>
+<ul>
+<li><code>S-Lock</code>：共享锁，用于实现共享读</li>
+<li><code>X-Lock</code>：独占锁，用于实现排他写</li>
+</ul>
+<p><strong>事务的执行过程:</strong></p>
+<ol>
+<li>事务获取或更新锁，向<code>Lock Manager</code>发起请求</li>
+<li><code>Lock Manager</code>批准或者阻塞请求</li>
+<li>事务释放锁</li>
+</ol>
+<ul>
+<li><code>Lock Manager</code>维护了一个<code>Lock Table</code>，用于记录事务获取了哪些锁，以及哪些事务阻塞在哪些锁上</li>
+</ul>
+<p><strong>示意图参考课件中的<code>14 ~ 18</code>页</strong></p>
+<h2 id="172-two-phase-locking"><a class="markdownIt-Anchor" href="#172-two-phase-locking"></a> 17.2 Two Phase Locking</h2>
+<p><strong><code>Two-phase locking, 2PL</code>是一种并发控制协议，用于决定当前事务是否可以访问数据库中的某个对象。该协议无需知道事务包含的所有操作</strong></p>
+<ul>
+<li><code>阶段1：Growing</code>
+<ul>
+<li>事务向<code>Lock Manager</code>请求获取锁</li>
+<li><code>Lock Manager</code>批准或者拒绝请求</li>
+</ul>
+</li>
+<li><code>阶段2：Shrinking</code>
+<ul>
+<li>事务释放锁（前提是必须成功获取）</li>
+</ul>
+</li>
+<li>一旦<code>Growing</code>阶段完成（或者说进入到<code>Shrinking</code>阶段），在已获取的锁全部释放完之后，不允许再次请求获取锁</li>
+<li><img src="/images/Database-System/17-1.png" alt="17-1" /></li>
+<li><img src="/images/Database-System/17-2.png" alt="17-2" /></li>
+</ul>
+<p><strong>示意图参考课件中的<code>23 ~ 26</code>页</strong></p>
+<p><strong><code>2PL</code>本身能够有效地保证<code>Conflict Serializability</code>，但是它也容易受到<code>Cascading Aborts</code>的影响</strong></p>
+<p><img src="/images/Database-System/17-3.png" alt="17-3" /></p>
+<p><strong><code>2PL</code>的限制：</strong></p>
+<ul>
+<li><strong><code>2PL</code>会限制并发性，因为部分<code>Schedule</code>不满足<code>2PL</code>的约束</strong></li>
+<li><strong>仍然会出现<code>Dirty Read</code>，解决方式：<code>Strong Strict 2PL, aka Rigorous 2PL</code></strong></li>
+<li><strong>仍然会出现死锁，解决方式：检测或预防</strong></li>
+</ul>
+<p><strong><code>Strong Strict 2PL</code>：</strong></p>
+<ul>
+<li><code>阶段1：Growing</code>
+<ul>
+<li>同<code>2PL</code></li>
+</ul>
+</li>
+<li><code>阶段2：Shrinking</code>
+<ul>
+<li>仅在在事务结束时释放锁</li>
+</ul>
+</li>
+<li><img src="/images/Database-System/17-4.png" alt="17-4" /></li>
+</ul>
+<p><strong>如果<code>Schedule</code>是<code>strict</code>，意味着：当前事务写的值不能被其他事务读取或者重写</strong></p>
+<ul>
+<li>可以避免<code>Cascading Aborts</code></li>
+<li><code>Aborts</code>实现简单，只需恢复修改前的值即可</li>
+</ul>
+<p><strong>示意图参考课件中的<code>34 ~ 42</code>页</strong></p>
+<p><img src="/images/Database-System/17-5.png" alt="17-5" /></p>
+<h2 id="173-deaklock-detection"><a class="markdownIt-Anchor" href="#173-deaklock-detection"></a> 17.3 Deaklock Detection</h2>
+<p><strong>简单来说，死锁就是存在相互持有锁，并相互等待对方的锁，形成一个环形结构</strong></p>
+<p><strong><code>DBMS</code>会使用<code>Wait-for Graph</code>来跟踪锁的状态</strong></p>
+<ul>
+<li>每个事务都是图中的一个节点</li>
+<li>
+$T_i$指向$T_j$的有向线段表示$T_i$在等待$T_j$释放锁
+</li>
+<li>周期性的检查图中是否存在环形结构，并试图破坏它</li>
+</ul>
+<p><strong>示意图参考课件中的<code>52 ~ 54</code>页</strong></p>
+<p><strong>当<code>DBMS</code>发现死锁时，它会选择一个事务（<code>Victim Txn</code>），并让其回滚，以此来破坏环形结构。该事务可能会重新执行或者直接终止，这取决于触发方式</strong></p>
+<p><strong>如何选择<code>Victim Txn</code>，需要考虑许多因素，包括：</strong></p>
+<ol>
+<li>事务存活时间</li>
+<li>事务执行频率</li>
+<li>事务已经获取的锁的数量</li>
+<li>需要回滚的事务数量，以及事务被回滚的次数（避免被饿死）</li>
+</ol>
+<p><strong>当选定了需要回滚的事务，回滚的幅度是什么：</strong></p>
+<ul>
+<li>方案1：整体回滚</li>
+<li>方案2：部分回滚</li>
+</ul>
+<h2 id="174-deaklock-prevention"><a class="markdownIt-Anchor" href="#174-deaklock-prevention"></a> 17.4 Deaklock Prevention</h2>
+<p><strong>当一个事务尝试获取的锁被其他事务持有时，<code>DBMS</code>会杀掉其中一个，以此来破坏死锁的状态。该方法不需要依赖<code>Waits-for Graph</code></strong></p>
+<p><strong>那么如何选择该杀掉哪个事务呢？依据的是时间戳，时间戳越早，优先级越高</strong></p>
+<ul>
+<li>事务被杀掉并重启后，会沿用初始的时间戳，避免被饿死</li>
+</ul>
+<h2 id="175-hierarchical-locking"><a class="markdownIt-Anchor" href="#175-hierarchical-locking"></a> 17.5 Hierarchical Locking</h2>
+<p>为了尽可能地降低冲突，<code>DBMS</code>通常会将锁的粒度进行进一步细分，包括<code>Attribute</code>、<code>Tuple</code>、<code>Page</code>、<code>Table</code>等。每个事务获取满足要求的最小粒度的锁即可</p>
+<p><img src="/images/Database-System/17-6.png" alt="17-6" /></p>
+<h3 id="1751-intention-locks"><a class="markdownIt-Anchor" href="#1751-intention-locks"></a> 17.5.1 Intention Locks</h3>
+<p>表锁锁定了整张表，而行锁是锁定表中的某条记录，它们俩锁定的范围有交集，因此表锁和行锁之间是有冲突的。譬如某个表有<code>10000</code>条记录，其中有一条记录加了<code>X</code>锁，如果这个时候系统需要对该表加表锁，为了判断是否能加这个表锁，系统需要遍历表中的所有<code>10000</code>条记录，看看是不是某条记录被加锁，如果有锁，则不允许加表锁，显然这是很低效的一种方法，为了方便检测表锁和行锁的冲突，从而引入了意向锁</p>
+<p>意向锁为表级锁，也可分为读意向锁（<code>IS</code>锁）和写意向锁（<code>IX</code>锁）。当事务试图读或写某一条记录时，会先在表上加上意向锁，然后才在要操作的记录上加上读锁或写锁。这样判断表中是否有记录加锁就很简单了，只要看下表上是否有意向锁就行了。<strong>意向锁之间是不会产生冲突的，它只会阻塞表级读锁或表级写锁，另外，意向锁也不会和行锁冲突，行锁只会和行锁冲突</strong></p>
+<p><strong>加锁策略：</strong></p>
+<ul>
+<li>若事务<code>T</code>要获取某节点的<code>S</code>或者<code>IS</code>锁，那么事务必须先获取其父节点的<code>IS</code>锁</li>
+<li>若事务<code>T</code>要获取某节点的<code>X</code>、<code>IX</code>或者<code>SIX</code>锁，那么事务必须先获取其父节点的<code>IX</code>锁</li>
+</ul>
+<p><strong>各锁之间的冲突关系：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">IS</th>
+<th style="text-align:left">IX</th>
+<th style="text-align:left">S</th>
+<th style="text-align:left">SIX</th>
+<th style="text-align:left">X</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>IS</strong></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">❌</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>IX</strong></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>S</strong></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>SIX</strong></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>X</strong></td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+<td style="text-align:left">❌</td>
+</tr>
+</tbody>
+</table>
+<p><strong>示意图参考课件中的<code>73 ~ 85</code>页</strong></p>
+<h3 id="1752-lock-escalation"><a class="markdownIt-Anchor" href="#1752-lock-escalation"></a> 17.5.2 Lock Escalation</h3>
+<p>当事务获取获取了非常多同一层级的锁时，可能会将锁的粒度升级，转而获取更高层级的锁，以减小锁管理的复杂度（一定程度上牺牲了并发性）</p>
 <h1 id="18-timestamp-ordering"><a class="markdownIt-Anchor" href="#18-timestamp-ordering"></a> 18 Timestamp Ordering</h1>
+<p><strong>解决并发冲突的另一种方式是，使用时间戳来决定事务执行的顺序</strong></p>
+<ul>
+<li>时间戳必须是单调递增的</li>
+<li>如果<code>TS(Ti) &lt; TS(Tj)</code>，那么<code>DBMS</code>会保证执行计划与先执行<code>Ti</code>再执行<code>Tj</code>等价</li>
+</ul>
+<h2 id="181-basic-timestamp-ordering-protocol"><a class="markdownIt-Anchor" href="#181-basic-timestamp-ordering-protocol"></a> 18.1 Basic Timestamp Ordering Protocol</h2>
+<p><strong><code>Basic T/O</code>的具体过程如下：</strong></p>
+<ul>
+<li>事务读写对象时，不需要加锁</li>
+<li>每个对象（<code>X</code>）会记录最近一次成功读写的时间戳，分别记为<code>W-TS(X)</code>和<code>R-TS(X)</code></li>
+<li>事务执行操作时，若发现对象<code>X</code>的读写时间比当前事务的时间戳要更大，那么终止并重启当前事务。具体来说
+<ul>
+<li>读
+<ul>
+<li>若<code>TS(Ti) &lt; W-TS(X)</code>，那么终止并重启事务<code>Ti</code></li>
+<li>否则
+<ul>
+<li>允许事务<code>Ti</code>读取对象<code>X</code></li>
+<li>将<code>R-TS(X)</code>更新为<code>max(R-TS(X), TS(Ti)</code></li>
+<li>备份对象<code>X</code>，来保证当前事物的<code>repeatable</code>性质</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>写
+<ul>
+<li>若<code>TS(Ti) &lt; R-TS(X)</code>或<code>TS(Ti) &lt; W-TS(X)</code>，那么终止并重启事务<code>Ti</code></li>
+<li>否则
+<ul>
+<li>允许事务<code>Ti</code>跟新对象<code>X</code>，并更新<code>W-TS(X)</code></li>
+<li>备份对象<code>X</code>，来保证当前事物的<code>repeatable</code>性质</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Thomas Write Rule</code>在<code>Basic T/O</code>协议的基础之上做了调整，差异如下：</strong></p>
+<ul>
+<li>写
+<ul>
+<li>若<code>TS(Ti) &lt; R-TS(X)</code>，那么终止并重启事务<code>Ti</code></li>
+<li>若<code>TS(Ti) &lt; W-TS(X)</code>，那么忽略写操作，并继续事务</li>
+</ul>
+</li>
+</ul>
+<p><strong>示意图参考课件中的<code>9 ~ 28</code>页</strong></p>
+<p><strong><code>Basic T/O</code>小结：</strong></p>
+<ul>
+<li>可以生成<code>Conflict Serializable</code>的计划（前提是不用<code>Thomas Write Rule</code>）
+<ul>
+<li>无死锁，因为根本没有锁</li>
+</ul>
+</li>
+<li>允许<code>Not Recoverable</code>的<code>Schedule</code>
+<ul>
+<li><code>Recoverable</code>：若某个事务<code>Ti</code>读取了某些事务<code>Tj, Tk, Tl ...</code>修改的值，那么该事务<code>Ti</code>在<code>Tj, Tk, Tl ...</code>提交之后再提交，那么就称该<code>Schedule</code>是<code>Recoverable</code>的</li>
+</ul>
+</li>
+<li>大事务可能会被饿死（假设大事务会读取很多内容，但是同时系统又通过一些小事务不断更新这些内容）</li>
+<li>对于那些很少产生冲突，且事务通常较小的系统更友好</li>
+</ul>
+<h2 id="182-optimistic-concurrency-control"><a class="markdownIt-Anchor" href="#182-optimistic-concurrency-control"></a> 18.2 Optimistic Concurrency Control</h2>
+<p><strong>并发控制的主要流程如下：</strong></p>
+<ul>
+<li><code>Read Phase</code>：<code>DBMS</code>会为每个事务创建一个私有的空间
+<ul>
+<li>读取的内容会以副本的形式放到这个空间中</li>
+<li>修改后的内容也会存在于这个空间中</li>
+</ul>
+</li>
+<li><code>Validation Phase</code>：当事务提交后，<code>DBMS</code>会比较修改的内容是否与其他事务产生了冲突</li>
+<li><code>Write Phase</code>
+<ul>
+<li>若<code>Validation Phase</code>没有冲突，则会写入全局空间</li>
+<li>若<code>Validation Phase</code>有冲突，则终止并重启事务</li>
+</ul>
+</li>
+</ul>
+<p><strong>示意图参考课件中的<code>38 ~ 50</code>页</strong></p>
+<h2 id="183-partition-based-timestamp-ordering"><a class="markdownIt-Anchor" href="#183-partition-based-timestamp-ordering"></a> 18.3 Partition-based Timestamp Ordering</h2>
+<h2 id="184-isolation-levels"><a class="markdownIt-Anchor" href="#184-isolation-levels"></a> 18.4 Isolation Levels</h2>
 <h1 id="19-multiversoning"><a class="markdownIt-Anchor" href="#19-multiversoning"></a> 19 Multiversoning</h1>
 <h1 id="20-logging"><a class="markdownIt-Anchor" href="#20-logging"></a> 20 Logging</h1>
 <h1 id="21-recovery"><a class="markdownIt-Anchor" href="#21-recovery"></a> 21 Recovery</h1>
@@ -1922,7 +2346,7 @@ $sel(P1 \cup P2) = sel(P1) + sel(P2）- sel(P1 \cap P2)$
 <li><a href="/resources/Database-System/13-queryexecution2.pdf">13-queryexecution2</a></li>
 <li><a href="/resources/Database-System/14-optimization1.pdf">14-optimization1</a></li>
 <li><a href="/resources/Database-System/15-optimization2.pdf">15-optimization2</a></li>
-<li><a href="/resources/Database-System/16concurrencycontrol.pdf">16concurrencycontrol</a></li>
+<li><a href="/resources/Database-System/16-concurrencycontrol.pdf">16-concurrencycontrol</a></li>
 <li><a href="/resources/Database-System/17-twophaselocking.pdf">17-twophaselocking</a></li>
 <li><a href="/resources/Database-System/18-timestampordering.pdf">18-timestampordering</a></li>
 <li><a href="/resources/Database-System/19-multiversioning.pdf">19-multiversioning</a></li>
@@ -2039,7 +2463,7 @@ $sel(P1 \cup P2) = sel(P1) + sel(P2）- sel(P1 \cap P2)$
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-advanced-sql"><span class="nav-text"> 2 Advanced Sql</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-storage-1"><span class="nav-text"> 3 Storage 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-file-storage"><span class="nav-text"> 3.1 File Storage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-page-layout"><span class="nav-text"> 3.2 Page Layout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-tuple-layout"><span class="nav-text"> 3.3 Tuple Layout</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-storage-2"><span class="nav-text"> 4 Storage 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-data-representation"><span class="nav-text"> 4.1 Data Representation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-system-catalogs"><span class="nav-text"> 4.2 System Catalogs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-storage-models"><span class="nav-text"> 4.3 Storage Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-n-ary-storege-model"><span class="nav-text"> 4.3.1 N-ARY Storege Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-decomposition-storage-model"><span class="nav-text"> 4.3.2 Decomposition Storage Model</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-buffer-pool"><span class="nav-text"> 5 Buffer Pool</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-buffer-pool-manager"><span class="nav-text"> 5.1 Buffer Pool Manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-replacement-policies"><span class="nav-text"> 5.2 Replacement Policies</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-least-recently-used"><span class="nav-text"> 5.2.1 Least-Recently Used</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-clock"><span class="nav-text"> 5.2.2 Clock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#523-lru-k"><span class="nav-text"> 5.2.3 LRU-K</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#524-localization"><span class="nav-text"> 5.2.4 Localization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#525-priority-hints"><span class="nav-text"> 5.2.5 Priority Hints</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#526-dirty-pages"><span class="nav-text"> 5.2.6 Dirty Pages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#527-background-writing"><span class="nav-text"> 5.2.7 Background Writing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-other-memory-pools"><span class="nav-text"> 5.3 Other Memory Pools</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E6%80%BB%E7%BB%93"><span class="nav-text"> 5.4 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-hash-tables"><span class="nav-text"> 6 Hash Tables</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-hash-functions"><span class="nav-text"> 6.1 Hash Functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-static-hashing-schemes"><span class="nav-text"> 6.2 Static Hashing Schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-linear-probe-hashing"><span class="nav-text"> 6.2.1 Linear Probe Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-robin-hood-hashing"><span class="nav-text"> 6.2.2 Robin Hood Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-cuckoo-hashing"><span class="nav-text"> 6.2.3 Cuckoo Hashing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-dynamic-hashing-schemes"><span class="nav-text"> 6.3 Dynamic Hashing Schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#631-chained-hashing"><span class="nav-text"> 6.3.1 Chained Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#632-extendible-hashing"><span class="nav-text"> 6.3.2 Extendible Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#633-linear-hashing"><span class="nav-text"> 6.3.3 Linear Hashing</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-trees1"><span class="nav-text"> 7 Trees1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-table-indexes"><span class="nav-text"> 7.1 Table Indexes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-b-tree-overview"><span class="nav-text"> 7.2 B+ Tree Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-design-decisions"><span class="nav-text"> 7.3 Design Decisions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-optimization"><span class="nav-text"> 7.4 Optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#741-prefix-compression"><span class="nav-text"> 7.4.1 Prefix Compression</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#742-suffix-truncation"><span class="nav-text"> 7.4.2 Suffix Truncation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#743-bulk-insert"><span class="nav-text"> 7.4.3 Bulk Insert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#744-pointer-swizzling"><span class="nav-text"> 7.4.4 Pointer Swizzling</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-trees2"><span class="nav-text"> 8 Trees2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-more-btree"><span class="nav-text"> 8.1 More B+Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-additional-index-magic"><span class="nav-text"> 8.2 Additional Index Magic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#83-tries-tree"><span class="nav-text"> 8.3 Tries Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#84-radix-tree"><span class="nav-text"> 8.4 Radix Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#85-inverted-indexe"><span class="nav-text"> 8.5 Inverted Indexe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#86-geo-spatial-tree-indexes"><span class="nav-text"> 8.6 Geo-Spatial Tree Indexes</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-index-concurrency"><span class="nav-text"> 9 Index Concurrency</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-latches-overviews"><span class="nav-text"> 9.1 Latches Overviews</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-hash-table-latching"><span class="nav-text"> 9.2 Hash Table Latching</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-btree-latching"><span class="nav-text"> 9.3 B+Tree Latching</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#931-%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%951"><span class="nav-text"> 9.3.1 优化算法1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-leafnode-scans"><span class="nav-text"> 9.4 LeafNode Scans</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#95-delayed-parent-updates"><span class="nav-text"> 9.5 Delayed Parent Updates</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-sorting-aggregate"><span class="nav-text"> 10 Sorting &amp; Aggregate</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#101-external-merge-sort"><span class="nav-text"> 10.1 External Merge Sort</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#102-aggregations"><span class="nav-text"> 10.2 Aggregations</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-joins"><span class="nav-text"> 11 Joins</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#111-simple-nested-loop-join"><span class="nav-text"> 11.1 Simple Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#112-block-nested-loop-join"><span class="nav-text"> 11.2 Block Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#113-index-nested-loop-join"><span class="nav-text"> 11.3 Index Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#114-sort-merge-join"><span class="nav-text"> 11.4 Sort Merge Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#115-hash-join"><span class="nav-text"> 11.5 Hash Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#116-grace-hash-join"><span class="nav-text"> 11.6 Grace Hash Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#117-%E6%80%BB%E7%BB%93"><span class="nav-text"> 11.7 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-query-execution-1"><span class="nav-text"> 12 Query Execution 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#121-processing-models"><span class="nav-text"> 12.1 Processing Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1211-iterator-model"><span class="nav-text"> 12.1.1 Iterator Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1212-materialization-model"><span class="nav-text"> 12.1.2 Materialization Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1213-vectorized-batch-model"><span class="nav-text"> 12.1.3 Vectorized &#x2F; Batch Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1214-plan-processing-direction"><span class="nav-text"> 12.1.4 Plan Processing Direction</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#122-access-methods"><span class="nav-text"> 12.2 Access Methods</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1221-sequential-scan"><span class="nav-text"> 12.2.1 Sequential Scan</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#12211-zone-maps"><span class="nav-text"> 12.2.1.1 Zone Maps</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#12212-late-materialization"><span class="nav-text"> 12.2.1.2 Late Materialization</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1222-index-scan"><span class="nav-text"> 12.2.2 Index Scan</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1223-multi-indexbitmap-scan"><span class="nav-text"> 12.2.3 Multi-Index&#x2F;Bitmap Scan</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#123-expression-evaluation"><span class="nav-text"> 12.3 Expression Evaluation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-query-execution-2"><span class="nav-text"> 13 Query Execution 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#131-process-models"><span class="nav-text"> 13.1 Process Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1311-process-per-dbms-worker"><span class="nav-text"> 13.1.1 Process per DBMS Worker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1312-process-pool"><span class="nav-text"> 13.1.2 Process Pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1313-thread-per-dbms-worker"><span class="nav-text"> 13.1.3 Thread per DBMS Worker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1314-scheduling"><span class="nav-text"> 13.1.4 Scheduling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#132-execution-parallelism"><span class="nav-text"> 13.2 Execution Parallelism</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1321-intra-query-parallelism"><span class="nav-text"> 13.2.1 Intra-Query Parallelism</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#13211-intra-operator-horizontal"><span class="nav-text"> 13.2.1.1 Intra-Operator (Horizontal)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13212-inter-operator-vertical"><span class="nav-text"> 13.2.1.2 Inter-Operator (Vertical)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13213-bushy"><span class="nav-text"> 13.2.1.3 Bushy</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#133-io-parallelism"><span class="nav-text"> 13.3 I&#x2F;O Parallelism</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1331-multi-disk-parallelism"><span class="nav-text"> 13.3.1 Multi-Disk Parallelism</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1332-database-partitioning"><span class="nav-text"> 13.3.2 Database Partitioning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1333-table-partitioning"><span class="nav-text"> 13.3.3 Table Partitioning</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-optimization-1"><span class="nav-text"> 14 Optimization 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#141-relational-algebra-equivalences"><span class="nav-text"> 14.1 Relational Algebra Equivalences</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1411-predicate-pushdown"><span class="nav-text"> 14.1.1 Predicate Pushdown</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1412-projections"><span class="nav-text"> 14.1.2 Projections</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1413-join"><span class="nav-text"> 14.1.3 Join</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#142-static-rules"><span class="nav-text"> 14.2 Static Rules</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-optimization-2"><span class="nav-text"> 15 Optimization 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#151-plan-cost-estimation"><span class="nav-text"> 15.1 Plan Cost Estimation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1511-selectivity"><span class="nav-text"> 15.1.1 Selectivity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1512-sampling"><span class="nav-text"> 15.1.2 Sampling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#152-plan-enumeration"><span class="nav-text"> 15.2 Plan Enumeration</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1521-single-relation-query-planning"><span class="nav-text"> 15.2.1 Single-Relation Query Planning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1522-multi-relation-query-planning"><span class="nav-text"> 15.2.2 Multi-Relation Query Planning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1523-postgre-optimizer"><span class="nav-text"> 15.2.3 Postgre Optimizer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#153-nested-sub-queries"><span class="nav-text"> 15.3 Nested Sub-Queries</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-concurrency-control"><span class="nav-text"> 16 Concurrency Control</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-two-phase-locking"><span class="nav-text"> 17 Two Phase Locking</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-timestamp-ordering"><span class="nav-text"> 18 Timestamp Ordering</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-multiversoning"><span class="nav-text"> 19 Multiversoning</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-logging"><span class="nav-text"> 20 Logging</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-recovery"><span class="nav-text"> 21 Recovery</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-distributed"><span class="nav-text"> 22 Distributed</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-distributed-oltp"><span class="nav-text"> 23 Distributed OLTP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-distributed-olap"><span class="nav-text"> 24 Distributed OLAP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#25-oracle"><span class="nav-text"> 25 Oracle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#26-potpourri"><span class="nav-text"> 26 Potpourri</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#27-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 27 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#28-cmu-%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 28 CMU-课件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#29-%E8%BF%9B%E9%98%B6"><span class="nav-text"> 29 进阶</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-advanced-sql"><span class="nav-text"> 2 Advanced Sql</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-storage-1"><span class="nav-text"> 3 Storage 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-file-storage"><span class="nav-text"> 3.1 File Storage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-page-layout"><span class="nav-text"> 3.2 Page Layout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-tuple-layout"><span class="nav-text"> 3.3 Tuple Layout</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-storage-2"><span class="nav-text"> 4 Storage 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-data-representation"><span class="nav-text"> 4.1 Data Representation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-system-catalogs"><span class="nav-text"> 4.2 System Catalogs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-storage-models"><span class="nav-text"> 4.3 Storage Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#431-n-ary-storege-model"><span class="nav-text"> 4.3.1 N-ARY Storege Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#432-decomposition-storage-model"><span class="nav-text"> 4.3.2 Decomposition Storage Model</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-buffer-pool"><span class="nav-text"> 5 Buffer Pool</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-buffer-pool-manager"><span class="nav-text"> 5.1 Buffer Pool Manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-replacement-policies"><span class="nav-text"> 5.2 Replacement Policies</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#521-least-recently-used"><span class="nav-text"> 5.2.1 Least-Recently Used</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#522-clock"><span class="nav-text"> 5.2.2 Clock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#523-lru-k"><span class="nav-text"> 5.2.3 LRU-K</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#524-localization"><span class="nav-text"> 5.2.4 Localization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#525-priority-hints"><span class="nav-text"> 5.2.5 Priority Hints</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#526-dirty-pages"><span class="nav-text"> 5.2.6 Dirty Pages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#527-background-writing"><span class="nav-text"> 5.2.7 Background Writing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-other-memory-pools"><span class="nav-text"> 5.3 Other Memory Pools</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-%E6%80%BB%E7%BB%93"><span class="nav-text"> 5.4 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-hash-tables"><span class="nav-text"> 6 Hash Tables</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-hash-functions"><span class="nav-text"> 6.1 Hash Functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-static-hashing-schemes"><span class="nav-text"> 6.2 Static Hashing Schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-linear-probe-hashing"><span class="nav-text"> 6.2.1 Linear Probe Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-robin-hood-hashing"><span class="nav-text"> 6.2.2 Robin Hood Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-cuckoo-hashing"><span class="nav-text"> 6.2.3 Cuckoo Hashing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-dynamic-hashing-schemes"><span class="nav-text"> 6.3 Dynamic Hashing Schemes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#631-chained-hashing"><span class="nav-text"> 6.3.1 Chained Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#632-extendible-hashing"><span class="nav-text"> 6.3.2 Extendible Hashing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#633-linear-hashing"><span class="nav-text"> 6.3.3 Linear Hashing</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-trees1"><span class="nav-text"> 7 Trees1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-table-indexes"><span class="nav-text"> 7.1 Table Indexes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-b-tree-overview"><span class="nav-text"> 7.2 B+ Tree Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-design-decisions"><span class="nav-text"> 7.3 Design Decisions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-optimization"><span class="nav-text"> 7.4 Optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#741-prefix-compression"><span class="nav-text"> 7.4.1 Prefix Compression</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#742-suffix-truncation"><span class="nav-text"> 7.4.2 Suffix Truncation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#743-bulk-insert"><span class="nav-text"> 7.4.3 Bulk Insert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#744-pointer-swizzling"><span class="nav-text"> 7.4.4 Pointer Swizzling</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-trees2"><span class="nav-text"> 8 Trees2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-more-btree"><span class="nav-text"> 8.1 More B+Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-additional-index-magic"><span class="nav-text"> 8.2 Additional Index Magic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#83-tries-tree"><span class="nav-text"> 8.3 Tries Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#84-radix-tree"><span class="nav-text"> 8.4 Radix Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#85-inverted-indexe"><span class="nav-text"> 8.5 Inverted Indexe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#86-geo-spatial-tree-indexes"><span class="nav-text"> 8.6 Geo-Spatial Tree Indexes</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-index-concurrency"><span class="nav-text"> 9 Index Concurrency</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-latches-overviews"><span class="nav-text"> 9.1 Latches Overviews</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-hash-table-latching"><span class="nav-text"> 9.2 Hash Table Latching</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-btree-latching"><span class="nav-text"> 9.3 B+Tree Latching</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#931-%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%951"><span class="nav-text"> 9.3.1 优化算法1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-leafnode-scans"><span class="nav-text"> 9.4 LeafNode Scans</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#95-delayed-parent-updates"><span class="nav-text"> 9.5 Delayed Parent Updates</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-sorting-aggregate"><span class="nav-text"> 10 Sorting &amp; Aggregate</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#101-external-merge-sort"><span class="nav-text"> 10.1 External Merge Sort</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#102-aggregations"><span class="nav-text"> 10.2 Aggregations</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-joins"><span class="nav-text"> 11 Joins</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#111-simple-nested-loop-join"><span class="nav-text"> 11.1 Simple Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#112-block-nested-loop-join"><span class="nav-text"> 11.2 Block Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#113-index-nested-loop-join"><span class="nav-text"> 11.3 Index Nested Loop Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#114-sort-merge-join"><span class="nav-text"> 11.4 Sort Merge Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#115-hash-join"><span class="nav-text"> 11.5 Hash Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#116-grace-hash-join"><span class="nav-text"> 11.6 Grace Hash Join</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#117-%E6%80%BB%E7%BB%93"><span class="nav-text"> 11.7 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-query-execution-1"><span class="nav-text"> 12 Query Execution 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#121-processing-models"><span class="nav-text"> 12.1 Processing Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1211-iterator-model"><span class="nav-text"> 12.1.1 Iterator Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1212-materialization-model"><span class="nav-text"> 12.1.2 Materialization Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1213-vectorized-batch-model"><span class="nav-text"> 12.1.3 Vectorized &#x2F; Batch Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1214-plan-processing-direction"><span class="nav-text"> 12.1.4 Plan Processing Direction</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#122-access-methods"><span class="nav-text"> 12.2 Access Methods</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1221-sequential-scan"><span class="nav-text"> 12.2.1 Sequential Scan</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#12211-zone-maps"><span class="nav-text"> 12.2.1.1 Zone Maps</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#12212-late-materialization"><span class="nav-text"> 12.2.1.2 Late Materialization</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1222-index-scan"><span class="nav-text"> 12.2.2 Index Scan</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1223-multi-indexbitmap-scan"><span class="nav-text"> 12.2.3 Multi-Index&#x2F;Bitmap Scan</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#123-expression-evaluation"><span class="nav-text"> 12.3 Expression Evaluation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-query-execution-2"><span class="nav-text"> 13 Query Execution 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#131-process-models"><span class="nav-text"> 13.1 Process Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1311-process-per-dbms-worker"><span class="nav-text"> 13.1.1 Process per DBMS Worker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1312-process-pool"><span class="nav-text"> 13.1.2 Process Pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1313-thread-per-dbms-worker"><span class="nav-text"> 13.1.3 Thread per DBMS Worker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1314-scheduling"><span class="nav-text"> 13.1.4 Scheduling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#132-execution-parallelism"><span class="nav-text"> 13.2 Execution Parallelism</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1321-intra-query-parallelism"><span class="nav-text"> 13.2.1 Intra-Query Parallelism</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#13211-intra-operator-horizontal"><span class="nav-text"> 13.2.1.1 Intra-Operator (Horizontal)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13212-inter-operator-vertical"><span class="nav-text"> 13.2.1.2 Inter-Operator (Vertical)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13213-bushy"><span class="nav-text"> 13.2.1.3 Bushy</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#133-io-parallelism"><span class="nav-text"> 13.3 I&#x2F;O Parallelism</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1331-multi-disk-parallelism"><span class="nav-text"> 13.3.1 Multi-Disk Parallelism</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1332-database-partitioning"><span class="nav-text"> 13.3.2 Database Partitioning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1333-table-partitioning"><span class="nav-text"> 13.3.3 Table Partitioning</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-optimization-1"><span class="nav-text"> 14 Optimization 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#141-relational-algebra-equivalences"><span class="nav-text"> 14.1 Relational Algebra Equivalences</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1411-predicate-pushdown"><span class="nav-text"> 14.1.1 Predicate Pushdown</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1412-projections"><span class="nav-text"> 14.1.2 Projections</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1413-join"><span class="nav-text"> 14.1.3 Join</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#142-static-rules"><span class="nav-text"> 14.2 Static Rules</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-optimization-2"><span class="nav-text"> 15 Optimization 2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#151-plan-cost-estimation"><span class="nav-text"> 15.1 Plan Cost Estimation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1511-selectivity"><span class="nav-text"> 15.1.1 Selectivity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1512-sampling"><span class="nav-text"> 15.1.2 Sampling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#152-plan-enumeration"><span class="nav-text"> 15.2 Plan Enumeration</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1521-single-relation-query-planning"><span class="nav-text"> 15.2.1 Single-Relation Query Planning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1522-multi-relation-query-planning"><span class="nav-text"> 15.2.2 Multi-Relation Query Planning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1523-postgre-optimizer"><span class="nav-text"> 15.2.3 Postgre Optimizer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#153-nested-sub-queries"><span class="nav-text"> 15.3 Nested Sub-Queries</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-concurrency-control"><span class="nav-text"> 16 Concurrency Control</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#161-transactions"><span class="nav-text"> 16.1 Transactions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#162-atomicity"><span class="nav-text"> 16.2 Atomicity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#163-consistency"><span class="nav-text"> 16.3 Consistency</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#164-isolation-of-transactions"><span class="nav-text"> 16.4 Isolation of Transactions</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1641-conflict-serializable-schedules"><span class="nav-text"> 16.4.1 Conflict Serializable Schedules</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1642-view-serializability"><span class="nav-text"> 16.4.2 View Serializability</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#165-durability"><span class="nav-text"> 16.5 Durability</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-two-phase-locking"><span class="nav-text"> 17 Two Phase Locking</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#171-lock-types"><span class="nav-text"> 17.1 Lock Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#172-two-phase-locking"><span class="nav-text"> 17.2 Two Phase Locking</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#173-deaklock-detection"><span class="nav-text"> 17.3 Deaklock Detection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#174-deaklock-prevention"><span class="nav-text"> 17.4 Deaklock Prevention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#175-hierarchical-locking"><span class="nav-text"> 17.5 Hierarchical Locking</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1751-intention-locks"><span class="nav-text"> 17.5.1 Intention Locks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1752-lock-escalation"><span class="nav-text"> 17.5.2 Lock Escalation</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-timestamp-ordering"><span class="nav-text"> 18 Timestamp Ordering</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#181-basic-timestamp-ordering-protocol"><span class="nav-text"> 18.1 Basic Timestamp Ordering Protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#182-optimistic-concurrency-control"><span class="nav-text"> 18.2 Optimistic Concurrency Control</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#183-partition-based-timestamp-ordering"><span class="nav-text"> 18.3 Partition-based Timestamp Ordering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#184-isolation-levels"><span class="nav-text"> 18.4 Isolation Levels</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-multiversoning"><span class="nav-text"> 19 Multiversoning</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-logging"><span class="nav-text"> 20 Logging</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-recovery"><span class="nav-text"> 21 Recovery</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-distributed"><span class="nav-text"> 22 Distributed</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-distributed-oltp"><span class="nav-text"> 23 Distributed OLTP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-distributed-olap"><span class="nav-text"> 24 Distributed OLAP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#25-oracle"><span class="nav-text"> 25 Oracle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#26-potpourri"><span class="nav-text"> 26 Potpourri</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#27-%E7%BC%A9%E5%86%99%E8%A1%A8"><span class="nav-text"> 27 缩写表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#28-cmu-%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 28 CMU-课件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#29-%E8%BF%9B%E9%98%B6"><span class="nav-text"> 29 进阶</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
