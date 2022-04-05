@@ -68,8 +68,32 @@
 <meta property="og:image" content="http://example.com/images/CMU-15-721/11-2.png">
 <meta property="og:image" content="http://example.com/images/CMU-15-721/11-3.png">
 <meta property="og:image" content="http://example.com/images/CMU-15-721/11-4.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/12-1.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/12-2.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/12-3.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/12-4.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/13-1.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/13-2.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/13-3.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/13-4.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/13-5.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/13-6.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/14-1.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-1.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-2.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-3.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-4.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-5.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-6.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-7.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-8.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-9.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-10.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-11.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-12.png">
+<meta property="og:image" content="http://example.com/images/CMU-15-721/15-13.png">
 <meta property="article:published_time" content="2022-03-02T01:04:53.000Z">
-<meta property="article:modified_time" content="2022-03-26T03:18:00.258Z">
+<meta property="article:modified_time" content="2022-04-05T06:26:00.506Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -271,7 +295,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-26 11:18:00" itemprop="dateModified" datetime="2022-03-26T11:18:00+08:00">2022-03-26</time>
+                <time title="修改时间：2022-04-05 14:26:00" itemprop="dateModified" datetime="2022-04-05T14:26:00+08:00">2022-04-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1732,9 +1756,336 @@
 </li>
 </ul>
 <h1 id="12-scheduling"><a class="markdownIt-Anchor" href="#12-scheduling"></a> 12 scheduling</h1>
+<p>对于每个查询计划，<code>DBMS</code>必须决定何时、何地、以及如何执行</p>
+<h2 id="121-process-models"><a class="markdownIt-Anchor" href="#121-process-models"></a> 12.1 Process Models</h2>
+<p><strong><code>Process Models</code>有以下三种</strong></p>
+<ul>
+<li><code>Process per DBMS Worker</code>
+<ul>
+<li>每个<code>Worker</code>都是一个进程，且依赖操作系统的进程调度</li>
+<li>使用共享内存来共享一些全局资源</li>
+<li>一个进程挂了不影响整个系统</li>
+<li><code>IBM DB2</code>、<code>Postgres</code>、<code>Oracle</code></li>
+</ul>
+</li>
+<li><code>Process Pool</code>
+<ul>
+<li>维护一个进程池，当有查询时，随机挑选一个空闲的进程来进行计算</li>
+<li>仍然依赖操作系统调度以及共享内存</li>
+<li><code>CPU Cache</code>不友好</li>
+<li><code>IBM DB2</code>、<code>Postgres(2015)</code></li>
+</ul>
+</li>
+<li><code>Thread per DBMS Worker</code>
+<ul>
+<li>维护一个线程池，<code>DBMS</code>需要管理调度</li>
+<li>线程挂了会导致整个系统崩溃</li>
+<li><code>IBM DB2</code>、<code>MSSQL</code>、<code>MySQL</code>、<code>Oracle(2014)</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="122-data-placement"><a class="markdownIt-Anchor" href="#122-data-placement"></a> 12.2 Data Placement</h2>
+<p><strong>调度器必须感知硬件的内存布局</strong></p>
+<ul>
+<li><code>Uniform Memory Access, UMA</code>
+<ul>
+<li><img src="/images/CMU-15-721/12-1.png" alt="12-1" /></li>
+</ul>
+</li>
+<li><code>Non-Uniform Memory Access, NUMA</code>
+<ul>
+<li><img src="/images/CMU-15-721/12-2.png" alt="12-2" /></li>
+</ul>
+</li>
+</ul>
+<p><strong><code>DBMS</code>可以将内存分区，并将每个分区分配给一个<code>CPU</code>。通过控制和跟踪分区的位置，将算子调度到最近的<code>CPU</code>上执行</strong></p>
+<ul>
+<li>可以参考<a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man2/move_pages.2.html">move_pages(2) — Linux manual page</a>、<a target="_blank" rel="noopener" href="https://linux.die.net/man/8/numactl">numactl(8) - Linux man page</a></li>
+</ul>
+<p><strong><code>Memory Allocation Location</code></strong></p>
+<ul>
+<li><code>Interleaving</code>：跨CPU均匀分布内存</li>
+<li><code>First-Touch</code>：在CPU第一次访问该内存时（<code>Page Fault</code>）</li>
+<li>操作系统可以根据其观测到的访问模式，将内存移动到另一个<code>NUMA Region</code></li>
+</ul>
+<h2 id="123-scheduling"><a class="markdownIt-Anchor" href="#123-scheduling"></a> 12.3 Scheduling</h2>
+<ul>
+<li><code>Static Scheduling</code>
+<ul>
+<li>在生成查询计划时就决定使用多少个线程，且在执行过程中，不会发生改变</li>
+</ul>
+</li>
+<li><code>Morsel-Driven Scheduling</code>：<code>Task</code>中数据对应的内存，分为多个区域（称为<code>Morsel</code>），分布在不同核上
+<ul>
+<li>每个<code>Worker</code>一个核（如何绑核）</li>
+<li><code>Pull-Based Task Assignment</code></li>
+<li><code>Round-Robin Data Placement</code></li>
+</ul>
+</li>
+<li><code>Hyper-Architecture</code>：<code>Worker</code>使用队列来协助调度
+<ul>
+<li><code>Worker</code>会尽量选择那些本地的<code>Task</code>来执行（<code>Cache Locality</code>，尽量保证<code>Task</code>在同一个核上执行）</li>
+<li>当没有本地的<code>Task</code>时，尝试从全局的队列中获取<code>Task</code>来执行（<code>stealing</code>）</li>
+<li><img src="/images/CMU-15-721/12-3.png" alt="12-3" /></li>
+</ul>
+</li>
+</ul>
+<p><strong><code>SAP HANA - NUMA-Aware Scheduler</code></strong></p>
+<ul>
+<li>线程组（<code>Group</code>）
+<ul>
+<li>每个<code>Group</code>包含多个线程池（<code>Pools</code>）
+<ul>
+<li><code>Working</code>：正在执行<code>Task</code></li>
+<li><code>Inactive</code>：阻塞中</li>
+<li><code>Free</code>：短暂地休眠后会查看是否可以获取新的<code>Task</code></li>
+<li><code>Parked</code>：休眠，等待操作系统唤醒</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>每个<code>CPU</code>可以拥有多个<code>Group</code></li>
+<li>每个<code>Group</code>需要有优先级队列（<code>Hard</code>、<code>Soft</code>）
+<ul>
+<li>线程可以从其他<code>Group</code>中的<code>Sort</code>队列中窃取任务</li>
+</ul>
+</li>
+<li>一个额外的<code>Watchdog Thread</code>，用于监测<code>Group</code>的饱和度，并且可以动态分配任务</li>
+<li><img src="/images/CMU-15-721/12-4.png" alt="12-4" /></li>
+</ul>
+<p><strong>当请求到达的速度比<code>DBMS</code>执行的速度更快时，系统就超载了（<code>Overload</code>）</strong></p>
+<ul>
+<li><code>CPU Bound</code>：执行非常慢</li>
+<li><code>Memory Bound</code>：<code>OOM</code></li>
+</ul>
+<p><strong>如何解决超载问题</strong></p>
+<ul>
+<li><code>Admission Control</code>：终止新的请求</li>
+<li><code>Throttling</code>：放慢响应速度</li>
+</ul>
 <h1 id="13-execution"><a class="markdownIt-Anchor" href="#13-execution"></a> 13 execution</h1>
+<ol>
+<li>Query Plan Processing</li>
+<li>Scan Sharing</li>
+<li>Materialized Views</li>
+<li>Query Compilation</li>
+<li>Vectorized Operators</li>
+<li>Parallel Algorithms</li>
+<li>Application Logic Executions</li>
+</ol>
+<h2 id="131-system-architecture"><a class="markdownIt-Anchor" href="#131-system-architecture"></a> 13.1 System Architecture</h2>
+<p><strong><code>CPU</code>以流水线的方式执行指令，目的是充分利用CPU的每个时钟周期。部分<code>CPU</code>甚至可以包含多条流水线，只要指令之间无相互依赖，就可以并行执行。部分情况会导致流水线停顿，比如：</strong></p>
+<ul>
+<li><code>Dependencies</code>：指令之间相互依赖，指令<code>A</code>依赖指令<code>B</code>的结果</li>
+<li><code>Branch Prediction</code>：分支预测，当预测错误时，就需要回退，并重新执行另一个分支</li>
+</ul>
+<p>对于分支预测来说，有两个典型的场景</p>
+<ul>
+<li><code>Selection Scan</code>  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> <span class="keyword">table</span></span><br><span class="line"><span class="keyword">WHERE</span> key <span class="operator">&gt;=</span> $(low)</span><br><span class="line"><span class="keyword">AND</span> key <span class="operator">&lt;=</span> $(high)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><img src="/images/CMU-15-721/13-1.png" alt="13-1" /></li>
+</ul>
+</li>
+<li><code>Multi-Data Types</code>：<code>DBMS</code>需要支持多种类型，因此在执行操作前必须对每个类型进行校验，这就会引入非常巨大的<code>switch</code>语句，进一步降低<code>CPU</code>对分支预测的准确性</li>
+</ul>
+<h2 id="132-processing-models"><a class="markdownIt-Anchor" href="#132-processing-models"></a> 13.2 Processing Models</h2>
+<h3 id="1321-iterator-model"><a class="markdownIt-Anchor" href="#1321-iterator-model"></a> 13.2.1 Iterator Model</h3>
+<p><strong>特征：每个算子都实现了<code>next</code>方法</strong></p>
+<ul>
+<li>每次迭代，算子都返回一个<code>Tuple</code>或者空值</li>
+<li>算子会先通过循环调用孩子算子的<code>next</code>获取输入</li>
+<li><img src="/images/CMU-15-721/13-2.png" alt="13-2" /></li>
+</ul>
+<h3 id="1322-materialization-model"><a class="markdownIt-Anchor" href="#1322-materialization-model"></a> 13.2.2 Materialization Model</h3>
+<p><strong>特征：<code>all-at-once</code>，即算子一次性处理所有的输入，并一次性返回所有的结果</strong></p>
+<ul>
+<li>函数调用次数少</li>
+<li>输出可以是完整的<code>Tuple</code>（<code>NSM</code>），或者仅包含部分列（<code>DSM</code>）</li>
+<li>对<code>OLTP</code>友好，对<code>OLAP</code>不友好</li>
+<li><img src="/images/CMU-15-721/13-3.png" alt="13-3" /></li>
+</ul>
+<h3 id="1323-vectorized-batch-model"><a class="markdownIt-Anchor" href="#1323-vectorized-batch-model"></a> 13.2.3 Vectorized / Batch Model</h3>
+<p><strong>类似于<code>Iterator Model</code>，每个算子都实现了<code>next</code>方法，但区别是每次返回的是一批<code>Tuple</code>而不是一个<code>Tuple</code></strong></p>
+<ul>
+<li>算子需要在内部实现一个循环遍历每批<code>Tuple</code></li>
+<li>批的大小取决于硬件（<code>Cache</code>）</li>
+<li>对<code>OLAP</code>友好，可以大幅降低函数调用次数，且可以使用<code>SIMD</code>指令加速处理</li>
+<li><img src="/images/CMU-15-721/13-4.png" alt="13-4" /></li>
+</ul>
+<h2 id="133-parallel-execution"><a class="markdownIt-Anchor" href="#133-parallel-execution"></a> 13.3 Parallel Execution</h2>
+<p><strong>执行方向有两种：</strong></p>
+<ul>
+<li><code>Top-to-Bottom</code>：从根节点开始，依次从孩子节点<code>pull</code>数据</li>
+<li><code>Bottom-to-Top</code>：从叶节点开始，依次向父节点<code>push</code>数据
+<ul>
+<li>Allows for tighter control of caches/registers in pipelines.</li>
+</ul>
+</li>
+</ul>
+<p><strong>通常，我们可以通过并发执行来提高整体的执行效率。且并行执行的实现难易程度与<code>Process Model</code>相关性不大，即比较独立</strong></p>
+<ul>
+<li><code>Intra-Query-Parallelism</code>
+<ul>
+<li><code>Intra-Operator</code>
+<ul>
+<li>算子实例化多份，每个实例分别处理不同的数据集</li>
+<li>有时需要插入<code>Exchange</code>算子来合并多路输入</li>
+<li><img src="/images/CMU-15-721/13-5.png" alt="13-5" /></li>
+</ul>
+</li>
+<li><code>Inter-Operator</code>
+<ul>
+<li><img src="/images/CMU-15-721/13-6.png" alt="13-6" /></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>并行度的设置与CPU核数、数据大小、算子实现都相关</strong></p>
+<ul>
+<li><code>One Worker per Core</code>
+<ul>
+<li>工作线程与<code>Core</code>绑定</li>
+<li>线程不可阻塞，因为无其他线程可用</li>
+</ul>
+</li>
+<li><code>Multiple Worders per Core</code>
+<ul>
+<li>每个核关联一个线程池</li>
+<li>线程可以阻塞</li>
+</ul>
+</li>
+</ul>
 <h1 id="14-compilation"><a class="markdownIt-Anchor" href="#14-compilation"></a> 14 compilation</h1>
+<h2 id="141-background"><a class="markdownIt-Anchor" href="#141-background"></a> 14.1 Background</h2>
+<p>如果仅考虑内存数据库，那么提升数据库的性能的唯一方式就是减少执行的指令数量</p>
+<p>一种可以显著减少指令数量的方法叫做：<code>Code Specialization</code>，比如为某个查询生成特定的高效代码。绝大部分的代码都必须首先保证易读，其次再考虑性能</p>
+<h2 id="142-gode-generation"><a class="markdownIt-Anchor" href="#142-gode-generation"></a> 14.2 Gode Generation</h2>
+<p><code>Code Generation</code>的两种方式</p>
+<ul>
+<li><code>Transpilation</code>：将查询计划翻译成某种语言的源码，然后使用该语言的编译器编译成本地代码</li>
+<li><code>JIT Compilation</code>：生成代码的中间表示<code>Intermediate Representation, IR</code>，例如Java的<code>.class</code>文件、<code>LLVM IR</code>，然后在运行时生成本地代码</li>
+</ul>
+<h2 id="143-real-word-implementations"><a class="markdownIt-Anchor" href="#143-real-word-implementations"></a> 14.3 Real-Word Implementations</h2>
+<p><img src="/images/CMU-15-721/14-1.png" alt="14-1" /></p>
 <h1 id="15-vectorization1"><a class="markdownIt-Anchor" href="#15-vectorization1"></a> 15 vectorization1</h1>
+<h2 id="151-background"><a class="markdownIt-Anchor" href="#151-background"></a> 15.1 Background</h2>
+<p>向量化指的是一次处理一组数据，需要借助<code>Single Instruction Multiple Data, SIMD</code>指令</p>
+<ul>
+<li><code>x86</code>：<code>MMX</code>/<code>SSE</code>/<code>SSE2</code>/<code>SSE3</code>/<code>SSE4</code>/<code>AVX</code>/<code>AVX2</code>/<code>AVX512</code>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.techspot.com/article/2166-mmx-sse-avx-explained/">Explainer: What are MMX, SSE, and AVX?</a></li>
+</ul>
+</li>
+<li><code>PowerPC</code>：<code>Altivec</code></li>
+<li><code>ARM</code>：<code>NEON</code>/<code>SVE</code></li>
+<li>数据可以绕过<code>CPU Cache</code>直接从<code>SIMD Registers</code>写入内存</li>
+<li><img src="/images/CMU-15-721/15-1.png" alt="15-1" /></li>
+<li><img src="/images/CMU-15-721/15-2.png" alt="15-2" /></li>
+</ul>
+<p><strong><code>SIMD</code>的优劣势：</strong></p>
+<ul>
+<li>优势：
+<ul>
+<li>成倍提升程序性能</li>
+</ul>
+</li>
+<li>劣势：
+<ul>
+<li>编写<code>SIMD</code>程序比较繁琐（现在编译器可以帮你完成这个工作）</li>
+<li>要求数据严格对齐</li>
+<li>将数据放入<code>SIMD Registers</code>或者将数据从<code>SIMD Registers</code>放回对应的内存地址中这一过程比较<code>tricky</code>或者低效</li>
+</ul>
+</li>
+</ul>
+<h2 id="152-vectorization"><a class="markdownIt-Anchor" href="#152-vectorization"></a> 15.2 Vectorization</h2>
+<p><strong>向量化的方式有如下三种：</strong></p>
+<ul>
+<li><code>Automatic Vectorization</code>
+<ul>
+<li>编译器可以自动判断位于一个循环内的指令是否能替换成<code>SIMD</code>指令</li>
+<li>无法对存在<code>Pointer Aliasing</code>的代码进行向量化</li>
+</ul>
+</li>
+<li><code>Compiler Hints</code>
+<ul>
+<li>提供额外的信息让编译器进行向量化</li>
+<li>比如，用<code>__restrict</code>关键词或者<code>#pragma ivdep</code>可以消除<code>Pointer Aliasing</code></li>
+</ul>
+</li>
+<li><code>Explicit Vectorization</code>
+<ul>
+<li>手动编写向量化代码</li>
+</ul>
+  <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;emmintrin.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int32_t</span>* a, <span class="keyword">int32_t</span>* b, <span class="keyword">int32_t</span>* res, <span class="keyword">int32_t</span> size)</span> </span>&#123;</span><br><span class="line">    __m128i* vec_a = (__m128i*)a;</span><br><span class="line">    __m128i* vec_b = (__m128i*)b;</span><br><span class="line">    __m128i* vec_res = (__m128i*)res;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size / <span class="number">4</span>; i++) &#123;</span><br><span class="line">        _mm_store_si128(vec_res++, _mm_add_epi32(*vec_a++, *vec_b++));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">constexpr</span> <span class="keyword">int32_t</span> SIZE = <span class="number">100</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int32_t</span> a[SIZE];</span><br><span class="line">    <span class="keyword">int32_t</span> b[SIZE];</span><br><span class="line">    <span class="keyword">int32_t</span> res[SIZE];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; SIZE; i++) &#123;</span><br><span class="line">        a[i] = i;</span><br><span class="line">        b[i] = SIZE - i;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">add</span>(a, b, res, SIZE);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> i = <span class="number">0</span>; i &lt; SIZE; i++) &#123;</span><br><span class="line">        std::cout &lt;&lt; i &lt;&lt; <span class="string">&quot;: &quot;</span> &lt;&lt; res[i] &lt;&lt; std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><strong><code>Vectorization Direction</code>：</strong></p>
+<ul>
+<li><code>Horizontal</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-3.png" alt="15-3" /></li>
+</ul>
+</li>
+<li><code>Vertical</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-4.png" alt="15-4" /></li>
+</ul>
+</li>
+</ul>
+<h2 id="153-vectorized-algorithms"><a class="markdownIt-Anchor" href="#153-vectorized-algorithms"></a> 15.3 Vectorized Algorithms</h2>
+<p>向量化算法是指更好地利用向量化操作来实现高级功能的方法和原则</p>
+<ul>
+<li><code>Vertical Vectorization</code>，要能处理不同的输入数据</li>
+<li><code>Maximum Lane utilization</code>，向量寄存器中尽量填放更多的数据</li>
+</ul>
+<p><strong><code>Fundamental Operations</code></strong></p>
+<ul>
+<li><code>Selective Load</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-5.png" alt="15-5" /></li>
+</ul>
+</li>
+<li><code>Selective Store</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-6.png" alt="15-6" /></li>
+</ul>
+</li>
+<li><code>Selective Gather</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-7.png" alt="15-7" /></li>
+</ul>
+</li>
+<li><code>Selective Scatter</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-8.png" alt="15-8" /></li>
+</ul>
+</li>
+<li>注意，在当前的体系结构中，<code>Selective Gather</code>和<code>Selective Scatter</code>可能无法实现并行，因为<code>L1 Cache</code>每个周期只允许一个或两个不同的访问。也许在新的CPU中能解决这个问题</li>
+</ul>
+<p><strong><code>Vectorized Operators</code>：</strong></p>
+<ul>
+<li><code>Selection Scans</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-9.png" alt="15-9" /></li>
+<li><img src="/images/CMU-15-721/15-10.png" alt="15-10" /></li>
+</ul>
+</li>
+<li><code>Hash Tables</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-11.png" alt="15-11" /></li>
+<li><img src="/images/CMU-15-721/15-12.png" alt="15-12" /></li>
+</ul>
+</li>
+<li><code>Partitioning</code> / <code>Histograms</code>
+<ul>
+<li><img src="/images/CMU-15-721/15-13.png" alt="15-13" /></li>
+</ul>
+</li>
+<li><code>Joins</code></li>
+<li><code>Sorting</code></li>
+<li><code>Bloom filters</code></li>
+</ul>
 <h1 id="16-vectorization2"><a class="markdownIt-Anchor" href="#16-vectorization2"></a> 16 vectorization2</h1>
 <h1 id="17-hashjoins"><a class="markdownIt-Anchor" href="#17-hashjoins"></a> 17 hashjoins</h1>
 <h1 id="18-sortmergejoins"><a class="markdownIt-Anchor" href="#18-sortmergejoins"></a> 18 sortmergejoins</h1>
@@ -1778,7 +2129,7 @@
 </ol>
 <h1 id="27-summary"><a class="markdownIt-Anchor" href="#27-summary"></a> 27 Summary</h1>
 <div class="markmap-container" style="height:undefined">
-                <svg class="markmap-svg">{"t":"root","d":0,"v":"","c":[{"t":"list_item","d":2,"p":{"lines":[0,1]},"v":"Buffer Pool","c":[{"t":"list_item","d":4,"p":{"lines":[1,2]},"v":"Design Goals","c":[{"t":"list_item","d":6,"p":{"lines":[2,3]},"v":"Accuracy"},{"t":"list_item","d":6,"p":{"lines":[3,4]},"v":"Correctness"},{"t":"list_item","d":6,"p":{"lines":[4,5]},"v":"Efficiency"},{"t":"list_item","d":6,"p":{"lines":[5,6]},"v":"Overhead"}]},{"t":"list_item","d":4,"p":{"lines":[6,7]},"v":"Replacement Policy","c":[{"t":"list_item","d":6,"p":{"lines":[7,8]},"v":"Least-Recently Used"},{"t":"list_item","d":6,"p":{"lines":[8,9]},"v":"Clock"},{"t":"list_item","d":6,"p":{"lines":[9,10]},"v":"LRU-K"},{"t":"list_item","d":6,"p":{"lines":[10,11]},"v":"Localization"},{"t":"list_item","d":6,"p":{"lines":[11,12]},"v":"Priority Hints"}]},{"t":"list_item","d":4,"p":{"lines":[12,13]},"v":"Dirty Pages","c":[{"t":"list_item","d":6,"p":{"lines":[13,14]},"v":"Background Writing"}]}]},{"t":"list_item","d":2,"p":{"lines":[14,15]},"v":"MVCC","c":[{"t":"list_item","d":4,"p":{"lines":[15,16]},"v":"Concurrency Control Protocol","c":[{"t":"list_item","d":6,"p":{"lines":[16,17]},"v":"Timestamp Ordering"},{"t":"list_item","d":6,"p":{"lines":[17,18]},"v":"Optimistic Concurrency Control"},{"t":"list_item","d":6,"p":{"lines":[18,19]},"v":"Two-Phase Locking"}]},{"t":"list_item","d":4,"p":{"lines":[19,20]},"v":"Version Storage","c":[{"t":"list_item","d":6,"p":{"lines":[20,21]},"v":"Append-Only Storage"},{"t":"list_item","d":6,"p":{"lines":[21,22]},"v":"Time-Travel Storage"},{"t":"list_item","d":6,"p":{"lines":[22,23]},"v":"Delta Storage"}]},{"t":"list_item","d":4,"p":{"lines":[23,24]},"v":"Garbage Collection","c":[{"t":"list_item","d":6,"p":{"lines":[24,25]},"v":"Tuple-Level","c":[{"t":"list_item","d":8,"p":{"lines":[25,26]},"v":"Background Vacuuming"},{"t":"list_item","d":8,"p":{"lines":[26,27]},"v":"Cooperative Cleaning"}]},{"t":"list_item","d":6,"p":{"lines":[27,28]},"v":"Transaction-Level"}]},{"t":"list_item","d":4,"p":{"lines":[28,29]},"v":"Index Management","c":[{"t":"list_item","d":6,"p":{"lines":[29,30]},"v":"Primary Key Index"},{"t":"list_item","d":6,"p":{"lines":[30,31]},"v":"Secondary Index","c":[{"t":"list_item","d":8,"p":{"lines":[31,32]},"v":"Logical Pointer"},{"t":"list_item","d":8,"p":{"lines":[32,33]},"v":"Physical Pointer"}]}]}]},{"t":"list_item","d":2,"p":{"lines":[33,34]},"v":"Index","c":[{"t":"list_item","d":4,"p":{"lines":[34,35]},"v":"B+ Tree"},{"t":"list_item","d":4,"p":{"lines":[35,36]},"v":"Bw Tree"},{"t":"list_item","d":4,"p":{"lines":[36,37]},"v":"Skip List"},{"t":"list_item","d":4,"p":{"lines":[37,38]},"v":"ART","c":[{"t":"list_item","d":6,"p":{"lines":[38,39]},"v":"Node4"},{"t":"list_item","d":6,"p":{"lines":[39,40]},"v":"Node16"},{"t":"list_item","d":6,"p":{"lines":[40,41]},"v":"Node48"},{"t":"list_item","d":6,"p":{"lines":[41,42]},"v":"Node256"}]},{"t":"list_item","d":4,"p":{"lines":[42,43]},"v":"Masstree"}]},{"t":"list_item","d":2,"p":{"lines":[43,44]},"v":"Storage","c":[{"t":"list_item","d":4,"p":{"lines":[44,45]},"v":"Type Representation"},{"t":"list_item","d":4,"p":{"lines":[45,46]},"v":"Data layout"},{"t":"list_item","d":4,"p":{"lines":[46,47]},"v":"Storage Model","c":[{"t":"list_item","d":6,"p":{"lines":[47,48]},"v":"NSM"},{"t":"list_item","d":6,"p":{"lines":[48,49]},"v":"DSM"},{"t":"list_item","d":6,"p":{"lines":[49,50]},"v":"Hybrid Storage Model"}]},{"t":"list_item","d":4,"p":{"lines":[50,51]},"v":"System Catalog"}]},{"t":"list_item","d":2,"p":{"lines":[51,52]},"v":"Compression","c":[{"t":"list_item","d":4,"p":{"lines":[52,53]},"v":"Naive Compression","c":[{"t":"list_item","d":6,"p":{"lines":[53,54]},"v":"LZO"},{"t":"list_item","d":6,"p":{"lines":[54,55]},"v":"LZ4"},{"t":"list_item","d":6,"p":{"lines":[55,56]},"v":"Snappy"},{"t":"list_item","d":6,"p":{"lines":[56,57]},"v":"Brotli"},{"t":"list_item","d":6,"p":{"lines":[57,58]},"v":"Oracle OZIP"},{"t":"list_item","d":6,"p":{"lines":[58,59]},"v":"Zstd"}]},{"t":"list_item","d":4,"p":{"lines":[59,60]},"v":"Null Supression"},{"t":"list_item","d":4,"p":{"lines":[60,61]},"v":"Run-length Encoding"},{"t":"list_item","d":4,"p":{"lines":[61,62]},"v":"Bitmap Encoding"},{"t":"list_item","d":4,"p":{"lines":[62,63]},"v":"Delta Encoding"},{"t":"list_item","d":4,"p":{"lines":[63,64]},"v":"Incremental Encoding"},{"t":"list_item","d":4,"p":{"lines":[64,65]},"v":"Mostly Encoding"},{"t":"list_item","d":4,"p":{"lines":[65,66]},"v":"Dictionary Encoding"}]},{"t":"list_item","d":2,"p":{"lines":[66,67]},"v":"Recovery","c":[{"t":"list_item","d":4,"p":{"lines":[67,68]},"v":"Logging Schemes","c":[{"t":"list_item","d":6,"p":{"lines":[68,69]},"v":"Physical vs. Logical"},{"t":"list_item","d":6,"p":{"lines":[69,70]},"v":"Flush"}]},{"t":"list_item","d":4,"p":{"lines":[70,71]},"v":"Checkpoint Protocols","c":[{"t":"list_item","d":6,"p":{"lines":[71,72]},"v":"Checkpoint Mechanism"},{"t":"list_item","d":6,"p":{"lines":[72,73]},"v":"Checkpoint Contents"},{"t":"list_item","d":6,"p":{"lines":[73,74]},"v":"Frequency"}]},{"t":"list_item","d":4,"p":{"lines":[74,75]},"v":"Restart Protocols"}]},{"t":"list_item","d":2,"p":{"lines":[75,76]},"v":"Network","c":[{"t":"list_item","d":4,"p":{"lines":[76,77]},"v":"Database Access API","c":[{"t":"list_item","d":6,"p":{"lines":[77,78]},"v":"DBMS-Specific"},{"t":"list_item","d":6,"p":{"lines":[78,79]},"v":"ODBC"},{"t":"list_item","d":6,"p":{"lines":[79,80]},"v":"JDBC"}]},{"t":"list_item","d":4,"p":{"lines":[80,81]},"v":"Database Network Protocols"},{"t":"list_item","d":4,"p":{"lines":[81,82]},"v":"Replication Protocols","c":[{"t":"list_item","d":6,"p":{"lines":[82,83]},"v":"Replica Configuration","c":[{"t":"list_item","d":8,"p":{"lines":[83,84]},"v":"Master-Replica"},{"t":"list_item","d":8,"p":{"lines":[84,85]},"v":"Multi-Master"}]},{"t":"list_item","d":6,"p":{"lines":[85,86]},"v":"Propagation Scheme"}]},{"t":"list_item","d":4,"p":{"lines":[86,87]},"v":"Kernel Bypass Methods"}]}],"p":{}}</svg>
+                <svg class="markmap-svg">{"t":"root","d":0,"v":"","c":[{"t":"list_item","d":2,"p":{"lines":[0,1]},"v":"Buffer Pool","c":[{"t":"list_item","d":4,"p":{"lines":[1,2]},"v":"Design Goals","c":[{"t":"list_item","d":6,"p":{"lines":[2,3]},"v":"Accuracy"},{"t":"list_item","d":6,"p":{"lines":[3,4]},"v":"Correctness"},{"t":"list_item","d":6,"p":{"lines":[4,5]},"v":"Efficiency"},{"t":"list_item","d":6,"p":{"lines":[5,6]},"v":"Overhead"}]},{"t":"list_item","d":4,"p":{"lines":[6,7]},"v":"Replacement Policy","c":[{"t":"list_item","d":6,"p":{"lines":[7,8]},"v":"Least-Recently Used"},{"t":"list_item","d":6,"p":{"lines":[8,9]},"v":"Clock"},{"t":"list_item","d":6,"p":{"lines":[9,10]},"v":"LRU-K"},{"t":"list_item","d":6,"p":{"lines":[10,11]},"v":"Localization"},{"t":"list_item","d":6,"p":{"lines":[11,12]},"v":"Priority Hints"}]},{"t":"list_item","d":4,"p":{"lines":[12,13]},"v":"Dirty Pages","c":[{"t":"list_item","d":6,"p":{"lines":[13,14]},"v":"Background Writing"}]}]},{"t":"list_item","d":2,"p":{"lines":[14,15]},"v":"MVCC","c":[{"t":"list_item","d":4,"p":{"lines":[15,16]},"v":"Concurrency Control Protocol","c":[{"t":"list_item","d":6,"p":{"lines":[16,17]},"v":"Timestamp Ordering"},{"t":"list_item","d":6,"p":{"lines":[17,18]},"v":"Optimistic Concurrency Control"},{"t":"list_item","d":6,"p":{"lines":[18,19]},"v":"Two-Phase Locking"}]},{"t":"list_item","d":4,"p":{"lines":[19,20]},"v":"Version Storage","c":[{"t":"list_item","d":6,"p":{"lines":[20,21]},"v":"Append-Only Storage"},{"t":"list_item","d":6,"p":{"lines":[21,22]},"v":"Time-Travel Storage"},{"t":"list_item","d":6,"p":{"lines":[22,23]},"v":"Delta Storage"}]},{"t":"list_item","d":4,"p":{"lines":[23,24]},"v":"Garbage Collection","c":[{"t":"list_item","d":6,"p":{"lines":[24,25]},"v":"Tuple-Level","c":[{"t":"list_item","d":8,"p":{"lines":[25,26]},"v":"Background Vacuuming"},{"t":"list_item","d":8,"p":{"lines":[26,27]},"v":"Cooperative Cleaning"}]},{"t":"list_item","d":6,"p":{"lines":[27,28]},"v":"Transaction-Level"}]},{"t":"list_item","d":4,"p":{"lines":[28,29]},"v":"Index Management","c":[{"t":"list_item","d":6,"p":{"lines":[29,30]},"v":"Primary Key Index"},{"t":"list_item","d":6,"p":{"lines":[30,31]},"v":"Secondary Index","c":[{"t":"list_item","d":8,"p":{"lines":[31,32]},"v":"Logical Pointer"},{"t":"list_item","d":8,"p":{"lines":[32,33]},"v":"Physical Pointer"}]}]}]},{"t":"list_item","d":2,"p":{"lines":[33,34]},"v":"Index","c":[{"t":"list_item","d":4,"p":{"lines":[34,35]},"v":"B+ Tree"},{"t":"list_item","d":4,"p":{"lines":[35,36]},"v":"Bw Tree"},{"t":"list_item","d":4,"p":{"lines":[36,37]},"v":"Skip List"},{"t":"list_item","d":4,"p":{"lines":[37,38]},"v":"ART","c":[{"t":"list_item","d":6,"p":{"lines":[38,39]},"v":"Node4"},{"t":"list_item","d":6,"p":{"lines":[39,40]},"v":"Node16"},{"t":"list_item","d":6,"p":{"lines":[40,41]},"v":"Node48"},{"t":"list_item","d":6,"p":{"lines":[41,42]},"v":"Node256"}]},{"t":"list_item","d":4,"p":{"lines":[42,43]},"v":"Masstree"}]},{"t":"list_item","d":2,"p":{"lines":[43,44]},"v":"Storage","c":[{"t":"list_item","d":4,"p":{"lines":[44,45]},"v":"Type Representation"},{"t":"list_item","d":4,"p":{"lines":[45,46]},"v":"Data layout"},{"t":"list_item","d":4,"p":{"lines":[46,47]},"v":"Storage Model","c":[{"t":"list_item","d":6,"p":{"lines":[47,48]},"v":"NSM"},{"t":"list_item","d":6,"p":{"lines":[48,49]},"v":"DSM"},{"t":"list_item","d":6,"p":{"lines":[49,50]},"v":"Hybrid Storage Model"}]},{"t":"list_item","d":4,"p":{"lines":[50,51]},"v":"System Catalog"}]},{"t":"list_item","d":2,"p":{"lines":[51,52]},"v":"Compression","c":[{"t":"list_item","d":4,"p":{"lines":[52,53]},"v":"Naive Compression","c":[{"t":"list_item","d":6,"p":{"lines":[53,54]},"v":"LZO"},{"t":"list_item","d":6,"p":{"lines":[54,55]},"v":"LZ4"},{"t":"list_item","d":6,"p":{"lines":[55,56]},"v":"Snappy"},{"t":"list_item","d":6,"p":{"lines":[56,57]},"v":"Brotli"},{"t":"list_item","d":6,"p":{"lines":[57,58]},"v":"Oracle OZIP"},{"t":"list_item","d":6,"p":{"lines":[58,59]},"v":"Zstd"}]},{"t":"list_item","d":4,"p":{"lines":[59,60]},"v":"Null Supression"},{"t":"list_item","d":4,"p":{"lines":[60,61]},"v":"Run-length Encoding"},{"t":"list_item","d":4,"p":{"lines":[61,62]},"v":"Bitmap Encoding"},{"t":"list_item","d":4,"p":{"lines":[62,63]},"v":"Delta Encoding"},{"t":"list_item","d":4,"p":{"lines":[63,64]},"v":"Incremental Encoding"},{"t":"list_item","d":4,"p":{"lines":[64,65]},"v":"Mostly Encoding"},{"t":"list_item","d":4,"p":{"lines":[65,66]},"v":"Dictionary Encoding"}]},{"t":"list_item","d":2,"p":{"lines":[66,67]},"v":"Recovery","c":[{"t":"list_item","d":4,"p":{"lines":[67,68]},"v":"Logging Schemes","c":[{"t":"list_item","d":6,"p":{"lines":[68,69]},"v":"Physical vs. Logical"},{"t":"list_item","d":6,"p":{"lines":[69,70]},"v":"Flush"}]},{"t":"list_item","d":4,"p":{"lines":[70,71]},"v":"Checkpoint Protocols","c":[{"t":"list_item","d":6,"p":{"lines":[71,72]},"v":"Checkpoint Mechanism"},{"t":"list_item","d":6,"p":{"lines":[72,73]},"v":"Checkpoint Contents"},{"t":"list_item","d":6,"p":{"lines":[73,74]},"v":"Frequency"}]},{"t":"list_item","d":4,"p":{"lines":[74,75]},"v":"Restart Protocols"}]},{"t":"list_item","d":2,"p":{"lines":[75,76]},"v":"Network","c":[{"t":"list_item","d":4,"p":{"lines":[76,77]},"v":"Database Access API","c":[{"t":"list_item","d":6,"p":{"lines":[77,78]},"v":"DBMS-Specific"},{"t":"list_item","d":6,"p":{"lines":[78,79]},"v":"ODBC"},{"t":"list_item","d":6,"p":{"lines":[79,80]},"v":"JDBC"}]},{"t":"list_item","d":4,"p":{"lines":[80,81]},"v":"Database Network Protocols"},{"t":"list_item","d":4,"p":{"lines":[81,82]},"v":"Replication Protocols","c":[{"t":"list_item","d":6,"p":{"lines":[82,83]},"v":"Replica Configuration","c":[{"t":"list_item","d":8,"p":{"lines":[83,84]},"v":"Master-Replica"},{"t":"list_item","d":8,"p":{"lines":[84,85]},"v":"Multi-Master"}]},{"t":"list_item","d":6,"p":{"lines":[85,86]},"v":"Propagation Scheme"}]},{"t":"list_item","d":4,"p":{"lines":[86,87]},"v":"Kernel Bypass Methods"}]},{"t":"list_item","d":2,"p":{"lines":[87,88]},"v":"Scheduling","c":[{"t":"list_item","d":4,"p":{"lines":[88,89]},"v":"Process Model","c":[{"t":"list_item","d":6,"p":{"lines":[89,90]},"v":"Process per DBMS Worker"},{"t":"list_item","d":6,"p":{"lines":[90,91]},"v":"Process Pool"},{"t":"list_item","d":6,"p":{"lines":[91,92]},"v":"Thread per DBMS Worker"}]},{"t":"list_item","d":4,"p":{"lines":[92,93]},"v":"Data Placement","c":[{"t":"list_item","d":6,"p":{"lines":[93,94]},"v":"UMA"},{"t":"list_item","d":6,"p":{"lines":[94,95]},"v":"NUMA"}]},{"t":"list_item","d":4,"p":{"lines":[95,96]},"v":"Scheduling","c":[{"t":"list_item","d":6,"p":{"lines":[96,97]},"v":"Static Scheduling"},{"t":"list_item","d":6,"p":{"lines":[97,98]},"v":"Mosel-Driven Scheduling"},{"t":"list_item","d":6,"p":{"lines":[98,99]},"v":"Hyper-Architecture"}]}]},{"t":"list_item","d":2,"p":{"lines":[99,100]},"v":"Execution","c":[{"t":"list_item","d":4,"p":{"lines":[100,101]},"v":"Processing Model","c":[{"t":"list_item","d":6,"p":{"lines":[101,102]},"v":"Iterator Model: tuple-at-a-time"},{"t":"list_item","d":6,"p":{"lines":[102,103]},"v":"Materialization Model: all-at-a-time"},{"t":"list_item","d":6,"p":{"lines":[103,104]},"v":"Vectorized / Batch Model: chunk-at-a-time"}]},{"t":"list_item","d":4,"p":{"lines":[104,105]},"v":"Parallel Execution","c":[{"t":"list_item","d":6,"p":{"lines":[105,106]},"v":"Direction","c":[{"t":"list_item","d":8,"p":{"lines":[106,107]},"v":"Top-to-Bottom: pull"},{"t":"list_item","d":8,"p":{"lines":[107,108]},"v":"Bottom-to-Top: push"}]},{"t":"list_item","d":6,"p":{"lines":[108,109]},"v":"Intra Query Parallelism","c":[{"t":"list_item","d":8,"p":{"lines":[109,110]},"v":"Intra Operator"},{"t":"list_item","d":8,"p":{"lines":[110,111]},"v":"Inter Operator"}]}]}]}],"p":{}}</svg>
               </div>
 <h1 id="28-else"><a class="markdownIt-Anchor" href="#28-else"></a> 28 Else</h1>
 <ol>
@@ -1901,7 +2252,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-history"><span class="nav-text"> 1 history</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-inmemory"><span class="nav-text"> 2 inmemory</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-disk-oriented-dbmss"><span class="nav-text"> 2.1 Disk-Oriented DBMSs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-in-memory-dbmss"><span class="nav-text"> 2.2 In-Memory DBMSs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-concurrency-control-bottlenecks"><span class="nav-text"> 2.3 Concurrency Control Bottlenecks</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-mvcc1"><span class="nav-text"> 3 mvcc1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-mvcc2"><span class="nav-text"> 4 mvcc2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-microsoft-hekaton-sql-server"><span class="nav-text"> 4.1 Microsoft Hekaton (SQL Server)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-tum-hyper"><span class="nav-text"> 4.2 TUM HyPer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-sap-hana"><span class="nav-text"> 4.3 SAP HANA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-cmu-cicada"><span class="nav-text"> 4.4 CMU Cicada</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-summary"><span class="nav-text"> 4.5 Summary</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-mvcc3"><span class="nav-text"> 5 mvcc3</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-mvcc-deletes"><span class="nav-text"> 5.1 MVCC Deletes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-garbage-collection"><span class="nav-text"> 5.2 Garbage Collection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-block-compaction"><span class="nav-text"> 5.3 Block Compaction</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-oltpindexes1"><span class="nav-text"> 6 oltpindexes1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-in-memory-t-tree"><span class="nav-text"> 6.1 In-Memory T-Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-latch-free-bw-tree"><span class="nav-text"> 6.2 Latch-Free Bw-Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-delta-updates"><span class="nav-text"> 6.2.1 Delta Updates</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-garbage-collection"><span class="nav-text"> 6.2.2 Garbage Collection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-structure-modifications"><span class="nav-text"> 6.2.3 Structure Modifications</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-b-tree-optimistic-latching"><span class="nav-text"> 6.3 B+ Tree Optimistic Latching</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-oltpindexes2"><span class="nav-text"> 7 oltpindexes2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-latches"><span class="nav-text"> 7.1 Latches</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-b-tree"><span class="nav-text"> 7.2 B+ Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-trie-index"><span class="nav-text"> 7.3 Trie Index</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#731-judy-array"><span class="nav-text"> 7.3.1 Judy Array</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#732-art"><span class="nav-text"> 7.3.2 ART</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#733-masstree"><span class="nav-text"> 7.3.3 Masstree</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-storage"><span class="nav-text"> 8 storage</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-type-representation"><span class="nav-text"> 8.1 Type Representation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-data-layout-alignment"><span class="nav-text"> 8.2 Data Layout &#x2F; Alignment</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#83-storage-models"><span class="nav-text"> 8.3 Storage Models</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#84-system-catalogs"><span class="nav-text"> 8.4 System Catalogs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#85-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 8.5 小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-compression"><span class="nav-text"> 9 compression</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-compression-background"><span class="nav-text"> 9.1 Compression Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-naive-compression"><span class="nav-text"> 9.2 Naive Compression</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-olap-columnar-compression"><span class="nav-text"> 9.3 OLAP Columnar Compression</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-oltp-index-compression"><span class="nav-text"> 9.4 OLTP Index Compression</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-recovery"><span class="nav-text"> 10 recovery</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#101-logging-schemes"><span class="nav-text"> 10.1 Logging Schemes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#102-checkpoint-protocols"><span class="nav-text"> 10.2 Checkpoint Protocols</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#103-restart-protocols"><span class="nav-text"> 10.3 Restart Protocols</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-networking"><span class="nav-text"> 11 networking</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#111-database-access-apis"><span class="nav-text"> 11.1 Database Access APIs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#112-database-network-protocols"><span class="nav-text"> 11.2 Database Network Protocols</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#113-replication-protocols"><span class="nav-text"> 11.3 Replication Protocols</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#114-kernel-bypass-methods"><span class="nav-text"> 11.4 Kernel Bypass Methods</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-scheduling"><span class="nav-text"> 12 scheduling</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-execution"><span class="nav-text"> 13 execution</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-compilation"><span class="nav-text"> 14 compilation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-vectorization1"><span class="nav-text"> 15 vectorization1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-vectorization2"><span class="nav-text"> 16 vectorization2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-hashjoins"><span class="nav-text"> 17 hashjoins</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-sortmergejoins"><span class="nav-text"> 18 sortmergejoins</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-optimizer1"><span class="nav-text"> 19 optimizer1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-optimizer2"><span class="nav-text"> 20 optimizer2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-optimizer3"><span class="nav-text"> 21 optimizer3</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-costmodels"><span class="nav-text"> 22 costmodels</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-largerthanmemory"><span class="nav-text"> 23 largerthanmemory</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-udfs"><span class="nav-text"> 24 udfs</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#25-hardware"><span class="nav-text"> 25 hardware</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#26-%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 26 课件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#27-summary"><span class="nav-text"> 27 Summary</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#28-else"><span class="nav-text"> 28 Else</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-history"><span class="nav-text"> 1 history</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-inmemory"><span class="nav-text"> 2 inmemory</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-disk-oriented-dbmss"><span class="nav-text"> 2.1 Disk-Oriented DBMSs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-in-memory-dbmss"><span class="nav-text"> 2.2 In-Memory DBMSs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-concurrency-control-bottlenecks"><span class="nav-text"> 2.3 Concurrency Control Bottlenecks</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-mvcc1"><span class="nav-text"> 3 mvcc1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-mvcc2"><span class="nav-text"> 4 mvcc2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-microsoft-hekaton-sql-server"><span class="nav-text"> 4.1 Microsoft Hekaton (SQL Server)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-tum-hyper"><span class="nav-text"> 4.2 TUM HyPer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-sap-hana"><span class="nav-text"> 4.3 SAP HANA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-cmu-cicada"><span class="nav-text"> 4.4 CMU Cicada</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#45-summary"><span class="nav-text"> 4.5 Summary</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-mvcc3"><span class="nav-text"> 5 mvcc3</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-mvcc-deletes"><span class="nav-text"> 5.1 MVCC Deletes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-garbage-collection"><span class="nav-text"> 5.2 Garbage Collection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-block-compaction"><span class="nav-text"> 5.3 Block Compaction</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-oltpindexes1"><span class="nav-text"> 6 oltpindexes1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-in-memory-t-tree"><span class="nav-text"> 6.1 In-Memory T-Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-latch-free-bw-tree"><span class="nav-text"> 6.2 Latch-Free Bw-Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#621-delta-updates"><span class="nav-text"> 6.2.1 Delta Updates</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#622-garbage-collection"><span class="nav-text"> 6.2.2 Garbage Collection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#623-structure-modifications"><span class="nav-text"> 6.2.3 Structure Modifications</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-b-tree-optimistic-latching"><span class="nav-text"> 6.3 B+ Tree Optimistic Latching</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-oltpindexes2"><span class="nav-text"> 7 oltpindexes2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-latches"><span class="nav-text"> 7.1 Latches</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-b-tree"><span class="nav-text"> 7.2 B+ Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-trie-index"><span class="nav-text"> 7.3 Trie Index</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#731-judy-array"><span class="nav-text"> 7.3.1 Judy Array</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#732-art"><span class="nav-text"> 7.3.2 ART</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#733-masstree"><span class="nav-text"> 7.3.3 Masstree</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-storage"><span class="nav-text"> 8 storage</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-type-representation"><span class="nav-text"> 8.1 Type Representation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-data-layout-alignment"><span class="nav-text"> 8.2 Data Layout &#x2F; Alignment</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#83-storage-models"><span class="nav-text"> 8.3 Storage Models</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#84-system-catalogs"><span class="nav-text"> 8.4 System Catalogs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#85-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 8.5 小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-compression"><span class="nav-text"> 9 compression</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-compression-background"><span class="nav-text"> 9.1 Compression Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-naive-compression"><span class="nav-text"> 9.2 Naive Compression</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-olap-columnar-compression"><span class="nav-text"> 9.3 OLAP Columnar Compression</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-oltp-index-compression"><span class="nav-text"> 9.4 OLTP Index Compression</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-recovery"><span class="nav-text"> 10 recovery</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#101-logging-schemes"><span class="nav-text"> 10.1 Logging Schemes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#102-checkpoint-protocols"><span class="nav-text"> 10.2 Checkpoint Protocols</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#103-restart-protocols"><span class="nav-text"> 10.3 Restart Protocols</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-networking"><span class="nav-text"> 11 networking</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#111-database-access-apis"><span class="nav-text"> 11.1 Database Access APIs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#112-database-network-protocols"><span class="nav-text"> 11.2 Database Network Protocols</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#113-replication-protocols"><span class="nav-text"> 11.3 Replication Protocols</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#114-kernel-bypass-methods"><span class="nav-text"> 11.4 Kernel Bypass Methods</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-scheduling"><span class="nav-text"> 12 scheduling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#121-process-models"><span class="nav-text"> 12.1 Process Models</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#122-data-placement"><span class="nav-text"> 12.2 Data Placement</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#123-scheduling"><span class="nav-text"> 12.3 Scheduling</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-execution"><span class="nav-text"> 13 execution</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#131-system-architecture"><span class="nav-text"> 13.1 System Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#132-processing-models"><span class="nav-text"> 13.2 Processing Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1321-iterator-model"><span class="nav-text"> 13.2.1 Iterator Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1322-materialization-model"><span class="nav-text"> 13.2.2 Materialization Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1323-vectorized-batch-model"><span class="nav-text"> 13.2.3 Vectorized &#x2F; Batch Model</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#133-parallel-execution"><span class="nav-text"> 13.3 Parallel Execution</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-compilation"><span class="nav-text"> 14 compilation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#141-background"><span class="nav-text"> 14.1 Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#142-gode-generation"><span class="nav-text"> 14.2 Gode Generation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#143-real-word-implementations"><span class="nav-text"> 14.3 Real-Word Implementations</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-vectorization1"><span class="nav-text"> 15 vectorization1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#151-background"><span class="nav-text"> 15.1 Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#152-vectorization"><span class="nav-text"> 15.2 Vectorization</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#153-vectorized-algorithms"><span class="nav-text"> 15.3 Vectorized Algorithms</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#16-vectorization2"><span class="nav-text"> 16 vectorization2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#17-hashjoins"><span class="nav-text"> 17 hashjoins</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#18-sortmergejoins"><span class="nav-text"> 18 sortmergejoins</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#19-optimizer1"><span class="nav-text"> 19 optimizer1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#20-optimizer2"><span class="nav-text"> 20 optimizer2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#21-optimizer3"><span class="nav-text"> 21 optimizer3</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#22-costmodels"><span class="nav-text"> 22 costmodels</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#23-largerthanmemory"><span class="nav-text"> 23 largerthanmemory</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#24-udfs"><span class="nav-text"> 24 udfs</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#25-hardware"><span class="nav-text"> 25 hardware</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#26-%E8%AF%BE%E4%BB%B6"><span class="nav-text"> 26 课件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#27-summary"><span class="nav-text"> 27 Summary</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#28-else"><span class="nav-text"> 28 Else</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
