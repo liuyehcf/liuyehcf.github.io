@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库-优化器">
+<meta property="og:url" content="http://example.com/2022/06/24/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E5%99%A8/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-06-24T00:32:09.000Z">
+<meta property="article:modified_time" content="2022-06-25T16:10:54.448Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/06/24/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E5%99%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据库-优化器 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/24/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库-优化器
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-06-24 08:32:09" itemprop="dateCreated datePublished" datetime="2022-06-24T08:32:09+08:00">2022-06-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-26 00:10:54" itemprop="dateModified" datetime="2022-06-26T00:10:54+08:00">2022-06-26</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/" itemprop="url" rel="index"><span itemprop="name">Database</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/Basic-Concepts/" itemprop="url" rel="index"><span itemprop="name">Basic Concepts</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/06/24/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E5%99%A8/" class="post-meta-item leancloud_visitors" data-flag-title="数据库-优化器" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/06/24/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E5%99%A8/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/06/24/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BC%98%E5%8C%96%E5%99%A8/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-概述"><a class="markdownIt-Anchor" href="#1-概述"></a> 1 概述</h1>
+<p><strong>优化器涉及到的优化点包括：</strong></p>
+<ul>
+<li><code>Limit</code>合并</li>
+<li><code>Limit</code>下推</li>
+<li>子查询重写</li>
+<li>各种表达式的重写和化简</li>
+<li>列裁剪</li>
+<li>谓词下推</li>
+<li>聚合合并</li>
+<li>等价谓词推导（常量传播）</li>
+<li><code>Outer Join</code>转<code>Inner Join</code></li>
+<li>常量折叠</li>
+<li>公共表达式复用（CTE）</li>
+<li>子查询重写</li>
+<li><code>Lateral Join</code>化简</li>
+<li>分区分桶裁剪</li>
+<li><code>Empty Node</code>优化</li>
+<li><code>Empty Union, Intersect, Except</code>裁剪</li>
+<li><code>Intersect Reorder</code></li>
+<li><code>Count Distinct</code>相关聚合函数重写</li>
+<li><code>GroupBy Reordering</code></li>
+</ul>
+<h1 id="2-subquery-rewrite"><a class="markdownIt-Anchor" href="#2-subquery-rewrite"></a> 2 Subquery Rewrite</h1>
+<p>这里仅讨论相关子查询的重写</p>
+<h2 id="21-in-subquery"><a class="markdownIt-Anchor" href="#21-in-subquery"></a> 2.1 In Subquery</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/StarRocks/starrocks/pull/6274">[Refactor] Refactor in subquery transform rule</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/StarRocks/starrocks/pull/7090">[Bug] Fix in-subquery cast to outer join bug</a></li>
+</ul>
+<p><strong>下面用一个例子来说明</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> IF <span class="keyword">EXISTS</span> `S`;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> `S` (</span><br><span class="line">  `s1` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NULL</span>,</span><br><span class="line">  `s2` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NULL</span>,</span><br><span class="line">  `s3` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NULL</span></span><br><span class="line">) ENGINE<span class="operator">=</span>OLAP</span><br><span class="line">DUPLICATE KEY(`s1`)</span><br><span class="line">DISTRIBUTED <span class="keyword">BY</span> HASH(`s1`) BUCKETS <span class="number">10</span></span><br><span class="line">PROPERTIES (</span><br><span class="line"> &quot;replication_num&quot; <span class="operator">=</span> &quot;1&quot;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> `S` (s1, s2, s3) <span class="keyword">values</span></span><br><span class="line">    (<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>),</span><br><span class="line">    (<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>),</span><br><span class="line">    (<span class="number">10</span>, <span class="keyword">NULL</span>, <span class="number">12</span>),</span><br><span class="line">    (<span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> IF <span class="keyword">EXISTS</span> `R`;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> `R` (</span><br><span class="line">  `r1` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NULL</span>,</span><br><span class="line">  `r2` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NULL</span>,</span><br><span class="line">  `r3` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NULL</span></span><br><span class="line">) ENGINE<span class="operator">=</span>OLAP</span><br><span class="line">DUPLICATE KEY(`r1`)</span><br><span class="line">DISTRIBUTED <span class="keyword">BY</span> HASH(`r1`) BUCKETS <span class="number">10</span></span><br><span class="line">PROPERTIES (</span><br><span class="line"> &quot;replication_num&quot; <span class="operator">=</span> &quot;1&quot;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> `R` (r1, r2, r3) <span class="keyword">values</span></span><br><span class="line">    (<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="number">4</span>, <span class="number">55</span>, <span class="number">6</span>),</span><br><span class="line">    (<span class="number">7</span>, <span class="keyword">NULL</span>, <span class="number">9</span>),</span><br><span class="line">    (<span class="number">10</span>, <span class="keyword">NULL</span>, <span class="number">12</span>),</span><br><span class="line">    (<span class="number">13</span>, <span class="number">14</span>, <span class="keyword">NULL</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>原<code>SQL</code>如下。其含义是，针对<code>S</code>表中的每一行，在<code>R</code>表中找出满足<code>S.s3 = R.r3</code>的所有行，并提取出<code>R.r2</code>作为结果集<code>A</code>，看<code>S.s2</code>是否在这个结果集<code>A</code>中</strong></p>
+<ul>
+<li>若<code>S.s2</code>为<code>NULL</code>，那么返回<code>NULL</code></li>
+<li>若结果集<code>A</code>为空，那么返回<code>false</code></li>
+<li>对于当前行（固定<code>S.s3</code>的值），若<code>R</code>表中不存在满足<code>R.r3 = S.s3</code>的行，那么返回<code>false</code></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> S.s1, S.s2 <span class="keyword">IN</span></span><br><span class="line">(</span><br><span class="line">  <span class="keyword">SELECT</span> R.r2</span><br><span class="line">  <span class="keyword">FROM</span> R</span><br><span class="line">  <span class="keyword">WHERE</span> S.s3 <span class="operator">=</span> R.r3</span><br><span class="line">)</span><br><span class="line"><span class="keyword">FROM</span> S;</span><br></pre></td></tr></table></figure>
+<p><strong>重写后的<code>SQL</code>如下：</strong></p>
+<ul>
+<li><code>R_GroupBy</code>：通过<code>Left Outer Join</code>将谓词<code>IN</code>调整谓词<code>==</code></li>
+<li><code>R_CountRow</code>：用于统计<code>R</code>表中各分组（<code>by r3</code>）下的总行数以及<code>R.r2</code>非<code>NULL</code>的行数</li>
+<li><strong><code>CASE WHEN</code>语句分析：</strong>
+<ul>
+<li><code>CASE WHEN 1</code>：若<code>R_CountRow.R_Rows IS NULL</code>，我们知道<code>count(*)</code>是不会产生空值的，因此该空值一定是<code>Left Outer Join</code>产生的，意味着对于当前行（固定<code>S.s3</code>的值），<code>R</code>表中不存在满足<code>R.r3 = S.s3</code>的行，即集合<code>A</code>为空。因此根据<code>ANY_OR_NULL IN (empty) -&gt; false</code>，谓词<code>IN</code>的结果就是<code>false</code></li>
+<li>否则，意味着对于当前行（固定<code>S.s3</code>的值），<code>R</code>表中存在满足<code>R.r3 = S.s3</code>的行，即集合<code>A</code>不为空</li>
+<li><code>CASE WHEN 2</code>：若<code>S.s2 IS NULL</code>。因此根据<code>NULL IN (ANY_OR_NULL...) -&gt; NULL</code>，谓词<code>IN</code>的结果就是<code>NULL</code></li>
+<li>否则，意味着<code>S.s2 IS NOT NULL</code></li>
+<li><code>CASE WHEN 3</code>：若<code>R_GroupBy.r2 IS NOT NULL</code>，意味着对于当前行（固定<code>S.s3</code>的值），集合<code>A</code>中至少存在一个元素满足<code>S.s2 = R.r2</code>，因此根据<code>X IN (X, [ANY_OR_NULL...]) -&gt; true</code>，谓词<code>IN</code>的结果就是<code>true</code></li>
+<li>否则，意味着<code>R_GroupBy.r2 IS NULL</code></li>
+<li><code>CASE WHEN 4</code>：若<code>R_CountRow.r2_NotNulls &lt; R_CountRow.R_Rows</code>，意味着对于当前行（固定<code>S.s3</code>的值），集合<code>A</code>中一定存在<code>NULL</code>元素。因此根据<code>X IN (NULL, [NOT_X_OR_NULL...]) -&gt; NULL</code>，谓词<code>IN</code>的结果就是<code>NULL</code></li>
+<li>否则，意味着<code>R_CountRow.r2_NotNulls = R_CountRow.R_Rows</code>，则集合<code>A</code>中不存在<code>NULL</code>元素，因此根据<code>X IN (NOT_X...) -&gt; false</code>，谓词<code>IN</code>的结果就是<code>false</code></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WITH</span> R_CTE <span class="keyword">AS</span> (<span class="keyword">SELECT</span> R.r2, R.r3 <span class="keyword">FROM</span> R)</span><br><span class="line"><span class="keyword">SELECT</span> S.s1,</span><br><span class="line">       <span class="keyword">CASE</span> </span><br><span class="line">           <span class="keyword">WHEN</span> R_CountRow.R_Rows <span class="keyword">IS</span> <span class="keyword">NULL</span> <span class="keyword">THEN</span> <span class="literal">FALSE</span></span><br><span class="line">           <span class="keyword">WHEN</span> S.s2 <span class="keyword">IS</span> <span class="keyword">NULL</span> <span class="keyword">THEN</span> <span class="keyword">NULL</span></span><br><span class="line">           <span class="keyword">WHEN</span> R_GroupBy.r2 <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">THEN</span> <span class="literal">TRUE</span></span><br><span class="line">           <span class="keyword">WHEN</span> R_CountRow.r2_NotNulls <span class="operator">&lt;</span> R_CountRow.R_Rows <span class="keyword">THEN</span> <span class="keyword">NULL</span></span><br><span class="line">           <span class="keyword">ELSE</span> <span class="literal">FALSE</span></span><br><span class="line">       <span class="keyword">END</span></span><br><span class="line"><span class="keyword">FROM</span> S</span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span></span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">SELECT</span> R_CTE.r2, R_CTE.r3</span><br><span class="line">    <span class="keyword">FROM</span> R_CTE</span><br><span class="line">    <span class="keyword">GROUP</span> <span class="keyword">BY</span> R_CTE.r2, R_CTE.r3</span><br><span class="line">  ) <span class="keyword">AS</span> R_GroupBy </span><br><span class="line">  <span class="keyword">ON</span> S.s2<span class="operator">=</span> R_GroupBy.r2</span><br><span class="line">  <span class="keyword">AND</span> S.s3 <span class="operator">=</span> R_GroupBy.r3</span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span></span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">SELECT</span> r3,</span><br><span class="line">          <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">AS</span> R_Rows,</span><br><span class="line">          <span class="built_in">count</span>(R_CTE.r2) <span class="keyword">AS</span> r2_NotNulls</span><br><span class="line">    <span class="keyword">FROM</span> R_CTE</span><br><span class="line">    <span class="keyword">GROUP</span> <span class="keyword">BY</span> R_CTE.r3</span><br><span class="line">  ) <span class="keyword">AS</span> R_CountRow </span><br><span class="line">  <span class="keyword">ON</span>  S.s3 <span class="operator">=</span> R_CountRow.r3;</span><br></pre></td></tr></table></figure>
+<h1 id="3-groupby-reordering"><a class="markdownIt-Anchor" href="#3-groupby-reordering"></a> 3 GroupBy Reordering</h1>
+<p><a href="/resources/paper/Orthogonal-Optimization-of-Subqueries-and-Aggregation.pdf">Orthogonal Optimization of Subqueries and Aggregation</a></p>
+<p>用$G_{A,F}(R)$表示<code>GroupBy</code>，其中<code>A</code>表示<code>GroupBy</code>列，<code>F</code>表示输出列</p>
+<h2 id="31-filter"><a class="markdownIt-Anchor" href="#31-filter"></a> 3.1 Filter</h2>
+<h3 id="311-push-down"><a class="markdownIt-Anchor" href="#311-push-down"></a> 3.1.1 push down</h3>
+$$\sigma_{p}G_{A,F}(R) \rightarrow G_{A,F}(\sigma_{p}R)$$
+<p><strong>上述转换成立的条件如下：</strong></p>
+<ul>
+<li><code>Filter</code>中用到的列全部来自于<code>GroupBy</code>的输入列。换言之，不对<code>GroupBy</code>的输出列进行过滤</li>
+</ul>
+<h2 id="32-join"><a class="markdownIt-Anchor" href="#32-join"></a> 3.2 Join</h2>
+<h3 id="321-push-down"><a class="markdownIt-Anchor" href="#321-push-down"></a> 3.2.1 push down</h3>
+$$G_{A,F}(S \Join_{p} R) \rightarrow S \Join_{p} G_{A \cup columns(p)-columns(S),F}(R)$$
+<p><strong>上述转换成立的条件如下：</strong></p>
+<ul>
+<li><code>Join Predicate p</code>中与<code>R</code>有关的列必须存在于<code>GroupBy</code>列中</li>
+<li><code>S</code>的主键必须存在于<code>GroupBy</code>列中</li>
+<li>聚合操作仅用到了<code>R</code>中的列</li>
+</ul>
+<h3 id="322-pull-above"><a class="markdownIt-Anchor" href="#322-pull-above"></a> 3.2.2 pull above</h3>
+$$S \Join_{p} G_{A,F}(R) \rightarrow G_{A \cup columns(S),F}(S \Join_{p} R)$$
+<p><strong>上述转换成立的条件如下：</strong></p>
+<ul>
+<li><code>Join</code>的表有主键</li>
+<li><code>Join</code>没有用到聚合函数的结果列</li>
+</ul>
+<h2 id="33-outer-join"><a class="markdownIt-Anchor" href="#33-outer-join"></a> 3.3 Outer Join</h2>
+<h3 id="331-push-down"><a class="markdownIt-Anchor" href="#331-push-down"></a> 3.3.1 push down</h3>
+$$G_{A,F}(S ⟕_{p} R) \rightarrow \pi_{c}(S ⟕_{p} G_{A - columns(S),F}(R))$$
+<p><strong>上述转换成立的条件如下（同<code>Join push down</code>）：</strong></p>
+<ul>
+<li><code>Join Predicate p</code>中与<code>R</code>有关的列必须存在于<code>GroupBy</code>列中</li>
+<li><code>S</code>的主键必须存在于<code>GroupBy</code>列中</li>
+<li>聚合操作仅用到了<code>R</code>中的列</li>
+</ul>
+<p><strong>可以发现，<code>Outer Join</code>与<code>Join</code>的差异是，多了一个$\pi_{c}$</strong></p>
+<ul>
+<li>当<code>GroupBy</code>列为<code>NULL</code>时，若聚合函数针对该<code>NULL</code>分组可以生成<code>NULL</code>时，比如<code>sum</code>，无需引入额外的$\pi_{c}$</li>
+<li>当<code>GroupBy</code>列为<code>NULL</code>时，若聚合函数针对该<code>NULL</code>分组无法生成<code>NULL</code>时，比如<code>count</code>，则需引入额外的$\pi_{c}$，来产生相应的<code>NULL</code>值</li>
+</ul>
+<p><strong>下面用一个例子来说明</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> IF <span class="keyword">EXISTS</span> `S`;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> `S` (</span><br><span class="line">  `s1` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">  `s2` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span></span><br><span class="line">) ENGINE<span class="operator">=</span>OLAP</span><br><span class="line">DUPLICATE KEY(`s1`)</span><br><span class="line">DISTRIBUTED <span class="keyword">BY</span> HASH(`s1`) BUCKETS <span class="number">10</span></span><br><span class="line">PROPERTIES (</span><br><span class="line"> &quot;replication_num&quot; <span class="operator">=</span> &quot;1&quot;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> `S` (s1, s2) <span class="keyword">values</span></span><br><span class="line">    (<span class="number">1</span>, <span class="number">2</span>),</span><br><span class="line">    (<span class="number">2</span>, <span class="number">4</span>),</span><br><span class="line">    (<span class="number">3</span>, <span class="number">6</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> IF <span class="keyword">EXISTS</span> `R`;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> `R` (</span><br><span class="line">  `r1` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NULL</span>,</span><br><span class="line">  `r2` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NULL</span></span><br><span class="line">) ENGINE<span class="operator">=</span>OLAP</span><br><span class="line">DUPLICATE KEY(`r1`)</span><br><span class="line">DISTRIBUTED <span class="keyword">BY</span> HASH(`r1`) BUCKETS <span class="number">10</span></span><br><span class="line">PROPERTIES (</span><br><span class="line"> &quot;replication_num&quot; <span class="operator">=</span> &quot;1&quot;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> `R` (r1, r2) <span class="keyword">values</span></span><br><span class="line">    (<span class="number">1</span>, <span class="number">12</span>),</span><br><span class="line">    (<span class="number">2</span>, <span class="number">22</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Q1.1</span></span><br><span class="line"><span class="keyword">SELECT</span> r1, sum <span class="keyword">FROM</span> S <span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span> (<span class="keyword">SELECT</span> <span class="built_in">sum</span>(r2) <span class="keyword">AS</span> sum, r1 <span class="keyword">FROM</span> R <span class="keyword">GROUP</span> <span class="keyword">BY</span> r1)a <span class="keyword">ON</span> s1 <span class="operator">=</span> r1;</span><br><span class="line"><span class="comment">-- Q1.2</span></span><br><span class="line"><span class="keyword">SELECT</span> r1, <span class="built_in">sum</span>(r2) <span class="keyword">AS</span> sum <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S <span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span> R <span class="keyword">ON</span> s1 <span class="operator">=</span> r1)a <span class="keyword">GROUP</span> <span class="keyword">BY</span> r1;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Q2.1</span></span><br><span class="line"><span class="keyword">SELECT</span> r1, cnt <span class="keyword">FROM</span> S <span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span> (<span class="keyword">SELECT</span> <span class="built_in">count</span>(r2) <span class="keyword">AS</span> cnt, r1 <span class="keyword">FROM</span> R <span class="keyword">GROUP</span> <span class="keyword">BY</span> r1)a <span class="keyword">ON</span> s1 <span class="operator">=</span> r1;</span><br><span class="line"><span class="comment">-- Q2.2</span></span><br><span class="line"><span class="keyword">SELECT</span> r1, <span class="built_in">count</span>(r2) <span class="keyword">AS</span> cnt <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S <span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span> R <span class="keyword">ON</span> s1 <span class="operator">=</span> r1)a <span class="keyword">GROUP</span> <span class="keyword">BY</span> r1;</span><br><span class="line"><span class="comment">-- Q2.3</span></span><br><span class="line"><span class="keyword">SELECT</span> r1,</span><br><span class="line"><span class="keyword">CASE</span></span><br><span class="line">    <span class="keyword">WHEN</span> r1 <span class="keyword">IS</span> <span class="keyword">NULL</span></span><br><span class="line">    <span class="keyword">THEN</span> <span class="keyword">NULL</span></span><br><span class="line">    <span class="keyword">ELSE</span> <span class="built_in">count</span>(r2)</span><br><span class="line"><span class="keyword">END</span> <span class="keyword">AS</span> cnt</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> S <span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span> R <span class="keyword">ON</span> s1 <span class="operator">=</span> r1)a <span class="keyword">GROUP</span> <span class="keyword">BY</span> r1;</span><br></pre></td></tr></table></figure>
+<p><strong>可以发现：</strong></p>
+<ul>
+<li><code>Q1.1</code>和<code>Q1.2</code>可以产生相同的输出，因为聚合函数<code>sum</code>对于<code>NULL</code>分组可以正常产生<code>NULL</code>值</li>
+<li><code>Q2.1</code>和<code>Q2.2</code>无法产生相同的输出，因为聚合函数<code>count</code>对于<code>NULL</code>分组会输出<code>0</code>或<code>1</code>。因此这里我们通过<code>case when</code>语句来对输出列进行改写<code>Q2.3</code>，以达到纠正的目的</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/07/brpc-Trial/" rel="prev" title="brpc-Trial">
+      <i class="fa fa-chevron-left"></i> brpc-Trial
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text"> 1 概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-subquery-rewrite"><span class="nav-text"> 2 Subquery Rewrite</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-in-subquery"><span class="nav-text"> 2.1 In Subquery</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-groupby-reordering"><span class="nav-text"> 3 GroupBy Reordering</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-filter"><span class="nav-text"> 3.1 Filter</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#311-push-down"><span class="nav-text"> 3.1.1 push down</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-join"><span class="nav-text"> 3.2 Join</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-push-down"><span class="nav-text"> 3.2.1 push down</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#322-pull-above"><span class="nav-text"> 3.2.2 pull above</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-outer-join"><span class="nav-text"> 3.3 Outer Join</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#331-push-down"><span class="nav-text"> 3.3.1 push down</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">289</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
