@@ -29,7 +29,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/images/Linux-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/perf_events_map.png">
 <meta property="article:published_time" content="2019-10-27T10:44:58.000Z">
-<meta property="article:modified_time" content="2022-06-25T16:10:54.440Z">
+<meta property="article:modified_time" content="2022-07-07T14:59:45.230Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -231,7 +231,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-06-26 00:10:54" itemprop="dateModified" datetime="2022-06-26T00:10:54+08:00">2022-06-26</time>
+                <time title="修改时间：2022-07-07 22:59:45" itemprop="dateModified" datetime="2022-07-07T22:59:45+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -286,27 +286,42 @@
 <li><code>Software event</code>：需要采样的<code>event</code>。比如需要通过<code>perf record -F 99</code>指定采样频率</li>
 <li><code>Tracepoint event</code>：不需要采样的<code>event</code>，有其固定的埋点，执行到了就会统计。<code>Tracepoint event</code>又可细分为许多类别</li>
 </ul>
-<h2 id="12-cpu火焰图"><a class="markdownIt-Anchor" href="#12-cpu火焰图"></a> 1.2 cpu火焰图</h2>
+<h2 id="12-参考"><a class="markdownIt-Anchor" href="#12-参考"></a> 1.2 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.brendangregg.com/perf.html">perf Examples</a></li>
+</ul>
+<h1 id="2-flame-graph"><a class="markdownIt-Anchor" href="#2-flame-graph"></a> 2 Flame Graph</h1>
+<h2 id="21-cpu-flame-graph"><a class="markdownIt-Anchor" href="#21-cpu-flame-graph"></a> 2.1 CPU Flame Graph</h2>
+<p><a target="_blank" rel="noopener" href="https://www.brendangregg.com/flamegraphs.html">Flame Graphs</a></p>
 <p><strong>相关git项目</strong></p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/brendangregg/FlameGraph">FlameGraph</a></li>
 </ul>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 以99Hz的频率捕获指定进程的堆栈信息，捕获时长60s</span></span><br><span class="line"><span class="comment"># 该命令会在当前目录生成 perf.data 文件</span></span><br><span class="line">perf record -F 99 -p &lt;pid&gt; -g -- sleep 60</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析 perf.data 文件</span></span><br><span class="line">perf script &gt; out.perf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成火焰图</span></span><br><span class="line"><span class="comment"># 下面这两个脚本来自FlameGraph项目，我的安装目录是/opt/FlameGraph</span></span><br><span class="line">/opt/FlameGraph/stackcollapse-perf.pl out.perf &gt; out.folded</span><br><span class="line">/opt/FlameGraph/flamegraph.pl out.folded &gt; out.svg</span><br></pre></td></tr></table></figure>
-<h3 id="121-java-cpu火焰图"><a class="markdownIt-Anchor" href="#121-java-cpu火焰图"></a> 1.2.1 java-cpu火焰图</h3>
+<h2 id="22-cpu-flame-graph-for-java"><a class="markdownIt-Anchor" href="#22-cpu-flame-graph-for-java"></a> 2.2 CPU Flame Graph for Java</h2>
+<p><a target="_blank" rel="noopener" href="https://www.brendangregg.com/blog/2014-06-12/java-flame-graphs.html">Java Flame Graphs</a></p>
 <p><strong>相关git项目</strong></p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/jvm-profiling-tools/perf-map-agent">perf-map-agent</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/brendangregg/FlameGraph">FlameGraph</a></li>
 </ul>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># perf record 统计cpu使用情况，执行后会生成文件 perf.data</span></span><br><span class="line"><span class="comment"># -F: 指定频率</span></span><br><span class="line"><span class="comment"># -a: 统计所有进程的cpu使用情况</span></span><br><span class="line"><span class="comment"># -g: 开启gragh模式</span></span><br><span class="line">sudo perf record -F 90 -a -g -- sleep 300</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载并安装perf-map-agent</span></span><br><span class="line"><span class="comment"># 安装依赖cmake，openjdk（只有jre是不够的）</span></span><br><span class="line">perf-map-agent/bin/create-java-perf-map.sh &lt;pid&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析 perf.data 文件</span></span><br><span class="line">sudo perf script &gt; out.perf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成火焰图</span></span><br><span class="line"><span class="comment"># 下面这两个脚本来自FlameGraph项目，我的安装目录是/opt/FlameGraph</span></span><br><span class="line">/opt/FlameGraph/stackcollapse-perf.pl out.perf &gt; out.folded</span><br><span class="line">/opt/FlameGraph/flamegraph.pl out.folded &gt; out.svg</span><br></pre></td></tr></table></figure>
-<h2 id="13-参考"><a class="markdownIt-Anchor" href="#13-参考"></a> 1.3 参考</h2>
+<h2 id="23-cache-miss-flame-graph"><a class="markdownIt-Anchor" href="#23-cache-miss-flame-graph"></a> 2.3 Cache Miss Flame Graph</h2>
+<h2 id="24-cpi-flame-graph"><a class="markdownIt-Anchor" href="#24-cpi-flame-graph"></a> 2.4 CPI Flame Graph</h2>
+<p><a target="_blank" rel="noopener" href="https://www.brendangregg.com/blog/2014-10-31/cpi-flame-graphs.html">CPI Flame Graphs: Catching Your CPUs Napping</a></p>
+<h2 id="25-小结"><a class="markdownIt-Anchor" href="#25-小结"></a> 2.5 小结</h2>
+<ul>
+<li><code>perf record</code>默认采集的<code>event</code>是<code>cycles</code>，因此这种方式做出来的就是<code>CPU</code>火焰图</li>
+<li><code>perf record</code>配合<code>-e</code>参数，指定<code>event</code>类型，可以做出任意事件的火焰图</li>
+</ul>
+<h2 id="26-参考"><a class="markdownIt-Anchor" href="#26-参考"></a> 2.6 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://pingcap.com/zh/blog/flame-graph">工欲性能调优，必先利其器（2）- 火焰图</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html">CPU Flame Graphs</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/bea2b6a1eb6e">Java 火焰图</a></li>
 <li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/65255#slide-17">Linux 性能诊断 perf使用指南</a></li>
 </ul>
-<h1 id="2-off-cpu-analysis"><a class="markdownIt-Anchor" href="#2-off-cpu-analysis"></a> 2 <a target="_blank" rel="noopener" href="https://www.brendangregg.com/offcpuanalysis.html">Off-CPU Analysis</a></h1>
+<h1 id="3-off-cpu-analysis"><a class="markdownIt-Anchor" href="#3-off-cpu-analysis"></a> 3 <a target="_blank" rel="noopener" href="https://www.brendangregg.com/offcpuanalysis.html">Off-CPU Analysis</a></h1>
 <p><strong>分析工具：</strong></p>
 <ul>
 <li><code>&gt;= Linux 4.8</code>：<code>eBPF</code>
@@ -321,12 +336,27 @@
 <li><a target="_blank" rel="noopener" href="https://www.brendangregg.com/blog/2015-02-26/linux-perf-off-cpu-flame-graph.html">Linux perf_events Off-CPU Time Flame Graph</a></li>
 </ul>
 </li>
+<li>其他工具
+<ul>
+<li><code>time</code>：一个非常简单的统计工具
+<ul>
+<li><code>real</code>：整体耗时</li>
+<li><code>user</code>：用户态的<code>CPU</code>时间</li>
+<li><code>sys</code>：内核态的<code>CPU</code>时间</li>
+<li><code>real - user - sys</code>：<code>off-CPU</code>时间</li>
+</ul>
+</li>
+<li><code>brpc</code></li>
+</ul>
+</li>
 </ul>
 <p><strong>其他参考：</strong></p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.brendangregg.com/FlameGraphs/offcpuflamegraphs.html">Off-CPU Flame Graphs</a></li>
 </ul>
-<h1 id="3-vtune"><a class="markdownIt-Anchor" href="#3-vtune"></a> 3 VTune</h1>
+<h2 id="31-using-perf"><a class="markdownIt-Anchor" href="#31-using-perf"></a> 3.1 Using perf</h2>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启用调度的tracepoint，需要在root账号下执行，一般账号sudo可能执行不了</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/kernel/sched_schedstats</span><br><span class="line"></span><br><span class="line">sudo perf record \</span><br><span class="line">    -e <span class="built_in">sched</span>:sched_stat_sleep \</span><br><span class="line">    -e <span class="built_in">sched</span>:sched_switch \</span><br><span class="line">    -e <span class="built_in">sched</span>:sched_process_exit \</span><br><span class="line">    -a -g \</span><br><span class="line">    -o perf.data.raw \</span><br><span class="line">    sleep 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 其中，-s 参数主要用于合并 sched_stat 以及 sched_switch 这两个事件，用于生成对应的睡眠时间</span></span><br><span class="line">sudo perf inject -v -s \</span><br><span class="line">    -i perf.data.raw \</span><br><span class="line">    -o perf.data</span><br><span class="line"></span><br><span class="line">sudo perf script -F comm,pid,tid,cpu,time,period,event,ip,sym,dso | \</span><br><span class="line">    sudo awk <span class="string">&#x27;</span></span><br><span class="line"><span class="string">    NF &gt; 4 &#123; exec = $1; period_ms = int($5 / 1000000) &#125; </span></span><br><span class="line"><span class="string">    NF &gt; 1 &amp;&amp; NF &lt;= 4 &amp;&amp; period_ms &gt; 0 &#123; print $2 &#125; </span></span><br><span class="line"><span class="string">    NF &lt; 2 &amp;&amp; period_ms &gt; 0 &#123; printf &quot;%s\n%d\n\n&quot;, exec, period_ms &#125;</span></span><br><span class="line"><span class="string">    &#x27;</span> | \</span><br><span class="line">    sudo /opt/FlameGraph/stackcollapse.pl | \</span><br><span class="line">    sudo /opt/FlameGraph/flamegraph.pl --countname=ms --title=<span class="string">&quot;Off-CPU Time Flame Graph&quot;</span> --colors=io &gt; offcpu.svg</span><br></pre></td></tr></table></figure>
+<h1 id="4-vtune"><a class="markdownIt-Anchor" href="#4-vtune"></a> 4 VTune</h1>
 <p><strong>大致步骤：</strong></p>
 <ol>
 <li>在个人电脑上（<code>MacOS</code>、<code>Windows</code>、<code>Linux</code>均可）安装<code>Vtune-Profile</code>
@@ -346,7 +376,7 @@
 </ul>
 <p><strong>如何通过命令行采集数据：</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vtune -collect hotspots -knob sampling-mode=hw -knob sampling-interval=0.5 -d 60 a.out</span><br><span class="line">vtune -collect hotspots -knob sampling-mode=hw -knob sampling-interval=0.5 -target-pid=123 -d 60</span><br></pre></td></tr></table></figure>
-<h2 id="31-参考"><a class="markdownIt-Anchor" href="#31-参考"></a> 3.1 参考</h2>
+<h2 id="41-参考"><a class="markdownIt-Anchor" href="#41-参考"></a> 4.1 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/develop/documentation/vtune-help/top.html">Intel® VTune™ Profiler User Guide</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/develop/documentation/vtune-help/top/command-line-interface/running-command-line-analysis.html">Intel® VTune™ Profiler User Guide - Run Command Line Analysis</a></li>
@@ -355,9 +385,25 @@
 <li><a target="_blank" rel="noopener" href="https://software.intel.com/content/www/us/en/develop/documentation/vtune-cookbook/top/methodologies/top-down-microarchitecture-analysis-method.html">Intel® VTune™ Profiler Performance Analysis Cookbook</a></li>
 <li><a target="_blank" rel="noopener" href="https://andrewei1316.github.io/2020/12/20/top-down-performance-analysis/">《A Top-Down Method for Performance Analysis and Counters Architecture》阅读笔记</a></li>
 </ul>
-<h1 id="4-chrome-tracing-view"><a class="markdownIt-Anchor" href="#4-chrome-tracing-view"></a> 4 Chrome tracing view</h1>
+<h1 id="5-chrome-tracing-view"><a class="markdownIt-Anchor" href="#5-chrome-tracing-view"></a> 5 Chrome tracing view</h1>
 <p><a target="_blank" rel="noopener" href="https://github.com/StarRocks/starrocks/pull/7649">https://github.com/StarRocks/starrocks/pull/7649</a></p>
-<h1 id="5-tips"><a class="markdownIt-Anchor" href="#5-tips"></a> 5 Tips</h1>
+<h1 id="6-pcm"><a class="markdownIt-Anchor" href="#6-pcm"></a> 6 <a target="_blank" rel="noopener" href="https://github.com/opcm/pcm">pcm</a></h1>
+<p><code>Processor Counter Monitor, pmc</code>包含如下工具：</p>
+<ul>
+<li><code>pcm</code>：最基础监控工具</li>
+<li><code>pcm-sensor-server</code>：在本地提供一个<code>Http</code>服务，以<code>JSON</code>的格式返回<code>metrics</code></li>
+<li><code>pcm-memory</code>：用于监控内存带宽</li>
+<li><code>pcm-latency</code>：用于监控<code>L1 cache miss</code>以及<code>DDR/PMM memory latency</code></li>
+<li><code>pcm-pcie</code>：用于监控每个插槽的<code>PCIe</code>带宽</li>
+<li><code>pcm-iio</code>：用于监控每个<code>PCIe</code>设备的<code>PCIe</code>带宽</li>
+<li><code>pcm-numa</code>：用于监控本地以及远程的内存访问</li>
+<li><code>pcm-power</code></li>
+<li><code>pcm-tsx</code></li>
+<li><code>pcm-core/pmu-query</code></li>
+<li><code>pcm-raw</code></li>
+<li><code>pcm-bw-histogram</code></li>
+</ul>
+<h1 id="7-tips"><a class="markdownIt-Anchor" href="#7-tips"></a> 7 Tips</h1>
 <ol>
 <li><strong>性能分析需要重点关注的指标</strong>
 <ul>
@@ -371,7 +417,7 @@
 </ul>
 </li>
 </ol>
-<h1 id="6-参考"><a class="markdownIt-Anchor" href="#6-参考"></a> 6 参考</h1>
+<h1 id="8-参考"><a class="markdownIt-Anchor" href="#8-参考"></a> 8 参考</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.brendangregg.com/perf.html">perf Examples</a></li>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/22124514">在Linux下做性能分析1：基本模型</a></li>
@@ -484,7 +530,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-perf"><span class="nav-text"> 1 perf</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-event"><span class="nav-text"> 1.1 event</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-cpu%E7%81%AB%E7%84%B0%E5%9B%BE"><span class="nav-text"> 1.2 cpu火焰图</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#121-java-cpu%E7%81%AB%E7%84%B0%E5%9B%BE"><span class="nav-text"> 1.2.1 java-cpu火焰图</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%8F%82%E8%80%83"><span class="nav-text"> 1.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-off-cpu-analysis"><span class="nav-text"> 2 Off-CPU Analysis</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-vtune"><span class="nav-text"> 3 VTune</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%8F%82%E8%80%83"><span class="nav-text"> 3.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-chrome-tracing-view"><span class="nav-text"> 4 Chrome tracing view</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-tips"><span class="nav-text"> 5 Tips</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%8F%82%E8%80%83"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-perf"><span class="nav-text"> 1 perf</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-event"><span class="nav-text"> 1.1 event</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E5%8F%82%E8%80%83"><span class="nav-text"> 1.2 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-flame-graph"><span class="nav-text"> 2 Flame Graph</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-cpu-flame-graph"><span class="nav-text"> 2.1 CPU Flame Graph</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-cpu-flame-graph-for-java"><span class="nav-text"> 2.2 CPU Flame Graph for Java</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-cache-miss-flame-graph"><span class="nav-text"> 2.3 Cache Miss Flame Graph</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-cpi-flame-graph"><span class="nav-text"> 2.4 CPI Flame Graph</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 2.5 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#26-%E5%8F%82%E8%80%83"><span class="nav-text"> 2.6 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-off-cpu-analysis"><span class="nav-text"> 3 Off-CPU Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-using-perf"><span class="nav-text"> 3.1 Using perf</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-vtune"><span class="nav-text"> 4 VTune</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E5%8F%82%E8%80%83"><span class="nav-text"> 4.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-chrome-tracing-view"><span class="nav-text"> 5 Chrome tracing view</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-pcm"><span class="nav-text"> 6 pcm</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-tips"><span class="nav-text"> 7 Tips</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%8F%82%E8%80%83"><span class="nav-text"> 8 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -500,7 +546,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">289</span>
+          <span class="site-state-item-count">290</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
