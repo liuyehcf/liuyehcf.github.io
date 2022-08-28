@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-08T09:03:18.000Z">
-<meta property="article:modified_time" content="2022-07-16T07:03:13.839Z">
+<meta property="article:modified_time" content="2022-08-28T13:49:03.162Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-16 15:03:13" itemprop="dateModified" datetime="2022-07-16T15:03:13+08:00">2022-07-16</time>
+                <time title="修改时间：2022-08-28 21:49:03" itemprop="dateModified" datetime="2022-08-28T21:49:03+08:00">2022-08-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -287,7 +287,7 @@
             <td style="text-align:left">
                 <li></li>
             </td>
-            <td style="text-align:left">✅/👀</td>
+            <td style="text-align:left">✅/👀/🤷🏻</td>
             <td style="text-align:left">★★★</td>
         </tr>
 -->
@@ -383,9 +383,30 @@
                 <li><code>#Execution</code></li>
                 <li><code>#Vector Processing</code></li>
             </td>
-            <td style="text-align:left"></td>
-            <td style="text-align:left"></td>
-            <td style="text-align:left"></td>
+            <td style="text-align:left">
+                <li>How CPU works
+                    <ul>
+                        <li>Pipelining, branch, cache, memory access</li>
+                        <li>Super-scalar CPU can take multiple instructions into execution in parallel if they are independent, because CPU have more than one pipeline</li>
+                        <li>Radix-partitioned hash-join has cache-friendly memory access pattern</li>
+                    </ul>
+                </li>
+                <li>Microbenchmark: TPC-H Query 1
+                    <ul>
+                        <li>Binary Association Table, BAT</li>
+                        <li>Full materialization may offset the benefit from the vectorization, because memory access becomes a bottleneck when bandwidth is full</li>
+                    </ul>
+                </li>
+                <li>Vectorized Query Processor
+                    <ul>
+                        <li>Chunk at a time, cache-resident data, vector size, range from 1k to 8k, works well</li>
+                        <li>Data in vertically fragmented form</li>
+                        <li>MonetDB Instruction Language, MIL</li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
         </tr>
         <tr>
             <td style="text-align:left">
@@ -439,6 +460,44 @@
             <td style="text-align:left"></td>
             <td style="text-align:left"></td>
             <td style="text-align:left"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/Parallel-Merge-Sort.pdf">Parallel Merge Sort</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Execution</code></li>
+                <li><code>#Sort</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>CRCW, concurrent read and concurrent write. EREW, exclusive read and exclusive write. PRAM, parallel random access memory</li>
+                <li>Tree-based merge sort, CREW algorighm
+                    <ul>
+                        <li>3-cover property</li>
+                        <li>Node classification:
+                            <ul>
+                                <li><code>0 < |UP(i)| < |L(i)|</code>, then node <code>i</code> is inside node</li>
+                                <li><code>|UP(i)| = |L(i)|</code>, then node <code>i</code> is external node</li>
+                            </ul>
+                        </li>
+                        <li>Goal: for inside node, let <code>|NEWUP(i)| = 2|UP(i)|</code></li>
+                        <li>Rules for <code>UP</code>
+                            <ul>
+                                <li><code>NEWUP(u) = SUP(v) ∪ SUP(w)</code>, <code>v</code> and <code>w</code> are child nodes of node <code>u</code></li>
+                            </ul>
+                        </li>
+                        <li>Rules for <code>SUP</code>
+                            <ul>
+                                <li><code>SUP(i) = every forth item of UP(i)</code>, for inside node or first stage of external node</li>
+                                <li><code>SUP(i) = every second item of UP(i)</code>, for second stage of external node</li>
+                                <li><code>SUP(i) = every item of UP(i)</code>, for third stage of external node</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">🤷🏻</td>
+            <td style="text-align:left">★★★★★</td>
         </tr>
         <tr>
             <td style="text-align:left">
@@ -640,10 +699,96 @@
         </tr>
         <tr>
             <td style="text-align:left">
+                <a href="/resources/paper/An-Overview-of-Query-Optimization-in-Relational-Systems.pdf">An Overview of Query Optimization in Relational Systems</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Optimizer</code></li>
+                <li><code>#Overview</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>query optimization can be viewed as a difficult search problem:
+                    <ul>
+                        <li>A space of plans</li>
+                        <li>A cost estimation technique</li>
+                        <li>An enumeration algorithm</li>
+                    </ul>
+                </li>
+                <li>System R's enumeration algorithm comprises two important parts:
+                    <ul>
+                        <li>Dynamic programming to produce the optimal plan</li>
+                        <li>Interesting orders, the idea of which is later generalized to physical properties</li>
+                    </ul>
+                </li>
+                <li>Search space
+                    <ul>
+                        <li>Join sequences, including outerjoin and join, while outerjoin has more limitations</li>
+                        <li>SPJ with group-by, group-by push down</li>
+                        <li>Reducing multi-block queries to single-block:
+                            <ul>
+                                <li>Merging views, <code>&#123;Q=R⋈V|V=S⋈T&#125; -> &#123;Q=R⋈S⋈T&#125;</code>, then may be freely reordered</li>
+                                <li>Merging nested subqueries, the generic way to process the correlated subqueries</li>
+                                <li>Using semijoin like techniques for optimizating multi-block queries</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Statistics and cost estimatio
+                    <ul>
+                        <li>Statistical summary is a logical property but the cost of a plan is a physical property</li>
+                        <li>Histogram
+                            <ul>
+                                <li>Equi-depth(height) is effective for either high or low skew data</li>
+                                <li>Histogram is working on single column, do not provide information on the correlations among columns. One option is to consider 2-dimensional histograms, which will cost much more space</li>
+                            </ul>
+                        </li>
+                        <li>Sampling
+                            <ul>
+                                <li>Sampling is estimation of statistics, the key challenge is to limit the error in estimation</li>
+                                <li>The task of estimating distinct values is provably error prone</li>
+                            </ul>
+                        </li>
+                        <li>Propagation of statistical information through operators</li>
+                        <li>Cost computation, CPU/Memory/IO/Paralleliasm</li>
+                    </ul>
+                </li>
+                <li>Enumeration architectures
+                    <ul>
+                        <li>Starburst
+                            <ul>
+                                <li>Query Graph Model(QGM)</li>
+                                <li>query rewrite phase, without cost info</li>
+                                <li>plan optimization phase, with estimated cost and physical properties, properties are propagated as plans are built bottom-up</li>
+                            </ul>
+                        </li>
+                        <li>Colcano/Cascades
+                            <ul>
+                                <li>Including two kinds of rules, transformation rules and implementation rules. And there is no clearly boundary between the two kinds of rules</li>
+                                <li>Logical properties, physical properties and cost are used during enumeration</li>
+                                <li>Use dynamic programming in a top-down way, memorization</li>
+                                <li>Goal-driven</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Beyound the fundamentals
+                    <ul>
+                        <li>Distributed and parallel databases, replication for physical distribution and parallelism for scale-up</li>
+                        <li>User defined functions, UDF. Bring problems to cost estimation</li>
+                        <li>Materialized Views</li>
+                        <li>Defer generation of complete plans subject to availability of runtime information</li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
                 <a href="/resources/paper/The-Cascades-Framework-For-Query-Optimization.pdf">The Cascades Framework for Query Optimization</a>
             </td>
             <td style="text-align:left">
                 <li><code>#Optimizer</code></li>
+                <li><code>#Framework</code></li>
             </td>
             <td style="text-align:left">
                 <li>Framework Concepts and Components</li>
@@ -658,6 +803,7 @@
             </td>
             <td style="text-align:left">
                 <li><code>#Optimizer</code></li>
+                <li><code>#Framework</code></li>
             </td>
             <td style="text-align:left">
                 <li>Framework Concepts and Components</li>
@@ -687,11 +833,29 @@
                 <li><code>#Optimizer</code></li>
             </td>
             <td style="text-align:left">
-                <li>Easy to integrate into other systems</li>
-                <li>Parallel Optimization</li>
+                <li>Orca Architecture
+                    <ul>
+                        <li>Ability to run outside the database system as a stand-alone optimizer through Data eXchange Language(DXL)</li>
+                        <li>Memo</li>
+                        <li>Search and Job Scheduler, including three main steps: exploration, implementation, optimization</li>
+                        <li>Transformations</li>
+                        <li>Property Enforcement, including logical property(output columns) and physical property(sort order, distribution)</li>
+                        <li>Metadata Cache</li>
+                        <li>GPOS</li>
+                    </ul>
+                </li>
+                <li>Optimization workflow
+                    <ul>
+                        <li>Exploration, possibly creating new group expressions and new groups into memo, such as Join Commutativity Rule/</li>
+                        <li>Statistics Derivation, used to derive estimates for cardinality and data skew</li>
+                        <li>Implementation, shifting from logical to physical</li>
+                        <li>Optimization, properties enforcement and cost computation</li>
+                    </ul>
+                </li>
+                <li>Parallel query optimization, task dependency</li>
             </td>
-            <td style="text-align:left"></td>
-            <td style="text-align:left">★★★</td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
         </tr>
         <tr>
             <td style="text-align:left">
@@ -794,12 +958,34 @@
                 <li><code>#Subquery</code></li>
             </td>
             <td style="text-align:left">
-                <li>Subquery coalesce</li>
-                <li>Subquery removal using window functions</li>
+                <li>Subquery coalesce
+                    <ul>
+                        <li>Of same type, e.g. two exist subqueries</li>
+                        <li>Of different type, e.g. exist and not exist subqueries</li>
+                    </ul>
+                </li>
+                <li>Execution enhancements:
+                    <ul>
+                        <li>Cost-based parallel group-by pushdown, GPD. Short circuit by HAVING clause</li>
+                    </ul>
+                </li>
+                <li>Subquery removal using window functions:
+                    <ul>
+                        <li>Correlated subsumed subquery, TPCH-Q2/Q17</li>
+                        <li>Uncorrelated subsumed subquery, TPCH-Q15</li>
+                        <li>Subsumed subquery in HAVING clause, TPCH-Q11</li>
+                        <li>Subquery Producing a Multi-Set, MAX(MAX), MIN(MIN)</li>
+                    </ul>
+                </li>
+                <li>Scalable parallel execution:
+                    <ul>
+                        <li>Grand-total window function optimization, which can be extended to low cardinality partition-by keys</li>
+                    </ul>
+                </li>
                 <li>Null-aware anti join, NAAJ</li>
             </td>
-            <td style="text-align:left">👀</td>
-            <td style="text-align:left"></td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
         </tr>
             <tr>
             <td style="text-align:left">
@@ -822,9 +1008,25 @@
                 <li><code>#Optimizer</code></li>
                 <li><code>#Join</code></li>
             </td>
-            <td style="text-align:left"></td>
-            <td style="text-align:left"></td>
-            <td style="text-align:left"></td>
+            <td style="text-align:left">
+                <li>Outerjoin workloads:
+                    <ul>
+                        <li>Database merging, two-sided outerjoin</li>
+                        <li>Hierarchical views</li>
+                        <li>Nested queries</li>
+                        <li>Universal quantifiers</li>
+                    </ul>
+                </li>
+                <li>Outerjoin optimizations:
+                    <ul>
+                        <li>Outerjoin simplification: LOJ can be rewritten as regular join if later operator discards the null-padded tuples. And this can be extended to ROJ and FOJ</li>
+                        <li>Join/Outerjoin associativity</li>
+                        <li>Generalized outerjoin</li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">🤷🏻</td>
+            <td style="text-align:left">★★★</td>
         </tr>
         <tr>
             <td style="text-align:left">
@@ -851,6 +1053,59 @@
             <td style="text-align:left"></td>
             <td style="text-align:left"></td>
             <td style="text-align:left"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/Optimization-of-Common-Table-Expressions-in-MPP-Database-Systems.pdf">Optimization of Common Table Expressions in MPP Database Systems</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Optimizer</code></li>
+                <li><code>#CTE</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>The purpose of CTEs is to avoid re-execution of expressions referenced more than once within a query</li>
+                <li>CTEs achieve two goals, making query more readable, making execution more efficient</li>
+                <li>CTEs follow a producer/consumer model</li>
+                <li>Chanllenges
+                    <ul>
+                        <li>Deadlock hazard, operator's execution order conflicts with the CTE's execution order</li>
+                        <li>Enumerating inlining alternatives, determining which ones need to be inline (for example, inline to utilize index) and which ones don't</li>
+                        <li>Contextualized Optimization</li>
+                    </ul>
+                </li>
+                <li>CTE representation
+                    <ul>
+                        <li>CTEProducer</li>
+                        <li>CTEConsumer</li>
+                        <li>CTEAnchor</li>
+                        <li>Sequence</li>
+                        <li>For case of CTE inline, CTEAnchor is removed and CTEConsumer is replaced with the whole CTE definition</li>
+                        <li>For case of CTE no-inline, CTEAnchor is replaced by Sequence operator which has the CTEProducer as its left child and the original child of the CTEAnchor as its second child</li>
+                    </ul>
+                </li>
+                <li>Plan enumeration
+                    <ul>
+                        <li>Transformation rules, CTEAnchor/Sequence/NoOp in one group, CTEConsumer/CopyOfCTEDefinition in one group</li>
+                        <li>Avoid invalid plans, such as CTEProducer without CTEConsumer, Sequence without CTEConsumer, NoOp with CTEConsumer(inlined)</li>
+                        <li>Optimization, predicate push down, always inline single-use CTEs, elimination of unused CTEs</li>
+                    </ul>
+                </li>
+                <li>Contextualized optimization
+                    <ul>
+                        <li>In ORCA, CTEs are considered later after regular optimization is done</li>
+                        <li>Enforcing physical properties, pushing the CTEConsumer's distribution requirement to the CTEProducer</li>
+                        <li>Cost Estimation</li>
+                    </ul>
+                </li>
+                <li>CTE based optimizations
+                    <ul>
+                        <li>CTE-Generating transformations, such as two count(distinct)</li>
+                        <li>Common subexpression elimination</li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
         </tr>
         <tr>
             <td style="text-align:left">
@@ -1001,10 +1256,11 @@
                     <ul>
                         <li>Filter tree</li>
                         <li>Lattice index</li>
+                        <li>Filter conditions including source tables, hubs, output columns, output expressions, range constraints, residual constraints, grouping columns, grouping expressions</li>
                     </ul>
                 </li>
             </td>
-            <td style="text-align:left">👀/4</td>
+            <td style="text-align:left">✅</td>
             <td style="text-align:left">★★★★★</td>
         </tr>
     </tbody>
@@ -1054,21 +1310,52 @@
         </tr>
     </tbody>
 </table>
-<h1 id="3-less-reference"><a class="markdownIt-Anchor" href="#3-less-reference"></a> 3 Less Reference</h1>
+<h1 id="3-compile-tech"><a class="markdownIt-Anchor" href="#3-compile-tech"></a> 3 Compile Tech</h1>
+<table>
+    <thead>
+        <tr>
+            <th style="text-align:left">题目</th>
+            <th style="text-align:left">分类</th>
+            <th style="text-align:left">概要</th>
+            <th style="text-align:left">状态</th>
+            <th style="text-align:left">推荐级别</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align:left">
+                <a target="_blank" rel="noopener" href="https://www.researchgate.net/profile/Terence-Parr/publication/273188534_Adaptive_LL_Parsing_The_Power_of_Dynamic_Analysis/links/58b85f9745851591c5d7fd18/Adaptive-LL-Parsing-The-Power-of-Dynamic-Analysis.pdf">Adaptive LL (*) parsing: the power of dynamic analysis</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#LL</code></li>
+            </td>
+            <td style="text-align:left"></td>
+            <td style="text-align:left"></td>
+            <td style="text-align:left"></td>
+        </tr>
+    </tbody>
+</table>
+<h1 id="4-less-reference"><a class="markdownIt-Anchor" href="#4-less-reference"></a> 4 Less Reference</h1>
 <ol>
 <li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/abs/10.1145/3465998.3466009">Filter Representation in Vectorized Query Execution</a></li>
 </ol>
-<h1 id="4-todo"><a class="markdownIt-Anchor" href="#4-todo"></a> 4 TODO</h1>
+<h1 id="5-todo"><a class="markdownIt-Anchor" href="#5-todo"></a> 5 TODO</h1>
 <ul>
 <li>Survey
 <ul>
-<li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/275487.275492">An Overview of Query Optimization in Relational Systems</a></li>
+<li><a target="_blank" rel="noopener" href="https://cgi.cse.unsw.edu.au/~cs9315/20T1/readings/query.pdf">Query Evaluation Techniques for Large Databases</a></li>
 </ul>
 </li>
 <li>SubQuery
 <ul>
 <li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/276304.276309">Reusing Invariants: A New Strategy for Correlated Queries</a></li>
 <li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/319732.319745">On Optimizing an SQL-like Nested Query</a></li>
+</ul>
+</li>
+<li>Join
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.btw2017.informatik.uni-stuttgart.de/slidesandpapers/F1-10-37/paper_web.pdf">The Complete Story of Joins (in HyPer)</a></li>
+<li><a target="_blank" rel="noopener" href="https://dsl.cds.iisc.ac.in/~course/TIDS/papers/hugejoins_SIGMOD2018.pdf">Adaptive Optimization of Very Large Join Queries</a></li>
 </ul>
 </li>
 <li>Memory
@@ -1109,6 +1396,16 @@
 <li>Computer Architecture
 <ul>
 <li><a href="/resources/paper/Residency-Aware-Virtual-Machine-Communication-Optimization-Design-Choices-and-Techniques.pdf">Residency-Aware Virtual Machine Communication Optimization: Design Choices and Techniques</a></li>
+</ul>
+</li>
+<li>Sort
+<ul>
+<li><a href="/resources/paper/On-the-Nature-of-Merge-External-Merge-Internal-Merge-and-Parallel-Merge.pdf">On the Nature of Merge: External Merge, Internal Merge, and Parallel Merge</a></li>
+<li><a target="_blank" rel="noopener" href="http://lgis.informatik.uni-kl.de/archiv/wwwdvs.informatik.uni-kl.de/courses/DBSREAL/SS2005/Vorlesungsunterlagen/Implementing_Sorting.pdf">Implementing Sorting in Database Systems</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.kaldewey.com/pubs/Sort_vs_Hash__VLDB09.pdf">Sort vs. Hash Revisited: Fast Join Implementation on Modern Multi-Core CPUs</a></li>
+<li>《Fast multi-column sorting in main-memory column-stores》</li>
+<li><a target="_blank" rel="noopener" href="https://kclpure.kcl.ac.uk/portal/files/123577916/BlockQuicksort_Avoiding_Branch_Mispredictions_EDELKAMP_PublishedAugust2016_VoR_CC_BY_.pdf">BlockQuicksort: Avoiding Branch Mispredictions in Quicksort</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1406.2628.pdf">Merge Path - A Visually Intuitive Approach to Parallel Merging</a></li>
 </ul>
 </li>
 <li><a target="_blank" rel="noopener" href="https://www.researchgate.net/profile/Jarek-Gryz/publication/221309776_Implementation_of_Two_Semantic_Query_Optimization_Techniques_in_DB2_Universal_Database/links/0912f51279e7662532000000/Implementation-of-Two-Semantic-Query-Optimization-Techniques-in-DB2-Universal-Database.pdf">Implementation of Two Semantic Query Optimization Techniques in DB2 Universal Database</a></li>
@@ -1214,7 +1511,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-database"><span class="nav-text"> 1 Database</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-serverless"><span class="nav-text"> 2 Serverless</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-less-reference"><span class="nav-text"> 3 Less Reference</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-todo"><span class="nav-text"> 4 TODO</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-database"><span class="nav-text"> 1 Database</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-serverless"><span class="nav-text"> 2 Serverless</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-compile-tech"><span class="nav-text"> 3 Compile Tech</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-less-reference"><span class="nav-text"> 4 Less Reference</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-todo"><span class="nav-text"> 5 TODO</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -1230,7 +1527,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">289</span>
+          <span class="site-state-item-count">290</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
