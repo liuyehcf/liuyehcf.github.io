@@ -27,13 +27,16 @@
 <meta property="og:site_name" content="Liuye Notebook">
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Cpp-Trivial/memory_allocate.jpeg">
+<meta property="og:image" content="http://example.com/images/Cpp-Trivial/tcmalloc.png">
+<meta property="og:image" content="http://example.com/images/Cpp-Trivial/jemalloc.png">
 <meta property="og:image" content="http://example.com/images/Cpp-Trivial/analysis-tools.png">
 <meta property="article:published_time" content="2021-08-19T01:38:42.000Z">
-<meta property="article:modified_time" content="2022-08-28T13:49:03.150Z">
+<meta property="article:modified_time" content="2022-10-08T14:00:57.994Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/images/Cpp-Trivial/analysis-tools.png">
+<meta name="twitter:image" content="http://example.com/images/Cpp-Trivial/memory_allocate.jpeg">
 
 <link rel="canonical" href="http://example.com/2021/08/19/Cpp-Trivial/">
 
@@ -231,7 +234,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-28 21:49:03" itemprop="dateModified" datetime="2022-08-28T21:49:03+08:00">2022-08-28</time>
+                <time title="修改时间：2022-10-08 22:00:57" itemprop="dateModified" datetime="2022-10-08T22:00:57+08:00">2022-10-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -394,14 +397,42 @@ linker --> result_lib</pre>
 <li><a target="_blank" rel="noopener" href="https://unix.stackexchange.com/questions/557919/what-is-libstdc-so-6-and-glibcxx-3-4-20">What is libstdc++.so.6 and GLIBCXX_3.4.20?</a></li>
 </ul>
 <h1 id="3-内存管理"><a class="markdownIt-Anchor" href="#3-内存管理"></a> 3 内存管理</h1>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/21098367/answer/1698482825">brk和sbrk所指的program break到底是什么？</a></p>
+<p><img src="/images/Cpp-Trivial/memory_allocate.jpeg" alt="memory_allocate" /></p>
+<blockquote>
+<p>进程可以通过增加堆的大小来分配内存，堆是一段长度可变的连续<strong>虚拟内存</strong>，始于进程的未初始化数据段末尾，随着内存的分配和释放而增减。通常将堆的当前内存边界称为<code>program break</code></p>
+</blockquote>
+<blockquote>
+<p>改变堆的大小（即分配或释放内存），其实就是命令内核改变进程的<code>program break</code>位置。最初，<code>program break</code>正好位于未初始化数据段末尾之后（如图所示，与<code>&amp;end</code>位置相同）</p>
+</blockquote>
+<blockquote>
+<p>在<code>program break</code>的位置抬升后，程序可以访问新分配区域内的任何内存地址，而此时物理内存页尚未分配。内核会在进程首次试图访问这些虚拟内存地址时自动分配新的物理内存页</p>
+</blockquote>
 <p><strong>涉及的系统调用（只涉及虚拟内存，物理内存只能通过缺页异常来分配）</strong></p>
 <ul>
-<li><code>brk</code>：详见<code>man brk</code></li>
-<li><code>sbrk</code>：详见<code>man sbrk</code></li>
-<li><code>mmap/munmap</code>：详见<code>man mmap/munmap</code></li>
+<li><code>brk/sbrk</code>：详见<code>man brk/sbrk</code>，用于调整堆顶位置，内存释放存在先后顺序。通常用于分配小于<code>128k</code>的内存</li>
+<li><code>mmap/munmap</code>：详见<code>man mmap/munmap</code>，在栈和堆之间的空间找一块独立内存空间，可以独立释放。通常用于分配大于<code>128k</code>的内存</li>
 </ul>
 <p>而内存管理的<code>lib</code>工作在用户态，底层还是通过上述系统调用来分配虚拟内存，不同的<code>lib</code>管理内存的算法可能有差异</p>
 <h2 id="31-tcmalloc"><a class="markdownIt-Anchor" href="#31-tcmalloc"></a> 3.1 <a target="_blank" rel="noopener" href="https://github.com/google/tcmalloc">tcmalloc</a></h2>
+<p><img src="/images/Cpp-Trivial/tcmalloc.png" alt="tcmalloc" /></p>
+<p><strong>特点：</strong></p>
+<ul>
+<li><code>Small object allocation</code>
+<ul>
+<li>每个线程都会有个<code>ThreadCache</code>，用于为当前线程分配小对象</li>
+<li>当其容量不足时，会从<code>CentralCache</code>获取额外的存储空间</li>
+</ul>
+</li>
+<li><code>CentralCache allocation management</code>
+<ul>
+<li>用于分配大对象，大对象通常指<code>&gt;32K</code></li>
+<li>当内存空间用完后，用<code>sbrk/mmap</code>从操作系统中分配内存</li>
+<li>在多线程高并发的场景中，<code>CentralCache</code>中的锁竞争很容易成为瓶颈</li>
+</ul>
+</li>
+<li><code>Recycle</code></li>
+</ul>
 <p><strong>如何安装：</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum -y install gperftools gperftools-devel</span><br></pre></td></tr></table></figure>
 <h3 id="311-heapprofile"><a class="markdownIt-Anchor" href="#311-heapprofile"></a> 3.1.1 heapprofile</h3>
@@ -416,6 +447,14 @@ linker --> result_lib</pre>
 <p><strong>使用<code>pprof</code>分析内存：</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 文本格式</span></span><br><span class="line">pprof --text ./main /tmp/test-profile.0001.heap | head -30</span><br><span class="line"></span><br><span class="line"><span class="comment"># 图片格式</span></span><br><span class="line">pprof --svg ./main /tmp/test-profile.0001.heap &gt; heap.svg </span><br></pre></td></tr></table></figure>
 <h2 id="32-jemalloc"><a class="markdownIt-Anchor" href="#32-jemalloc"></a> 3.2 <a target="_blank" rel="noopener" href="https://github.com/jemalloc/jemalloc">jemalloc</a></h2>
+<p><img src="/images/Cpp-Trivial/jemalloc.png" alt="jemalloc" /></p>
+<p><strong>特点：</strong></p>
+<ul>
+<li>在多核、多线程场景下，跨线程分配/释放的性能比较好</li>
+<li>大量分配小对象时，所占空间会比<code>tcmalloc</code>稍多一些</li>
+<li>对于大对象分配，所造成的的内存碎片会比<code>tcmalloc</code>少一些</li>
+<li>内存分类粒度更细，锁比<code>tcmalloc</code>更少</li>
+</ul>
 <h2 id="33-mimalloc"><a class="markdownIt-Anchor" href="#33-mimalloc"></a> 3.3 <a target="_blank" rel="noopener" href="https://github.com/microsoft/mimalloc">mimalloc</a></h2>
 <h2 id="34-对比"><a class="markdownIt-Anchor" href="#34-对比"></a> 3.4 对比</h2>
 <p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/9866145/what-are-the-differences-between-and-reasons-to-choose-tcmalloc-jemalloc-and-m">What are the differences between (and reasons to choose) tcmalloc/jemalloc and memory pools?</a></p>
