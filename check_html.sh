@@ -3,7 +3,7 @@
 ROOT=$(dirname "$0")
 ROOT=$(cd "$ROOT"; pwd)
 file="${ROOT}/_posts/Papers.md"
-items=("table" tbody "thead" "tr" "th" "td" "a" "li" "ul" "code")
+items=("table" tbody "thead" "tr" "th" "td" "a" "b" "li" "ul" "code")
 
 function echo_red() {
     tput setaf 1; tput bold; echo "$@"; tput sgr0
@@ -37,3 +37,20 @@ do
         echo_green "'${item}' matches, ${left_count[${item}]}/${right_count[${item}]}"
     fi
 done
+
+while read line
+do
+    if [[ "${line}" =~ "<a href=" ]]; then
+        local_path=$(echo ${line} | sed -rn 's/.*<a href="(.*)">.*/\1/p')
+        if [ -z "${local_path}" ]; then
+            continue
+        fi
+        if [[ "${local_path}" =~ "http" ]]; then
+            continue
+        fi
+        local_path=${local_path#/}
+        if [ ! -f ${ROOT}/${local_path} ]; then
+            echo_red "Invalid reference, ${line}"
+        fi
+    fi
+done < <(cat ${file})

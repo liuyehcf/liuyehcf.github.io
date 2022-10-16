@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-08T09:03:18.000Z">
-<meta property="article:modified_time" content="2022-10-08T14:00:58.011Z">
+<meta property="article:modified_time" content="2022-10-16T13:47:06.330Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-08 22:00:58" itemprop="dateModified" datetime="2022-10-08T22:00:58+08:00">2022-10-08</time>
+                <time title="修改时间：2022-10-16 21:47:06" itemprop="dateModified" datetime="2022-10-16T21:47:06+08:00">2022-10-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -275,7 +275,6 @@
       
         <p><strong>阅读更多</strong></p>
 <a id="more"></a>
-<h1 id="1-database"><a class="markdownIt-Anchor" href="#1-database"></a> 1 Database</h1>
 <!--
         <tr>
             <td style="text-align:left">
@@ -291,6 +290,7 @@
             <td style="text-align:left">★★★</td>
         </tr>
 -->
+<h1 id="1-olap"><a class="markdownIt-Anchor" href="#1-olap"></a> 1 OLAP</h1>
 <table>
     <thead>
         <tr>
@@ -458,10 +458,17 @@
                 <li><code>#Sort</code></li>
             </td>
             <td style="text-align:left">
-                <li>CRCW, concurrent read and concurrent write. EREW, exclusive read and exclusive write. PRAM, parallel random access memory</li>
+                <li>Sort models, circuits and PRAM(parallel random access memory)
+                    <ul>
+                        <li>CRCW(concurrent read and concurrent write) PRAM</li>
+                        <li>CREW(concurrent read and exclusive write) PRAM</li>
+                        <li>EREW(exclusive read and exclusive write) PRAM</li>
+                    </ul>
+                </li>
                 <li>Tree-based merge sort, CREW algorighm
                     <ul>
-                        <li>The merges at the different levels of the tree can be pipelined</li>
+                        <li><b>Think about the tree-based merge sort, items are merged level by level from bottom up. For merge operation, different level processes different amount of items, and we use <code>log(N)</code> stages to merge <code>N</code> items. And here comes the key observation that the merges at the different levels of the tree can be pipelined</b></li>
+                        <li>Runs in <code>O(log(N))</code> time on <code>N</code> processors</li>
                         <li>Definitions:
                             <ul>
                                 <li><code>L(u)</code> denotes the final sorted array of the subtree rooted at node <code>u</code></li>
@@ -508,8 +515,8 @@
                     </ul>
                 </li>
             </td>
-            <td style="text-align:left">🤷🏻</td>
-            <td style="text-align:left">★★★</td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
         </tr>
         <tr>
             <td style="text-align:left">
@@ -520,11 +527,127 @@
                 <li><code>#Sort</code></li>
             </td>
             <td style="text-align:left">
-                <li>External merge, the canonical type of Merge, takes two distinct rooted structures and joins them into one</li>
-                <li>Internal merge</li>
+                <li>External merge takes two distinct rooted structures and joins them into one</li>
+                <li>Internal merge takes a subpart of an existing structure as one of two objects</li>
+                <li>Parallel merge combines the properties of both</li>
+                <li>This article is extremely obscure</li>
             </td>
             <td style="text-align:left">🤷🏻</td>
-            <td style="text-align:left">★★★</td>
+            <td style="text-align:left">★</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/Optimizing-parallel-bitonic-sort.pdf">Optimizing parallel bitonic sort</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Execution</code></li>
+                <li><code>#Sort</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>Most of the research on parallel algorithm design in the 70s and 80s has focused on fine-grain models of parallel computation, such as PRAM or network-based models</li>
+                <li><code>N</code> keys will be sorted in <code>log(N)</code> stages, for each bitonic sequence of <code>i-th</code> stage contains <code>2^i</code> items, and it can be Butterfly merged in <code>i</code> steps</li>
+                <li>Naive and improved data layouts
+                    <ul>
+                        <li>Blocked layout: mapping <code>N</code> items on <code>P</code> processors, with <code>n = N / P</code>. The first <code>log(n)</code> stages can be exected locally. For the subsequent stages <code>log(n) + k</code>, the first <code>k</code> steps require remote communication whil the last <code>log(n)</code> steps are completely local</li>
+                        <li>Cyclic layout: mapping <code>N</code> items on <code>P</code> processors by assigning the <code>i-th</code> item to the <code>i % P</code> processor, with <code>n = N / P</code>. The first <code>log(n)</code> stages require remote communication. For the subsequent stages <code>log(n) + k</code>, the first <code>k</code> steps are completely local while last <code>log(n)</code> steps require remote communication</li>
+                        <li>Cyclic-blocked layout: by periodically remapping the data from a blocked layout to a cyclic layout and vice verse can reduce the communication overhead</li>
+                    </ul>
+                </li>
+                <li>Optimization communication
+                    <ul>
+                        <li>Absolute address(<code>log(N)</code> bits long): represents the row number of the node in the bitonic storing network</li>
+                        <li>Relative address: the first <code>log(P)</code> bits represent the processor number, and the last <code>log(n)</code> bits represent the local address of the node after the remap</li>
+                        <li><b>Key observation: After the first <code>log(n)</code> stages (which can be entirely executed locally under a blocked layout) the maximum number of successive steps of the bitonic sorting network that can be executed locally, under any data layout, is <code>log(n)</code> (where <code>n = N / P</code>, <code>N</code> is data size, <code>P</code> is number of processors)</b></li>
+                        <li>We can thus reformulate the problem as: Given the tuple (stage, step), which uniquely identifies a column of the bitonic sorting network, how to remap the elements at this point in such a way that the next <code>log(n)</code> steps of the bitonic sorting network are executed locally</li>
+                        <li><code>log(n)</code> successive steps may cross stage</li>
+                        <li>The purpose of the first <code>log(n)</code> stages is to form a monotonically increasing or decreasing sequence of n keys on each processor, thus we can replace all these stages with a single, highly optimized local sort</li>
+                        <li><b>My question is: why are all processors not sharing the same data array, so there is no remote communication problem</b></li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/Parallel-Merge-Sort-with-Load-Balancing.pdf">Parallel Merge Sort with Load Balancing</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Execution</code></li>
+                <li><code>#Sort</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>Main contribution: find a way to merge two lists, each of which is distributed in multiple processors, rather than store them on a single processor</li>
+                <li>Items are merged level by level from bottom up:
+                    <ul>
+                        <li>Group is a set of processors that are in charge of one sorted list, the higher level, the more processors there will be</li>
+                        <li>Each merge comprises two groups(partner groups), each group will maintain a histogram</li>
+                        <li>Before merging, each group exchanges histograms to form a new one to cover both, and each processor then divideds the intervals of the merged histogram into <code>2 * |group|</code> parts so that the lower indexed processors will keep the smaller half, and the higher will keep the larger half. And each processor sends out the half intervals that belongs to the other processors for further merge</li>
+                        <li>Key observation: for each non-overlap interval, which means amoung all the processors only one at most data set exists, no merge operation required. And for each overlap interval, k-merge or cascaded merge is required to merge the 2 or more data sets</li>
+                        <li>Questions: 
+                            <ul>
+                                <li>How to form a histogram if there are mutilply sort keys?</li>
+                                <li>How is the balance when there is data skew?</li>
+                                <li>How to make sure that each processor maintain a histogram with same intervals</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/Parallelizing-fundamental-algorithms-such-as-sorting-on-multi-core-processors-for-EDA-acceleration.pdf">Parallelizing Fundamental Algorithms such as Sorting on Multi-core Processors for EDA Acceleration</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Execution</code></li>
+                <li><code>#Sort</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>Granularity vs. Load Balancing. Fine grain has better load balancing while coarse grain has smaller overhead</li>
+                <li>Parallel quick sort</li>
+                <li>Parallel merge sort</li>
+                <li>Parallel map sort</li>
+            </td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/A-Simple-Fast-Parallel-Implementation-of-Quicksort-and-its-Performance-Evaluation-on-SUN-Enterprise-10000.pdf">A Simple, Fast Parallel Implementation of Quicksort and its Performance Evaluation on SUN Enterprise 10000</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Execution</code></li>
+                <li><code>#Sort</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>Parallel quick sort has four phases:
+                    <ul>
+                        <li>The parallel partition of the data phase</li>
+                        <li>The sequential partition of the data phase</li>
+                        <li>The process partition phase</li>
+                        <li>The sequential sorting in parallel with helping phase</li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">👀/P4</td>
+            <td style="text-align:left"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/Parallelization-of-Modified-Merge-Sort-Algorithm.pdf">Parallelization of Modified Merge Sort Algorithm</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Execution</code></li>
+                <li><code>#Sort</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>Good summary of previous work</li>
+            </td>
+            <td style="text-align:left">👀</td>
+            <td style="text-align:left"></td>
         </tr>
         <tr>
             <td style="text-align:left">
@@ -571,9 +694,14 @@
                         <li>Three types of associativity, full associative, direct-mapped, group-mapped</li>
                     </ul>
                 </li>
-                <li>Cache-efficient parallel merge, processing cache-size of data at one iteration</li>
+                <li>Cache-efficient parallel merge
+                    <ul>
+                        <li>Key idea: ensure that all elements that may be active at any given time can co-reside in cache</li>
+                        <li>Multi-processors process cache-size data at one iteration</li>
+                    </ul>
+                </li>
             </td>
-            <td style="text-align:left">👀/3</td>
+            <td style="text-align:left">✅</td>
             <td style="text-align:left">★★★★★</td>
         </tr>
         <tr>
@@ -1314,7 +1442,39 @@
         </tr>
     </tbody>
 </table>
-<h1 id="2-serverless"><a class="markdownIt-Anchor" href="#2-serverless"></a> 2 Serverless</h1>
+<h1 id="2-dsps"><a class="markdownIt-Anchor" href="#2-dsps"></a> 2 DSPS</h1>
+<p>Data Stream Processing System, DSPS</p>
+<table>
+    <thead>
+        <tr>
+            <th style="text-align:left">题目</th>
+            <th style="text-align:left">分类</th>
+            <th style="text-align:left">概要</th>
+            <th style="text-align:left">状态</th>
+            <th style="text-align:left">推荐级别</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/A-Survey-of-Distributed-Data-Stream-Processing-Frameworks.pdf">A Survey of Distributed Data Stream Processing Frameworks</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Survey</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>Batch Processing
+                    <ul>
+                        <li>Latency, cannot process until all data is loaded</li>
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">👀</td>
+            <td style="text-align:left"></td>
+        </tr>
+    </tbody>
+</table>
+<h1 id="3-serverless"><a class="markdownIt-Anchor" href="#3-serverless"></a> 3 Serverless</h1>
 <table>
     <thead>
         <tr>
@@ -1359,7 +1519,7 @@
         </tr>
     </tbody>
 </table>
-<h1 id="3-compile-tech"><a class="markdownIt-Anchor" href="#3-compile-tech"></a> 3 Compile Tech</h1>
+<h1 id="4-compile-tech"><a class="markdownIt-Anchor" href="#4-compile-tech"></a> 4 Compile Tech</h1>
 <table>
     <thead>
         <tr>
@@ -1384,7 +1544,7 @@
         </tr>
     </tbody>
 </table>
-<h1 id="4-todo"><a class="markdownIt-Anchor" href="#4-todo"></a> 4 TODO</h1>
+<h1 id="5-todo"><a class="markdownIt-Anchor" href="#5-todo"></a> 5 TODO</h1>
 <ul>
 <li>Survey
 <ul>
@@ -1437,13 +1597,13 @@
 <ul>
 <li><a href="/resources/paper/Merge-Path-Parallel-Merging-Made-Simple.pdf">Merge Path - Parallel Merging Made Simple</a></li>
 <li><a href="/resources/paper/Design-and-Evaluation-of-Main-Memory-Hash-Join-Algorithms-for-Multi-core-CPUs.pdf">Design and Evaluation of Main Memory Hash Join Algorithms for Multi-core CPUs</a></li>
-<li>[Sort vs. Hash Revisited Fast Join Implementation on Modern Multi-Core CPUs]/resources/paper/Sort-vs.-Hash-Revisited-Fast-Join-Implementation-on-Modern-Multi-Core-CPUs.pdf)</li>
+<li><a href="/resources/paper/Sort-vs.-Hash-Revisited-Fast-Join-Implementation-on-Modern-Multi-Core-CPUs.pdf">Sort vs. Hash Revisited Fast Join Implementation on Modern Multi-Core CPUs</a></li>
 <li><a target="_blank" rel="noopener" href="http://lgis.informatik.uni-kl.de/archiv/wwwdvs.informatik.uni-kl.de/courses/DBSREAL/SS2005/Vorlesungsunterlagen/Implementing_Sorting.pdf">Implementing Sorting in Database Systems</a></li>
 <li><a target="_blank" rel="noopener" href="http://www.kaldewey.com/pubs/Sort_vs_Hash__VLDB09.pdf">Sort vs. Hash Revisited: Fast Join Implementation on Modern Multi-Core CPUs</a></li>
 <li>《Fast multi-column sorting in main-memory column-stores》</li>
 <li><a target="_blank" rel="noopener" href="https://kclpure.kcl.ac.uk/portal/files/123577916/BlockQuicksort_Avoiding_Branch_Mispredictions_EDELKAMP_PublishedAugust2016_VoR_CC_BY_.pdf">BlockQuicksort: Avoiding Branch Mispredictions in Quicksort</a></li>
 <li><a href="/resources/paper/Efficient-Implementation-of-Sorting-on-Multi-Core-SIMD-CPU-Architecture.pdf">Efficient Implementation of Sorting on Multi-Core SIMD CPU Architecture</a></li>
-<li><a href="/resources/paper/Parallel-Merge-Sort-with-Load-Balancing.pdf">Parallel Merge Sort with Load Balancing</a></li>
+<li><a href="/resources/paper/A-Comparative-Study-of-Parallel-Sort-Algorithms.pdf">A Comparative Study of Parallel Sort Algorithms</a></li>
 </ul>
 </li>
 </ul>
@@ -1488,6 +1648,13 @@
 <li>facebook
 <ul>
 <li><a target="_blank" rel="noopener" href="https://scontent-hkg4-2.xx.fbcdn.net/v/t39.8562-6/302757195_3033291893628871_4556621853780203235_n.pdf?_nc_cat=109&amp;ccb=1-7&amp;_nc_sid=ad8a9d&amp;_nc_ohc=hY-ITB_TXPQAX8Ylsh_&amp;_nc_ht=scontent-hkg4-2.xx&amp;oh=00_AT9PVOmf5doA__7E1n_itQFL30Ri-4TTXQbVqhmSEMUjDA&amp;oe=6314D2A7">Velox: Meta’s Unified Execution Engine</a></li>
+</ul>
+</li>
+<li>Stream processing
+<ul>
+<li><a href="/resources/paper/Apache-Flink-Stream-and-Batch-Processing-in-a-Single-Engine.pdf">Apache Flink™: Stream and Batch Processing in a Single Engine</a></li>
+<li><a href="/resources/paper/A-Survey-Of-Stream-Processing.pdf">A Survey Of Stream Processing</a></li>
+<li><a href="/resources/paper/Scalable-Distributed-Stream-Processing.pdf">Scalable Distributed Stream Processing</a></li>
 </ul>
 </li>
 </ul>
@@ -1599,7 +1766,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-database"><span class="nav-text"> 1 Database</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-serverless"><span class="nav-text"> 2 Serverless</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-compile-tech"><span class="nav-text"> 3 Compile Tech</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-todo"><span class="nav-text"> 4 TODO</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-olap"><span class="nav-text"> 1 OLAP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-dsps"><span class="nav-text"> 2 DSPS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-serverless"><span class="nav-text"> 3 Serverless</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-compile-tech"><span class="nav-text"> 4 Compile Tech</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-todo"><span class="nav-text"> 5 TODO</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
