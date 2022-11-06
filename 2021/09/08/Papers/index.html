@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-08T09:03:18.000Z">
-<meta property="article:modified_time" content="2022-10-16T13:47:06.330Z">
+<meta property="article:modified_time" content="2022-11-04T14:11:24.010Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-16 21:47:06" itemprop="dateModified" datetime="2022-10-16T21:47:06+08:00">2022-10-16</time>
+                <time title="修改时间：2022-11-04 22:11:24" itemprop="dateModified" datetime="2022-11-04T22:11:24+08:00">2022-11-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -473,32 +473,38 @@
                             <ul>
                                 <li><code>L(u)</code> denotes the final sorted array of the subtree rooted at node <code>u</code></li>
                                 <li><code>UP(u)</code> denotes the subset of <code>L(u)</code>, which will become a more accurate approximation of <code>L(u)</code> as stage goes forward</li>
-                                <li><code>SUP(u)</code> denotes a sorted array comprising every fourth item in <code>UP(u)</code></li>
-                                <li><code>L</code> is a c-cover of <code>J</code> if each interval induced by an item in <code>L</code>(<code>[e, g]</code>, where <code>e</code> and <code>g</code> are two adjacent items in <code>L</code>) contains at most c items from <code>J</code>. And, usually <code>|L| < |J|</code>
+                                <li><code>SUP(u)</code> denotes the subset of <code>UP(u)</code>, which is also sorted</li>
+                                <li><code>0 < |UP(u)| < |L(u)|</code>, then node <code>u</code> is inside node</li>
+                                <li><code>|UP(u)| = |L(u)|</code>, then node <code>u</code> is external node</li>
+                                <li><code>L</code> is a <code>c</code>-cover of <code>J</code> if each interval induced by an item in <code>L</code>(<code>[e, g]</code>, where <code>e</code> and <code>g</code> are two adjacent items in <code>L</code>) contains at most <code>c</code> items from <code>J</code>. And, usually <code>|L| < |J|</code>
                                     <ul>
-                                        <li><code>OLDSUP(v)</code> is a 3-cover of <code>SUP(v)</code>, why???</li>
+                                        <li><code>OLDSUP(v)</code> is a 3-cover of <code>SUP(v)</code></li>
                                         <li>As <code>UP(u) = OLDSUP(v) ∪ OLDSUP(w)</code>, we can deduce that <code>UP(v)</code> is a 3-cover of <code>SUP(v)</code> and <code>UP(v)</code> is a 3-cover of <code>SUP(w)</code>, why???</li>
                                     </ul>
                                 </li>
                             </ul>
                         </li>
-                        <li>Node classification:
+                        <li>For every node <code>u</code> at every stage, we do the following two steps:
                             <ul>
-                                <li><code>0 < |UP(i)| < |L(i)|</code>, then node <code>i</code> is inside node</li>
-                                <li><code>|UP(i)| = |L(i)|</code>, then node <code>i</code> is external node</li>
-                            </ul>
-                        </li>
-                        <li>Goal: for inside node, let <code>|NEWUP(i)| = 2|UP(i)|</code></li>
-                        <li>Rules for <code>UP</code>
-                            <ul>
-                                <li><code>NEWUP(u) = SUP(v) ∪ SUP(w)</code>, <code>v</code> and <code>w</code> are child nodes of node <code>u</code></li>
-                            </ul>
-                        </li>
-                        <li>Rules for <code>SUP</code>
-                            <ul>
-                                <li><code>SUP(i) = every forth item of UP(i)</code>, for inside node or first stage of external node</li>
-                                <li><code>SUP(i) = every second item of UP(i)</code>, for second stage of external node</li>
-                                <li><code>SUP(i) = every item of UP(i)</code>, for third stage of external node</li>
+                                <li>Formulate <code>SUP(u)</code>
+                                    <ul>
+                                        <li>For inside node: <code>SUP(u) = every forth item of UP(u)</code></li>
+                                        <li>For external node:
+                                            <ul>
+                                                <li>First stage as it becomes an external node: <code>SUP(u) = every forth item of UP(u)</code></li>
+                                                <li>Second stage as it becomes an external node: <code>SUP(u) = every second item of UP(u)</code></li>
+                                                <li>Third or later stage as it becomes an external node: <code>SUP(u) = UP(u)</code></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>Formulate <code>NEWUP(u)</code>
+                                    <ul>
+                                        <li>For inside node: <code>NEWUP(u) = SUP(v) ∪ SUP(w)</code>, <code>v</code> and <code>w</code> are child nodes of node <code>u</code>
+                                        </li>
+                                        <li>For external node: <code>NEWUP(u) = UP(u)</code></li>
+                                    </ul>
+                                </li>
                             </ul>
                         </li>
                         <li>Merge process:
@@ -544,12 +550,13 @@
                 <li><code>#Sort</code></li>
             </td>
             <td style="text-align:left">
+                <li><b>Given that this article was published in 1997 when CPU had only one core in most cases, so parallel algorithm need to take network communication into consideration, which no longer exists in the multi-core parallelism</b></li>
                 <li>Most of the research on parallel algorithm design in the 70s and 80s has focused on fine-grain models of parallel computation, such as PRAM or network-based models</li>
                 <li><code>N</code> keys will be sorted in <code>log(N)</code> stages, for each bitonic sequence of <code>i-th</code> stage contains <code>2^i</code> items, and it can be Butterfly merged in <code>i</code> steps</li>
                 <li>Naive and improved data layouts
                     <ul>
                         <li>Blocked layout: mapping <code>N</code> items on <code>P</code> processors, with <code>n = N / P</code>. The first <code>log(n)</code> stages can be exected locally. For the subsequent stages <code>log(n) + k</code>, the first <code>k</code> steps require remote communication whil the last <code>log(n)</code> steps are completely local</li>
-                        <li>Cyclic layout: mapping <code>N</code> items on <code>P</code> processors by assigning the <code>i-th</code> item to the <code>i % P</code> processor, with <code>n = N / P</code>. The first <code>log(n)</code> stages require remote communication. For the subsequent stages <code>log(n) + k</code>, the first <code>k</code> steps are completely local while last <code>log(n)</code> steps require remote communication</li>
+                        <li>Cyclic layout: mapping <code>N</code> items on <code>P</code> processors by assigning the <code>i-th</code> item to the <code>(i % n) % P</code> processor, with <code>n = N / P</code>. The first <code>log(n)</code> stages require remote communication. For the subsequent stages <code>log(n) + k</code>, the first <code>k</code> steps are completely local while last <code>log(n)</code> steps require remote communication</li>
                         <li>Cyclic-blocked layout: by periodically remapping the data from a blocked layout to a cyclic layout and vice verse can reduce the communication overhead</li>
                     </ul>
                 </li>
@@ -561,7 +568,6 @@
                         <li>We can thus reformulate the problem as: Given the tuple (stage, step), which uniquely identifies a column of the bitonic sorting network, how to remap the elements at this point in such a way that the next <code>log(n)</code> steps of the bitonic sorting network are executed locally</li>
                         <li><code>log(n)</code> successive steps may cross stage</li>
                         <li>The purpose of the first <code>log(n)</code> stages is to form a monotonically increasing or decreasing sequence of n keys on each processor, thus we can replace all these stages with a single, highly optimized local sort</li>
-                        <li><b>My question is: why are all processors not sharing the same data array, so there is no remote communication problem</b></li>
                     </ul>
                 </li>
             </td>
@@ -625,15 +631,31 @@
             <td style="text-align:left">
                 <li>Parallel quick sort has four phases:
                     <ul>
-                        <li>The parallel partition of the data phase</li>
-                        <li>The sequential partition of the data phase</li>
-                        <li>The process partition phase</li>
+                        <li>The parallel partition of the data phase
+                            <ul>
+                                <li>The primary operation unit is a block, which holds a consecutive of keys</li>
+                                <li>Pivot(a key) is selected by one of the processors, assuming <code>P0</code> is the selected processor</li>
+                                <li>Each processor indenpendly partition its local data with the above pivot using a function called <code>neutralize</code> which takes two blocks from left and and right end as input, the process is similiar to the generic quick sort's partition in the high level. But there may be at most one block remains after partition, because <code>neutralize</code> always requires two blocks as input</li>
+                            </ul>
+                        </li>
+                        <li>The sequential partition of the data phase
+                            <ul>
+                                <li><code>P0</code> works on the remaing blocks of all the processors in the similar way(<code>neutralize</code>)</li>
+                                <li>Finally, we get two subarray stride across the pivot with left side small or equal to pivot, right side large or equal to pivot</li>
+                            </ul>
+                        </li>
+                        <li>The process partition phase
+                            <ul>
+                                <li>Partition all processors into two groups base on the size of the subarray</li>
+                                <li>Repeat the process from phase one to phase three, until every group contains only one processor</li>
+                            </ul>
+                        </li>
                         <li>The sequential sorting in parallel with helping phase</li>
                     </ul>
                 </li>
             </td>
-            <td style="text-align:left">👀/P4</td>
-            <td style="text-align:left"></td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
         </tr>
         <tr>
             <td style="text-align:left">
@@ -1468,8 +1490,216 @@
                         <li>Latency, cannot process until all data is loaded</li>
                     </ul>
                 </li>
+                <li>Architecture of Data Stream Processing System(DSPS)
+                    <ul>
+                        <li>Data stream ingestion layer, responsible for accepting streams of data into the DSPS
+                            <ul>
+                                <li>Scalable</li>
+                                <li>Resilient</li>
+                                <li>Fault-tolerant</li>
+                            </ul>
+                        </li>
+                        <li>Data stream processing layer, data stream processing engine (DSPE),which pre-processes and analyses data in one or more steps,
+                            <ul>
+                                <li>Data stream management engines, DSME, and the followings are the requirements that should be met
+                                    <ul>
+                                        <li>Process continuous data on-the-fly without any requirement to store them</li>
+                                        <li>Support high-level languages such as SQL</li>
+                                        <li>Handle imperfections such as delayed, missing and out-of-order data</li>
+                                        <li>Guarantee predictable and repeatable outcomes</li>
+                                        <li>Efficiently store, access, modify, and combine (with live streaming data) state information</li>
+                                        <li>Ensure that the integrity of the data is maintained at all times and relevant applications are up and available despite failures</li>
+                                        <li>Automatically and transparently distribute the data processing load across multiple processors and machines</li>
+                                        <li>Respond to high-volume data processing applications in real-time using a highly optimized execution path</li>
+                                    </ul>
+                                </li>
+                                <li>Complex event processing engines, CEPE</li>
+                                <li>General-purpose DSPEs, GDSPE</li>
+                            </ul>
+                        </li>
+                        <li>Storage layer, which stores, indexes and manages the data and the generated knowledge
+                            <ul>
+                                <li>Organized</li>
+                                <li>Indexed</li>
+                                <li>Metadata</li>
+                            </ul>
+                        </li>
+                        <li>Resource management layer, which manages and coordinates the functions of distributed compute and storage resources
+                            <ul>
+                                <li>Resource allocation</li>
+                                <li>Resource scheduling</li>
+                                <li>Server as a coordinator</li>
+                            </ul>
+                        </li>
+                        <li>Output layer, which directs the output data stream and knowledge to other systems or visualization tools</li>
+                    </ul>
+                </li>
+                <li>Key features of DSPEs
+                    <ul>
+                        <li>Programming models, given the unbounded nature of streaming data
+                            <ul>
+                                <li>A window is usually defined by either a time duration or a record count. There are many window types: Fixed/Sliding/Session Window</li>
+                                <li>Stateless transformations: Map, Filter, FlatMap</li>
+                                <li>Stateful transformations: Aggregation, Group-and-aggregate, Join, Sort</li>
+                            </ul>
+                        </li>
+                        <li>Data source interaction model
+                            <ul>
+                                <li>Push model where a daemon process of a data stream engine keeps listening to an input channel</li>
+                                <li>Pull model, A challenge here is that the frequency of pulling and the speed of processing the data by the DSPEs should match the rate of data generation at the source to avoid data loss</li>
+                            </ul>
+                        </li>
+                        <li>Data partitioning strategy
+                            <ul>
+                                <li>Horizontal method divides data into disjoint sets of rows
+                                    <ul>
+                                        <li>Round-robin</li>
+                                        <li>Range, which is the most popular approach especially when there is a periodic loading of a new data</li>
+                                        <li>Hash</li>
+                                    </ul>
+                                </li>
+                                <li>The vertical method divides data into vertical and disjoint sets of columns and can be categorized further into cost-based and procedural approaches</li>
+                            </ul>
+                        </li>
+                        <li>State management
+                            <ul>
+                                <li>Operators can be stateless or stateful</li>
+                                <li>In traditional DSPEs, the state information was stored in a centralized database management system to be shared among applications</li>  
+                                <li>The state management facilities in various DSPEs naturally fall along a complexity continuum from naive in-memory-only choice to a persistent state that can be queried and replicated</li>                              
+                            </ul>
+                        </li>
+                        <li>Message processing guarantee, such as at-most-once, at-least-once, exactly once</li>
+                        <li>Fault tolerance and recovery
+                            <ul>
+                                <li>Passive, such as checkpoint, upstream buffer, source replay</li>
+                                <li>Active, such as replicas</li>
+                            </ul>
+                        </li>
+                        <li>Deployment, such as local, cluster, cloud</li>
+                        <li>Community support, such as forums, meetups and others</li>
+                        <li>Support for high level languages, such as java, scala, python, r, sql</li>
+                        <li>Support for advanced input sources, such as local file systems, socket connections, databases, queuing tools</li>
+                        <li>Support for storage systems</li>
+                        <li>Support for analytics</li>
+                    </ul>
+                </li>
+                <li>Popular products:
+                    <ul>
+                        <li>Flink</li>
+                        <li>Samza</li>
+                        <li>Apex</li>
+                        <li>Storm</li>
+                        <li>Spark Streaming</li>
+                        <li>StreamBase</li>
+                        <li>IBM Streams</li>
+                        <li>Kafka Streams</li>
+                        <li>Google Dataflow</li>
+                        <li>Beam</li>                        
+                    </ul>
+                </li>
+            </td>
+            <td style="text-align:left">✅</td>
+            <td style="text-align:left">★★★★★</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/A-Survey-of-State-Management-in-Big-Data-Processing-Systems.pdf">A Survey of State Management in Big Data Processing Systems</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Survey</code></li>
+            </td>
+            <td style="text-align:left">
+                <li>First proposals for parallel batch-oriented data processing, BDP, was MapReduce
+                    <ul>
+                        <li>Advantages: flexibility, fault-tolerance, programming ease, scalability</li>
+                        <li>Disadvantages: a low-level programming model, a lack of support for iterations, inability to deal with data streams</li>
+                    </ul>
+                </li>
+                <li>State: a sequence of values in time that contain the intermediate results of a desired computation</li>
+                <li>Concepts of State Management
+                    <ul>
+                        <li>Operations
+                            <ul>
+                                <li>Purge</li>
+                                <li>Update</li>
+                                <li>Store
+                                    <ul>
+                                        <li>On disk</li>
+                                        <li>In-memory</li>
+                                    </ul>
+                                </li>
+                                <li>Migrate</li>
+                                <li>Expose</li>
+                            </ul>
+                        </li>
+                        <li>Incremental Maintenance
+                            <ul>
+                                <li>Transformation</li>
+                                <li>Differential Computation</li>
+                                <li>View Maintenance</li>
+                            </ul>
+                        </li>
+                        <li>State Sharing
+                            <ul>
+                                <li>Shared Operator State</li>
+                                <li>Shared Window</li>
+                                <li>Shared Queue</li>
+                            </ul>
+                        </li>
+                        <li>Load Balancing & Elasticity
+                            <ul>
+                                <li>Scalability</li>
+                                <li>Load Balancing</li>
+                                <li>Elasticity</li>
+                            </ul>
+                        </li>
+                        <li>Performance
+                            <ul>
+                                <li>Optimal Placement</li>
+                                <li>Optimal Assignment</li>
+                                <li>Checkpoint Interval</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Applications of State
+                    <ul>
+                        <li>Stateful Computation
+                            <ul>
+                                <li>Operator Level</li>
+                                <li>Application Level</li>
+                            </ul>
+                        </li>
+                        <li>Iterative Processing
+                            <ul>
+                                <li>Incremental Iteration</li>
+                                <li>Bulk Iteration</li>
+                            </ul>
+                        </li>
+                        <li>Fault Tolerance
+                            <ul>
+                                <li>Correlated Checkpoint</li>
+                                <li>Incremental Checkpoint</li>
+                                <li>Indenpendent Checkpoint</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
             </td>
             <td style="text-align:left">👀</td>
+            <td style="text-align:left">★★★★★</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">
+                <a href="/resources/paper/A–Survey-on–the-Evolution-of-Stream-Processing-Systems.pdf">A Survey on the Evolution of Stream Processing Systems</a>
+            </td>
+            <td style="text-align:left">
+                <li><code>#Survey</code></li>
+            </td>
+            <td style="text-align:left">
+                <li></li>
+            </td>
+            <td style="text-align:left"></td>
             <td style="text-align:left"></td>
         </tr>
     </tbody>
@@ -1604,6 +1834,7 @@
 <li><a target="_blank" rel="noopener" href="https://kclpure.kcl.ac.uk/portal/files/123577916/BlockQuicksort_Avoiding_Branch_Mispredictions_EDELKAMP_PublishedAugust2016_VoR_CC_BY_.pdf">BlockQuicksort: Avoiding Branch Mispredictions in Quicksort</a></li>
 <li><a href="/resources/paper/Efficient-Implementation-of-Sorting-on-Multi-Core-SIMD-CPU-Architecture.pdf">Efficient Implementation of Sorting on Multi-Core SIMD CPU Architecture</a></li>
 <li><a href="/resources/paper/A-Comparative-Study-of-Parallel-Sort-Algorithms.pdf">A Comparative Study of Parallel Sort Algorithms</a></li>
+<li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/3079079.3079105">Fast Segmented Sort on GPUs</a></li>
 </ul>
 </li>
 </ul>
