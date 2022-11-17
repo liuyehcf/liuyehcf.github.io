@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux-Virtualization">
+<meta property="og:url" content="http://example.com/2021/02/22/Linux-Virtualization/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/milestone.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/cpu_normal.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/cpu_full.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/cpu_full_progress.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/cpu_half.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/cpu_full_with_hardware.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_1.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_2.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_3.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_4.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_5.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_6.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_7.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_8.jpg">
+<meta property="og:image" content="http://example.com/images/Linux-Virtualization/memory_9.jpg">
+<meta property="article:published_time" content="2021-02-22T05:55:07.000Z">
+<meta property="article:modified_time" content="2022-11-17T14:32:00.081Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Linux-Virtualization/milestone.jpg">
+
+<link rel="canonical" href="http://example.com/2021/02/22/Linux-Virtualization/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux-Virtualization | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/22/Linux-Virtualization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux-Virtualization
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-22 13:55:07" itemprop="dateCreated datePublished" datetime="2021-02-22T13:55:07+08:00">2021-02-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-11-17 22:32:00" itemprop="dateModified" datetime="2022-11-17T22:32:00+08:00">2022-11-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/" itemprop="url" rel="index"><span itemprop="name">Operating System</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/02/22/Linux-Virtualization/" class="post-meta-item leancloud_visitors" data-flag-title="Linux-Virtualization" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/02/22/Linux-Virtualization/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/02/22/Linux-Virtualization/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<a id="more"></a>
+<h1 id="1-简介"><a class="markdownIt-Anchor" href="#1-简介"></a> 1 简介</h1>
+<h2 id="11-什么是虚拟化virtualization"><a class="markdownIt-Anchor" href="#11-什么是虚拟化virtualization"></a> 1.1 什么是虚拟化（virtualization）？</h2>
+<p>虚拟化技术可以帮助我们创建基于软件的计算机资源，包括CPU、存储、网络等等</p>
+<p>借助虚拟化技术，可以将单个物理计算机或服务器划分为多个虚拟机（VM）。在同一个硬件资源上，每个VM可以独立运行不同的操作系统以及应用软件</p>
+<h2 id="12-虚拟化发展史"><a class="markdownIt-Anchor" href="#12-虚拟化发展史"></a> 1.2 虚拟化发展史</h2>
+<p>计算虚拟化发展有几个关键节点。虚拟化技术最早60年代中期年在IBM大型机上实现，当时主流大型虚拟化有<code>IBM Z/VM</code>与<code>KVM for Z Systems</code>。80年代IBM与HP开始研究面向UNIX小型机虚拟化，当时主流的有<code>IBM PowerVM</code>与<code>HP vPar</code>，<code>IVM</code>等。1999年VMware推出针对x86服务器虚拟化，当时主流x86虚拟化有<code>VMware ESXi</code>、<code>Microsoft Hyper-V</code>，以及开源的<code>KVM</code>和<code>Xen</code>。2006年Intel和AMD推出硬件辅助虚拟化技术<code>Intel-VT</code>，<code>AMD-V</code>将部分需要通过软件来实现的虚拟化功能进行硬件化，大幅提升虚拟化的性能。容器作为一种更加轻量的应用级虚拟化技术，最早于1979年提出，不过2013年推出docker解决了标准化与可移植等问题，目前已成为最流行的容器技术。基于x86服务器的虚拟化技术对云计算发展发挥了重要作用，接下来将重点介绍</p>
+<p><img src="/images/Linux-Virtualization/milestone.jpg" alt="milestone" /></p>
+<h2 id="13-参考"><a class="markdownIt-Anchor" href="#13-参考"></a> 1.3 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.baeldung.com/cs/virtualization-intro">Introduction to Virtualization</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.ibm.com/cloud/learn/virtualization-a-complete-guide#toc-hypervisor-UrK7TB8Y">Virtualization</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/xport/article/details/1387928">PC架构系列：CPU/RAM/IO总线的发展历史！</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/40571490">CPU 的工作原理是什么？</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/gexiaoyizhimei/article/details/102497589">计算机如何执行一条机器指令</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/69625751">虚拟化技术 - CPU虚拟化</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/100526650">计算虚拟化详解</a></li>
+</ul>
+<h1 id="2-汇编语言"><a class="markdownIt-Anchor" href="#2-汇编语言"></a> 2 汇编语言</h1>
+<p>计算机真正能够理解的是低级语言，它专门用来控制硬件。汇编语言就是低级语言，直接描述/控制CPU 的运行。如果你想了解CPU到底干了些什么，以及代码的运行步骤，就一定要学习汇编语言。另外，学习汇编语言也能帮助我们更好地理解虚拟化过程</p>
+<p><strong>这部分内容请参考<a href="/2017/08/21/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84-%E5%AF%84%E5%AD%98%E5%99%A8/" title="体系结构-寄存器">体系结构-寄存器</a>以及<a href="/2021/10/15/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" title="汇编语言基础">汇编语言基础</a></strong></p>
+<h1 id="3-cpu虚拟化"><a class="markdownIt-Anchor" href="#3-cpu虚拟化"></a> 3 CPU虚拟化</h1>
+<p><strong>x86操作系统是设计在直接运行在裸硬件设备上的，因此它们自动认为它们完全占有计算机硬件</strong>。x86架构提供四个特权级别给操作系统和应用程序来访问硬件。<code>Ring</code>是指CPU的运行级别，<code>Ring 0</code>是最高级别，<code>Ring 1</code>次之，<code>Ring 2</code>再次之</p>
+<p>操作系统（内核）需要直接访问硬件和内存，因此它的代码需要运行在最高运行级别<code>Ring0</code>上，这样它可以使用特权指令，控制中断、修改页表、访问设备等等。<br />
+应用程序的代码运行在最低运行级别上<code>Ring 3</code>上，不能做受控操作。如果要做，比如要访问磁盘，写文件，那就要通过执行系统调用（函数），执行系统调用的时候，CPU的运行级别会发生从<code>Ring 3</code>到<code>Ring 0</code>的切换，并跳转到系统调用对应的内核代码位置执行，这样内核就为你完成了设备访问，完成之后再从<code>Ring 0</code>返回<code>Ring 3</code>。这个过程也称作用户态和内核态的切换</p>
+<p><img src="/images/Linux-Virtualization/cpu_normal.jpg" alt="cpu_normal" /></p>
+<p><strong>那么，虚拟化在这里就遇到了一个难题，因为宿主操作系统是工作在<code>Ring 0</code>的，客户操作系统就不能也在<code>Ring 0</code>了，但是它不知道这一点，以前执行什么指令，现在还是执行什么指令，但是没有执行权限是会出错的。所以这时候虚拟机管理程序（<code>VMM</code>）需要避免这件事情发生。 虚机怎么通过<code>VMM</code>实现 <code>Guest CPU</code>对硬件的访问，根据其原理不同有三种实现技术：</strong></p>
+<ol>
+<li>全虚拟化</li>
+<li>半虚拟化</li>
+<li>硬件辅助的虚拟化</li>
+</ol>
+<h2 id="31-基于二进制翻译的全虚拟化full-virtualization-with-binary-translation"><a class="markdownIt-Anchor" href="#31-基于二进制翻译的全虚拟化full-virtualization-with-binary-translation"></a> 3.1 基于二进制翻译的全虚拟化（Full Virtualization with Binary Translation）</h2>
+<p><img src="/images/Linux-Virtualization/cpu_full.jpg" alt="cpu_full" /></p>
+<p>客户操作系统运行在<code>Ring 1</code>，它在执行特权指令时，会触发异常（CPU的机制，没权限的指令会触发异常），然后<code>VMM</code>捕获这个异常，在异常里面做翻译，模拟，最后返回到客户操作系统内，客户操作系统认为自己的特权指令工作正常，继续运行。但是这个性能损耗，就非常的大，简单的一条指令，执行完，了事，现在却要通过复杂的异常处理过程。</p>
+<p>异常「捕获（trap）-翻译（handle）-模拟（emulate）」过程：</p>
+<p><img src="/images/Linux-Virtualization/cpu_full_progress.jpg" alt="cpu_full_progress" /></p>
+<p><strong>为什么<code>VMM</code>可以捕获到<code>Guest OS</code>执行特权指令时触发的异常？</strong></p>
+<blockquote>
+<p>中断向量表中记录了每个异常/中断所对应的处理程序，该中断表的首地址记录在<code>idtr</code>寄存器中，但是当<code>Guest OS</code>在执行的时候，<code>idtr</code>是中记录的是<code>Guest OS</code>的线性地址。但是<code>Guest OS</code>中的所有线性地址，都通过「影子页表」被<code>Host OS</code>接管了，因此，中断向量表也是可以被<code>Host OS</code>完全管控的（这是我的猜测）</p>
+</blockquote>
+<h2 id="32-超虚拟化或者半虚拟化操作系统辅助虚拟化-paravirtualization"><a class="markdownIt-Anchor" href="#32-超虚拟化或者半虚拟化操作系统辅助虚拟化-paravirtualization"></a> 3.2 超虚拟化（或者半虚拟化/操作系统辅助虚拟化 Paravirtualization）</h2>
+<p>半虚拟化的思想就是，修改操作系统内核，替换掉不能虚拟化的指令，通过超级调用（hypercall）直接和底层的虚拟化层<code>hypervisor</code>来通讯，<code>hypervisor</code>同时也提供了超级调用接口来满足其他关键内核操作，比如内存管理、中断和时间保持</p>
+<p>这种做法省去了全虚拟化中的捕获和模拟，大大提高了效率。所以像XEN这种半虚拟化技术，客户机操作系统都是有一个专门的定制内核版本，和x86、mips、arm这些内核版本等价。这样以来，就不会有捕获异常、翻译、模拟的过程了，性能损耗非常低。这就是XEN这种半虚拟化架构的优势。这也是为什么XEN只支持虚拟化Linux，无法虚拟化windows原因，微软不改代码啊</p>
+<p><img src="/images/Linux-Virtualization/cpu_half.jpg" alt="cpu_half" /></p>
+<h2 id="33-硬件辅助的全虚拟化"><a class="markdownIt-Anchor" href="#33-硬件辅助的全虚拟化"></a> 3.3 硬件辅助的全虚拟化</h2>
+<p>2005年后，CPU厂商Intel和AMD开始支持虚拟化了。Intel引入了<code>Intel-VT （Virtualization Technology）</code>技术。 这种CPU，有<code>VMX root operation</code>和<code>VMX non-root operation</code>两种模式，两种模式都支持<code>Ring 0</code> ~ <code>Ring 3</code>共 4 个运行级别。这样，<code>VMM</code>可以运行在<code>VMX root operation</code>模式下，客户<code>OS</code>运行在VMX <code>non-root operation</code>模式下</p>
+<p><img src="/images/Linux-Virtualization/cpu_full_with_hardware.jpg" alt="cpu_full_with_hardware" /></p>
+<p>而且两种操作模式可以互相转换。运行在<code>VMX root operation</code>模式下的<code>VMM</code>通过显式调用<code>VMLAUNCH</code>或<code>VMRESUME</code>指令切换到<code>VMX non-root operation</code>模式，硬件自动加载<code>Guest OS</code>的上下文，于是<code>Guest OS</code>获得运行，这种转换称为<code>VM entry</code>。<code>Guest OS</code>运行过程中遇到需要<code>VMM</code>处理的事件，例如外部中断或缺页异常，或者主动调用<code>VMCALL</code>指令调用<code>VMM</code>的服务的时候（与系统调用类似），硬件自动挂起<code>Guest OS</code>，切换到<code>VMX root operation</code>模式，恢复<code>VMM</code>的运行，这种转换称为<code>VM exit</code>。<code>VMX root operation</code>模式下软件的行为与在没有<code>VT-x</code>技术的处理器上的行为基本一致；而<code>VMX non-root operation</code>模式则有很大不同，最主要的区别是此时运行某些指令或遇到某些事件时，发生<code>VM exit</code></p>
+<p>也就说，硬件这层就做了些区分，这样全虚拟化下，那些靠「捕获异常-翻译-模拟」的实现就不需要了。而且CPU厂商，支持虚拟化的力度越来越大，靠硬件辅助的全虚拟化技术的性能逐渐逼近半虚拟化，再加上全虚拟化不需要修改客户操作系统这一优势，全虚拟化技术应该是未来的发展趋势</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">利用二进制翻译的全虚拟化</th>
+<th style="text-align:left">硬件辅助虚拟化</th>
+<th style="text-align:left">操作系统协助/半虚拟化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">实现技术</td>
+<td style="text-align:left">BT和直接执行</td>
+<td style="text-align:left">遇到特权指令转到root模式执行</td>
+<td style="text-align:left">hypercall</td>
+</tr>
+<tr>
+<td style="text-align:left">客户操作系统修改/兼容性</td>
+<td style="text-align:left">无需修改客户操作系统，最佳兼容性</td>
+<td style="text-align:left">无需修改客户操作系统，最佳兼容性</td>
+<td style="text-align:left">客户操作系统需要修改来支持hypercall，因此它不能运行在物理硬件本身或其他的hypervisor上，兼容性差，不支持Windows</td>
+</tr>
+<tr>
+<td style="text-align:left">性能</td>
+<td style="text-align:left">差</td>
+<td style="text-align:left">全虚拟化下，CPU需要在两种模式之间切换，带来性能开销；但是，其性能在逐渐逼近半虚拟化</td>
+<td style="text-align:left">好。半虚拟化下CPU性能开销几乎为0，虚机的性能接近于物理机</td>
+</tr>
+<tr>
+<td style="text-align:left">应用厂商</td>
+<td style="text-align:left">VMware Workstation/QEMU/Virtual PC</td>
+<td style="text-align:left">VMware ESXi/Microsoft Hyper-V/Xen 3.0/KVM</td>
+<td style="text-align:left">Xen</td>
+</tr>
+</tbody>
+</table>
+<h2 id="34-参考"><a class="markdownIt-Anchor" href="#34-参考"></a> 3.4 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/sammyliu/p/4543597.html">KVM 介绍（2）：CPU 和内存虚拟化</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/clsn/p/10175960.html">KVM之CPU虚拟化</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/21266987">分不清ARM和X86架构，别跟我说你懂CPU！</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/langb2014/article/details/79372104">CPU环，特权和保护</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/410762507">CPU如何区分指令来自操作系统还是用户进程的？</a></li>
+</ul>
+<h2 id="35-问题"><a class="markdownIt-Anchor" href="#35-问题"></a> 3.5 问题</h2>
+<ol>
+<li>访问内存需要在<code>Ring 0</code>上么？用户态程序也存在大量的内存读写，如何访问的？</li>
+<li>客户机的kernel为什么运行在<code>Ring 1</code>上，它不是应该认为自己跑在<code>Ring 0</code>上才对么，<code>Ring x</code>这个属性是谁赋予的？操作系统本身感知么？
+<ul>
+<li>特权信息是记录在段选择因子（段式内存管理、段页式内存管理）中的，段描述符表GDT、LDT只有一个</li>
+<li>虚拟机的内核代码所在的段其实对应了<code>USER_CODE</code>以及<code>USER_DATA</code>（类似cr3，影子页表）</li>
+</ul>
+</li>
+<li>普通程序在执行的过程中（用户态），需要操作系统参与吗？参与了哪些过程</li>
+<li>在内核态执行指令与在用户态执行指令有什么区别？为什么VMM能拦截到客户机的特权指令的执行？（<code>VMM</code>通过显式调用<code>VMLAUNCH</code>或<code>VMRESUME</code>）</li>
+<li>有操作系统和没有操作系统时，程序分别是如何执行的。对于有操作系统的情况下，操作系统对程序执行多了哪些干预操作？</li>
+<li><code>Ring x</code>这个信息记录在哪</li>
+<li>Guest Machine本身并不感知自己跑在一个虚拟的环境中，但是CPU知道！！！</li>
+</ol>
+<h1 id="4-内存虚拟化"><a class="markdownIt-Anchor" href="#4-内存虚拟化"></a> 4 内存虚拟化</h1>
+<p><strong>内存管理相关知识点参考<a href="/2020/04/11/Linux-Memory-Management/" title="Linux-Memory-Management">Linux-Memory-Management</a></strong></p>
+<p><strong>本小节转载摘录自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/69828213">虚拟化技术 - 内存虚拟化 [一]</a></strong></p>
+<p>大型操作系统（比如Linux）的内存管理的内容是很丰富的，而内存的虚拟化技术在OS内存管理的基础上又叠加了一层复杂性，比如我们常说的虚拟内存（virtual memory），如果使用虚拟内存的OS是运行在虚拟机中的，那么需要对虚拟内存再进行虚拟化，也就是<code>vitualizing virtualized memory</code>。本文将仅从「内存地址转换」和「内存回收」两个方面探讨内存虚拟化技术</p>
+<p>在Linux这种使用虚拟地址的OS中，虚拟地址经过<code>page table</code>转换可得到物理地址</p>
+<p><img src="/images/Linux-Virtualization/memory_1.jpg" alt="memory_1" /></p>
+<p>如果这个操作系统是运行在虚拟机上的，那么这只是一个中间的物理地址（<code>Intermediate Phyical Address - IPA</code>），需要经过<code>VMM/hypervisor</code>的转换，才能得到最终的物理地址（<code>Host Phyical Address - HPA</code>）。从<code>VMM</code>的角度，<code>guest VM</code>中的虚拟地址就成了<code>GVA（Guest Virtual Address）</code>，<code>IPA</code>就成了<code>GPA（Guest Phyical Address）</code></p>
+<p><img src="/images/Linux-Virtualization/memory_2.jpg" alt="memory_2" /></p>
+<p>可见，如果使用VMM，并且<code>guest VM</code>中的程序使用虚拟地址（如果<code>guest VM</code>中运行的是不支持虚拟地址的<code>RTOS（real time OS）</code>，则在虚拟机层面不需要地址转换），那么就需要两次地址转换</p>
+<p><img src="/images/Linux-Virtualization/memory_3.jpg" alt="memory_3" /></p>
+<p><strong>但是传统的<code>IA32</code>架构从硬件上只支持一次地址转换，即由<code>CR3</code>寄存器指向进程第一级页表的首地址，通过MMU查询进程的各级页表，获得物理地址</strong></p>
+<p>针对<code>GVA-&gt;GPA-&gt;HPA</code>的两次转换的问题，存在2种解决方案</p>
+<ol>
+<li>软件实现「影子页表」</li>
+<li>硬件辅助「EPT/NPT」</li>
+</ol>
+<p><strong>首先介绍「影子页表」的实现方式</strong></p>
+<p>在一个运行Linux的<code>guest VM</code>中，每个进程有一个由内核维护的页表，用于<code>GVA-&gt;GPA</code>的转换，这里我们把它称作<code>gPT（guest Page Table）</code>。VMM层的软件会将<code>gPT</code>本身使用的物理页面设为<code>write protected</code>的，也就是说<code>gPT</code>的每次写操作都会触发<code>page fault</code>，该异常会被VM捕获，然后由VM来维护<code>gPT</code>的相关数据（该页表在VMM视角下，称为<code>sPT（shadow Page Table）</code>）。<strong>「影子页表」是将<code>GVA-GPA</code>和<code>GPA-HPA</code>的两次转换合并成一次转换<code>GVA-HPA</code>，因此<code>gPT</code>和<code>sPT</code>指代的是同一个页表，只是视角不同而已</strong></p>
+<ol>
+<li>在<code>guest VM</code>的视角下，这就是一个普通的<code>page table</code>，负责将线性地址转换成物理地址（<code>GVA-&gt;GPA</code>），<strong><code>guest VM</code>并不知道这个页表的维护实际上是VMM负责的（被骗了）</strong></li>
+<li>在<code>VVM</code>的视角下，这就是一个影子页表<code>shadow page table</code>，它可以直接将虚拟机的虚拟地址转换成物理机的物理地址（<code>GVA-&gt;HPA</code>）</li>
+</ol>
+<p>「影子页表」存在如下两个缺点：</p>
+<ol>
+<li>实现较为复杂，需要为每个<code>guest VM</code>中的每个进程的<code>gPT</code>都维护一个对应的<code>sPT</code>，增加了内存的开销</li>
+<li>VMM使用的截获方法增多了<code>page fault</code>和<code>trap/vm-exit</code>的数量，加重了CPU的负担
+<ul>
+<li>在一些场景下，这种影子页表机制造成的开销可以占到整个VMM软件负载的75%</li>
+</ul>
+</li>
+</ol>
+<p><img src="/images/Linux-Virtualization/memory_4.jpg" alt="memory_4" /></p>
+<p><strong>在「影子页表」的方案中，CPU还是按照传统的方式来进行内存的寻址（一次转换），因此CPU并不感知</strong>，为了更好的支持虚拟化，各大CPU厂商相继推出了硬件辅助的内存虚拟化技术，比如Intel的<code>EPT（Extended Page Table）</code>和AMD的<code>NPT（Nested Page Table）</code>，它们都能够从硬件上同时支持<code>GVA-&gt;GPA</code>和<code>GPA-&gt;HPA</code>的地址转换的技术</p>
+<p><code>GVA-&gt;GPA</code>的转换依然是通过查找<code>gPT</code>页表完成的，而<code>GPA-&gt;HPA</code>的转换则通过查找<code>nPT</code>页表来实现，每个<code>guest VM</code>有一个由VMM维护的<code>nPT</code>。其实，<code>EPT/NPT</code>就是一种扩展的MMU（以下称<code>EPT/NPT MMU</code>），它可以交叉地查找<code>gPT</code>和<code>nPT</code>两个页表。在这种方案下，<strong>CPU是明确感知这是虚拟机的寻址过程</strong></p>
+<p><img src="/images/Linux-Virtualization/memory_5.jpg" alt="memory_5" /></p>
+<p>假设<code>gPT</code>和<code>nPT</code>都是4级页表，那么<code>EPT/NPT MMU</code>完成一次地址转换的过程是这样的（不考虑TLB）：</p>
+<p>首先它会查找<code>guest VM</code>中<code>CR3</code>寄存器（<code>gCR3</code>）指向的<code>PML4</code>页表，由于<code>gCR3</code>中存储的地址是<code>GPA</code>，因此CPU需要查找<code>nPT</code>来获取<code>gCR3</code>的<code>GPA</code>对应的<code>HPA</code>。<code>nPT</code>的查找和前面文章讲的页表查找方法是一样的，这里我们称一次<code>nPT</code>的查找过程为一次<code>nested walk</code></p>
+<p><img src="/images/Linux-Virtualization/memory_6.jpg" alt="memory_6" /></p>
+<p>如果在<code>nPT</code>中没有找到，则产生<code>EPT violation</code>异常（可理解为VMM层的<code>page fault</code>）。如果找到了，也就是获得了<code>PML4</code>页表的物理地址后，就可以用<code>GVA</code>中的bit位子集作为<code>PML4</code>页表的索引，得到<code>PDPE</code>页表的<code>GPA</code>。接下来又是通过一次<code>nested walk</code>进行<code>PDPE</code>页表的<code>GPA-&gt;HPA</code>转换，然后重复上述过程，依次查找PD和PE页表，最终获得该<code>GVA</code>对应的<code>HPA</code></p>
+<p><img src="/images/Linux-Virtualization/memory_7.jpg" alt="memory_7" /></p>
+<p>不同于影子页表是一个进程需要一个<code>sPT</code>，<code>EPT/NPT MMU</code>解耦了<code>GVA-&gt;GPA</code>转换和<code>GPA-&gt;HPA</code>转换之间的依赖关系，一个VM只需要一个<code>nPT</code>，减少了内存开销。如果<code>guest VM</code>中发生了<code>page fault</code>，可直接由<code>guest OS</code>处理，不会产生<code>vm-exit</code>，减少了CPU的开销。可以说，<code>EPT/NPT MMU</code>这种硬件辅助的内存虚拟化技术解决了纯软件实现存在的两个问题</p>
+<p><strong>EPT/NPT MMU优化</strong></p>
+<p>事实上，<code>EPT/NPT MMU</code>作为传统<code>MMU</code>的扩展，自然也是有<code>TLB</code>的，它在查找<code>gPT</code>和<code>nPT</code>之前，会先去查找自己的<code>TLB</code>（前面为了描述的方便省略了这一步）。<strong>但这里的<code>TLB</code>存储的并不是一个<code>GVA-&gt;GPA</code>的映射关系，也不是一个<code>GPA-&gt;HPA</code>的映射关系，而是最终的转换结果，也就是<code>GVA-&gt;HPA</code>的映射</strong></p>
+<p>不同的进程可能会有相同的虚拟地址，为了避免进程切换的时候flush所有的TLB，可通过给<code>TLB entry</code>加上一个标识进程的<code>PCID/ASID</code>的<code>tag</code>来区分（参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/66971714">这篇文章</a>）。同样地，不同的<code>guest VM</code>也会有相同的<code>GVA</code>，为了flush的时候有所区分，需要再加上一个标识虚拟机的<code>tag</code>，这个<code>tag</code>在ARM体系中被叫做<code>VMID</code>，在Intel体系中则被叫做<code>VPID</code></p>
+<p><img src="/images/Linux-Virtualization/memory_8.jpg" alt="memory_8" /></p>
+<p>在最坏的情况下（也就是<code>TLB</code>完全没有命中），<code>gPT</code>中的每一级转换都需要一次<code>nested walk</code>，而每次<code>nested walk</code>需要<code>4</code>次内存访问，因此<code>5</code>次<code>nested walk</code>总共需要<code>(4 + 1) * 5 - 1 =24</code>次内存访问（就像一个5x5的二维矩阵一样）：</p>
+<p><img src="/images/Linux-Virtualization/memory_9.jpg" alt="memory_9" /></p>
+<p>虽然这24次内存访问都是由硬件自动完成的，不需要软件的参与，但是内存访问的速度毕竟不能与CPU的运行速度同日而语，而且内存访问还涉及到对总线的争夺，次数自然是越少越好。</p>
+<p>要想减少内存访问次数，要么是增大<code>EPT/NPT TLB</code>的容量，增加<code>TLB</code>的命中率，要么是减少<code>gPT</code>和<code>nPT</code>的级数。<code>gPT</code>是为<code>guest VM</code>中的进程服务的，通常采用4KB粒度的页，那么在64位系统下使用4级页表是非常合适的（参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/64978946">这篇文章</a>）。</p>
+<p>而<code>nPT</code>是为<code>guset VM</code>服务的，对于划分给一个VM的内存，粒度不用太小。64位的x86_64支持<code>2MB</code>和<code>1GB</code>的<code>large page</code>，假设创建一个VM的时候申请的是2G物理内存，那么只需要给这个VM分配2个1G的<code>large pages</code>就可以了（这2个<code>large pages</code>不用相邻，但<code>large page</code>内部的物理内存是连续的），这样<code>nPT</code>只需要2级（<code>nPML4</code>和<code>nPDPE</code>）</p>
+<p>如果现在物理内存中确实找不到2个连续的<code>1G</code>内存区域，那么就退而求其次，使用<code>2MB</code>的<code>large page</code>，这样<code>nPT</code>就是3级（<code>nPML4</code>，<code>nPDPE</code>和<code>nPD</code>）</p>
+<h2 id="41-问题"><a class="markdownIt-Anchor" href="#41-问题"></a> 4.1 问题</h2>
+<ol>
+<li>内核是直接访问内存的么？（内核和内存之间是否存在抽象层）。内核面向的是内存的物理地址还是逻辑地址？（固定的起始地址？）。内核是怎么感知到物理地址的范围的</li>
+<li>在内存分页的方案中，cpu访问的是虚拟内存地址，即页号+页内偏移。但是程序本身应该不感知这个事情，程序又是如何使用内存的呢</li>
+<li>内存管理是CPU完成的还是OS完成的？（MMU是CPU的一个芯片）</li>
+<li>每个进程的页表目录都不同么？页表目录本身不经过内存管理么？</li>
+<li>Guest上的进程在访问内存时，如果产生了一个缺页异常，为啥捕获到异常的是Guest Kernel而不是Host Kernel
+<ul>
+<li>CPU在发现缺页异常后，会通过寄存idtr查询中断描述符表（Interrupt Descriptor Table，IDT），并根据表中的地址来获取相应的中断处理程序。当Guest运行的时候，CPU的该寄存器内填写的是Guest OS的IDT，因此捕获到异常的是Guest Kernel而不是Host Kernel</li>
+</ul>
+</li>
+<li>段寄存器中包含了特权指令级别（ring0-ring3），当Guest访问ring0级别的段时，为啥会报错？寄存器中的ring级别又没有虚拟化，Guest的ring0和Host的ring0有什么差别呢？</li>
+<li>影子页表如何起作用？GVA-&gt;GPA，内存的寻址过程已经结束了，为啥可以再插入一个GPA-HPA的过程？
+<ul>
+<li>并不是插入一个GPA-HPA的过程，而是让GVA直接映射到HPA（Guest在一次正常的寻址就能直接定位到物理机的内存）</li>
+</ul>
+</li>
+</ol>
+<h2 id="42-参考"><a class="markdownIt-Anchor" href="#42-参考"></a> 4.2 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/152119007">20 张图揭开「内存管理」的迷雾，瞬间豁然开朗</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/23898566">线性地址转换为物理地址是硬件实现还是软件实现？具体过程如何？</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/67059173">浅谈Linux内存管理</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/69828213">虚拟化技术 - 内存虚拟化 [一]</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/75468128">虚拟化技术 - 内存虚拟化 [二]</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/miachel-zheng/p/7860369.html">内存虚拟化之影子页表</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/41224767">影子页表的问题？</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/9832140/what-exactly-do-shadow-page-tables-for-vmms-do">What exactly do shadow page tables (for VMMs) do?</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.codenong.com/cs106434119/">内存虚拟化之基本原理</a></li>
+</ul>
+<h1 id="5-qemu"><a class="markdownIt-Anchor" href="#5-qemu"></a> 5 QEMU</h1>
+<h2 id="51-参考"><a class="markdownIt-Anchor" href="#51-参考"></a> 5.1 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://wiki.qemu.org/Documentation/Architecture?spm=ata.13261165.0.0.74b56b0btmdUQy">qemu-doc</a></li>
+</ul>
+<h1 id="6-kvm"><a class="markdownIt-Anchor" href="#6-kvm"></a> 6 KVM</h1>
+<h2 id="61-参考"><a class="markdownIt-Anchor" href="#61-参考"></a> 6.1 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/sammyliu/category/696699.html">随笔分类 - KVM</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Bozh/p/5788431.html">[原] KVM 虚拟化原理探究 —— 目录</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/yinzhengjie/p/7478797.html">虚拟化技术基础原理</a></li>
+<li><a target="_blank" rel="noopener" href="http://soulxu.github.io/blog/2014/08/11/use-kvm-api-write-emulator/">使用KVM API实现Emulator Demo</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.opskumu.com/kvm-notes.html">KVM 学习笔记</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/03d3afff3b5f">KVM的原理与使用</a></li>
+</ul>
+<h1 id="7-kvm初体验"><a class="markdownIt-Anchor" href="#7-kvm初体验"></a> 7 KVM初体验</h1>
+<p>物理机系统：<code>CentOS-7-x86_64-DVD-1810.iso</code></p>
+<p>查看系统是否支持kvm</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">lsmod | grep kvm</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">kvm_intel             183621  0</span><br><span class="line">kvm                   586948  1 kvm_intel</span><br><span class="line">irqbypass              13503  1 kvm</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>软件安装：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">yum install -y qemu-kvm qemu-img</span><br><span class="line">yum install -y virt-manager libvirt libvirt-python python-virtinst libvirt-client virt-install</span><br><span class="line"></span><br><span class="line">systemctl <span class="built_in">enable</span> libvirtd</span><br><span class="line">systemctl start libvirtd</span><br></pre></td></tr></table></figure>
+<p>用于安装虚拟机的镜像为：<code>CentOS-7-x86_64-Minimal-1908.iso</code>，运行虚拟机的命令如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建虚拟网桥br0</span></span><br><span class="line">ip link add br0 <span class="built_in">type</span> bridge</span><br><span class="line">ip addr add 10.0.2.1/24 broadcast 10.0.2.255 dev br0</span><br><span class="line">ip link <span class="built_in">set</span> br0 up</span><br><span class="line">iptables -t nat -A POSTROUTING -s 10.0.2.0/24 -o eno1 -j MASQUERADE <span class="comment"># eno1是我主机上的外网网卡</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建disk目录</span></span><br><span class="line">mkdir -p /kvm/disk</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建虚拟机</span></span><br><span class="line">virt-install \</span><br><span class="line">   --virt-type=kvm \</span><br><span class="line">   --name myvm_centos7 \</span><br><span class="line">   --ram 2048 \</span><br><span class="line">   --vcpus=2 \</span><br><span class="line">   --os-variant=rhel7.6 \</span><br><span class="line">   --cdrom=/root/CentOS-7-x86_64-Minimal-1908.iso \</span><br><span class="line">   --network=bridge=br0,model=virtio \</span><br><span class="line">   --graphics vnc \</span><br><span class="line">   --disk path=/kvm/disk/myvm_centos7.disk,size=10,bus=virtio,format=qcow2</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">WARNING  无法连接到图形控制台：没有安装 virt-viewer。请安装 <span class="string">&#x27;virt-viewer&#x27;</span> 软件包。</span><br><span class="line">WARNING  没有控制台用于启动客户机，默认为 --<span class="built_in">wait</span> -1</span><br><span class="line"></span><br><span class="line">开始安装......</span><br><span class="line">正在分配 <span class="string">&#x27;myvm_centos7.disk&#x27;</span>                                                                                                                                                   |  10 GB  00:00:00</span><br><span class="line">ERROR    internal error: qemu unexpectedly closed the monitor: 2021-02-27T03:55:11.298881Z qemu-kvm: -drive file=/root/CentOS-7-x86_64-Minimal-1908.iso,format=raw,<span class="keyword">if</span>=none,id=drive-ide0-0-0,<span class="built_in">readonly</span>=on: could not open disk image /root/CentOS-7-x86_64-Minimal-1908.iso: Could not open <span class="string">&#x27;/root/CentOS-7-x86_64-Minimal-1908.iso&#x27;</span>: Permission denied</span><br><span class="line">正在删除磁盘 <span class="string">&#x27;myvm_centos7.disk&#x27;</span>                                                                                                                                             |    0 B  00:00:00</span><br><span class="line">域安装失败，您可以运行下列命令重启您的域：</span><br><span class="line"><span class="string">&#x27;virsh start virsh --connect qemu:///system start myvm_centos7&#x27;</span></span><br><span class="line">否则请重新开始安装。</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改配置文件，取消以下两行的注释</span></span><br><span class="line">   <span class="comment">#user = &quot;root&quot;</span></span><br><span class="line">   <span class="comment">#group = &quot;root&quot;</span></span><br><span class="line">vi /etc/libvirt/qemu.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启服务</span></span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart libvirtd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 再次执行virt-install</span></span><br><span class="line">virt-install \</span><br><span class="line">   --virt-type=kvm \</span><br><span class="line">   --name myvm_centos7 \</span><br><span class="line">   --ram 2048 \</span><br><span class="line">   --vcpus=2 \</span><br><span class="line">   --os-variant=rhel7.6 \</span><br><span class="line">   --cdrom=/root/CentOS-7-x86_64-Minimal-1908.iso \</span><br><span class="line">   --network=bridge=br0,model=virtio \</span><br><span class="line">   --graphics vnc \</span><br><span class="line">   --disk path=/kvm/disk/myvm_centos7.disk,size=10,bus=virtio,format=qcow2</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">WARNING  无法连接到图形控制台：没有安装 virt-viewer。请安装 <span class="string">&#x27;virt-viewer&#x27;</span> 软件包。</span><br><span class="line">WARNING  没有控制台用于启动客户机，默认为 --<span class="built_in">wait</span> -1</span><br><span class="line"></span><br><span class="line">开始安装......</span><br><span class="line">正在分配 <span class="string">&#x27;myvm_centos7.disk&#x27;</span>                                                                                                                                                   |  10 GB  00:00:00</span><br><span class="line">ERROR    unsupported format character <span class="string">&#x27;�&#x27;</span> (0xffffffe7) at index 47</span><br><span class="line">域安装失败，您可以运行下列命令重启您的域：</span><br><span class="line"><span class="string">&#x27;virsh start virsh --connect qemu:///system start myvm_centos7&#x27;</span></span><br><span class="line">否则请重新开始安装。</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>看起来是因为没有安装图形化的工具</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">yum install -y <span class="string">&#x27;virt-viewer&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新尝试创建虚拟机</span></span><br><span class="line">virsh destroy myvm_centos7</span><br><span class="line">virsh undefine myvm_centos7</span><br><span class="line">rm -f /kvm/disk/myvm_centos7.disk</span><br><span class="line">virt-install \</span><br><span class="line">   --virt-type=kvm \</span><br><span class="line">   --name myvm_centos7 \</span><br><span class="line">   --ram 2048 \</span><br><span class="line">   --vcpus=2 \</span><br><span class="line">   --os-variant=rhel7.6 \</span><br><span class="line">   --cdrom=/root/CentOS-7-x86_64-Minimal-1908.iso \</span><br><span class="line">   --network=bridge=br0,model=virtio \</span><br><span class="line">   --graphics vnc \</span><br><span class="line">   --disk path=/kvm/disk/myvm_centos7.disk,size=10,bus=virtio,format=qcow2</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">WARNING  需要图形显示，但未设置 DISPLAY。不能运行 virt-viewer。</span><br><span class="line">WARNING  没有控制台用于启动客户机，默认为 --<span class="built_in">wait</span> -1</span><br><span class="line"></span><br><span class="line">开始安装......</span><br><span class="line">正在分配 <span class="string">&#x27;myvm_centos7.disk&#x27;</span>                                                                                                                                                   |  10 GB  00:00:00</span><br><span class="line">ERROR    unsupported format character <span class="string">&#x27;�&#x27;</span> (0xffffffe7) at index 47</span><br><span class="line">域安装失败，您可以运行下列命令重启您的域：</span><br><span class="line"><span class="string">&#x27;virsh start virsh --connect qemu:///system start myvm_centos7&#x27;</span></span><br><span class="line">否则请重新开始安装。</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>由于我是通过ssh连到服务器上，然后执行相关指令的，看起来这种方式不行，得在服务器上装一个桌面应用，然后通过vnc连接过去，再执行<code>virt-install</code>进行安装</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装桌面应用</span></span><br><span class="line">yum groupinstall -y <span class="string">&#x27;GNOME Desktop&#x27;</span> <span class="string">&#x27;Graphical Administration Tools&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装vncserver</span></span><br><span class="line">yum -y install <span class="string">&quot;vnc-server&quot;</span></span><br><span class="line"><span class="comment"># 启动vncserver，:x表示端口号为 5900+x。例如:1表示监听端口号为5901</span></span><br><span class="line">vncserver :1</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Password:</span><br><span class="line">Verify:</span><br><span class="line">Would you like to enter a view-only password (y/n)? y</span><br><span class="line">Password:</span><br><span class="line">Verify:</span><br><span class="line">xauth:  file /root/.Xauthority does not exist</span><br><span class="line"></span><br><span class="line">New <span class="string">&#x27;iot-6wbudf-name-nick-name:1 (root)&#x27;</span> desktop is iot-6wbudf-name-nick-name:1</span><br><span class="line"></span><br><span class="line">Creating default startup script /root/.vnc/xstartup</span><br><span class="line">Creating default config /root/.vnc/config</span><br><span class="line">Starting applications specified <span class="keyword">in</span> /root/.vnc/xstartup</span><br><span class="line">Log file is /root/.vnc/iot-6wbudf-name-nick-name:1.log</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查端口号是否已启动</span></span><br><span class="line">lsof -i tcp:5901</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">COMMAND   PID USER   FD   TYPE  DEVICE SIZE/OFF NODE NAME</span><br><span class="line">Xvnc    64424 root   10u  IPv4 1850241      0t0  TCP *:5901 (LISTEN)</span><br><span class="line">Xvnc    64424 root   11u  IPv6 1850242      0t0  TCP *:5901 (LISTEN)</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
+<p>通过<code>vnc-client</code>登录到该机器上之后，再执行下面的操作</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">virsh destroy myvm_centos7</span><br><span class="line">virsh undefine myvm_centos7</span><br><span class="line">rm -f /kvm/disk/myvm_centos7.disk</span><br><span class="line">virt-install \</span><br><span class="line">   --virt-type=kvm \</span><br><span class="line">   --name myvm_centos7 \</span><br><span class="line">   --ram 2048 \</span><br><span class="line">   --vcpus=2 \</span><br><span class="line">   --os-variant=rhel7.6 \</span><br><span class="line">   --cdrom=/root/CentOS-7-x86_64-Minimal-1908.iso \</span><br><span class="line">   --network=bridge=br0,model=virtio \</span><br><span class="line">   --graphics vnc \</span><br><span class="line">   --disk path=/kvm/disk/myvm_centos7.disk,size=10,bus=virtio,format=qcow2</span><br></pre></td></tr></table></figure>
+<p><strong>以图形化的方式连入虚拟机：</strong></p>
+<ol>
+<li>通过<code>vnc-client</code>连接到服务器上</li>
+<li><code>virt-viewer -a &lt;vmname&gt;</code></li>
+</ol>
+<p><strong>以文本的方式连入虚拟机：</strong></p>
+<ol>
+<li>通过<code>ssh</code>或其他方式连接到服务器上</li>
+<li><code>virsh console &lt;vmname&gt;</code></li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">virsh console myvm_centos7</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">连接到域 myvm_centos7</span><br><span class="line">换码符为 ^]</span><br><span class="line"></span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 需要在虚拟机进行一些配置（以下三行命令要在虚拟机上执行，可以通过图形化的方式连上去执行）</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;ttyS0&quot;</span> &gt;&gt; /etc/securetty </span><br><span class="line">grubby --update-kernel=ALL --args=<span class="string">&quot;console=ttyS0&quot;</span> <span class="comment"># 更新内核参数</span></span><br><span class="line">reboot</span><br></pre></td></tr></table></figure>
+<h2 id="71-常用命令"><a class="markdownIt-Anchor" href="#71-常用命令"></a> 7.1 常用命令</h2>
+<ol>
+<li><code>virsh domiflist &lt;vmname&gt;</code></li>
+<li><code>virsh attach-interface &lt;vmname&gt; --type bridge --source &lt;主机上的网卡名&gt;</code></li>
+<li><code>virsh detach-interface &lt;vmname&gt; --type bridge --mac &lt;网卡mac地址&gt;</code></li>
+</ol>
+<h2 id="72-参考"><a class="markdownIt-Anchor" href="#72-参考"></a> 7.2 参考</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/sammyliu/p/4543110.html">KVM 介绍（1）：简介及安装</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhimao/p/13744257.html">virsh console连接虚拟机遇到的问题</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34018840/article/details/101194571">【虚拟化】KVM、Qemu、Virsh的区别与联系</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cyberciti.biz/faq/how-to-install-kvm-on-centos-7-rhel-7-headless-server/">How to install KVM on CentOS 7 / RHEL 7 Headless Server</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.linuxtechi.com/install-configure-vnc-server-centos-7-rhel-7/">Install and Configure VNC Server in CentOS 7 and RHEL 7</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_38312031/article/details/79415394">阿里云CentOS7.x服务器安装GNOME桌面并使用VNC server</a></li>
+</ul>
+<h1 id="8-todo"><a class="markdownIt-Anchor" href="#8-todo"></a> 8 TODO</h1>
+<ol>
+<li>物理机的内核如何与硬件交互？软件分层之后，下层才能屏蔽差异（欺骗）。虚拟机又是如何被虚拟硬件欺骗的？</li>
+<li>总线、RAM、CPU、时钟。内存和CPU如何通信。VM使用的是物理内存中的某一段，VM中内存与CPU的交互与普通进程的内存与CPU的交互是类似的</li>
+<li>基于二进制翻译的全虚拟化，VMM如何捕获异常？</li>
+<li>客户机代码执行流程（内核or用户代码）</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/19/Kubernetes-CNI/" rel="prev" title="Kubernetes-CNI">
+      <i class="fa fa-chevron-left"></i> Kubernetes-CNI
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/04/06/CNCF-Projects/" rel="next" title="CNCF-Projects">
+      CNCF-Projects <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%AE%80%E4%BB%8B"><span class="nav-text"> 1 简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%8C%96virtualization"><span class="nav-text"> 1.1 什么是虚拟化（virtualization）？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E8%99%9A%E6%8B%9F%E5%8C%96%E5%8F%91%E5%B1%95%E5%8F%B2"><span class="nav-text"> 1.2 虚拟化发展史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%8F%82%E8%80%83"><span class="nav-text"> 1.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80"><span class="nav-text"> 2 汇编语言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-cpu%E8%99%9A%E6%8B%9F%E5%8C%96"><span class="nav-text"> 3 CPU虚拟化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%9F%BA%E4%BA%8E%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%BF%BB%E8%AF%91%E7%9A%84%E5%85%A8%E8%99%9A%E6%8B%9F%E5%8C%96full-virtualization-with-binary-translation"><span class="nav-text"> 3.1 基于二进制翻译的全虚拟化（Full Virtualization with Binary Translation）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E8%B6%85%E8%99%9A%E6%8B%9F%E5%8C%96%E6%88%96%E8%80%85%E5%8D%8A%E8%99%9A%E6%8B%9F%E5%8C%96%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E8%BE%85%E5%8A%A9%E8%99%9A%E6%8B%9F%E5%8C%96-paravirtualization"><span class="nav-text"> 3.2 超虚拟化（或者半虚拟化&#x2F;操作系统辅助虚拟化 Paravirtualization）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E7%A1%AC%E4%BB%B6%E8%BE%85%E5%8A%A9%E7%9A%84%E5%85%A8%E8%99%9A%E6%8B%9F%E5%8C%96"><span class="nav-text"> 3.3 硬件辅助的全虚拟化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E5%8F%82%E8%80%83"><span class="nav-text"> 3.4 参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#35-%E9%97%AE%E9%A2%98"><span class="nav-text"> 3.5 问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96"><span class="nav-text"> 4 内存虚拟化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E9%97%AE%E9%A2%98"><span class="nav-text"> 4.1 问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E5%8F%82%E8%80%83"><span class="nav-text"> 4.2 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-qemu"><span class="nav-text"> 5 QEMU</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E5%8F%82%E8%80%83"><span class="nav-text"> 5.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-kvm"><span class="nav-text"> 6 KVM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-%E5%8F%82%E8%80%83"><span class="nav-text"> 6.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-kvm%E5%88%9D%E4%BD%93%E9%AA%8C"><span class="nav-text"> 7 KVM初体验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-text"> 7.1 常用命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-%E5%8F%82%E8%80%83"><span class="nav-text"> 7.2 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-todo"><span class="nav-text"> 8 TODO</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">290</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

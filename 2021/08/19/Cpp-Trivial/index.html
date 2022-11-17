@@ -32,7 +32,7 @@
 <meta property="og:image" content="http://example.com/images/Cpp-Trivial/jemalloc.png">
 <meta property="og:image" content="http://example.com/images/Cpp-Trivial/analysis-tools.png">
 <meta property="article:published_time" content="2021-08-19T01:38:42.000Z">
-<meta property="article:modified_time" content="2022-10-08T14:00:57.994Z">
+<meta property="article:modified_time" content="2022-11-17T14:32:00.074Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -234,7 +234,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-08 22:00:57" itemprop="dateModified" datetime="2022-10-08T22:00:57+08:00">2022-10-08</time>
+                <time title="修改时间：2022-11-17 22:32:00" itemprop="dateModified" datetime="2022-11-17T22:32:00+08:00">2022-11-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -311,6 +311,11 @@ linker --> result_lib</pre>
 <h1 id="2-lib"><a class="markdownIt-Anchor" href="#2-lib"></a> 2 lib</h1>
 <h2 id="21-静态链接库"><a class="markdownIt-Anchor" href="#21-静态链接库"></a> 2.1 静态链接库</h2>
 <p><strong>后缀：<code>*.a</code></strong></p>
+<p><strong>如何查看二进制的静态链接库：由于链接器在链接时，就会丢弃静态库的名字信息，因此，一般是看不到的</strong></p>
+<ul>
+<li><code>-Xlinker -Map=a.map</code>：将链接时的信息记录到<code>a.map</code>中</li>
+<li><code>nm/objdump/readelf/strings</code>或许可以找到一些静态库相关的<code>hint</code></li>
+</ul>
 <h2 id="22-动态链接库"><a class="markdownIt-Anchor" href="#22-动态链接库"></a> 2.2 动态链接库</h2>
 <p><strong>后缀：<code>*.so</code></strong></p>
 <p><strong>如何查看二进制的动态链接库：<code>ldd</code></strong></p>
@@ -318,7 +323,7 @@ linker --> result_lib</pre>
 <h3 id="221-动态库搜索顺序"><a class="markdownIt-Anchor" href="#221-动态库搜索顺序"></a> 2.2.1 动态库搜索顺序</h3>
 <p><strong>搜索如下：详见<code>man ld.so</code></strong></p>
 <ol>
-<li>在环境变量<code>LD_LIBRARY_PATH</code>指定的目录下搜索</li>
+<li>在环境变量<code>LD_LIBRARY_PATH</code>指定的目录下搜索，以<code>:</code>分隔</li>
 <li>在<code>/etc/ld.so.cache</code>指定的目录中搜索</li>
 <li>在<code>/lib</code>、<code>/lib64</code>中搜索（系统发行版安装的）</li>
 <li>在<code>/usr/lib</code>、<code>/usr/lib64</code>中搜索（其他软件安装的）</li>
@@ -373,10 +378,29 @@ linker --> result_lib</pre>
 <p><strong>环境变量<code>LD_PRELOAD</code>指定的目录拥有最高优先级</strong></p>
 <h3 id="231-demo"><a class="markdownIt-Anchor" href="#231-demo"></a> 2.3.1 demo</h3>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">cat &gt; sample.c &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;stdio.h&gt;</span></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Calling the fopen() function...\n&quot;</span>);</span><br><span class="line">    FILE *fd = fopen(<span class="string">&quot;test.txt&quot;</span>,<span class="string">&quot;r&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (!fd) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;fopen() returned NULL\n&quot;</span>);</span><br><span class="line">        <span class="built_in">return</span> 1;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;fopen() succeeded\n&quot;</span>);</span><br><span class="line">    <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">gcc -o sample sample.c</span><br><span class="line"></span><br><span class="line">./sample </span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">fopen() returned NULL</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">touch test.txt</span><br><span class="line">./sample</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">fopen() succeeded</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line">cat &gt; myfopen.c &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;stdio.h&gt;</span></span><br><span class="line">FILE *fopen(const char *path, const char *mode) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;This is my fopen!\n&quot;</span>);</span><br><span class="line">    <span class="built_in">return</span> NULL;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">gcc -o myfopen.so myfopen.c -Wall -fPIC -shared</span><br><span class="line"></span><br><span class="line">LD_PRELOAD=./myfopen.so ./sample</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">This is my fopen!</span><br><span class="line">fopen() returned NULL</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
-<h2 id="24-libc-glic-libm-libz以及其他常用动态库"><a class="markdownIt-Anchor" href="#24-libc-glic-libm-libz以及其他常用动态库"></a> 2.4 libc、glic、libm、libz以及其他常用动态库</h2>
-<p><code>libc</code>实现了C的标准库函数（例如<code>strcpy()</code>），以及<code>POSIX</code>函数（例如系统调用<code>getpid()</code>）。此外，不是所有的C标准库函数都包含在<code>libc</code>中，比如大多数<code>math</code>相关的库函数都封装在<code>libm</code>中，大多数压缩相关的库函数都封装在<code>libz</code>中</p>
-<p>系统调用有别于普通函数，它无法被链接器解析。实现系统调用必须引入平台相关的汇编指令。我们可以通过手动实现这些汇编指令来完成系统调用，或者直接使用<code>libc</code>（它已经为我们封装好了）</p>
-<p><code>glibc, GNU C Library</code>可以看做是<code>libc</code>的另一种实现，它不仅包含<code>libc</code>的所有功能还包含<code>libm</code>以及其他核心库，比如<code>libpthread</code></p>
+<h2 id="24-常用动态库"><a class="markdownIt-Anchor" href="#24-常用动态库"></a> 2.4 常用动态库</h2>
+<p><strong><code>libc/glibc/glib</code>（<code>man libc/glibc</code>）</strong></p>
+<ul>
+<li><code>libc</code>实现了C的标准库函数，例如<code>strcpy()</code>，以及<code>POSIX</code>函数，例如系统调用<code>getpid()</code>。此外，不是所有的C标准库函数都包含在<code>libc</code>中，比如大多数<code>math</code>相关的库函数都封装在<code>libm</code>中，大多数压缩相关的库函数都封装在<code>libz</code>中
+<ul>
+<li>系统调用有别于普通函数，它无法被链接器解析。实现系统调用必须引入平台相关的汇编指令。我们可以通过手动实现这些汇编指令来完成系统调用，或者直接使用<code>libc</code>（它已经为我们封装好了）</li>
+</ul>
+</li>
+<li><strong><code>glibc, GNU C Library</code>可以看做是<code>libc</code>的另一种实现，它不仅包含<code>libc</code>的所有功能还包含<code>libm</code>以及其他核心库，比如<code>libpthread</code></strong>
+<ul>
+<li><strong><code>glibc</code>对应的动态库的名字是<code>libc.so</code></strong></li>
+<li><strong>Linux主流的发行版用的都是这个</strong></li>
+</ul>
+</li>
+<li><code>glib</code>是Linux下C的一些工具库，和<code>glibc</code>没有关系</li>
+</ul>
+<p><strong>查看<code>glibc</code>的版本</strong></p>
+<ul>
+<li><code>ldd --version</code>：<code>ldd</code>隶属于<code>glibc</code>，因此<code>ldd</code>的版本就是<code>glibc</code>的版本</li>
+<li><code>getconf GNU_LIBC_VERSION</code></li>
+<li><code>gcc -print-file-name=libc.so</code></li>
+<li><code>strings /lib64/libc.so.6 | grep GLIBC</code>：查看<code>glibc</code>的API的版本</li>
+</ul>
 <p><strong>其他常用动态库可以参考<a target="_blank" rel="noopener" href="https://docs.oracle.com/cd/E86824_01/html/E54772/makehtml-id-7.html#scrolltoc">Library Interfaces and Headers</a>中的介绍</strong></p>
 <ol>
 <li><code>libdl</code>：dynamic linking library
@@ -395,6 +419,7 @@ linker --> result_lib</pre>
 <li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/reuodut/articles/13723437.html">Linux hook：Ring3下动态链接库.so函数劫持</a></li>
 <li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/14715175/what-is-the-difference-between-ld-preload-path-and-ld-library-path">What is the difference between LD_PRELOAD_PATH and LD_LIBRARY_PATH?</a></li>
 <li><a target="_blank" rel="noopener" href="https://unix.stackexchange.com/questions/557919/what-is-libstdc-so-6-and-glibcxx-3-4-20">What is libstdc++.so.6 and GLIBCXX_3.4.20?</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/mo4776/article/details/119837501">多个gcc/glibc版本的共存及指定gcc版本的编译</a></li>
 </ul>
 <h1 id="3-内存管理"><a class="markdownIt-Anchor" href="#3-内存管理"></a> 3 内存管理</h1>
 <p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/21098367/answer/1698482825">brk和sbrk所指的program break到底是什么？</a></p>
@@ -695,19 +720,19 @@ linker --> result_lib</pre>
           
       <div class="tabs tabs-comment">
         <ul class="nav-tabs">
-            <li class="tab"><a href="#comment-livere">livere</a></li>
             <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
         </ul>
         <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
             <div class="tab-pane livere" id="comment-livere">
               
   <div class="comments">
     <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
   </div>
   
-            </div>
-            <div class="tab-pane valine" id="comment-valine">
-              <div class="comments" id="valine-comments"></div>
             </div>
         </div>
       </div>
@@ -757,7 +782,7 @@ linker --> result_lib</pre>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B"><span class="nav-text"> 1 编译过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-lib"><span class="nav-text"> 2 lib</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E9%9D%99%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-text"> 2.1 静态链接库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-text"> 2.2 动态链接库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-%E5%8A%A8%E6%80%81%E5%BA%93%E6%90%9C%E7%B4%A2%E9%A1%BA%E5%BA%8F"><span class="nav-text"> 2.2.1 动态库搜索顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-linux%E4%B8%8Bso%E7%9A%84%E7%89%88%E6%9C%AC%E6%9C%BA%E5%88%B6%E4%BB%8B%E7%BB%8D"><span class="nav-text"> 2.2.2 Linux下so的版本机制介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2221-%E5%87%A0%E4%B8%AAso%E5%BA%93%E6%9C%89%E5%85%B3%E5%90%8D%E5%AD%97%E7%9A%84%E4%BB%8B%E7%BB%8D"><span class="nav-text"> 2.2.2.1 几个so库有关名字的介绍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2222-soname%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text"> 2.2.2.2 SONAME的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2223-linker-name%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text"> 2.2.2.3 linker name的作用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-ld_preload"><span class="nav-text"> 2.3 LD_PRELOAD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#231-demo"><span class="nav-text"> 2.3.1 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-libc-glic-libm-libz%E4%BB%A5%E5%8F%8A%E5%85%B6%E4%BB%96%E5%B8%B8%E7%94%A8%E5%8A%A8%E6%80%81%E5%BA%93"><span class="nav-text"> 2.4 libc、glic、libm、libz以及其他常用动态库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-%E5%8F%82%E8%80%83"><span class="nav-text"> 2.5 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-text"> 3 内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-tcmalloc"><span class="nav-text"> 3.1 tcmalloc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#311-heapprofile"><span class="nav-text"> 3.1.1 heapprofile</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-jemalloc"><span class="nav-text"> 3.2 jemalloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-mimalloc"><span class="nav-text"> 3.3 mimalloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E5%AF%B9%E6%AF%94"><span class="nav-text"> 3.4 对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#35-%E5%8F%82%E8%80%83"><span class="nav-text"> 3.5 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-address-sanitizer"><span class="nav-text"> 4 Address Sanitizer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-memory-leak"><span class="nav-text"> 4.1 memory leak</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-stack-buffer-underflow"><span class="nav-text"> 4.2 stack buffer underflow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-%E5%8F%82%E8%80%83"><span class="nav-text"> 4.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-gun%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="nav-text"> 5 gun工具链</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-gcc"><span class="nav-text"> 5.1 gcc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-ld"><span class="nav-text"> 5.2 ld</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E5%8F%82%E8%80%83"><span class="nav-text"> 5.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-llvm%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="nav-text"> 6 llvm工具链</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-clang-format"><span class="nav-text"> 6.1 clang-format</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%85%B6%E4%BB%96"><span class="nav-text"> 7 其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-text"> 7.1 动态分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-%E5%A4%B4%E6%96%87%E4%BB%B6%E6%90%9C%E7%B4%A2%E8%B7%AF%E5%BE%84"><span class="nav-text"> 7.2 头文件搜索路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-doc"><span class="nav-text"> 7.3 doc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-%E5%8F%82%E8%80%83"><span class="nav-text"> 7.4 参考</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B"><span class="nav-text"> 1 编译过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-lib"><span class="nav-text"> 2 lib</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E9%9D%99%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-text"> 2.1 静态链接库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-text"> 2.2 动态链接库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-%E5%8A%A8%E6%80%81%E5%BA%93%E6%90%9C%E7%B4%A2%E9%A1%BA%E5%BA%8F"><span class="nav-text"> 2.2.1 动态库搜索顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#222-linux%E4%B8%8Bso%E7%9A%84%E7%89%88%E6%9C%AC%E6%9C%BA%E5%88%B6%E4%BB%8B%E7%BB%8D"><span class="nav-text"> 2.2.2 Linux下so的版本机制介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2221-%E5%87%A0%E4%B8%AAso%E5%BA%93%E6%9C%89%E5%85%B3%E5%90%8D%E5%AD%97%E7%9A%84%E4%BB%8B%E7%BB%8D"><span class="nav-text"> 2.2.2.1 几个so库有关名字的介绍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2222-soname%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text"> 2.2.2.2 SONAME的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2223-linker-name%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text"> 2.2.2.3 linker name的作用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-ld_preload"><span class="nav-text"> 2.3 LD_PRELOAD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#231-demo"><span class="nav-text"> 2.3.1 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E5%B8%B8%E7%94%A8%E5%8A%A8%E6%80%81%E5%BA%93"><span class="nav-text"> 2.4 常用动态库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-%E5%8F%82%E8%80%83"><span class="nav-text"> 2.5 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-text"> 3 内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-tcmalloc"><span class="nav-text"> 3.1 tcmalloc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#311-heapprofile"><span class="nav-text"> 3.1.1 heapprofile</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-jemalloc"><span class="nav-text"> 3.2 jemalloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-mimalloc"><span class="nav-text"> 3.3 mimalloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-%E5%AF%B9%E6%AF%94"><span class="nav-text"> 3.4 对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#35-%E5%8F%82%E8%80%83"><span class="nav-text"> 3.5 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-address-sanitizer"><span class="nav-text"> 4 Address Sanitizer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-memory-leak"><span class="nav-text"> 4.1 memory leak</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-stack-buffer-underflow"><span class="nav-text"> 4.2 stack buffer underflow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-%E5%8F%82%E8%80%83"><span class="nav-text"> 4.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-gun%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="nav-text"> 5 gun工具链</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-gcc"><span class="nav-text"> 5.1 gcc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-ld"><span class="nav-text"> 5.2 ld</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-%E5%8F%82%E8%80%83"><span class="nav-text"> 5.3 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-llvm%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="nav-text"> 6 llvm工具链</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-clang-format"><span class="nav-text"> 6.1 clang-format</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%85%B6%E4%BB%96"><span class="nav-text"> 7 其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-text"> 7.1 动态分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-%E5%A4%B4%E6%96%87%E4%BB%B6%E6%90%9C%E7%B4%A2%E8%B7%AF%E5%BE%84"><span class="nav-text"> 7.2 头文件搜索路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-doc"><span class="nav-text"> 7.3 doc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-%E5%8F%82%E8%80%83"><span class="nav-text"> 7.4 参考</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -892,22 +917,6 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
-<script>
-NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
-  window.livereOptions = {
-    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
-  };
-  (function(d, s) {
-    var j, e = d.getElementsByTagName(s)[0];
-    if (typeof LivereTower === 'function') { return; }
-    j = d.createElement(s);
-    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-    j.async = true;
-    e.parentNode.insertBefore(j, e);
-  })(document, 'script');
-});
-</script>
-
 
 <script>
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
@@ -934,6 +943,22 @@ NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
       serverURLs : ''
     });
   }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
 });
 </script>
 
