@@ -281,9 +281,9 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-前言"> 1 前言</span></h1>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
 <p><code>Bloom Filter</code>是由<code>Bloom</code>在1970年提出的一种多哈希函数映射的快速查找算法。通常应用在一些需要快速判断某个元素是否属于集合，但是并不严格要求100%正确的场合</p>
-<h1><span id="2-问题引入"> 2 问题引入</span></h1>
+<h1 id="2-问题引入"><a class="markdownIt-Anchor" href="#2-问题引入"></a> 2 问题引入</h1>
 <p>假设要你写一个网络蜘蛛（<code>web crawler</code>）。由于网络间的链接错综复杂，蜘蛛在网络间爬行很可能会形成环。为了避免形成环，就需要知道蜘蛛已经访问过那些<code>URL</code>。给一个<code>URL</code>，怎样知道蜘蛛是否已经访问过呢？稍微想想，就会有如下几种方案：</p>
 <ol>
 <li>将访问过的<code>URL</code>保存到数据库</li>
@@ -305,33 +305,33 @@
 <blockquote>
 <p>其实还有一种方法也可行。我们可以将这海量的<code>URL</code>分成若干份，每份的数量相对较小，单个机器足以处理。那么问题是如何进行分发呢？如果采用随机分发的方式，那么相同的<code>URL</code>可能会被分到不同的机器中，最后整合时还需要在做一次去重操作。另一种方式就是在分发的时候先进行一次聚合操作，所有相同的<code>URL</code>必定被分发到同一个机器上，这样一来，每台机器就可以单独工作，最后进行一次汇总即可。那么如何在分发时进行聚合呢？利用<code>hash</code>函数即可，例如构造一个可以产生<code>m</code>位整数的<code>hash</code>函数，那么<code>m</code>位整数总共有<code>2^m</code>个可能的数值，对每一个<code>URL</code>进行一次<code>hash</code>计算，映射到这其中的一个整数，就分发给对应的机器进行处理</p>
 </blockquote>
-<h1><span id="3-bloom-filter的算法"> 3 Bloom Filter的算法</span></h1>
+<h1 id="3-bloom-filter的算法"><a class="markdownIt-Anchor" href="#3-bloom-filter的算法"></a> 3 Bloom Filter的算法</h1>
 <p>废话说到这里，下面引入本篇的主角——<code>Bloom Filter</code>。其实上面方法4的思想已经很接近<code>Bloom Filter了</code>。方法四的致命缺点是冲突概率高，为了降低冲突的概念，<code>Bloom Filter</code>使用了多个哈希函数，而不是一个</p>
 <p><code>Bloom Filter</code>算法如下：</p>
 <blockquote>
 <p>创建一个<code>m</code>位<code>BitSet</code>，先将所有位初始化为<code>0</code>，然后选择<code>k</code>个不同的哈希函数。第<code>i</code>个哈希函数对字符串<code>str</code>哈希的结果记为<code>h(i，str)</code>，且<code>h(i，str)</code>的范围是<code>0</code>到<code>m-1</code></p>
 </blockquote>
-<h2><span id="31-加入字符串的过程"> 3.1 加入字符串的过程</span></h2>
+<h2 id="31-加入字符串的过程"><a class="markdownIt-Anchor" href="#31-加入字符串的过程"></a> 3.1 加入字符串的过程</h2>
 <p>下面是每个字符串处理的过程，首先是将字符串<code>str</code>记录到<code>BitSet</code>中的过程：</p>
 <p>对于字符串<code>str</code>，分别计算<code>h(1, str), h(2, str), ..., h(k, str)</code>。然后将<code>BitSet</code>的第<code>h(1, str), h(2, str), ..., h(k, str)</code>位设为<code>1</code></p>
-<p><img src="/images/DataStructure-Bloom-Filter/fig1.jpg" alt="fig1"></p>
-<h2><span id="32-检查字符串是否存在的过程"> 3.2 检查字符串是否存在的过程</span></h2>
+<p><img src="/images/DataStructure-Bloom-Filter/fig1.jpg" alt="fig1" /></p>
+<h2 id="32-检查字符串是否存在的过程"><a class="markdownIt-Anchor" href="#32-检查字符串是否存在的过程"></a> 3.2 检查字符串是否存在的过程</h2>
 <p>下面是检查字符串<code>str</code>是否被<code>BitSet</code>记录过的过程：</p>
 <blockquote>
 <p>对于字符串<code>str</code>，分别计算<code>h(1, str), h(2, str), ..., h(k, str)</code>。然后检查<code>BitSet</code>的第<code>h(1, str), h(2, str), ..., h(k, str)</code>位是否为<code>1</code>，若其中任何一位不为<code>1</code>则可以判定<code>str</code>一定没有被记录过。若全部位都是<code>1</code>，则认为字符串<code>str</code>存在</p>
 </blockquote>
 <p>若一个字符串对应的<code>Bit</code>不全为<code>1</code>，则可以肯定该字符串一定没有被<code>Bloom Filter</code>记录过。（这是显然的，因为字符串被记录过，其对应的二进制位肯定全部被设为<code>1</code>了）</p>
 <p>但是若一个字符串对应的<code>Bit</code>全为<code>1</code>，实际上是不能<code>100%</code>的肯定该字符串被<code>Bloom Filter</code>记录过的。（因为有可能该字符串的所有位都刚好是被其他字符串所对应）这种将该字符串划分错的情况，称为<code>false positive</code></p>
-<h2><span id="33-删除字符串过程"> 3.3 删除字符串过程</span></h2>
+<h2 id="33-删除字符串过程"><a class="markdownIt-Anchor" href="#33-删除字符串过程"></a> 3.3 删除字符串过程</h2>
 <p>字符串加入了就被不能删除了，因为删除会影响到其他字符串。实在需要删除字符串的可以使用<code>Counting bloomfilter(CBF)</code>，这是一种基本<code>Bloom Filter</code>的变体，<code>CBF</code>将基本<code>Bloom Filter</code>每一个<code>Bit</code>改为一个计数器，这样就可以实现删除字符串的功能了</p>
 <p><code>Bloom Filter</code>跟单哈希函数<code>Bit-Map</code>不同之处在于：<code>Bloom Filter</code>使用了<code>k</code>个哈希函数，每个字符串跟<code>k</code>个<code>bit</code>对应。从而降低了冲突的概率</p>
-<h1><span id="4-bloom-filter参数选择"> 4 Bloom Filter参数选择</span></h1>
+<h1 id="4-bloom-filter参数选择"><a class="markdownIt-Anchor" href="#4-bloom-filter参数选择"></a> 4 Bloom Filter参数选择</h1>
 <p><strong>哈希函数选择</strong>：哈希函数的选择对性能的影响应该是很大的，一个好的哈希函数要能近似等概率的将字符串映射到各个<code>Bit</code>。选择<code>k</code>个不同的哈希函数比较麻烦，一种简单的方法是选择一个哈希函数，然后送入<code>k</code>个不同的参数</p>
 <p><strong><code>Bit</code>数组大小选择</strong>：哈希函数个数<code>k</code>、位数组大小<code>m</code>、加入的字符串数量<code>n</code>的关系可以参考<a target="_blank" rel="noopener" href="http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html">Bloom Filters - the math</a>。该文献证明了对于给定的<code>m</code>、<code>n</code>，当<code>k = ln(2)* m/n</code>时出错的概率是最小的</p>
 <ul>
 <li>同时该文献还给出特定的<code>k</code>，<code>m</code>，<code>n</code>的出错概率。例如：根据参考文献1，哈希函数个数<code>k</code>取<code>10</code>，位数组大小<code>m</code>设为字符串个数<code>n</code>的<code>20</code>倍时，<code>false positive</code>发生的概率是<code>0.0000889</code>，这个概率基本能满足网络爬虫的需求了</li>
 </ul>
-<h1><span id="5-bloom-filter的优化"> 5 Bloom Filter的优化</span></h1>
+<h1 id="5-bloom-filter的优化"><a class="markdownIt-Anchor" href="#5-bloom-filter的优化"></a> 5 Bloom Filter的优化</h1>
 <p>上面提到的<code>Bloom Filter</code>中的<code>k</code>个<code>hash</code>函数共享同一个<code>BitSet</code>，且他们之间并没有先后次序的关系<code>hash(1, str) = 1, hash(2, str) = 2</code>与<code>hash(1, str) = 2,hash(2, str) = 1</code>的结果是相同的)，这样做实际上会增加重复的概率，因为不同的<code>hash</code>函数可能会让同一个<code>bit</code>置位。因此我们以牺牲空间复杂度为代价，将一个<code>BitSet</code>扩充为<code>k</code>个<code>BitSet</code>，每一个<code>hash</code>独占一个<code>BitSet</code>，这样可以大大降低误判的概率</p>
 <p><strong>举个简单的例子，假设<code>BitSet</code>共有<code>4</code>位，有<code>2</code>个<code>hash</code>函数</strong></p>
 <blockquote>
@@ -343,9 +343,9 @@
 <blockquote>
 <p><strong>若<code>2</code>个<code>hash</code>分别独占一个<code>BitSet</code></strong>，初始化的时候<code>BitSet1 = 0000, BitSet2 = 0000</code>，存入URL1后，<code>BitSet1 = 0100, BitSet2 = 0010</code>。此时对于<code>URL2</code>而言，发现<code>BitSet1</code>的第<code>2</code>位与<code>BitSet2</code>的第<code>1</code>位是<code>0</code>，因此判定没有重复</p>
 </blockquote>
-<h1><span id="6-示例代码"> 6 示例代码</span></h1>
+<h1 id="6-示例代码"><a class="markdownIt-Anchor" href="#6-示例代码"></a> 6 示例代码</h1>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;bitset&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">BloomFilter</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    std::bitset&lt;100&gt; bitArray;</span><br><span class="line">    std::hash&lt;std::string&gt; hashFunc;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">add</span><span class="params">(<span class="type">const</span> std::string&amp; item)</span> </span>&#123;</span><br><span class="line">        <span class="type">size_t</span> hash = <span class="built_in">hashFunc</span>(item);</span><br><span class="line">        <span class="type">size_t</span> index = hash % bitArray.<span class="built_in">size</span>();</span><br><span class="line">        bitArray[index] = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">contains</span><span class="params">(<span class="type">const</span> std::string&amp; item)</span> </span>&#123;</span><br><span class="line">        <span class="type">size_t</span> hash = <span class="built_in">hashFunc</span>(item);</span><br><span class="line">        <span class="type">size_t</span> index = hash % bitArray.<span class="built_in">size</span>();</span><br><span class="line">        <span class="keyword">return</span> bitArray[index];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    BloomFilter bf;</span><br><span class="line">    bf.<span class="built_in">add</span>(<span class="string">&quot;apple&quot;</span>);</span><br><span class="line">    bf.<span class="built_in">add</span>(<span class="string">&quot;banana&quot;</span>);</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; bf.<span class="built_in">contains</span>(<span class="string">&quot;apple&quot;</span>) &lt;&lt; std::endl;  <span class="comment">// Output: 1 (true)</span></span><br><span class="line">    std::cout &lt;&lt; bf.<span class="built_in">contains</span>(<span class="string">&quot;banana&quot;</span>) &lt;&lt; std::endl; <span class="comment">// Output: 1 (true)</span></span><br><span class="line">    std::cout &lt;&lt; bf.<span class="built_in">contains</span>(<span class="string">&quot;orange&quot;</span>) &lt;&lt; std::endl; <span class="comment">// Output: 0 (false)</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1><span id="7-参考"> 7 参考</span></h1>
+<h1 id="7-参考"><a class="markdownIt-Anchor" href="#7-参考"></a> 7 参考</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/heaad/archive/2011/01/02/1924195.html">BloomFilter——大规模数据处理利器</a></li>
 </ul>
@@ -450,7 +450,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 问题引入</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Bloom Filter的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 加入字符串的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 检查字符串是否存在的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 删除字符串过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 Bloom Filter参数选择</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 Bloom Filter的优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 示例代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%97%AE%E9%A2%98%E5%BC%95%E5%85%A5"><span class="nav-text"> 2 问题引入</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-bloom-filter%E7%9A%84%E7%AE%97%E6%B3%95"><span class="nav-text"> 3 Bloom Filter的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E5%8A%A0%E5%85%A5%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="nav-text"> 3.1 加入字符串的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E6%A3%80%E6%9F%A5%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="nav-text"> 3.2 检查字符串是否存在的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E5%88%A0%E9%99%A4%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BF%87%E7%A8%8B"><span class="nav-text"> 3.3 删除字符串过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-bloom-filter%E5%8F%82%E6%95%B0%E9%80%89%E6%8B%A9"><span class="nav-text"> 4 Bloom Filter参数选择</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-bloom-filter%E7%9A%84%E4%BC%98%E5%8C%96"><span class="nav-text"> 5 Bloom Filter的优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="nav-text"> 6 示例代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%8F%82%E8%80%83"><span class="nav-text"> 7 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

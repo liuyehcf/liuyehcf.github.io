@@ -279,14 +279,14 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-前言"> 1 前言</span></h1>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
 <p><code>Paxos</code>算法是莱斯利-兰伯特（英语：Leslie Lamport，LaTeX中的“La”）于1990年提出的一种基于消息传递且具有高度容错特性的一致性算法。<code>Paxos</code>算法作为<code>Zookeeper</code>中的<code>leader选举算法</code></p>
-<h1><span id="2-问题和假设"> 2 问题和假设</span></h1>
+<h1 id="2-问题和假设"><a class="markdownIt-Anchor" href="#2-问题和假设"></a> 2 问题和假设</h1>
 <p>分布式系统中的节点通信存在两种模型：<strong>共享内存（Shared memory）和消息传递（Messages passing）</strong>。基于消息传递通信模型的分布式系统，不可避免的会发生以下错误：进程可能会慢、被杀死或者重启，消息可能会延迟、丢失、重复，在基础<code>Paxos</code>场景中，先不考虑可能出现消息篡改即拜占庭错误的情况。<code>Paxos</code>算法解决的问题是在一个可能发生上述异常的分布式系统中如何就某个值达成一致，保证不论发生以上任何异常，都不会破坏决议的一致性。一个典型的场景是，在一个分布式数据库系统中，如果各节点的初始状态一致，每个节点都执行相同的操作序列，那么他们最后能得到一个一致的状态。为保证每个节点执行相同的命令序列，需要在每一条指令上执行一个“一致性算法”以保证每个节点看到的指令一致。一个通用的一致性算法可以应用在许多场景中，是分布式计算中的重要问题。因此从20世纪80年代起对于一致性算法的研究就没有停止过</p>
-<p>为描述<code>Paxos</code>算法，Lamport虚拟了一个叫做<code>Paxos</code>的希腊城邦，这个岛按照议会民主制的政治模式制订法律，但是没有人愿意将自己的全部时间和精力放在这种事情上。所以无论是议员，议长或者传递纸条的服务员都不能承诺别人需要时一定会出现，也无法承诺批准决议或者传递消息的时间。但是这里假设没有拜占庭将军问题（Byzantine failure，即虽然有可能一个消息被传递了两次，但是绝对不会出现错误的消息）；只要等待足够的时间，消息就会被传到。另外，<code>Paxos</code>岛上的议员是不会反对其他议员提出的决议的<br>
+<p>为描述<code>Paxos</code>算法，Lamport虚拟了一个叫做<code>Paxos</code>的希腊城邦，这个岛按照议会民主制的政治模式制订法律，但是没有人愿意将自己的全部时间和精力放在这种事情上。所以无论是议员，议长或者传递纸条的服务员都不能承诺别人需要时一定会出现，也无法承诺批准决议或者传递消息的时间。但是这里假设没有拜占庭将军问题（Byzantine failure，即虽然有可能一个消息被传递了两次，但是绝对不会出现错误的消息）；只要等待足够的时间，消息就会被传到。另外，<code>Paxos</code>岛上的议员是不会反对其他议员提出的决议的<br />
 对应于分布式系统，议员对应于各个节点，制定的法律对应于系统的状态。各个节点需要进入一个一致的状态，例如在独立Cache的对称多处理器系统中，各个处理器读内存的某个字节时，必须读到同样的一个值，否则系统就违背了一致性的要求。一致性要求对应于法律条文只能有一个版本。议员和服务员的不确定性对应于节点和消息传递通道的不可靠性</p>
-<h1><span id="3-算法"> 3 算法</span></h1>
-<h2><span id="31-算法的提出与证明"> 3.1 算法的提出与证明</span></h2>
+<h1 id="3-算法"><a class="markdownIt-Anchor" href="#3-算法"></a> 3 算法</h1>
+<h2 id="31-算法的提出与证明"><a class="markdownIt-Anchor" href="#31-算法的提出与证明"></a> 3.1 算法的提出与证明</h2>
 <p>首先将议员的角色分为<code>proposers</code>，<code>acceptors</code>，和<code>learners</code>（允许身兼数职）</p>
 <ul>
 <li><strong><code>proposers</code></strong>：提出提案，提案信息包括提案编号和提议的<code>value</code></li>
@@ -301,7 +301,7 @@
 </ol>
 <p>另外还需要保证progress。这一点以后再讨论</p>
 <p>作者通过不断加强上述3个约束（主要是第二个）获得了<code>Paxos</code>算法</p>
-<p>批准<code>value</code>的过程中，首先<code>proposers</code>将<code>value</code>发送给<code>acceptors</code>，之后<code>acceptors</code>对<code>value</code>进行接受（<code>accept</code>）。为了满足只批准一个<code>value</code>的约束，要求经“多数派（<code>majority</code>）”接受的<code>value</code>成为正式的决议（称为“批准”决议）。这是因为无论是按照人数还是按照权重划分，两组“多数派”至少有一个公共的<code>acceptor</code>，如果每个<code>acceptor</code>只能接受一个<code>value</code>，约束2就能保证<br>
+<p>批准<code>value</code>的过程中，首先<code>proposers</code>将<code>value</code>发送给<code>acceptors</code>，之后<code>acceptors</code>对<code>value</code>进行接受（<code>accept</code>）。为了满足只批准一个<code>value</code>的约束，要求经“多数派（<code>majority</code>）”接受的<code>value</code>成为正式的决议（称为“批准”决议）。这是因为无论是按照人数还是按照权重划分，两组“多数派”至少有一个公共的<code>acceptor</code>，如果每个<code>acceptor</code>只能接受一个<code>value</code>，约束2就能保证<br />
 于是产生了一个显而易见的新约束：</p>
 <blockquote>
 <p><code>P1</code>：一个<code>acceptor</code>必须接受（<code>accept</code>）第一次收到的提案</p>
@@ -336,14 +336,14 @@
 <li>若<code>（m+1）..（N-1）</code>所有提案都具有<code>value v</code>，采用反证法，假如新提案<code>N</code>不具有<code>value v</code>，而是具有<code>value w'</code>，根据<code>P2c</code>，则存在一个多数派<code>S2</code>，要么他们没有接受过<code>m..（N-1）</code>中的任何提案，要么他们已经接受的所有编号小于<code>N</code>的提案中编号最大的那个提案是<code>value w'</code>。由于<code>S2</code>和通过<code>m</code>的多数派<code>C</code>之间至少有一个公共的<code>acceptor</code>，所以至少有一个<code>acceptor</code>曾经接受了<code>m</code>，从而也可以推出<code>S2</code>中已接受的所有编号小于<code>n</code>的提案中编号最大的那个提案的编号范围在<code>m..（N-1）</code>之间，而根据初始假设，<code>m..（N-1）</code>之间的所有提案都具有<code>value v</code>，所以<code>S2</code>中已接受的所有编号小于n的提案中编号最大的那个提案肯定具有<code>value v</code>，导出矛盾从而推翻新提案<code>n</code>不具有<code>value v</code>的假设。根据数学归纳法，我们证明了若满足<code>P2c</code>，则<code>P2b</code>一定满足</li>
 </ul>
 <p><code>P2c</code>是可以通过消息传递模型实现的。另外，引入了<code>P2c</code>后，也解决了前文提到的<code>P1</code>不完备的问题</p>
-<h1><span id="4-算法内容"> 4 算法内容</span></h1>
+<h1 id="4-算法内容"><a class="markdownIt-Anchor" href="#4-算法内容"></a> 4 算法内容</h1>
 <p>要满足<code>P2c</code>的约束，<code>proposer</code>提出一个提案前，首先要和足以形成多数派的<code>acceptors</code>进行通信，获得他们进行的最近一次接受（<code>accept</code>）的提案（<code>prepare</code>过程），之后根据回收的信息决定这次提案的<code>value</code>，形成提案开始投票。当获得多数<code>acceptors</code>接受（<code>accept</code>）后，提案获得批准（<code>chosen</code>），由<code>proposer</code>将这个消息告知<code>learner</code>。这个简略的过程经过进一步细化后就形成了<code>Paxos</code>算法</p>
 <p>在一个<code>Paxos</code>实例中，每个提案需要有不同的编号，且编号间要存在全序关系。可以用多种方法实现这一点，例如将序数和<code>proposer</code>的名字拼接起来。如何做到这一点不在<code>Paxos</code>算法讨论的范围之内</p>
 <p>如果一个没有<code>chosen</code>过任何<code>proposer</code>提案的<code>acceptor</code>在<code>prepare</code>过程中回答了一个<code>proposer</code>针对提案<code>n</code>的问题，但是在开始对<code>n</code>进行投票前，又接受（<code>accept</code>）了编号小于<code>n</code>的另一个提案（例如<code>n-1</code>），如果<code>n-1</code>和<code>n</code>具有不同的<code>value</code>，这个投票就会违背<code>P2c</code>。因此在<code>prepare</code>过程中，<code>acceptor</code>进行的回答同时也应包含承诺：不会再接受（<code>accept</code>）编号小于<code>n</code>的提案。这是对<code>P1</code>的加强：</p>
 <blockquote>
 <p><code>P1a</code>：当且仅当<code>acceptor</code>没有回应过编号大于<code>n</code>的<code>prepare</code>请求时，<code>acceptor</code>接受（<code>accept</code>）编号为<code>n</code>的提案</p>
 </blockquote>
-<h2><span id="41-决议的提出与批准"> 4.1 决议的提出与批准</span></h2>
+<h2 id="41-决议的提出与批准"><a class="markdownIt-Anchor" href="#41-决议的提出与批准"></a> 4.1 决议的提出与批准</h2>
 <p>通过一个决议分为两个阶段：</p>
 <ul>
 <li><strong><code>prepare</code>阶段：</strong>
@@ -360,12 +360,12 @@
 </li>
 </ul>
 <p><strong>这个过程在任何时候中断都可以保证正确性</strong>。例如如果一个<code>proposer</code>发现已经有其他<code>proposers</code>提出了编号更高的提案，则有必要中断这个过程。因此为了优化，在上述<code>prepare</code>过程中，如果一个<code>acceptor</code>发现存在一个更高编号的提案，则需要通知<code>proposer</code>，提醒其中断这次提案</p>
-<h1><span id="5-参考"> 5 参考</span></h1>
+<h1 id="5-参考"><a class="markdownIt-Anchor" href="#5-参考"></a> 5 参考</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-cn/Paxos%E7%AE%97%E6%B3%95">wiki-paxos</a></li>
 </ul>
-<hr>
-<h1><span id="6-下面的论证转载自知乎"> 6 下面的论证转载自</span></h1>
+<hr />
+<h1 id="6-下面的论证转载自知乎"><a class="markdownIt-Anchor" href="#6-下面的论证转载自知乎"></a> 6 下面的论证转载自<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/19787937">知乎</a></h1>
 <p>首先我们简单介绍<code>Paxos</code>所保证的一致性的具体含义；达成一致的条件(何时达成一致）；基于的一个基本的数学原理；以及它需要满足的假设</p>
 <p>什么是一致性？实际上这个词在不同地方语义并不那么一致，<code>Paxos</code>面向的是一个理论的一致问题，这个问题的通俗描述是：</p>
 <blockquote>
@@ -535,7 +535,7 @@
 </ul>
 </li>
 </ol>
-<h1><span id="7-总结"> 7 总结</span></h1>
+<h1 id="7-总结"><a class="markdownIt-Anchor" href="#7-总结"></a> 7 总结</h1>
 <p>需要解决的问题，或者换句话说，需要达成的一致性</p>
 <ol>
 <li><code>v</code>达成一致时的值是由某个进程提出的。这是为了防止像这样的作弊方式：无论如何，最终都令每个进程的v为同一个预先设置好的值，例如都令<code>v = 2</code>，那么这样的一致也太容易了，也没有任何实际意义</li>
@@ -697,7 +697,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 问题和假设</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 算法的提出与证明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 算法内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 决议的提出与批准</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 参考</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 下面的论证转载自</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%97%AE%E9%A2%98%E5%92%8C%E5%81%87%E8%AE%BE"><span class="nav-text"> 2 问题和假设</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%AE%97%E6%B3%95"><span class="nav-text"> 3 算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E7%AE%97%E6%B3%95%E7%9A%84%E6%8F%90%E5%87%BA%E4%B8%8E%E8%AF%81%E6%98%8E"><span class="nav-text"> 3.1 算法的提出与证明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E7%AE%97%E6%B3%95%E5%86%85%E5%AE%B9"><span class="nav-text"> 4 算法内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E5%86%B3%E8%AE%AE%E7%9A%84%E6%8F%90%E5%87%BA%E4%B8%8E%E6%89%B9%E5%87%86"><span class="nav-text"> 4.1 决议的提出与批准</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8F%82%E8%80%83"><span class="nav-text"> 5 参考</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E4%B8%8B%E9%9D%A2%E7%9A%84%E8%AE%BA%E8%AF%81%E8%BD%AC%E8%BD%BD%E8%87%AA%E7%9F%A5%E4%B9%8E"><span class="nav-text"> 6 下面的论证转载自知乎</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E6%80%BB%E7%BB%93"><span class="nav-text"> 7 总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

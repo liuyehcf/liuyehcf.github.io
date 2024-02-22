@@ -293,7 +293,7 @@
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
 <p><strong>本文转载摘录自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/272135463?utm_source=qzone">一口气看完45个寄存器，CPU核心技术大揭秘</a></strong></p>
-<h1><span id="1-什么是寄存器"> 1 什么是寄存器</span></h1>
+<h1 id="1-什么是寄存器"><a class="markdownIt-Anchor" href="#1-什么是寄存器"></a> 1 什么是寄存器</h1>
 <p>寄存器是CPU内部用来存放数据的一些小型存储区域，用来暂时存放参与运算的数据和运算结果以及一些CPU运行需要的信息。</p>
 <p>x86架构CPU走的是<strong>复杂指令集</strong>（<strong>CISC</strong>）路线，提供了丰富的指令来实现强大的功能，与此同时也提供了大量寄存器来辅助功能实现。这篇文章将覆盖下面这些寄存器：</p>
 <ul>
@@ -308,7 +308,7 @@
 <li>任务寄存器</li>
 <li>MSR寄存器</li>
 </ul>
-<h1><span id="2-通用寄存器"> 2 通用寄存器</span></h1>
+<h1 id="2-通用寄存器"><a class="markdownIt-Anchor" href="#2-通用寄存器"></a> 2 通用寄存器</h1>
 <p>首当其冲的是通用寄存器，这些的寄存器是程序执行代码最最常用，也最最基础的寄存器，程序执行过程中，绝大部分时间都是在操作这些寄存器来实现指令功能</p>
 <p><strong>所谓通用，即这些寄存器CPU没有特殊的用途，交给应用程序“随意”使用。注意，这个随意，我打了引号，对于有些寄存器，CPU有一些潜规则，用的时候要注意</strong></p>
 <ul>
@@ -325,7 +325,7 @@
 <p>在原来32位时代，函数调用时，那个时候通用寄存器少，参数绝大多数时候是通过线程的栈来进行传递（当然也有使用寄存器传递的，比如著名的C++中的<code>this</code>指针使用<code>ecx</code>寄存器传递，不过能用的寄存器毕竟不多）</p>
 <p>进入x64时代，寄存器资源富裕了，参数传递绝大多数都是用寄存器来传了。寄存器传参的好处是速度快，减少了对内存的读写次数</p>
 <p>当然，具体使用栈还是用寄存器传参数，这个不是编程语言决定的，而是编译器在编译生成CPU指令时决定的，如果编译器非要在x64架构CPU上使用线程栈来传参那也不是不行，这个对高级语言是无感知的</p>
-<h1><span id="3-标志寄存器"> 3 标志寄存器</span></h1>
+<h1 id="3-标志寄存器"><a class="markdownIt-Anchor" href="#3-标志寄存器"></a> 3 标志寄存器</h1>
 <p>标志寄存器，里面有众多标记位，记录了CPU执行指令过程中的一系列状态，<strong>这些标志大都由CPU自动设置和修改</strong></p>
 <ul>
 <li><code>CF</code>：进位标志</li>
@@ -337,9 +337,9 @@
 <li><code>IF</code>：中断标志</li>
 <li>…</li>
 </ul>
-<p><img src="/images/System-Architecture-Register/flag_register_1.jpg" alt="flag_register_1"></p>
+<p><img src="/images/System-Architecture-Register/flag_register_1.jpg" alt="flag_register_1" /></p>
 <p>在x64架构下，原来的<code>eflags</code>寄存器升级为64位的<code>rflags</code>，不过其高32位并没有新增什么功能，保留为将来使用</p>
-<h1><span id="4-堆栈指针寄存器"> 4 堆栈指针寄存器</span></h1>
+<h1 id="4-堆栈指针寄存器"><a class="markdownIt-Anchor" href="#4-堆栈指针寄存器"></a> 4 堆栈指针寄存器</h1>
 <p>堆栈指针寄存器在堆栈操作中使用，<code>PUSH</code>和<code>POP</code>指令是从<code>SP</code>寄存器得到现行堆栈段的段内偏移量</p>
 <ul>
 <li><code>sp</code>：堆栈指针寄存器，指向栈顶</li>
@@ -347,13 +347,13 @@
 </ul>
 <p>栈内存是从高到低进行分配的，因此<code>bp</code>在上，<code>sp</code>在下</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">                        ┌─────────────────────┐</span><br><span class="line">                        │                     │</span><br><span class="line">                        │     parameters      │</span><br><span class="line">                        │                     │</span><br><span class="line">                        ├─────────────────────┤</span><br><span class="line">                        │                     │</span><br><span class="line">                        │     return addr     │</span><br><span class="line">        bp              │                     │</span><br><span class="line">───────────────────►    ├─────────────────────┤</span><br><span class="line">                        │                     │</span><br><span class="line">                        │      saved bp       │</span><br><span class="line">                        │                     │</span><br><span class="line">                        ├─────────────────────┤</span><br><span class="line">                        │                     │</span><br><span class="line">                        │   saved registers   │</span><br><span class="line">                        │                     │</span><br><span class="line">                        ├─────────────────────┤</span><br><span class="line">                        │                     │</span><br><span class="line">                        │   local variables   │</span><br><span class="line">                        │                     │</span><br><span class="line">                        ├─────────────────────┤</span><br><span class="line">                        │                     │</span><br><span class="line">                        │     other data      │</span><br><span class="line">        sp              │                     │</span><br><span class="line">───────────────────►    └─────────────────────┘</span><br></pre></td></tr></table></figure>
-<h1><span id="5-指令寄存器"> 5 指令寄存器</span></h1>
+<h1 id="5-指令寄存器"><a class="markdownIt-Anchor" href="#5-指令寄存器"></a> 5 指令寄存器</h1>
 <p><code>eip</code>：指令寄存器可以说是CPU中最最重要的寄存器了，它指向了下一条要执行的指令所存放的地址，CPU的工作其实就是不断取出它指向的指令，然后执行这条指令，同时指令寄存器继续指向下面一条指令，如此不断重复，这就是CPU工作的基本日常</p>
 <p>而在漏洞攻击中，黑客想尽办法费尽心机都想要修改指令寄存器的地址，从而能够执行恶意代码</p>
 <p>同样的，在x64架构下，32位的<code>eip</code>升级为64位的<code>rip</code>寄存器</p>
-<h1><span id="6-段寄存器"> 6 段寄存器</span></h1>
+<h1 id="6-段寄存器"><a class="markdownIt-Anchor" href="#6-段寄存器"></a> 6 段寄存器</h1>
 <p>段寄存器与CPU的内存寻址技术紧密相关。参考<a href="/2020/04/11/Linux-Memory-Management/" title="Linux-Memory-Management">Linux-Memory-Management</a>。早在16位的8086CPU时代，内存资源宝贵，CPU使用分段式内存寻址技术：</p>
-<p><img src="/images/System-Architecture-Register/segment_register_1.jpg" alt="segment_register_1"></p>
+<p><img src="/images/System-Architecture-Register/segment_register_1.jpg" alt="segment_register_1" /></p>
 <ul>
 <li><code>16</code>位的寄存器能寻址的范围是<code>64KB</code>，通过引入段的概念，将内存空间划分为不同的区域：分段，通过段基址+段内偏移段方式来寻址</li>
 </ul>
@@ -375,7 +375,7 @@
 </ul>
 </li>
 </ul>
-<p><img src="/images/System-Architecture-Register/segment_register_2.jpg" alt="segment_register_2"></p>
+<p><img src="/images/System-Architecture-Register/segment_register_2.jpg" alt="segment_register_2" /></p>
 <p><strong><code>16-bit</code>长度的段寄存器内容划分了三个字段：</strong></p>
 <ul>
 <li><code>Request Privilege Level, RPL</code>：特权请求级，就是我们常说的<code>ring0-ring3</code>四个特权级</li>
@@ -384,10 +384,10 @@
 </ul>
 <p>这里提到了两个表，<strong>全局描述符表<code>GDT</code>和局部描述符表<code>LDT</code>，对应的两个寄存器就是<code>gdtr</code>和<code>ldtr</code></strong>，关于这两个表的介绍，下面介绍描述符寄存器时再详述，这里只需要知道，这是CPU支持分段式内存管理需要的表格，放在内存中，表格中的每一项都是一个描述符，记录了一个内存分段的信息</p>
 <p><strong>保护模式下的段寄存器和段描述符到最后的内存分段，通过下图的方式联系在一起</strong></p>
-<p><img src="/images/System-Architecture-Register/segment_register_3.jpg" alt="segment_register_3"></p>
+<p><img src="/images/System-Architecture-Register/segment_register_3.jpg" alt="segment_register_3" /></p>
 <p><strong>通用寄存器、段寄存器、标志寄存器、指令寄存器，这四组寄存器共同构成了一个基本的指令执行环境，一个线程的上下文也基本上就是这些寄存器，在执行线程切换的时候，就是修改它们的内容</strong></p>
-<p><img src="/images/System-Architecture-Register/segment_register_4.jpg" alt="segment_register_4"></p>
-<h1><span id="7-控制寄存器"> 7 控制寄存器</span></h1>
+<p><img src="/images/System-Architecture-Register/segment_register_4.jpg" alt="segment_register_4" /></p>
+<h1 id="7-控制寄存器"><a class="markdownIt-Anchor" href="#7-控制寄存器"></a> 7 控制寄存器</h1>
 <p>控制寄存器是CPU中一组相当重要的寄存器，我们知道<code>eflags</code>寄存器记录了当前运行线程的一系列关键信息</p>
 <p>那CPU运行过程中自身的一些关键信息保存在哪里呢？答案是控制寄存器！</p>
 <p>32位CPU总共有<code>cr0-cr4</code>共5个控制寄存器，64位增加了<code>cr8</code>。他们各自有不同的功能，但都存储了CPU工作时的重要信息：</p>
@@ -400,7 +400,7 @@
 <li><code>cr8</code>：64位新增扩展使用</li>
 </ul>
 <p>其中，<code>cr0</code>尤其重要，它包含了太多重要的CPU信息，值得单独关注一下：</p>
-<p><img src="/images/System-Architecture-Register/control_register_1.jpg" alt="control_register_1"></p>
+<p><img src="/images/System-Architecture-Register/control_register_1.jpg" alt="control_register_1" /></p>
 <p>一些重要的标记位含义如下：</p>
 <ul>
 <li><code>PG</code>：是否启用内存分页</li>
@@ -409,7 +409,7 @@
 <li><code>PE</code>：是否开启保护模式</li>
 </ul>
 <p><strong>除了<code>cr0</code>，另一个值得关注的寄存器是<code>cr3</code>，它保存了当前进程所使用的虚拟地址空间的页目录地址，可以说是整个虚拟地址翻译中的顶级指挥棒，在进程空间切换的时候，<code>cr3</code>也将同步切换</strong></p>
-<h1><span id="8-调试寄存器"> 8 调试寄存器</span></h1>
+<h1 id="8-调试寄存器"><a class="markdownIt-Anchor" href="#8-调试寄存器"></a> 8 调试寄存器</h1>
 <p>在x86/x64CPU内部，还有一组用于支持软件调试的寄存器</p>
 <p>调试，对于我们程序员是家常便饭，必备技能。但你想过你的程序能够被调试背后的原理吗？</p>
 <p>程序能够被调试，关键在于能够被中断执行和恢复执行，被中断的地方就是我们设置的断点。那程序是如何能在遇到断点的时候停下来呢？</p>
@@ -421,8 +421,8 @@
 </ul>
 <p>在我们使用调试器下断点时，调试器将会把对应位置的原来的指令替换为一个<code>int 3</code>指令，机器码为<code>0xCC</code>。这个动作对我们是透明的，我们在调试器中看到的依然是原来的指令，但实际上内存中已经不是原来的指令了</p>
 <p>顺便提一句，两个<code>0xCC</code>是汉字<code>烫</code>的编码，在一些编译器里，会给线程的栈中填充大量的0xCC，如果程序出错的时候，我们经常会看到很多烫烫烫出现，就是这个原因</p>
-<p><img src="/images/System-Architecture-Register/debug_register_1.jpg" alt="debug_register_1"></p>
-<p><img src="/images/System-Architecture-Register/debug_register_2.jpg" alt="debug_register_2"></p>
+<p><img src="/images/System-Architecture-Register/debug_register_1.jpg" alt="debug_register_1" /></p>
+<p><img src="/images/System-Architecture-Register/debug_register_2.jpg" alt="debug_register_2" /></p>
 <p>言归正传，CPU在执行这条<code>int 3</code>指令时，将自动触发中断处理流程（虽然这实际上不是一个真正的中断），CPU将取出<code>IDTR</code>寄存器指向的中断描述符表<code>IDT</code>的第3项，执行里面的中断处理函数</p>
 <p>而这个中断描述符表，早在操作系统启动之初，就已经提前安排好了，所以执行这条指令后，操作系统的中断处理函数将介入，来处理这一事件</p>
 <p>后面的过程就多了，简单来说，操作系统会把触发这一事件的进程冻结起来，随后将这一事件发送到调试器，调试器拿到之后就知道目标进程触发断点了。这个时候，咱们程序员就能通过调试器的UI交互界面或者命令行调试接口来调试目标进程，查看堆栈、查看内存、变量都随你</p>
@@ -430,7 +430,7 @@
 <p>上面简单描述了一下普通断点的实现原理。现在思考一个场景：我们发现一个bug，某个全局整数型变量的值老是莫名其妙被修改，但你发现有很多线程，很多函数都有可能会去修改这个变量，你想找出到底谁干的，怎么办？</p>
 <p>这个时候上面的普通断点就没办法了（为什么？？？），你需要一种新的断点：<strong>硬件断点</strong></p>
 <p>这时候就该本小节的主人公调试寄存器登场表演了</p>
-<p><img src="/images/System-Architecture-Register/debug_register_3.jpg" alt="debug_register_3"></p>
+<p><img src="/images/System-Architecture-Register/debug_register_3.jpg" alt="debug_register_3" /></p>
 <p>在x86架构CPU内部，提供了8个调试寄存器<code>DR0~DR7</code></p>
 <ul>
 <li><code>DR0~DR3</code>：这是四个用于存储地址的寄存器</li>
@@ -440,43 +440,43 @@
 </ul>
 <p>通过调试器的接口设置硬件断点后，CPU在执行代码的过程中，如果满足条件，将自动中断下来。</p>
 <p>回答前面提出的问题，想要找出是谁偷偷修改了全局整形变量，只需要通过调试器设置一个硬件写入断点即可</p>
-<h1><span id="9-描述符寄存器"> 9 描述符寄存器</span></h1>
+<h1 id="9-描述符寄存器"><a class="markdownIt-Anchor" href="#9-描述符寄存器"></a> 9 描述符寄存器</h1>
 <p>所谓<strong>描述符</strong>，其实就是一个数据结构，用来记录一些信息，「描述」一个东西。把很多个描述符排列在一起，组成一个表，就成了描述符表。再使用一个寄存器来指向这个表，这个寄存器就是<strong>描述符寄存器</strong></p>
 <p>在x86/x64系列CPU中，有三个非常重要的描述符寄存器，它们分别存储了三个地址，指向了三个非常重要的描述符表。</p>
 <p><code>gdtr</code>：全局描述符表寄存器，前面提到，CPU现在使用的是段+分页结合的内存管理方式，那系统总共有那些分段呢？这就存储在一个叫全局描述符表（<code>GDT</code>）的表格中，并用<code>gdtr</code>寄存器指向这个表。这个表中的每一项都描述了一个内存段的信息</p>
 <p><code>ldtr</code>：局部描述符表寄存器，这个寄存器和上面的<code>gdtr</code>一样，同样指向的是一个段描述符表（<code>LDT</code>）。不同的是，<code>GDT</code>是全局唯一，<code>LDT</code>是局部使用的，可以创建多个，随着任务段切换而切换（下文介绍任务寄存器会提到）</p>
-<p><img src="/images/System-Architecture-Register/des_register_1.jpg" alt="des_register_1"></p>
+<p><img src="/images/System-Architecture-Register/des_register_1.jpg" alt="des_register_1" /></p>
 <p><code>GDT</code>和<code>LDT</code>中的表项，就是段描述符，描述了一个内存分段的信息，其结构如下：</p>
-<p><img src="/images/System-Architecture-Register/des_register_2.jpg" alt="des_register_2"></p>
+<p><img src="/images/System-Architecture-Register/des_register_2.jpg" alt="des_register_2" /></p>
 <p>一个表项占据8个字节（32位<code>CPU</code>），里面存储了一个内存分段的诸多信息：基地址、大小、权限、类型等信息。</p>
 <p>除了这两个段描述符寄存器，还有一个非常重要的描述符寄存器：</p>
 <p><code>idtr</code>：中断描述符表寄存器，指向了<strong>中断描述符表<code>IDT</code></strong>，这个表的每一项都是一个中断处理描述符，当CPU执行过程中发生了硬中断、异常、软中断时，将自动从这个表中定位对应的表项，里面记录了发生中断、异常时该去哪里执行处理函数</p>
-<p><img src="/images/System-Architecture-Register/des_register_3.jpg" alt="des_register_3"></p>
+<p><img src="/images/System-Architecture-Register/des_register_3.jpg" alt="des_register_3" /></p>
 <p><code>IDT</code>中的表项称为<code>Gate</code>，中文意思为门，因为这是应用程序进入内核的主要入口。虽然表的名字叫中断描述符表，但表中存储的不全是中断描述符，<code>IDT</code>中的表项存在三种类型，对应三种类型的门：</p>
 <ul>
 <li>任务门</li>
 <li>陷阱门</li>
 <li>中断门</li>
 </ul>
-<p><img src="/images/System-Architecture-Register/des_register_4.jpg" alt="des_register_4"></p>
+<p><img src="/images/System-Architecture-Register/des_register_4.jpg" alt="des_register_4" /></p>
 <p>三种描述符中都存储了处理这个中断/异常/任务时该去哪里处理的地址。三种门用途不一，其中中断门是真正意义上的中断，而像前面提到的调试指令<code>int 3</code>以及老式的系统调用指令<code>int 2e</code>/<code>int 80</code>都属于陷阱门。任务门则用的较少，要了解任务门，先了解下任务寄存器</p>
-<h1><span id="10-任务寄存器"> 10 任务寄存器</span></h1>
+<h1 id="10-任务寄存器"><a class="markdownIt-Anchor" href="#10-任务寄存器"></a> 10 任务寄存器</h1>
 <p>现代操作系统，都是支持多任务并发运行的，x86架构CPU为了顺应时代潮流，在硬件层面上提供了专门的机制用来支持多任务的切换，这体现在两个方面：</p>
 <ul>
 <li>CPU内部设置了一个专用的寄存器——<strong>任务寄存器<code>TR</code></strong>，它指向当前运行的任务</li>
 </ul>
-<p><img src="/images/System-Architecture-Register/task_register_1.jpg" alt="task_register_1"></p>
+<p><img src="/images/System-Architecture-Register/task_register_1.jpg" alt="task_register_1" /></p>
 <ul>
 <li>定义了描述任务的数据结构<code>TSS</code>，里面存储了一个任务的上下文（一系列寄存器的值），下图是一个32位CPU的TSS结构图：</li>
 </ul>
-<p><img src="/images/System-Architecture-Register/task_register_2.jpg" alt="task_register_2"></p>
+<p><img src="/images/System-Architecture-Register/task_register_2.jpg" alt="task_register_2" /></p>
 <p>x86CPU的构想是每一个任务对应一个TSS，然后由TR寄存器指向当前的任务，执行任务切换时，修改TR寄存器的指向即可，这是硬件层面的多任务切换机制</p>
 <p>这个构想其实还是很不错的，然而现实却打了脸，包括Linux和Windows在内的主流操作系统都没有使用这个机制来进行线程切换，而是自己使用软件来实现多线程切换</p>
 <p>所以，绝大多数情况下，<code>TR</code>寄存器都是指向固定的，即便线程切换了，TR寄存器仍然不会变化</p>
 <p>注意，我这里说的的是绝大多数情况，而没有说死。虽然操作系统不依靠TSS来实现多任务切换，但这并不意味着CPU提供的TSS操作系统一点也没有使用。还是存在一些特殊情况，如一些异常处理会使用到TSS来执行处理</p>
 <p>下面这张图，展示了控制寄存器、描述符寄存器、任务寄存器构成的全貌：</p>
-<p><img src="/images/System-Architecture-Register/task_register_3.jpg" alt="task_register_3"></p>
-<h1><span id="11-模型特定寄存器"> 11 模型特定寄存器</span></h1>
+<p><img src="/images/System-Architecture-Register/task_register_3.jpg" alt="task_register_3" /></p>
+<h1 id="11-模型特定寄存器"><a class="markdownIt-Anchor" href="#11-模型特定寄存器"></a> 11 模型特定寄存器</h1>
 <p>从80486之后的x86架构CPU，内部增加了一组新的寄存器，统称为<code>MSR</code>寄存器，中文直译是模型特定寄存器，意思是这些寄存器不像上面列出的寄存器是固定的，这些寄存器可能随着不同的版本有所变化。这些寄存器主要用来支持一些新的功能。</p>
 <p>随着x86CPU不断更新换代，<code>MSR</code>寄存器变的越来越多，但与此同时，有一部分MSR寄存器随着版本迭代，慢慢固化下来，成为了变化中那部分不变的，这部分MSR寄存器，Intel将其称为<code>Architected MSR</code>，这部分<code>MSR</code>寄存器，在命名上，统一加上了<strong>IA32</strong>的前缀</p>
 <p>这里选取三个代表性的MSR简单介绍一下：</p>
@@ -490,7 +490,7 @@
 <p>软中断毕竟还是比较慢的，因为执行软中断就需要内存查表，通过<code>IDTR</code>定位到<code>IDT</code>，再取出函数进行执行</p>
 <p>系统调用是一个频繁触发的动作，如此这般势必对性能有所影响。在进入奔腾时代后，就加上了上面的三个<code>MSR</code>寄存器，分别存储了执行系统调用后，内核系统调用入口函数所需要的段寄存器、堆栈栈顶、函数地址，不再需要内存查表。快速系统调用还提供了专门的CPU指令<code>sysenter/sysexit</code>用来发起系统调用和退出系统调用</p>
 <p>在64位上，这一对指令升级为<code>syscall</code>/<code>sysret</code></p>
-<h1><span id="12-参数"> 12 参数</span></h1>
+<h1 id="12-参数"><a class="markdownIt-Anchor" href="#12-参数"></a> 12 参数</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/272135463?utm_source=qzone">一口气看完45个寄存器，CPU核心技术大揭秘</a></li>
 <li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/wisehead/articles/3819233.html">【汇编】各种寄存器介绍</a></li>
@@ -599,7 +599,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 什么是寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 通用寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 标志寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 堆栈指针寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 指令寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 段寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 控制寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 调试寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 9 描述符寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 10 任务寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 11 模型特定寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 12 参数</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 1 什么是寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%80%9A%E7%94%A8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 2 通用寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%A0%87%E5%BF%97%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 3 标志寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%A0%86%E6%A0%88%E6%8C%87%E9%92%88%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 4 堆栈指针寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%8C%87%E4%BB%A4%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 5 指令寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 6 段寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E6%8E%A7%E5%88%B6%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 7 控制寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E8%B0%83%E8%AF%95%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 8 调试寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E6%8F%8F%E8%BF%B0%E7%AC%A6%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 9 描述符寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-%E4%BB%BB%E5%8A%A1%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 10 任务寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-%E6%A8%A1%E5%9E%8B%E7%89%B9%E5%AE%9A%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text"> 11 模型特定寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-%E5%8F%82%E6%95%B0"><span class="nav-text"> 12 参数</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

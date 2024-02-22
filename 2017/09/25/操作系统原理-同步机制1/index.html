@@ -282,9 +282,9 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-程序并发执行"> 1 程序并发执行</span></h1>
+<h1 id="1-程序并发执行"><a class="markdownIt-Anchor" href="#1-程序并发执行"></a> 1 程序并发执行</h1>
 <p>并发是所有问题产生的基础，同时并发是操作系统设计的基础</p>
-<h1><span id="2-进程互斥"> 2 进程互斥</span></h1>
+<h1 id="2-进程互斥"><a class="markdownIt-Anchor" href="#2-进程互斥"></a> 2 进程互斥</h1>
 <p>两个或多个进程读写某些共享数据，而最后的结果取决于进程运行的精确时序</p>
 <p><strong>由于各进程要求使用共享资源（变量、文件等），而这些资源需要排他性使用各进程之间竞争使用这些资源——这一关系称为进程互斥</strong></p>
 <ul>
@@ -298,7 +298,7 @@
 <li>临界区外运行的进程不得阻塞其他进程进入临界区</li>
 <li>不得使进程无限期等待进入临界区</li>
 </ol>
-<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B61/fig1.jpg" alt="fig1"></p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B61/fig1.jpg" alt="fig1" /></p>
 <p><strong>实现进程互斥的方案</strong></p>
 <ul>
 <li>软件方案
@@ -312,28 +312,28 @@
 </ul>
 </li>
 </ul>
-<h1><span id="3-进程互斥的软件解决方案"> 3 进程互斥的软件解决方案</span></h1>
-<h2><span id="31-错误的解法"> 3.1 错误的解法</span></h2>
+<h1 id="3-进程互斥的软件解决方案"><a class="markdownIt-Anchor" href="#3-进程互斥的软件解决方案"></a> 3 进程互斥的软件解决方案</h1>
+<h2 id="31-错误的解法"><a class="markdownIt-Anchor" href="#31-错误的解法"></a> 3.1 错误的解法</h2>
 <p>P</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">pturn = <span class="literal">true</span>;</span><br><span class="line"><span class="keyword">while</span> (qturn) ;</span><br><span class="line">临界区</span><br><span class="line">pturn = <span class="literal">false</span>;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 <p>Q</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">qturn = <span class="literal">true</span>;</span><br><span class="line"><span class="keyword">while</span> (pturn) ;</span><br><span class="line">临界区</span><br><span class="line">qturn = <span class="literal">false</span>;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 <p>如果进程P在执行完<code>pturn = true;</code>后时间片用完，且进程Q在执行完<code>qturn = true;</code>后时间片用完，那么之后P和Q将永远无法退出while循环了</p>
-<h2><span id="32-dekker算法"> 3.2 DEKKER算法</span></h2>
+<h2 id="32-dekker算法"><a class="markdownIt-Anchor" href="#32-dekker算法"></a> 3.2 DEKKER算法</h2>
 <p>DEKKER算法对上面那种错误的解法进行了改进，避免两个进程同时都无法退出while循环</p>
 <p>P</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">pturn = <span class="literal">true</span>;</span><br><span class="line"><span class="keyword">while</span> (qturn) &#123;</span><br><span class="line">    <span class="comment">//进入while循环内部，此时说明进程Q已经执行过qturn = true;了</span></span><br><span class="line">    <span class="comment">//如果进程Q尚未修改tun的值，可能Q也卡在循环里面，那么此时需要放行进程Q，使得Q能够退出while循环</span></span><br><span class="line">    <span class="keyword">if</span> (turn == <span class="number">2</span>) &#123;</span><br><span class="line">        pturn = <span class="literal">false</span>;<span class="comment">//放行进程Q</span></span><br><span class="line">        <span class="keyword">while</span> (turn == <span class="number">2</span>);<span class="comment">//自旋等待Q进入临界区</span></span><br><span class="line">        pturn = <span class="literal">true</span>;<span class="comment">//此时Q已经进临界区，因此可以将pturn重新赋值为true</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">临界区</span><br><span class="line">turn = <span class="number">2</span>;</span><br><span class="line">pturn = <span class="literal">false</span>;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 <p>Q</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">qturn = <span class="literal">true</span>;</span><br><span class="line"><span class="keyword">while</span> (pturn) &#123;</span><br><span class="line">    <span class="keyword">if</span> (turn == <span class="number">1</span>) &#123;</span><br><span class="line">        qturn = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">while</span> (turn == <span class="number">1</span>);</span><br><span class="line">        qturn = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">临界区</span><br><span class="line">turn = <span class="number">1</span>;</span><br><span class="line">qturn = <span class="literal">false</span>;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<h2><span id="33-peterson算法"> 3.3 PETERSON算法</span></h2>
+<h2 id="33-peterson算法"><a class="markdownIt-Anchor" href="#33-peterson算法"></a> 3.3 PETERSON算法</h2>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> FALSE 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TRUE 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> N 2 <span class="comment">//进程的个数</span></span></span><br><span class="line"><span class="type">int</span> turn; <span class="comment">//轮到谁？</span></span><br><span class="line"><span class="type">int</span> interested[N];</span><br><span class="line"><span class="comment">//兴趣数组，初始值均为FALSE</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">enter_region</span> <span class="params">( <span class="type">int</span> process)</span> <span class="comment">//process = 0 或 1</span></span><br><span class="line">&#123; </span><br><span class="line">    <span class="type">int</span> other = <span class="number">1</span> - process;<span class="comment">//另外一个进程的进程号</span></span><br><span class="line">    interested[process] = TRUE; <span class="comment">//表明本进程感兴趣</span></span><br><span class="line">    turn = process;<span class="comment">//设置标志位</span></span><br><span class="line">    <span class="keyword">while</span>( turn == process &amp;&amp; interested[other] == TRUE); <span class="comment">//最有意思的一句</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">leave_region</span> <span class="params">( <span class="type">int</span> process)</span></span><br><span class="line">&#123;</span><br><span class="line">    interested[process] = FALSE;</span><br><span class="line">    <span class="comment">//本进程已离开临界区</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>现在我们来分析一下<code>while( turn == process &amp;&amp; interested[other] == TRUE);</code>这个while循环条件的作用</p>
 <ol>
 <li><code>interested[other] == TRUE</code>这个条件不满足，说明并没有发生竞争，只需要放行当前进程即可</li>
 <li><code>interested[other] == TRUE</code>这个条件如果在两个进程中都成立，说明两个进程存在竞争，那么接下来由turn的值来确定竞争的成功或失败。这里用的是<code>turn == process</code>这个条件，即阻塞后修改turn变量的进程</li>
 </ol>
-<h1><span id="4-进程互斥的硬件解决方案"> 4 进程互斥的硬件解决方案</span></h1>
-<h2><span id="41-硬件解法1-中断屏蔽"> 4.1 硬件解法1-中断屏蔽</span></h2>
+<h1 id="4-进程互斥的硬件解决方案"><a class="markdownIt-Anchor" href="#4-进程互斥的硬件解决方案"></a> 4 进程互斥的硬件解决方案</h1>
+<h2 id="41-硬件解法1-中断屏蔽"><a class="markdownIt-Anchor" href="#41-硬件解法1-中断屏蔽"></a> 4.1 硬件解法1-中断屏蔽</h2>
 <p><strong>开关中断指令</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">执行“关中断”指令</span><br><span class="line">临界区操作</span><br><span class="line">执行“开中断”指令</span><br></pre></td></tr></table></figure>
 <p><strong>优缺点：</strong></p>
@@ -343,17 +343,17 @@
 <li>不适用于多处理器</li>
 <li>适用于操作系统本身，不适于用户进程</li>
 </ul>
-<h2><span id="42-硬件解法2-测试并加锁指令"> 4.2 硬件解法2-测试并加锁指令</span></h2>
+<h2 id="42-硬件解法2-测试并加锁指令"><a class="markdownIt-Anchor" href="#42-硬件解法2-测试并加锁指令"></a> 4.2 硬件解法2-测试并加锁指令</h2>
 <p>TSL指令是一种需要硬件支持的方案。许多计算机，特别是那些为多处理机设计的计算机，都有一条指令叫做测试并上锁(TSL)</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TSL RX，LOCK</span><br></pre></td></tr></table></figure>
 <p><strong>这条指令的含义是，读取内存单元<code>LOCK</code>中的内容到寄存器<code>RX</code>中，并且为内存单元<code>LOCK</code>重新设置一个非0值。TSL指令的操作被设计为不可分的，也就是说，整个读写操作都完成之前，其他进程是没办法访问LOCK这个内存单元的。这一点是通过锁定内存总线（lock memory bus）来实现的。</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">enter_region</span><br><span class="line">    TSL REGISTER, LOCK //复制锁到寄存器，并将锁置1</span><br><span class="line">    CMP REGISTER, #0 //判断寄存器内容是否为0</span><br><span class="line">    JNE enter_region //若不是0，说明已经有人上锁了，此时需要自旋等待，跳转到enter_region</span><br><span class="line">    RET //返回调用者，进入临界区</span><br><span class="line"></span><br><span class="line">leave_region</span><br><span class="line">    MOVE LOCK, #0 //在锁中置0</span><br><span class="line">    RET //返回调用者</span><br></pre></td></tr></table></figure>
-<h2><span id="43-硬件解法3-交换指令"> 4.3 硬件解法3-交换指令</span></h2>
+<h2 id="43-硬件解法3-交换指令"><a class="markdownIt-Anchor" href="#43-硬件解法3-交换指令"></a> 4.3 硬件解法3-交换指令</h2>
 <p>XCHG指令交换两个寄存器，或者寄存器和内存变量的内容，且保证操作的原子性</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">enter_region</span><br><span class="line">    MOVE REGISTER, #1 //给寄存器置1</span><br><span class="line">    XCHG REGISTER, LOCK //交换寄存器与锁变量的内容，反正无论如何LOCK的值都要设置为1（原来是0，那么加锁成功，设置为1；原来为1，那么继续等待，仍然是1）</span><br><span class="line">    CMP REGISTER, #0 //判断寄存器内容是否是0</span><br><span class="line">    JNE enter_region //若不是0，跳转到enter_region</span><br><span class="line">    RET //返回调用者，进入临界区</span><br><span class="line"></span><br><span class="line">leave_region</span><br><span class="line">    MOVE LOCK, #0 //将锁变量置0</span><br><span class="line">    RET //返回调用者</span><br></pre></td></tr></table></figure>
-<h1><span id="5-进程同步"> 5 进程同步</span></h1>
+<h1 id="5-进程同步"><a class="markdownIt-Anchor" href="#5-进程同步"></a> 5 进程同步</h1>
 <p>进程同步：synchronization。指系统中多个进程中发生的事件存在某种时序关系，需要相互合作，共同完成一项任务。具体地说，一个进程运行到某一点时，要求另一伙伴进程为它提供消息，在未获得消息之前，该进程进入阻塞态，获得消息后被唤醒进入就绪态</p>
-<h2><span id="51-生产者消费者问题"> 5.1 生产者消费者问题</span></h2>
+<h2 id="51-生产者消费者问题"><a class="markdownIt-Anchor" href="#51-生产者消费者问题"></a> 5.1 生产者消费者问题</h2>
 <p><strong>问题描述：</strong></p>
 <ul>
 <li>一个或多个生产者生产某种类型的数据放置在缓冲区中</li>
@@ -365,8 +365,8 @@
 <li>当缓冲区已满时，生产者不会继续向其中添加数据</li>
 <li>当缓冲区为空时，消费者不会从中移走数据</li>
 </ul>
-<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B61/fig2.jpg" alt="fig2"></p>
-<h1><span id="6-信号量及p-v操作"> 6 信号量及P、V操作</span></h1>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B61/fig2.jpg" alt="fig2" /></p>
+<h1 id="6-信号量及p-v操作"><a class="markdownIt-Anchor" href="#6-信号量及p-v操作"></a> 6 信号量及P、V操作</h1>
 <p><strong>什么是信号量</strong></p>
 <ul>
 <li>
@@ -380,10 +380,10 @@
 </li>
 <li>
 <blockquote>
-<p>struc semaphore<br>
-{<br>
-int count;<br>
-queueType queue;<br>
+<p>struc semaphore<br />
+{<br />
+int count;<br />
+queueType queue;<br />
 }</p>
 </blockquote>
 </li>
@@ -394,10 +394,10 @@ queueType queue;<br>
 <p>对信号量可以实施的操作：初始化、P和V（P、V分别是荷兰语的test(proberen)和increment(verhogen)）</p>
 </li>
 </ul>
-<h2><span id="61-pv操作的定义"> 6.1 PV操作的定义</span></h2>
+<h2 id="61-pv操作的定义"><a class="markdownIt-Anchor" href="#61-pv操作的定义"></a> 6.1 PV操作的定义</h2>
 <p>PV操作必须是原语（原子性）</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">P(s)</span><br><span class="line">&#123;</span><br><span class="line">    s.count --;</span><br><span class="line">    if (s.count &lt; 0)</span><br><span class="line">    &#123;</span><br><span class="line">        该进程状态置为阻塞状态</span><br><span class="line">        将该进程插入相应的等待队列s.queue末尾</span><br><span class="line">        重新调度</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">V(s)</span><br><span class="line">&#123;</span><br><span class="line">    s.count ++;</span><br><span class="line">    if (s.count &lt; = 0)</span><br><span class="line">    &#123;</span><br><span class="line">        唤醒相应等待队列s.queue中等待的一个进程</span><br><span class="line">        改变其状态为就绪态，并将其插入就绪队列</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2><span id="62-用pv操作解决进程间互斥问题"> 6.2 用PV操作解决进程间互斥问题</span></h2>
+<h2 id="62-用pv操作解决进程间互斥问题"><a class="markdownIt-Anchor" href="#62-用pv操作解决进程间互斥问题"></a> 6.2 用PV操作解决进程间互斥问题</h2>
 <p>具体的流程如下</p>
 <ol>
 <li>分析并发进程的关键活动，划定临界区</li>
@@ -405,10 +405,10 @@ queueType queue;<br>
 <li>在临界区前实施 P(mutex)</li>
 <li>在临界区之后实施 V(mutex)</li>
 </ol>
-<h1><span id="7-生产者消费者问题"> 7 生产者消费者问题</span></h1>
+<h1 id="7-生产者消费者问题"><a class="markdownIt-Anchor" href="#7-生产者消费者问题"></a> 7 生产者消费者问题</h1>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> N 100 <span class="comment">/* 缓冲区个数 */</span></span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> semaphore; <span class="comment">/* 信号量是一种特殊的整型数据 */</span></span><br><span class="line">semaphore mutex =<span class="number">1</span>; <span class="comment">/* 互斥信号量：控制对临界区的访问 */</span></span><br><span class="line">semaphore empty =N; <span class="comment">/* 空缓冲区个数 */</span></span><br><span class="line">semaphore full = <span class="number">0</span>; <span class="comment">/* 满缓冲区个数 */</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">producer</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    <span class="type">int</span> item;</span><br><span class="line">    <span class="keyword">while</span>(TRUE) &#123;</span><br><span class="line">        item=produce_item();</span><br><span class="line">        P(&amp;empty);</span><br><span class="line">        P(&amp;mutex);</span><br><span class="line">        insert_item(item);</span><br><span class="line">        V(&amp;mutex);</span><br><span class="line">        V(&amp;full);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">consumer</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123; </span><br><span class="line">    <span class="type">int</span> item;</span><br><span class="line">    <span class="keyword">while</span>(TRUE) &#123;</span><br><span class="line">        P(&amp;full);</span><br><span class="line">        P(&amp;mutex);</span><br><span class="line">        item=remove_item();</span><br><span class="line">        V(&amp;mutex);</span><br><span class="line">        V(&amp;empty);</span><br><span class="line">        consume_item(item);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>交换过两个P操作的顺序可能造成死锁</p>
-<h1><span id="8-读写者问题"> 8 读写者问题</span></h1>
+<h1 id="8-读写者问题"><a class="markdownIt-Anchor" href="#8-读写者问题"></a> 8 读写者问题</h1>
 <p><strong>问题描述：</strong></p>
 <ul>
 <li>多个进程共享一个数据区，这些进程分为两组：</li>
@@ -421,7 +421,7 @@ queueType queue;<br>
 <li>不允许多个写者同时操作</li>
 <li>不允许读者、写者同时操作</li>
 </ul>
-<h2><span id="81-第一类读写者问题读者优先"> 8.1 第一类读写者问题：读者优先</span></h2>
+<h2 id="81-第一类读写者问题读者优先"><a class="markdownIt-Anchor" href="#81-第一类读写者问题读者优先"></a> 8.1 第一类读写者问题：读者优先</h2>
 <p><strong>如果读者执行：</strong></p>
 <ul>
 <li>无其他读者、写者，该读者可以读</li>
@@ -434,9 +434,9 @@ queueType queue;<br>
 <li>若有读者正在读，该写者等待</li>
 <li>若有其他写者正在写，该写者等待</li>
 </ul>
-<h2><span id="82-第一类读写者问题的解法"> 8.2 第一类读写者问题的解法</span></h2>
+<h2 id="82-第一类读写者问题的解法"><a class="markdownIt-Anchor" href="#82-第一类读写者问题的解法"></a> 8.2 第一类读写者问题的解法</h2>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">reader</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">while</span> (TRUE) &#123;</span><br><span class="line">    P(mutex);<span class="comment">//保护rc变量的写互斥</span></span><br><span class="line">    rc = rc + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (rc == <span class="number">1</span>) P (w);</span><br><span class="line">    V(mutex);</span><br><span class="line">    读操作</span><br><span class="line">    P(mutex);</span><br><span class="line">    rc = rc - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (rc == <span class="number">0</span>) V(w);</span><br><span class="line">    V(mutex);</span><br><span class="line">    其他操作</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">writer</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">while</span> (TRUE) &#123;</span><br><span class="line">    P(w);</span><br><span class="line">    写操作</span><br><span class="line">    V(w);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1><span id="9-参考"> 9 参考</span></h1>
+<h1 id="9-参考"><a class="markdownIt-Anchor" href="#9-参考"></a> 9 参考</h1>
 <ul>
 <li>《MOOC-操作系统原理-陈向群》</li>
 </ul>
@@ -541,7 +541,7 @@ queueType queue;<br>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 程序并发执行</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 进程互斥</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 进程互斥的软件解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 错误的解法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 DEKKER算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 PETERSON算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 进程互斥的硬件解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 硬件解法1-中断屏蔽</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 硬件解法2-测试并加锁指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.3 硬件解法3-交换指令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 进程同步</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 生产者消费者问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 信号量及P、V操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.1 PV操作的定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.2 用PV操作解决进程间互斥问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 生产者消费者问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 读写者问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 8.1 第一类读写者问题：读者优先</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 8.2 第一类读写者问题的解法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 9 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%A8%8B%E5%BA%8F%E5%B9%B6%E5%8F%91%E6%89%A7%E8%A1%8C"><span class="nav-text"> 1 程序并发执行</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%BF%9B%E7%A8%8B%E4%BA%92%E6%96%A5"><span class="nav-text"> 2 进程互斥</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E8%BF%9B%E7%A8%8B%E4%BA%92%E6%96%A5%E7%9A%84%E8%BD%AF%E4%BB%B6%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text"> 3 进程互斥的软件解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E9%94%99%E8%AF%AF%E7%9A%84%E8%A7%A3%E6%B3%95"><span class="nav-text"> 3.1 错误的解法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-dekker%E7%AE%97%E6%B3%95"><span class="nav-text"> 3.2 DEKKER算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-peterson%E7%AE%97%E6%B3%95"><span class="nav-text"> 3.3 PETERSON算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E8%BF%9B%E7%A8%8B%E4%BA%92%E6%96%A5%E7%9A%84%E7%A1%AC%E4%BB%B6%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text"> 4 进程互斥的硬件解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E7%A1%AC%E4%BB%B6%E8%A7%A3%E6%B3%951-%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD"><span class="nav-text"> 4.1 硬件解法1-中断屏蔽</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E7%A1%AC%E4%BB%B6%E8%A7%A3%E6%B3%952-%E6%B5%8B%E8%AF%95%E5%B9%B6%E5%8A%A0%E9%94%81%E6%8C%87%E4%BB%A4"><span class="nav-text"> 4.2 硬件解法2-测试并加锁指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-%E7%A1%AC%E4%BB%B6%E8%A7%A3%E6%B3%953-%E4%BA%A4%E6%8D%A2%E6%8C%87%E4%BB%A4"><span class="nav-text"> 4.3 硬件解法3-交换指令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5"><span class="nav-text"> 5 进程同步</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98"><span class="nav-text"> 5.1 生产者消费者问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E4%BF%A1%E5%8F%B7%E9%87%8F%E5%8F%8Ap-v%E6%93%8D%E4%BD%9C"><span class="nav-text"> 6 信号量及P、V操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-pv%E6%93%8D%E4%BD%9C%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text"> 6.1 PV操作的定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-%E7%94%A8pv%E6%93%8D%E4%BD%9C%E8%A7%A3%E5%86%B3%E8%BF%9B%E7%A8%8B%E9%97%B4%E4%BA%92%E6%96%A5%E9%97%AE%E9%A2%98"><span class="nav-text"> 6.2 用PV操作解决进程间互斥问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98"><span class="nav-text"> 7 生产者消费者问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E8%AF%BB%E5%86%99%E8%80%85%E9%97%AE%E9%A2%98"><span class="nav-text"> 8 读写者问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-%E7%AC%AC%E4%B8%80%E7%B1%BB%E8%AF%BB%E5%86%99%E8%80%85%E9%97%AE%E9%A2%98%E8%AF%BB%E8%80%85%E4%BC%98%E5%85%88"><span class="nav-text"> 8.1 第一类读写者问题：读者优先</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-%E7%AC%AC%E4%B8%80%E7%B1%BB%E8%AF%BB%E5%86%99%E8%80%85%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E6%B3%95"><span class="nav-text"> 8.2 第一类读写者问题的解法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%8F%82%E8%80%83"><span class="nav-text"> 9 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

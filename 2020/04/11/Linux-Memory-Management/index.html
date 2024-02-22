@@ -303,17 +303,17 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-virtual-memory"> 1 Virtual Memory</span></h1>
+<h1 id="1-virtual-memory"><a class="markdownIt-Anchor" href="#1-virtual-memory"></a> 1 Virtual Memory</h1>
 <p><strong>摘录自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/152119007">20 张图揭开「内存管理」的迷雾，瞬间豁然开朗</a></strong></p>
 <p><strong>The CPU of a microcontroller directly operates on memory using ‘physical addresses’</strong></p>
-<p><img src="/images/Linux-Memory-Management/mcu.png" alt="mcu"></p>
+<p><img src="/images/Linux-Memory-Management/mcu.png" alt="mcu" /></p>
 <p>In this scenario, it is impossible to run two programs simultaneously in memory. If the first program writes a new value at position <code>2000</code>, it will overwrite all the content stored in the same location for the second program. Therefore, running two programs simultaneously is fundamentally impossible, and both programs will crash immediately.</p>
 <blockquote>
 <p>How does the operating system solve this problem?</p>
 </blockquote>
 <p>The key issue here is that both of these programs are referencing absolute physical addresses, which is exactly what we need to avoid.</p>
 <p>We can isolate the addresses used by processes, meaning that the operating system allocates a separate set of virtual addresses for each process. Everyone gets their own set of addresses to play with, and they don’t interfere with each other. However, there’s one condition: no process can directly access physical addresses. As for how virtual addresses ultimately map to physical memory, it’s transparent to the processes; the operating system takes care of all these arrangements.</p>
-<p><img src="/images/Linux-Memory-Management/virtual.png" alt="virtual"></p>
+<p><img src="/images/Linux-Memory-Management/virtual.png" alt="virtual" /></p>
 <p><strong>The operating system provides a mechanism to map the virtual addresses of different processes to different physical memory addresses.</strong></p>
 <p>When a program accesses a virtual address, the operating system translates it into a distinct physical address. This way, when different processes run, they write to different physical addresses, avoiding conflicts.</p>
 <p><strong>So, this introduces two concepts of addresses:</strong></p>
@@ -322,25 +322,25 @@
 <li>The spatial addresses that actually exist in hardware are called <strong>Physical Memory Addresses.</strong></li>
 </ul>
 <p>The operating system introduces virtual memory, where the virtual addresses held by a process are translated into physical addresses through the mapping relationship of the Memory Management Unit (MMU) within the CPU chip, and then memory is accessed via the physical address, as shown in the diagram below:</p>
-<p><img src="/images/Linux-Memory-Management/virtual_mmu.jpg" alt="virtual_mmu"></p>
+<p><img src="/images/Linux-Memory-Management/virtual_mmu.jpg" alt="virtual_mmu" /></p>
 <blockquote>
 <p>How does the operating system manage the relationship between virtual addresses and physical addresses?</p>
 </blockquote>
 <p>There are primarily two methods: memory segmentation and memory paging. Segmentation was proposed earlier, so let’s first take a look at memory segmentation.</p>
-<h1><span id="2-memory-segmentation"> 2 Memory Segmentation</span></h1>
+<h1 id="2-memory-segmentation"><a class="markdownIt-Anchor" href="#2-memory-segmentation"></a> 2 Memory Segmentation</h1>
 <p><strong>摘录自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/152119007">20 张图揭开「内存管理」的迷雾，瞬间豁然开朗</a></strong></p>
 <p>A program is composed of several logical segments, such as code segments, data segments, stack segments, and heap segments. <strong>Different segments have different attributes, so they are separated using segmentation.</strong></p>
 <blockquote>
 <p>In the segmentation mechanism, how are virtual addresses mapped to physical addresses?</p>
 </blockquote>
 <p>In the segmentation mechanism, a virtual address consists of two parts: the <strong>segment selector</strong> and the <strong>offset within the segment.</strong></p>
-<p><img src="/images/Linux-Memory-Management/segment_1.jpg" alt="segment_1"></p>
+<p><img src="/images/Linux-Memory-Management/segment_1.jpg" alt="segment_1" /></p>
 <ul>
 <li>The <code>segment selector</code> is stored in a segment register. The most important part of the segment selector is the <code>segment number</code>, which is used as an index into the segment table. The <code>segment table</code> contains the <code>base address of the segment</code>, <code>segment limit</code>, and <code>privilege level</code>, among other information for that segment.</li>
 <li>The <code>segment offset</code> in the virtual address should be between 0 and the segment limit. If the segment offset is valid, it’s added to the segment’s base address to obtain the physical memory address.</li>
 </ul>
 <p>In the above explanation, we learned that virtual addresses are mapped to physical addresses through the segment table. The segmentation mechanism divides the program’s virtual address into four segments, with each segment having an entry in the segment table. In this entry, you can find the base address of the segment. By adding the offset to this base address, you can locate the address in physical memory, as illustrated in the following diagram:</p>
-<p><img src="/images/Linux-Memory-Management/segment_2.jpg" alt="segment_2"></p>
+<p><img src="/images/Linux-Memory-Management/segment_2.jpg" alt="segment_2" /></p>
 <p>If you want to access the virtual address with offset <code>500</code> in segment <code>3</code>, you can calculate the physical address as follows: Segment <code>3</code> base address <code>700</code> + offset <code>500</code> = <code>7500</code>.</p>
 <p>Segmentation is a good approach as it resolves the issue of programs not needing to be concerned with specific physical memory addresses. However, it has a couple of shortcomings:</p>
 <ol>
@@ -355,7 +355,7 @@
 <li>Music occupies <code>256MB</code> of memory.</li>
 </ul>
 <p>Now, if we close the browser, there will be <code>1024 - 512 - 256 = 256MB</code> of free memory. If this <code>256MB</code> is not contiguous and is split into two segments of <code>128MB</code> each, it would lead to a situation where there is no space available to open a <code>200MB</code> program.</p>
-<p><img src="/images/Linux-Memory-Management/segment_fragment.jpg" alt="segment_fragment"></p>
+<p><img src="/images/Linux-Memory-Management/segment_fragment.jpg" alt="segment_fragment" /></p>
 <p>The issue of memory fragmentation in this context occurs in two ways:</p>
 <ol>
 <li><strong>External memory fragmentation</strong>, which results in multiple non-contiguous small blocks of physical memory, preventing the loading of new programs.</li>
@@ -372,13 +372,13 @@
 <p>This is because accessing the hard disk is much slower compared to memory. During each memory swap, we need to write a large contiguous block of memory data to the hard disk.</p>
 <p>So, if the memory swap involves a program that occupies a large portion of memory, the entire system can become sluggish.</p>
 <p>To address the issues of memory fragmentation and low memory swapping efficiency with segmentation, memory paging was introduced.</p>
-<h1><span id="3-memory-paging"> 3 Memory Paging</span></h1>
+<h1 id="3-memory-paging"><a class="markdownIt-Anchor" href="#3-memory-paging"></a> 3 Memory Paging</h1>
 <p><strong>摘录自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/152119007">20 张图揭开「内存管理」的迷雾，瞬间豁然开朗</a></strong></p>
 <p>Segmentation has the advantage of creating contiguous memory spaces but can lead to memory fragmentation and inefficient memory swapping due to large spaces.</p>
 <p>To address these issues, we need to find ways to minimize memory fragmentation and reduce the amount of data that needs to be swapped during memory exchange. This solution is known as <strong>Memory Paging</strong>.</p>
 <p><strong>Paging involves dividing the entire virtual and physical memory spaces into fixed-size chunks. Each contiguous and fixed-size memory space is called a page. In Linux, the size of each page is typically <code>4KB</code></strong>.</p>
 <p>Virtual addresses are mapped to physical addresses using a page table, as shown in the diagram below:</p>
-<p><img src="/images/Linux-Memory-Management/paging_1.jpg" alt="paging_1"></p>
+<p><img src="/images/Linux-Memory-Management/paging_1.jpg" alt="paging_1" /></p>
 <p>The page table is actually stored in the Memory Management Unit (MMU) of the CPU. Therefore, the CPU can directly access the physical memory address to be accessed through the MMU.</p>
 <p>When a process accesses a virtual address that cannot be found in the page table, the system generates a <strong>page fault exception</strong>. It enters the kernel space of the system, allocates physical memory, updates the process’s page table, and then returns to the user space to resume the process’s execution.</p>
 <blockquote>
@@ -386,13 +386,13 @@
 </blockquote>
 <p>With paging, memory spaces are pre-allocated, and there are no small gaps as seen in segmentation, which is the reason for memory fragmentation in segmentation. <strong>In paging, released memory is released in page-sized units, avoiding the issue of small unusable memory blocks.</strong></p>
 <p>If there isn’t enough memory space, the operating system will release pages of memory from other running processes that have not been recently used. This is known as <strong>swapping out</strong>. When needed again, these pages are loaded back into memory, known as <strong>swapping in</strong>. Therefore, only a few pages or even just one page are written to disk at a time, which doesn’t take much time. As a result, <strong>memory swapping is more efficient</strong>.</p>
-<p><img src="/images/Linux-Memory-Management/paging_2.jpg" alt="paging_2"></p>
+<p><img src="/images/Linux-Memory-Management/paging_2.jpg" alt="paging_2" /></p>
 <p>Furthermore, the paging approach allows us to load programs into physical memory gradually, rather than all at once when we load a program. We can map virtual memory pages to physical memory pages and do not need to load pages into physical memory until they are actually needed during program execution.</p>
 <blockquote>
 <p>How are virtual addresses and physical addresses mapped under the paging mechanism?</p>
 </blockquote>
 <p>In the paging mechanism, a virtual address is divided into two parts: the <strong>page number</strong> and the <strong>page offset</strong>. The page number serves as an index for the page table, and the <strong>page table</strong> contains the base addresses of each physical page in physical memory. The combination of this base address and the page offset forms the physical memory address, as illustrated in the diagram below:</p>
-<p><img src="/images/Linux-Memory-Management/paging_3.jpg" alt="paging_3"></p>
+<p><img src="/images/Linux-Memory-Management/paging_3.jpg" alt="paging_3" /></p>
 <p>To summarize, the process of memory address translation involves three steps:</p>
 <ol>
 <li>Splitting the virtual memory address into a page number and an offset.</li>
@@ -400,7 +400,7 @@
 <li>Directly adding the physical page number to the offset to obtain the physical memory address.</li>
 </ol>
 <p>Here’s an example: Virtual memory pages are mapped to physical memory pages through the page table, as illustrated in the diagram below:</p>
-<p><img src="/images/Linux-Memory-Management/paging_4.jpg" alt="paging_4"></p>
+<p><img src="/images/Linux-Memory-Management/paging_4.jpg" alt="paging_4" /></p>
 <p>This may seem fine at first glance, but when applied to real-world operating systems, this simple paging approach does have limitations.</p>
 <blockquote>
 <p>Are there any shortcomings to simple paging?</p>
@@ -413,7 +413,7 @@
 <p><strong>To address the problem mentioned above, a solution called “Multi-Level Page Table” is needed.</strong></p>
 <p>As we discussed earlier, with a single-level page table implementation, in a 32-bit environment with a page size of <code>4KB</code>, a process’s page table needs to accommodate over a million “page table entries,” each taking up <code>4</code> bytes. This implies that each page table requires <code>4MB</code> of space.</p>
 <p>To overcome this limitation, we can introduce a multi-level page table, where the first-level page table is divided into <code>1024</code> second-level page tables, with each second-level table containing <code>1024</code> “page table entries.” This creates a two-level paging system, as illustrated in the diagram below:</p>
-<p><img src="/images/Linux-Memory-Management/paging_5.jpg" alt="paging_5"></p>
+<p><img src="/images/Linux-Memory-Management/paging_5.jpg" alt="paging_5" /></p>
 <p>You might be wondering, by introducing a two-level page table, aren’t we consuming more memory? Mapping the entire <code>4GB</code> address space would indeed require <code>4KB</code> (first-level page table) + <code>4MB</code> (second-level page table), which seems larger.</p>
 <p>However, we should look at this from a different perspective, and remember the ubiquitous principle of <strong>locality of reference</strong> in computer architecture.</p>
 <p>Each process has a <code>4GB</code> virtual address space, but for most programs, they don’t utilize the entire <code>4GB</code>. Many page table entries may remain empty, unallocated. Furthermore, for allocated page table entries, if there are pages that haven’t been accessed recently, the operating system can swap them out to the hard disk, freeing up physical memory. In other words, these pages do not occupy physical memory.</p>
@@ -427,19 +427,19 @@
 <li>Page Middle Directory (PMD)</li>
 <li>Page Table Entry (PTE)</li>
 </ol>
-<p><img src="/images/Linux-Memory-Management/paging_6.jpg" alt="paging_6"></p>
+<p><img src="/images/Linux-Memory-Management/paging_6.jpg" alt="paging_6" /></p>
 <p>While multi-level page tables solve the space issue, they introduce additional steps in the virtual-to-physical address translation process. This naturally reduces the speed of these address translations, resulting in time overhead.</p>
 <p>Programs exhibit locality, meaning that within a certain period, the program’s execution is limited to a specific portion of the program. Correspondingly, the memory space accessed during execution is also confined to a certain memory region.</p>
-<p><img src="/images/Linux-Memory-Management/paging_tlb_1.png" alt="paging_tlb_1"></p>
+<p><img src="/images/Linux-Memory-Management/paging_tlb_1.png" alt="paging_tlb_1" /></p>
 <p><strong>We can leverage this characteristic by storing the most frequently accessed page table entries in faster-access hardware. So, computer scientists introduced a Cache within the CPU chip designed specifically for storing the program’s most frequently accessed page table entries. This cache is called the TLB (Translation Lookaside Buffer), commonly referred to as a page table cache, translation buffer, or fast table, among other names.</strong></p>
-<p><img src="/images/Linux-Memory-Management/paging_tlb_2.png" alt="paging_tlb_2"></p>
+<p><img src="/images/Linux-Memory-Management/paging_tlb_2.png" alt="paging_tlb_2" /></p>
 <p>Within the CPU chip, there is an encapsulated component called the Memory Management Unit (MMU), which is responsible for performing address translation and interacting with the TLB (Translation Lookaside Buffer).</p>
 <p>With the TLB in place, when the CPU is addressing memory, it first checks the TLB. If it doesn’t find the needed information there, it then proceeds to check the regular page tables.</p>
 <p>In practice, the TLB has a high hit rate because programs frequently access only a few pages.</p>
-<h1><span id="4-segmented-paging-memory-management"> 4 Segmented Paging Memory Management</span></h1>
+<h1 id="4-segmented-paging-memory-management"><a class="markdownIt-Anchor" href="#4-segmented-paging-memory-management"></a> 4 Segmented Paging Memory Management</h1>
 <p><strong>摘录自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/152119007">20 张图揭开「内存管理」的迷雾，瞬间豁然开朗</a></strong></p>
 <p>Memory segmentation and memory paging are not mutually exclusive; they can be combined and used together in the same system. When combined, this is typically referred to as <strong>segmented paging memory management</strong>.</p>
-<p><img src="/images/Linux-Memory-Management/segment_paging_1.png" alt="segment_paging_1"></p>
+<p><img src="/images/Linux-Memory-Management/segment_paging_1.png" alt="segment_paging_1" /></p>
 <p>The implementation of segmented paging memory management is as follows:</p>
 <ol>
 <li>Firstly, divide the program into multiple segments with logical significance, as mentioned earlier in the segmentation mechanism.</li>
@@ -447,7 +447,7 @@
 </ol>
 <p>As a result, the address structure consists of <strong>segment number, page number within the segment, and page offset</strong>.</p>
 <p>The data structures used for segmented paging address translation include a segment table for each program, and for each segment, a page table is established. The addresses in the segment table point to the starting address of the page table, while the addresses in the page table represent the physical page number of a particular page, as shown in the diagram:</p>
-<p><img src="/images/Linux-Memory-Management/segment_paging_2.jpg" alt="segment_paging_2"></p>
+<p><img src="/images/Linux-Memory-Management/segment_paging_2.jpg" alt="segment_paging_2" /></p>
 <p>In paged memory addressing, obtaining a physical address requires three memory accesses:</p>
 <ul>
 <li>The first access is to the segment table to obtain the starting address of the page table.</li>
@@ -455,7 +455,7 @@
 <li>The third access combines the physical page number with the page offset to obtain the physical address.</li>
 </ul>
 <p>Segmented paging address translation can be implemented using a combination of software and hardware methods. While this increases hardware costs and system overhead, it improves memory utilization.</p>
-<h1><span id="5-linux-memory-management"> 5 Linux Memory Management</span></h1>
+<h1 id="5-linux-memory-management"><a class="markdownIt-Anchor" href="#5-linux-memory-management"></a> 5 Linux Memory Management</h1>
 <p><strong>摘录自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/152119007">20 张图揭开「内存管理」的迷雾，瞬间豁然开朗</a></strong></p>
 <p>So, what method does the Linux operating system use to manage memory?</p>
 <blockquote>
@@ -464,7 +464,7 @@
 <p>Early Intel processors, starting from the <code>80286</code>, used segmented memory management. However, it was soon realized that having only segmented memory management without paging would not be sufficient, and this would make the x86 series lose its competitiveness in the market. Therefore, paging memory management was implemented shortly after in the <code>80386</code>. In other words, the <code>80386</code> not only continued and improved upon the segmented memory management introduced by the <code>80286</code> but also implemented paging memory management.</p>
 <p>However, when designing the paging memory management of the <code>80386</code>, it did not bypass segmented memory management. Instead, it was built on top of segmented memory management. This means that the role of paging memory management is to add another layer of address mapping to the addresses mapped by segmented memory management.</p>
 <p>Since the addresses mapped by segmented memory management at this point are no longer “physical addresses,” Intel referred to them as “linear addresses” (also known as virtual addresses). Therefore, segmented memory management first maps logical addresses to linear addresses, and then paging memory management maps linear addresses to physical addresses.</p>
-<p><img src="/images/Linux-Memory-Management/linux_1.png" alt="linux_1"></p>
+<p><img src="/images/Linux-Memory-Management/linux_1.png" alt="linux_1" /></p>
 <p>Here, let’s explain logical addresses and linear addresses:</p>
 <ul>
 <li>The addresses used by programs, usually those not mapped by segmented memory management, are called logical addresses.</li>
@@ -482,7 +482,7 @@
 <p>Now, let’s take a look at how the virtual address space in Linux is distributed.</p>
 </blockquote>
 <p>In the Linux operating system, the virtual address space is internally divided into two parts: <strong>kernel space and user space</strong>, and the range of the address space varies for different bit systems, such as the most common 32-bit and 64-bit systems, as shown below:</p>
-<p><img src="/images/Linux-Memory-Management/linux_2.jpg" alt="linux_2"></p>
+<p><img src="/images/Linux-Memory-Management/linux_2.jpg" alt="linux_2" /></p>
 <p>From this information, we can observe the following:</p>
 <ul>
 <li>In a 32-bit system, the kernel space occupies 1GB at the highest end, leaving 3GB for the user space.</li>
@@ -494,10 +494,10 @@
 <li>Only when a process enters kernel mode can it access memory within the kernel space.</li>
 </ul>
 <p>Although each process has its own independent virtual memory, the <strong>kernel addresses within each virtual memory</strong> are actually associated with the same physical memory. This allows processes to conveniently access kernel space memory when they switch to kernel mode.</p>
-<p><img src="/images/Linux-Memory-Management/linux_3.jpg" alt="linux_3"></p>
+<p><img src="/images/Linux-Memory-Management/linux_3.jpg" alt="linux_3" /></p>
 <p>Next, let’s further explore the partitioning of the virtual space. The division between user space and kernel space is different, so we won’t delve into the distribution of kernel space.</p>
 <p>Let’s take a look at how user space is divided. I’ve created a diagram to illustrate their relationship, using a 32-bit system as an example:</p>
-<p><img src="/images/Linux-Memory-Management/linux_4.jpg" alt="linux_4"></p>
+<p><img src="/images/Linux-Memory-Management/linux_4.jpg" alt="linux_4" /></p>
 <p>From this diagram, you can see that user space memory is divided into 7 different memory segments from low to high:</p>
 <ul>
 <li>Program File Segment, including binary executable code.</li>
@@ -508,7 +508,7 @@
 <li>Stack Segment, including local variables and the context of function calls. The stack size is typically fixed, often around 8MB, although the system provides parameters for customizing the size.</li>
 <li>Among these 7 memory segments, the memory in the Heap and File Mapping segments is dynamically allocated. For instance, you can use the <code>malloc()</code> function from the C standard library or <code>mmap()</code> to dynamically allocate memory in the Heap and File Mapping segments, respectively.</li>
 </ul>
-<h2><span id="51-how-logical-addresses-are-converted-to-physical-addresses"> 5.1 How logical addresses are converted to physical addresses</span></h2>
+<h2 id="51-how-logical-addresses-are-converted-to-physical-addresses"><a class="markdownIt-Anchor" href="#51-how-logical-addresses-are-converted-to-physical-addresses"></a> 5.1 How logical addresses are converted to physical addresses</h2>
 <p><strong>摘录自<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/23898566">线性地址转换为物理地址是硬件实现还是软件实现？具体过程如何？</a></strong></p>
 <p>Memory addresses that appear in machine language instructions are logical addresses. They need to be converted into linear addresses and then passed through the Memory Management Unit (MMU), which is a component within the CPU responsible for memory management, in order to access physical memory.</p>
 <p>Let’s take a look at the simplest “Hello World” program. When we compile it with GCC and then disassemble it, we will see the following instructions:</p>
@@ -517,7 +517,7 @@
 <p>In the x86 protected mode, segment information (segment base linear address, length, permissions, etc.), known as <strong>segment descriptors</strong>, occupies 8 bytes. Segment information cannot be directly stored in segment registers (segment registers are only 2 bytes). Intel’s design is to store segment descriptors in a centralized manner in the Global Descriptor Table (GDT) or Local Descriptor Table (LDT), while the segment registers hold the index of the segment descriptor within the GDT or LDT.</p>
 <p>In Linux, <strong>logical addresses are equal to linear addresses</strong>. Why is this the case? Because in Linux, all segments (user code segment, user data segment, kernel code segment, kernel data segment) have linear addresses starting from <code>0x00000000</code> with a length of 4GB. So, <code>linear address = logical address + 0x00000000</code>, meaning that logical addresses are effectively equal to linear addresses.</p>
 <p>As evident from the above, Linux operates on the x86 segment mechanism but cleverly bypasses it. Linux primarily implements memory management through paging.</p>
-<p><img src="/images/Linux-Memory-Management/linux_5.jpg" alt="linux_5"></p>
+<p><img src="/images/Linux-Memory-Management/linux_5.jpg" alt="linux_5" /></p>
 <p>As mentioned earlier, in Linux, logical addresses are equivalent to linear addresses. To map linear addresses to physical addresses, the paging mechanism is used. More precisely, it’s the CPU that provides the paging mechanism, and Linux uses it to implement memory management.</p>
 <p>In protected mode, the highest bit of the control register <code>CR0</code>, known as the <code>PG</code> bit, controls whether the paging mechanism is active. If <code>PG=1</code>, the paging mechanism is active, and linear addresses must be translated into physical addresses through page table lookups. If <code>PG=0</code>, the paging mechanism is inactive, and linear addresses are used directly as physical addresses.</p>
 <p>The fundamental principle of paging is to divide memory into fixed-size units called pages, with each page containing 4KB of address space (ignoring extended paging for simplicity). Thus, each page starts at an address that is aligned to a 4KB boundary. To translate linear addresses into physical addresses, a page table (or page directory in the case of two-level paging) is provided for each task. Note that to achieve a flat virtual memory for each task, each task has its own page directory and page table.</p>
@@ -535,8 +535,8 @@
 <p>The kernel first places the physical address of the current task’s page directory table into the <code>CR3</code> register.</p>
 <p>The linear address <code>0x80495b0</code> in binary is <code>0000 1000 0000 0100 1001 0101 1011 0000</code>. The highest 10 bits, <code>0000 1000 00</code>, represent decimal <code>32</code>. The CPU looks up the 32nd entry in the page directory table, which contains the physical address of the page table. The middle 10 bits, <code>00 0100 1001</code>, represent decimal <code>73</code>. The 73rd entry in the page table contains the physical start address of the final physical page. By adding the physical page base address to the lowest 12 bits of the linear address, the CPU finds the physical memory unit corresponding to the linear address.</p>
 <p>In Linux, user process linear addresses can address a range from <code>0</code> to <code>3GB</code>. Does this mean we need to pre-allocate page tables for this entire 3GB virtual memory range? In most cases, physical memory is much smaller than 3GB, and multiple processes are running concurrently, making it impractical to pre-allocate 3GB of page tables for each process. Linux addresses this issue using a CPU mechanism. <strong>After a process is created, we can set the values in the page directory table entries to 0. When the CPU looks up a page table and finds a table entry with a content of 0, it triggers a page fault exception. The process is temporarily suspended, and the Linux kernel, through a series of complex algorithms, allocates a physical page and fills the entry with the physical page’s address. The process then resumes execution.</strong> During this process, the process is unaware and still believes it is accessing physical memory as usual.</p>
-<p><img src="/images/Linux-Memory-Management/linux_6.gif" alt="linux_6"></p>
-<h1><span id="6-summary"> 6 Summary</span></h1>
+<p><img src="/images/Linux-Memory-Management/linux_6.gif" alt="linux_6" /></p>
+<h1 id="6-summary"><a class="markdownIt-Anchor" href="#6-summary"></a> 6 Summary</h1>
 <ol>
 <li>To address the issue of physical memory addresses causing conflicts between programs and leading to crashes, <strong>“Memory Segmentation”</strong> or <strong>“Segmented Memory Management”</strong> was introduced.</li>
 <li>To overcome the problems of “external fragmentation” and “inefficient memory swapping” associated with memory segmentation, <strong>“Memory Paging”</strong> or <strong>“Paged Memory Management”</strong> was introduced.</li>
@@ -544,8 +544,8 @@
 <li>To achieve “logical program partitioning” while maintaining the advantages of memory paging, <strong>“Segmented Paging Memory Management”</strong> was introduced.</li>
 <li>Since segmentation and paging are mechanisms introduced by the CPU, Linux implemented a form of <strong>“pseudo-segmented paging memory management,”</strong> which is essentially <strong>“Paged Memory Management.”</strong> In this implementation, all programs and all segments have a base address of 0.</li>
 </ol>
-<h1><span id="7-knowledge-fragments"> 7 Knowledge Fragments</span></h1>
-<h2><span id="71-related-command-line"> 7.1 Related Command Line</span></h2>
+<h1 id="7-knowledge-fragments"><a class="markdownIt-Anchor" href="#7-knowledge-fragments"></a> 7 Knowledge Fragments</h1>
+<h2 id="71-related-command-line"><a class="markdownIt-Anchor" href="#71-related-command-line"></a> 7.1 Related Command Line</h2>
 <ol>
 <li><code>free</code></li>
 <li><code>vmstat</code></li>
@@ -553,15 +553,15 @@
 <li><code>top</code></li>
 <li><code>slabtop</code></li>
 </ol>
-<h2><span id="72-buffcache"> 7.2 buff/cache</span></h2>
-<h3><span id="721-what-is-buffercache"> 7.2.1 What is buffer/cache？</span></h3>
+<h2 id="72-buffcache"><a class="markdownIt-Anchor" href="#72-buffcache"></a> 7.2 buff/cache</h2>
+<h3 id="721-what-is-buffercache"><a class="markdownIt-Anchor" href="#721-what-is-buffercache"></a> 7.2.1 What is buffer/cache？</h3>
 <p><strong>In simple terms, a buffer is used to address the issue of inconsistent read and write speeds. For example, when writing data from memory to a disk, it often needs to be buffered. Cache, on the other hand, is used to address hotspot issues. For instance, when frequently accessing certain hot data, it can be stored in storage media with higher read performance.</strong></p>
 <p><code>Buffer</code> and <code>cache</code> are two widely used terms in computer technology, and they can have different meanings in different contexts. In the context of Linux memory management, “buffer” refers to the <code>buffer cache</code> in Linux memory, while “cache” refers to the <code>page cache</code> in Linux memory. They can be translated into Chinese as “缓冲区缓存” and “页面缓存,” respectively. In the past, “buffer” was used as a write cache for I/O devices, while “cache” was used as a read cache for I/O devices, primarily referring to block device files and regular files in the file system. However, their meanings have evolved over time. In the current kernel, the <code>page cache</code> is a cache specifically for memory pages. In simple terms, any memory managed in pages can use the <code>page cache</code> to manage its caching. Of course, not all memory is managed in pages; some are managed in blocks. This type of memory, if it requires caching, is managed within the <code>buffer cache</code>. (From this perspective, wouldn’t it be better to rename the <code>buffer cache</code> to “block cache”?) However, not all blocks have fixed sizes; the size of blocks on a system depends mainly on the block devices used, while page sizes on x86, whether 32-bit or 64-bit, are always 4k.</p>
-<h3><span id="722-what-is-page-cache"> 7.2.2 What is page cache？</span></h3>
+<h3 id="722-what-is-page-cache"><a class="markdownIt-Anchor" href="#722-what-is-page-cache"></a> 7.2.2 What is page cache？</h3>
 <p>The <code>page cache</code> is primarily used as a cache for file data on the file system, especially when processes perform <code>read/write</code> operations on files. If you think about it carefully, the system call that allows files to be mapped into memory, <code>mmap</code>, also naturally uses the <code>page cache</code>, doesn’t it? In the current system implementation, the <code>page cache</code> is also used as a cache device for other file types. Therefore, in practice, the <code>page cache</code> also handles most of the caching work for block device files.</p>
-<h3><span id="723-what-is-buffer-cache"> 7.2.3 What is buffer cache?</span></h3>
+<h3 id="723-what-is-buffer-cache"><a class="markdownIt-Anchor" href="#723-what-is-buffer-cache"></a> 7.2.3 What is buffer cache?</h3>
 <p>The <code>buffer cache</code> is primarily designed for use in systems that read and write blocks when interacting with block devices. This means that certain operations involving blocks use the <code>buffer cache</code> for data caching, such as when formatting a file system. In general, these two caching systems work together. For example, when we perform a write operation on a file, the content of the <code>page cache</code> is modified, and the <code>buffer cache</code> can be used to mark pages as belonging to different buffers and record which buffer has been modified. This way, when the kernel performs writeback of dirty data in subsequent operations, it doesn’t have to write back the entire page; it only needs to write back the modified portions.</p>
-<h3><span id="724-how-to-reclaim"> 7.2.4 How to Reclaim</span></h3>
+<h3 id="724-how-to-reclaim"><a class="markdownIt-Anchor" href="#724-how-to-reclaim"></a> 7.2.4 How to Reclaim</h3>
 <p>The Linux kernel triggers memory reclamation when memory is about to run out, in order to free up memory for processes that urgently need it. In most cases, the primary source of memory release in this operation comes from releasing <code>buffer/cache</code>, especially the cache space that is used more frequently. Since cache is primarily used for caching and is only intended to speed up file read and write operations when there is enough memory, it is indeed necessary to clear and release the cache when there is significant memory pressure. Therefore, under normal circumstances, we consider that <code>buffer/cache</code> space can be released, and this understanding is correct.</p>
 <p>However, this cache clearing process is not without its costs. Understanding what cache is used for makes it clear that clearing the cache must ensure that the data in the cache is consistent with the data in the corresponding files before the cache can be released. Therefore, along with cache clearance, there is usually a spike in system I/O. This is because the kernel needs to compare the data in the cache with the data in the corresponding disk files to ensure consistency. If they are not consistent, the data needs to be written back before reclamation can occur.</p>
 <p><strong>How to Clean</strong></p>
@@ -570,8 +570,8 @@
 <li><code>sync; echo 2 &gt; /proc/sys/vm/drop_caches</code>：Clean <code>dentries</code> and <code>inodes</code></li>
 <li><code>sync; echo 3 &gt; /proc/sys/vm/drop_caches</code>：Clean <code>PageCache</code>, <code>dentries</code> and <code>inodes</code></li>
 </ol>
-<h2><span id="73-brk-and-mmap"> 7.3 brk and mmap</span></h2>
-<p><img src="/images/Linux-Memory-Management/memory_allocate.jpeg" alt="memory_allocate"></p>
+<h2 id="73-brk-and-mmap"><a class="markdownIt-Anchor" href="#73-brk-and-mmap"></a> 7.3 brk and mmap</h2>
+<p><img src="/images/Linux-Memory-Management/memory_allocate.jpeg" alt="memory_allocate" /></p>
 <p>The term “program break” refers to a concept related to memory management in Unix-like operating systems. Specifically, it represents the boundary between the data segment and the heap in a process’s address space. The data segment contains the initialized and uninitialized data of a program, while the heap is used for dynamic memory allocation during program execution.</p>
 <p><code>mmap</code> and <code>brk</code> are both system calls in Unix-like operating systems that are used for memory allocation and management, but they serve different purposes and have some key differences:</p>
 <ul>
@@ -594,7 +594,7 @@
 </ul>
 <p>In summary, <code>mmap</code> is a more versatile and flexible system call that can be used for various memory allocation and mapping purposes, including dynamic memory allocation. <code>brk</code> and <code>sbrk</code> are older and simpler system calls that control the size of the heap but are less commonly used in modern programming due to their limitations and the availability of more advanced memory management techniques.</p>
 <p>And additionally, <code>brk</code> and <code>sbrk</code> allocate virtual memory space within a process’s address space, and the allocation of physical memory pages occurs as data is actually read from or written to the allocated virtual memory.</p>
-<h2><span id="74-standard-file-io-and-mmap"> 7.4 Standard File I/O and mmap</span></h2>
+<h2 id="74-standard-file-io-and-mmap"><a class="markdownIt-Anchor" href="#74-standard-file-io-and-mmap"></a> 7.4 Standard File I/O and mmap</h2>
 <p>Here’s a comparison between “Standard File I/O” and <code>mmap</code>:</p>
 <ol>
 <li><strong>Access Mechanism</strong>:
@@ -641,7 +641,7 @@
 </li>
 </ol>
 <p>In conclusion, the choice between Standard File I/O and <code>mmap</code> depends on the specific needs and access patterns of the application. Each has its strengths and ideal scenarios. For simple file reading/writing tasks, Standard File I/O is often sufficient. For performance-critical applications with specific patterns, <code>mmap</code> can offer advantages.</p>
-<h2><span id="75-tlb-shootdown"> 7.5 TLB shootdown</span></h2>
+<h2 id="75-tlb-shootdown"><a class="markdownIt-Anchor" href="#75-tlb-shootdown"></a> 7.5 TLB shootdown</h2>
 <p>A TLB (Translation Lookaside Buffer) shootdown is a mechanism used in multiprocessor computer systems to ensure the consistency of virtual-to-physical address mappings in the TLB cache of each processor.</p>
 <p>Let’s break this down a bit:</p>
 <ol>
@@ -652,7 +652,7 @@
 <li><strong>Performance Implications</strong>: TLB shootdowns can have a performance impact because they involve synchronization between processors. Each IPI can cause a processor to be interrupted from its current task, handle the invalidation request, and then resume its task. If TLB shootdowns are frequent, they can degrade system performance. Thus, optimizing and reducing the frequency of TLB shootdowns is an area of focus in operating system and hardware design.</li>
 </ol>
 <p>In summary, a TLB shootdown is a synchronization mechanism used in multiprocessor systems to ensure that all processors have a consistent and up-to-date view of virtual-to-physical address translations.</p>
-<h2><span id="76-slab-allocation"> 7.6 Slab Allocation</span></h2>
+<h2 id="76-slab-allocation"><a class="markdownIt-Anchor" href="#76-slab-allocation"></a> 7.6 Slab Allocation</h2>
 <p>The term “slab allocation” refers to a memory management mechanism implemented in certain operating systems, notably the Linux kernel. Its primary goal is to efficiently manage memory allocations by caching objects of frequently used fixed sizes to avoid the overhead of constantly allocating and deallocating <strong>small chunks of memory</strong>.</p>
 <p>Here’s a breakdown of slab allocation:</p>
 <ol>
@@ -676,7 +676,7 @@
 <li><strong>Usage in Linux</strong>: The Linux kernel uses the slab allocator for various purposes, including allocating kernel objects like inode and dentry structures, which have fixed sizes and are frequently allocated and deallocated.</li>
 </ol>
 <p>The slab allocation strategy is just one approach to kernel memory management. There are other strategies like the slob (simple list of blocks) and slub (the unqueued slab allocator) allocators in the Linux kernel, each with its advantages and trade-offs.</p>
-<h1><span id="8-reference"> 8 Reference</span></h1>
+<h1 id="8-reference"><a class="markdownIt-Anchor" href="#8-reference"></a> 8 Reference</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/152119007">20 张图揭开「内存管理」的迷雾，瞬间豁然开朗</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/23898566">线性地址转换为物理地址是硬件实现还是软件实现？具体过程如何？</a></li>
@@ -788,7 +788,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 Virtual Memory</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 Memory Segmentation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Memory Paging</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 Segmented Paging Memory Management</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 Linux Memory Management</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 How logical addresses are converted to physical addresses</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 Summary</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 Knowledge Fragments</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.1 Related Command Line</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.2 buff&#x2F;cache</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.2.1 What is buffer&#x2F;cache？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.2.2 What is page cache？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.2.3 What is buffer cache?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.2.4 How to Reclaim</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.3 brk and mmap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.4 Standard File I&#x2F;O and mmap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.5 TLB shootdown</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.6 Slab Allocation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-virtual-memory"><span class="nav-text"> 1 Virtual Memory</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-memory-segmentation"><span class="nav-text"> 2 Memory Segmentation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-memory-paging"><span class="nav-text"> 3 Memory Paging</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-segmented-paging-memory-management"><span class="nav-text"> 4 Segmented Paging Memory Management</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-linux-memory-management"><span class="nav-text"> 5 Linux Memory Management</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-how-logical-addresses-are-converted-to-physical-addresses"><span class="nav-text"> 5.1 How logical addresses are converted to physical addresses</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-summary"><span class="nav-text"> 6 Summary</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-knowledge-fragments"><span class="nav-text"> 7 Knowledge Fragments</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-related-command-line"><span class="nav-text"> 7.1 Related Command Line</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-buffcache"><span class="nav-text"> 7.2 buff&#x2F;cache</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#721-what-is-buffercache"><span class="nav-text"> 7.2.1 What is buffer&#x2F;cache？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#722-what-is-page-cache"><span class="nav-text"> 7.2.2 What is page cache？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#723-what-is-buffer-cache"><span class="nav-text"> 7.2.3 What is buffer cache?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#724-how-to-reclaim"><span class="nav-text"> 7.2.4 How to Reclaim</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-brk-and-mmap"><span class="nav-text"> 7.3 brk and mmap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-standard-file-io-and-mmap"><span class="nav-text"> 7.4 Standard File I&#x2F;O and mmap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-tlb-shootdown"><span class="nav-text"> 7.5 TLB shootdown</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#76-slab-allocation"><span class="nav-text"> 7.6 Slab Allocation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-reference"><span class="nav-text"> 8 Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

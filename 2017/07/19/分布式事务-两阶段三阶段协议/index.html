@@ -283,20 +283,20 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-前言"> 1 前言</span></h1>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
 <p>在分布式系统中，为了保证数据的高可用性，通常，我们会将数据保留多个副本(replica)，这些副本会放置在不同的物理的机器上。为了对用户提供正确的增\删\改\查等语义，我们需要保证这些放置在不同物理机器上的副本是一致的</p>
 <p>为了解决这种分布式一致性问题，前人在性能和数据一致性的反反复复权衡过程中总结了许多典型的协议和算法。其中比较著名的有二阶提交协议（Two Phase Commitment Protocol）、三阶提交协议（Two Phase Commitment Protocol）和Paxos算法</p>
-<h1><span id="2-分布式事务"> 2 分布式事务</span></h1>
+<h1 id="2-分布式事务"><a class="markdownIt-Anchor" href="#2-分布式事务"></a> 2 分布式事务</h1>
 <p>分布式事务是指会涉及到操作多个数据库的事务。其实就是将对同一数据库事务的概念扩大到了对多个数据库的事务。<strong>目的是为了保证分布式系统中的数据一致性。分布式事务处理的关键是必须有一种方法可以知道事务在任何地方所做的所有动作，提交或回滚事务的决定必须产生统一的结果（全部提交或全部回滚）</strong></p>
 <p>在分布式系统中，各个节点之间在物理上相互独立，通过网络进行沟通和协调。由于存在事务机制，可以保证每个独立节点上的数据操作可以满足ACID。但是，相互独立的节点之间无法准确地知道其他节点中的事务执行情况。所以从理论上讲，两台机器理论上无法达到一致的状态。如果想让分布式部署的多台机器中的数据保持一致性，那么就要保证在所有节点的数据写操作，要么全部都执行，要么全部都不执行。但是，一台机器在执行本地事务的时候无法知道其他机器中的本地事务的执行结果。所以他也就不知道本次事务到底应该commit还是roolback。所以，常规的解决办法就是引入一个“协调者”的组件来统一调度所有分布式节点的执行</p>
-<h1><span id="3-xa规范"> 3 XA规范</span></h1>
+<h1 id="3-xa规范"><a class="markdownIt-Anchor" href="#3-xa规范"></a> 3 XA规范</h1>
 <p>X/Open组织（即现在的Open Group）定义了分布式事务处理模型。<strong>X/Open DTP模型（1994）包括应用程序（AP）、事务管理器（TM）、资源管理器（RM）、通信资源管理器（CRM）四部分。一般，常见的事务管理器（TM）是交易中间件，常见的资源管理器（RM）是数据库，常见的通信资源管理器（CRM）是消息中间件</strong>。通常把一个数据库内部的事务处理，如对多个表的操作，作为本地事务看待。数据库的事务处理对象是本地事务，而分布式事务处理的对象是全局事务。<strong>所谓全局事务，是指分布式事务处理环境中，多个数据库可能需要共同完成一个工作，这个工作即是一个全局事务</strong>。例如，一个事务中可能更新几个不同的数据库。对数据库的操作发生在系统的各处但必须全部被提交或回滚。此时一个数据库对自己内部所做操作的提交不仅依赖本身操作是否成功，还要依赖与全局事务相关的其它数据库的操作是否成功，如果任一数据库的任一操作失败，则参与此事务的所有数据库所做的所有操作都必须回滚。一般情况下，某一数据库无法知道其它数据库在做什么，<strong>因此，在一个DTP环境中，交易中间件™是必需的，由它通知和协调相关数据库的提交或回滚</strong>。而一个数据库只将其自己所做的操作（可恢复）影射到全局事务中</p>
 <p>XA就是X/Open DTP定义的交易中间件与数据库之间的接口规范（即接口函数），交易中间件用它来通知数据库事务的开始、结束以及提交、回滚等。XA接口函数由数据库厂商提供</p>
 <p>二阶提交协议和三阶提交协议就是根据这一思想衍生出来的。<strong>可以说二阶段提交其实就是实现XA分布式事务的关键(确切地说：两阶段提交主要保证了分布式事务的原子性：即所有结点要么全做要么全不做)</strong></p>
-<h1><span id="4-2pc"> 4 2PC</span></h1>
+<h1 id="4-2pc"><a class="markdownIt-Anchor" href="#4-2pc"></a> 4 2PC</h1>
 <p>二阶段提交(Two-phaseCommit)是指，在计算机网络以及数据库领域内，为了使基于分布式系统架构下的所有节点在进行事务提交时保持一致性而设计的一种算法(Algorithm)。通常，二阶段提交也被称为是一种协议(Protocol)。在分布式系统中，每个节点虽然可以知晓自己的操作的成功或者失败，却无法知道其他节点的操作的成功或失败。当一个事务跨越多个节点时，为了保持事务的ACID特性，需要引入一个作为协调者的组件来统一掌控所有节点(称作参与者)的操作结果并最终指示这些节点是否要把操作结果进行真正的提交(比如将更新后的数据写入磁盘等等)。<strong>因此，二阶段提交的算法思路可以概括为：参与者将操作成败通知协调者，再由协调者根据所有参与者的反馈情报决定各参与者是否要提交操作还是中止操作。</strong></p>
 <p>所谓的两个阶段是指：第一阶段：准备阶段(投票阶段)和第二阶段：提交阶段（执行阶段）</p>
-<h2><span id="41-准备阶段"> 4.1 准备阶段</span></h2>
+<h2 id="41-准备阶段"><a class="markdownIt-Anchor" href="#41-准备阶段"></a> 4.1 准备阶段</h2>
 <p><strong>事务协调者（事务管理器）给每个参与者（资源管理器）发送Prepare消息</strong>，每个参与者要么直接返回失败(如权限验证失败)，要么在本地执行事务，写本地的Redo和Undo日志，但不提交，到达一种“万事俱备，只欠东风”的状态</p>
 <p>可以进一步将准备阶段分为以下三个步骤：</p>
 <ol>
@@ -304,14 +304,14 @@
 <li>参与者节点执行询问发起为止的所有事务操作，并将Undo信息和Redo信息写入日志。（注意：若成功这里其实每个参与者已经执行了事务操作）</li>
 <li>各参与者节点响应协调者节点发起的询问。如果参与者节点的事务操作实际执行成功，则它返回一个”同意”消息；如果参与者节点的事务操作实际执行失败，则它返回一个”中止”消息</li>
 </ol>
-<h2><span id="42-提交阶段"> 4.2 提交阶段</span></h2>
+<h2 id="42-提交阶段"><a class="markdownIt-Anchor" href="#42-提交阶段"></a> 4.2 提交阶段</h2>
 <p>如果协调者收到了参与者的失败消息或者超时，直接给每个参与者发送回滚(Rollback)消息；否则，发送提交(Commit)消息；参与者根据协调者的指令执行提交或者回滚操作，释放所有事务处理过程中使用的锁资源。(注意:必须在最后阶段释放锁资源)</p>
 <blockquote>
 <p>一个小问题：如果某个参与者没有收到协调者的commit消息，于是采取了Rollback那不是破坏了一致性吗</p>
 </blockquote>
 <p>接下来分两种情况分别讨论提交阶段的过程</p>
 <p><strong>当协调者节点从所有参与者节点获得的相应消息都为”同意”时：</strong></p>
-<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%B8%89%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE/fig1.png" alt="fig1"></p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%B8%89%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE/fig1.png" alt="fig1" /></p>
 <ol>
 <li>协调者节点向所有参与者节点发出”正式提交(commit)”的请求</li>
 <li>参与者节点正式完成操作，并释放在整个事务期间内占用的资源</li>
@@ -319,7 +319,7 @@
 <li>协调者节点受到所有参与者节点反馈的”完成”消息后，完成事务</li>
 </ol>
 <p><strong>如果任一参与者节点在第一阶段返回的响应消息为”中止”，或者协调者节点在第一阶段的询问超时之前无法获取所有参与者节点的响应消息时：</strong></p>
-<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%B8%89%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE/fig2.png" alt="fig2"></p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%B8%89%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE/fig2.png" alt="fig2" /></p>
 <ol>
 <li>协调者节点向所有参与者节点发出”回滚操作(rollback)”的请求</li>
 <li>参与者节点利用之前写入的Undo信息执行回滚，并释放在整个事务期间内占用的资源</li>
@@ -335,22 +335,22 @@
 <li><strong>二阶段无法解决的问题</strong>：协调者在发出commit消息之后宕机，而唯一接收到这条消息的参与者同时也宕机了。那么即使协调者通过选举协议产生了新的协调者，这条事务的状态也是不确定的，没人知道事务是否被已经提交</li>
 </ol>
 <p>由于二阶段提交存在着诸如同步阻塞、单点问题、脑裂等缺陷，所以，研究者们在二阶段提交的基础上做了改进，提出了三阶段提交</p>
-<h1><span id="5-3pc"> 5 3PC</span></h1>
+<h1 id="5-3pc"><a class="markdownIt-Anchor" href="#5-3pc"></a> 5 3PC</h1>
 <p>三阶段提交（Three-phase commit），也叫三阶段提交协议（Three-phase commit protocol），是二阶段提交（2PC）的改进版本</p>
-<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%B8%89%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE/fig3.png" alt="fig3"></p>
+<p><img src="/images/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1-%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%B8%89%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE/fig3.png" alt="fig3" /></p>
 <p>与两阶段提交不同的是，三阶段提交有两个改动点</p>
 <ol>
 <li><strong>引入超时机制</strong>。同时在协调者和参与者中都引入超时机制</li>
 <li><strong>在第一阶段和第二阶段中插入一个准备阶段</strong>。保证了在最后提交阶段之前各参与节点的状态是一致的</li>
 </ol>
 <p>也就是说，除了引入超时机制之外，3PC把2PC的准备阶段再次一分为二，这样三阶段提交就有CanCommit、PreCommit、DoCommit三个阶段</p>
-<h2><span id="51-cancommit阶段"> 5.1 CanCommit阶段</span></h2>
+<h2 id="51-cancommit阶段"><a class="markdownIt-Anchor" href="#51-cancommit阶段"></a> 5.1 CanCommit阶段</h2>
 <p>3PC的CanCommit阶段其实和2PC的准备阶段很像。协调者向参与者发送commit请求，参与者如果可以提交就返回Yes响应，否则返回No响应</p>
 <ol>
 <li><strong>事务询问</strong>：协调者向参与者发送CanCommit请求。询问是否可以执行事务提交操作。然后开始等待参与者的响应</li>
 <li><strong>响应反馈</strong>：参与者接到CanCommit请求之后，正常情况下，如果其自身认为可以顺利执行事务，则返回Yes响应，并进入预备状态。否则反馈No</li>
 </ol>
-<h2><span id="52-precommit阶段"> 5.2 PreCommit阶段</span></h2>
+<h2 id="52-precommit阶段"><a class="markdownIt-Anchor" href="#52-precommit阶段"></a> 5.2 PreCommit阶段</h2>
 <p>协调者根据参与者的反应情况来决定是否可以进行事务的PreCommit操作。根据响应情况，有以下两种可能</p>
 <p>假如协调者从所有的参与者获得的反馈都是Yes响应，那么就会执行事务的预执行</p>
 <ol>
@@ -363,7 +363,7 @@
 <li><strong>发送中断请求</strong>：协调者向所有参与者发送abort请求</li>
 <li><strong>中断事务</strong>：参与者收到来自协调者的abort请求之后（或超时之后，仍未收到协调者的请求），执行事务的中断</li>
 </ol>
-<h2><span id="53-docommit阶段"> 5.3 doCommit阶段</span></h2>
+<h2 id="53-docommit阶段"><a class="markdownIt-Anchor" href="#53-docommit阶段"></a> 5.3 doCommit阶段</h2>
 <p>该阶段进行真正的事务提交，也可以分为以下两种情况</p>
 <p><strong>执行提交</strong></p>
 <ol>
@@ -380,11 +380,11 @@
 <li><strong>中断事务</strong>：协调者接收到参与者反馈的ACK消息之后，执行事务的中断</li>
 </ol>
 <p>在doCommit阶段，如果参与者无法及时接收到来自协调者的doCommit或者rebort请求时，会在等待超时之后，会继续进行事务的提交。（其实这个应该是基于概率来决定的，当进入第三阶段时，说明参与者在第二阶段已经收到了PreCommit请求，那么协调者产生PreCommit请求的前提条件是他在第二阶段开始之前，收到所有参与者的CanCommit响应都是Yes。（一旦参与者收到了PreCommit，意味他知道大家其实都同意修改了）所以，一句话概括就是，当进入第三阶段时，由于网络超时等原因，虽然参与者没有收到commit或者abort响应，但是他有理由相信：成功提交的几率很大。）</p>
-<h1><span id="6-2pc与3pc的区别"> 6 2PC与3PC的区别</span></h1>
+<h1 id="6-2pc与3pc的区别"><a class="markdownIt-Anchor" href="#6-2pc与3pc的区别"></a> 6 2PC与3PC的区别</h1>
 <p>相对于2PC，3PC主要解决的是单点故障问题，并减少阻塞，因为一旦参与者无法及时收到来自协调者的信息之后，他会默认执行commit。而不会一直持有事务资源并处于阻塞状态。但是这种机制也会导致数据一致性问题，因为，由于网络原因，协调者发送的abort响应没有及时被参与者接收到，那么参与者在等待超时之后执行了commit操作。这样就和其他接到abort命令并执行回滚的参与者之间存在数据不一致的情况</p>
 <p>了解了2PC和3PC之后，我们可以发现，<strong>无论是二阶段提交还是三阶段提交都无法彻底解决分布式的一致性问题</strong>。Google Chubby的作者Mike Burrows说过， there is only one consensus protocol, and that’s Paxos” – all other approaches are just broken versions of Paxos. 意即世上只有一种一致性算法，那就是Paxos，所有其他一致性算法都是Paxos算法的不完整版</p>
 <p>关于Paxos算法的详细推导过程，请参考 <a href="/2017/07/12/Protocol-Paxos/" title="Protocol-Paxos">Protocol-Paxos</a></p>
-<h1><span id="7-参考"> 7 参考</span></h1>
+<h1 id="7-参考"><a class="markdownIt-Anchor" href="#7-参考"></a> 7 参考</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="http://blog.jobbole.com/95632/">关于分布式事务、两阶段提交协议、三阶提交协议</a></li>
 </ul>
@@ -489,7 +489,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 分布式事务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 XA规范</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 2PC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 准备阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 提交阶段</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 3PC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 CanCommit阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.2 PreCommit阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.3 doCommit阶段</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 2PC与3PC的区别</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="nav-text"> 2 分布式事务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-xa%E8%A7%84%E8%8C%83"><span class="nav-text"> 3 XA规范</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-2pc"><span class="nav-text"> 4 2PC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E5%87%86%E5%A4%87%E9%98%B6%E6%AE%B5"><span class="nav-text"> 4.1 准备阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E6%8F%90%E4%BA%A4%E9%98%B6%E6%AE%B5"><span class="nav-text"> 4.2 提交阶段</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-3pc"><span class="nav-text"> 5 3PC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-cancommit%E9%98%B6%E6%AE%B5"><span class="nav-text"> 5.1 CanCommit阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-precommit%E9%98%B6%E6%AE%B5"><span class="nav-text"> 5.2 PreCommit阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-docommit%E9%98%B6%E6%AE%B5"><span class="nav-text"> 5.3 doCommit阶段</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-2pc%E4%B8%8E3pc%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text"> 6 2PC与3PC的区别</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%8F%82%E8%80%83"><span class="nav-text"> 7 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

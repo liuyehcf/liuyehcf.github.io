@@ -289,9 +289,9 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-前言"> 1 前言</span></h1>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
 <p>主要介绍内存模型的基本概念</p>
-<h1><span id="2-并发编程模型的两个关键问题"> 2 并发编程模型的两个关键问题</span></h1>
+<h1 id="2-并发编程模型的两个关键问题"><a class="markdownIt-Anchor" href="#2-并发编程模型的两个关键问题"></a> 2 并发编程模型的两个关键问题</h1>
 <p>在并发编程中，需要处理两个关键问题：线程之间如何通信以及线程之间如何同步(这里的线程是指并发执行的活动实体)。<strong>通信是指线程之间以何种机制来交换信息</strong></p>
 <p>在命令式编程中，线程之间的通信机制有两种</p>
 <ol>
@@ -305,7 +305,7 @@
 <li>在消息传递的并发模型里，由于消息的发送必须在消息的接收之前，因此<strong>同步是隐式进行的</strong></li>
 </ul>
 <p>Java的并发采用的是共享内存模型，Java线程之间的通信总是隐式进行，整个通信的过程对于程序员完全透明。如果编写多线程程序的Java程序员不理解隐式进行的线程之间的通信的工作机制，很可能会遇到各种奇怪的内存可见性的问题</p>
-<h1><span id="3-java内存模型的抽象结构"> 3 Java内存模型的抽象结构</span></h1>
+<h1 id="3-java内存模型的抽象结构"><a class="markdownIt-Anchor" href="#3-java内存模型的抽象结构"></a> 3 Java内存模型的抽象结构</h1>
 <p>在Java中，所有实例域、静态域和数组元素都存储在堆内存中，堆内存在线程之间共享。局部变量(Local Variables)，方法定义参数(Java语言规范称之为Formal Method Parameters)和异常处理器参数(Exception Handler Parameters)不会在线程之间共享，它们不会有内存可见性的问题，也不受内存模型的影响</p>
 <p>Java线程之间的通信由Java内存模型控制</p>
 <ul>
@@ -314,19 +314,19 @@
 <li><strong>本地内存是JMM的一个抽象概念，并不真实存在。它涵盖了缓存、写缓冲区、寄存器以及其他的硬件和编译器优化</strong></li>
 </ul>
 <p>Java内存模型抽象示意图如下</p>
-<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%8A%BD%E8%B1%A1%E7%BB%93%E6%9E%84%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="Java内存模型抽象示意图"></p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%8A%BD%E8%B1%A1%E7%BB%93%E6%9E%84%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="Java内存模型抽象示意图" /></p>
 <p>从上图来看，如果线程A与线程B之间要通信的话，必须经历下面两个步骤，见如下示意图</p>
 <ol>
 <li>线程A把本地内存A中更新过的共享变量刷新到主内存中去</li>
 <li>线程B到主内存中去读取线程A之前已经更新过的共享变量</li>
 </ol>
-<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E7%BA%BF%E7%A8%8B%E4%B9%8B%E9%97%B4%E9%80%9A%E4%BF%A1%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="Java内存模型抽象示意图"></p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E7%BA%BF%E7%A8%8B%E4%B9%8B%E9%97%B4%E9%80%9A%E4%BF%A1%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="Java内存模型抽象示意图" /></p>
 <ul>
 <li>本地内存A和本地内存B由主内存中共享变量x的副本。假设初始时，这3个内存中的值都为0</li>
 <li>线程A在执行时，把更新后的x值(假设值为1)临时存放在自己的本地内存A中。当线程A和线程B需要通信时，线程A首先会把自己本地内存中修改后的x值刷新到主内存中，此时主内存中的x值变为了1。随后线程B到主内存中去读取线程A更新后的值，此时线程B的本地内存的x值也变为了1</li>
 <li>从整体上来看，这两个步骤实质上是线程A在向线程B发送消息，而且这个通信过程必须要经过主内存。JMM通过控制主内存与每个线程的本地内存之间的交互，来为Java程序员提供可见性保证</li>
 </ul>
-<h1><span id="4-从源代码到指令序列的重排序"> 4 从源代码到指令序列的重排序</span></h1>
+<h1 id="4-从源代码到指令序列的重排序"><a class="markdownIt-Anchor" href="#4-从源代码到指令序列的重排序"></a> 4 从源代码到指令序列的重排序</h1>
 <p>在执行程序时，为了提高性能，编译器和处理器常常会对指令做重排序。重排序分为3种类型</p>
 <ol>
 <li><strong>编译器优化的重排序</strong>。编译器在不改变单线程程序语义的前提下，可以重新安排语句的执行顺序</li>
@@ -334,21 +334,21 @@
 <li><strong>内存系统的重排序</strong>。由于处理器使用缓存和读/写缓冲区，这使得加载和存储操作看上去可能是在乱序执行</li>
 </ol>
 <p>从Java源代码到最终实际的指令序列，会分别经历下面3种重排序</p>
-<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E9%87%8D%E6%8E%92%E5%BA%8F%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="重排序示意图"></p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E9%87%8D%E6%8E%92%E5%BA%8F%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="重排序示意图" /></p>
 <ul>
 <li>上述1属于编译器重排序，2和3属于处理器重排序。这些重排序可能导致多线程程序出现内存可见性问题</li>
 <li>对于编译器，JMM的编译器重排序规则会禁止特定类型的编译器重排序(不是所有的编译器重排序都要禁止)</li>
 <li>对于处理器重排序，JMM的处理器重排序规则会要求Java编译器在生成指令序列时，插入特定类型的内存屏障(Memory Barriers，Intel称之为Memory Fance)指令，通过内存屏障指令来禁止特定类型的处理器重排序</li>
 </ul>
 <p>JMM属于语言级的内存模型，它确保在不同的编译器和不同的处理器平台之上，通过禁止特定类型的编译器重排序和处理器重排序，为程序员提供一致的内存可见性保证</p>
-<h1><span id="5-并发编程模型的分类"> 5 并发编程模型的分类</span></h1>
+<h1 id="5-并发编程模型的分类"><a class="markdownIt-Anchor" href="#5-并发编程模型的分类"></a> 5 并发编程模型的分类</h1>
 <p>现代的处理器使用写缓冲区临时保存向内存写入的数据。写缓冲区可以保证指令流水线持续运行，它可以避免由于处理器停顿下来等待向内存写入数据而产生的延迟。同时，通过以批处理的方式刷新写缓冲区，以及合并写缓冲区对同一内存地址的多次写，减少对内存总线的占用</p>
 <p>虽然写缓冲区有这么多好处，但是处理器上的写缓冲区，仅仅对它所在的处理器可见。这个特性会对内存操作的执行顺序产生重要的影响：处理器对内存的读/写操作的执行顺序，不一定与内存实际发生的读/写操作顺序一致。下面以一个示例程序进行说明</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">processA</span><span class="params">()</span>&#123;</span><br><span class="line">    a = <span class="number">1</span>;<span class="comment">//A1</span></span><br><span class="line">    x = b;<span class="comment">//A2</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">processB</span><span class="params">()</span>&#123;</span><br><span class="line">    b = <span class="number">2</span>;<span class="comment">//B1</span></span><br><span class="line">    y = a;<span class="comment">//B2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
 <li>假设处理器A和处理器B按程序的顺序并执行内存访问，最终可能得到<code>x = y = 0</code>的结果</li>
 </ul>
-<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E5%A4%84%E7%90%86%E5%99%A8%E5%92%8C%E5%86%85%E5%AD%98%E4%BA%A4%E4%BA%92.png" alt="重排序示意图"></p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E5%A4%84%E7%90%86%E5%99%A8%E5%92%8C%E5%86%85%E5%AD%98%E4%BA%A4%E4%BA%92.png" alt="重排序示意图" /></p>
 <ul>
 <li>处理器A和处理器B可以同时把共享变量写入自己的缓冲区(A1,B1)，然后从内存中读取另一个共享变量(A2,B2)，最后才把自己写缓存区中保存的脏数据刷新到内存中(A3,B3)。当以这种时序执行时，程序就可以得到x = y = 0的结果</li>
 <li>从内存操作实际发生的顺序来看，直到处理器A执行A3来刷新自己的缓存区，写操作A1才算真正执行了。虽然处理器A执行内存操作的顺序为A1–&gt;A2，但内存操作实际发生的顺序确是A2–&gt;A1。此时，处理器A的内存操作顺序被重排序了(处理器B的情况和处理器A一样，不再赘述)</li>
@@ -400,7 +400,7 @@
 </ul>
 </li>
 </ol>
-<h1><span id="6-happens-before简介"> 6 happens-before简介</span></h1>
+<h1 id="6-happens-before简介"><a class="markdownIt-Anchor" href="#6-happens-before简介"></a> 6 happens-before简介</h1>
 <p>从JDK开始，Java使用新的JSR-133内存模型</p>
 <ul>
 <li><strong>JSR-133使用happens-before的概念来阐述操作之间的内存可见性</strong></li>
@@ -415,12 +415,12 @@
 </ul>
 <p><strong>注意：两个操作之间具有happens-before关系，并不意味着前一个操作必须要在后一个操作之前执行，happens-before仅要求前一个操作(执行的结果)对后一个操作可见，且前一个操作按顺序排在第二个操作之前</strong></p>
 <p>下图是happens-before与JMM的关系示意图</p>
-<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/happens-before%E5%92%8CJMM%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt="重排序示意图"></p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/happens-before%E5%92%8CJMM%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt="重排序示意图" /></p>
 <ul>
 <li><strong>一个happens-before规则对应于一个或多个编译器和处理器重排序规则</strong></li>
 <li>对于Java程序员来说，happens-before规则简单易懂，它避免Java程序员为了理解JMM提供的内存可见性保证而去学习复杂的重排序规则以及这些规则的具体实现方法</li>
 </ul>
-<h1><span id="7-参考"> 7 参考</span></h1>
+<h1 id="7-参考"><a class="markdownIt-Anchor" href="#7-参考"></a> 7 参考</h1>
 <ul>
 <li>《Java并发编程的艺术》</li>
 </ul>
@@ -525,7 +525,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 并发编程模型的两个关键问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Java内存模型的抽象结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 从源代码到指令序列的重排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 并发编程模型的分类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 happens-before简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%B8%A4%E4%B8%AA%E5%85%B3%E9%94%AE%E9%97%AE%E9%A2%98"><span class="nav-text"> 2 并发编程模型的两个关键问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%BD%E8%B1%A1%E7%BB%93%E6%9E%84"><span class="nav-text"> 3 Java内存模型的抽象结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E4%BB%8E%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%B0%E6%8C%87%E4%BB%A4%E5%BA%8F%E5%88%97%E7%9A%84%E9%87%8D%E6%8E%92%E5%BA%8F"><span class="nav-text"> 4 从源代码到指令序列的重排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%88%86%E7%B1%BB"><span class="nav-text"> 5 并发编程模型的分类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-happens-before%E7%AE%80%E4%BB%8B"><span class="nav-text"> 6 happens-before简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%8F%82%E8%80%83"><span class="nav-text"> 7 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

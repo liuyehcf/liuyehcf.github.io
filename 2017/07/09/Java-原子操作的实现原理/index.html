@@ -283,9 +283,9 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-前言"> 1 前言</span></h1>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
 <p>原子(atomic)本意是&quot;不能被进一步分割的最小粒子&quot;，而原子操作(atomic operation)意为&quot;不可被中断的一个或一系列操作&quot;。在多处理器上实现原子操作就变得有点复杂。本篇博客就聊聊在Intel处理器和Java里是如何实现原子操作的</p>
-<h1><span id="2-术语定义"> 2 术语定义</span></h1>
+<h1 id="2-术语定义"><a class="markdownIt-Anchor" href="#2-术语定义"></a> 2 术语定义</h1>
 <p>在了解原子操作前，先要了解一下相关术语</p>
 <table>
 <thead>
@@ -318,13 +318,13 @@
 </tr>
 </tbody>
 </table>
-<h1><span id="3-处理器如何实现原子操作"> 3 处理器如何实现原子操作</span></h1>
+<h1 id="3-处理器如何实现原子操作"><a class="markdownIt-Anchor" href="#3-处理器如何实现原子操作"></a> 3 处理器如何实现原子操作</h1>
 <p>32位IA-32处理器使用基于<strong>对缓存加锁</strong>或<strong>总线加锁</strong>的方式来实现多处理器之间的原子操作。<strong>首先处理器会自动保证基本的内存操作的原子性。处理器保证从系统内存中读取或者写入一个字节是原子的，意思是当一个处理器读取一个字节时，其他处理器不能访问这个字节的内存地址</strong>。Pentium6和最先的处理器能自动保证单处理器对同一个缓存行里进行16/32/64位操作是原子的，但是复杂的内存操作处理器是不能自动保证其原子性的，比如跨总线宽度、跨多个缓存航和跨页表的访问。但是，处理器提供<strong>总线锁定</strong>和<strong>缓存锁定</strong>两个机制来保证复杂内存操作的原子性</p>
-<h2><span id="31-使用总线锁保证原子性"> 3.1 使用总线锁保证原子性</span></h2>
+<h2 id="31-使用总线锁保证原子性"><a class="markdownIt-Anchor" href="#31-使用总线锁保证原子性"></a> 3.1 使用总线锁保证原子性</h2>
 <p><strong>第一个机制是通过总线锁保证原子性</strong>。如果多个处理器同时对共享变量进行<strong>读改写操作</strong>(i++就是经典的读改写操作)，那么共享变量就会被多个处理器同时进行操作，这样读改写操作就不是原子的，操作完之后共享变量的值会和期望的不一致</p>
 <p>举个例子，如果<code>i = 1</code>，进行两次i++操作，我们期望的结果是3，但是有可能结果是2。原因可能是多个处理器同时从各自缓存中读取变量i，分别进行加1操作，然后分别写入系统内存中。那么想要保证读改写共享变量的操作是原子的，就必须保证CPU1读改写共享变量的时候，CPU2不能操作缓存了该共享变量内存地址的缓存</p>
 <p>处理器使用总线锁就是来解决这个问题的。所谓总线锁就是使用处理器提供的一个LOCK#信号，当一个处理器在总线上输出此信号时，其他处理器的请求将被阻塞住，那么该处理器可以独占共享内存</p>
-<h2><span id="32-使用缓存锁保证原子性"> 3.2 使用缓存锁保证原子性</span></h2>
+<h2 id="32-使用缓存锁保证原子性"><a class="markdownIt-Anchor" href="#32-使用缓存锁保证原子性"></a> 3.2 使用缓存锁保证原子性</h2>
 <p><strong>第二个机制是通过缓存锁定来保证原子性</strong>。同一时刻，我们只需要保证对某个内存地址的操作是原子性即可，但总线锁定把CPU和内存之间的通信锁住了，这使得锁定期间，其他处理器不能操作其他内存地址的数据，所以总线锁定的开销比较大，目前处理器在某些场合下使用缓存锁定代替总线锁定来进行优化</p>
 <p>频繁使用的内存会缓存在处理器的L1、L2和L3高速缓存里，那么原子操作就可以直接在处理器内部缓存中进行，并不需要声明总线锁，在Pentium6和目前的处理器中可以使用&quot;缓存锁定&quot;的方式来实现复杂的原子性。<strong>所谓&quot;缓存锁定&quot;是指内存区域如果被缓存在处理器的缓存行中，并且在Lock操作期间被锁定，那么当它执行锁操作回写到内存时，处理器不在总线上声明Lock#信号，而是修改内部的内存地址，并允许它的缓存一致性机制来保证操作的原子性，因为缓存一致性机制会阻止同时修改两个以上处理器缓存的内存区域数据，当其他处理器回写已被锁定的缓存行的数据时，会使缓存行无效</strong>。例如，当CPU1修改缓存行中的i时使用了缓存锁定，那么CPU2就不能同时缓存i的缓存行</p>
 <p>有两种情况下处理器不会使用缓存锁定</p>
@@ -332,11 +332,11 @@
 <li>当操作的数据不能被缓存在处理器内部，或操作的数据跨多个缓存行(cache line)时，则处理器会调用总线锁定</li>
 <li>有些处理器不支持缓存锁定。对于Intel 486和Pentium处理器，就算锁定的内存区域在处理器的缓存行中也会调用总线锁定</li>
 </ol>
-<h2><span id="33-小结"> 3.3 小结</span></h2>
+<h2 id="33-小结"><a class="markdownIt-Anchor" href="#33-小结"></a> 3.3 小结</h2>
 <p>针对以上两个机制，我们通过Intel处理器提供了很多Lock前缀的指令来实现。例如，位测试和修改指令：BTS、BTR、BTC；交换指令XADD、CMPXCHG，以及其他一些操作数和逻辑指令(如ADD、OR)等，被这些指令操作的内存区域就会加锁，导致其他处理器不能同时访问它</p>
-<h1><span id="4-java如何实现原子操作"> 4 Java如何实现原子操作</span></h1>
+<h1 id="4-java如何实现原子操作"><a class="markdownIt-Anchor" href="#4-java如何实现原子操作"></a> 4 Java如何实现原子操作</h1>
 <p>Java中可以通过<strong>锁</strong>和<strong>循环CAS</strong>的方式来实现原子操作</p>
-<h2><span id="41-使用循环cas实现原子操作"> 4.1 使用循环CAS实现原子操作</span></h2>
+<h2 id="41-使用循环cas实现原子操作"><a class="markdownIt-Anchor" href="#41-使用循环cas实现原子操作"></a> 4.1 使用循环CAS实现原子操作</h2>
 <p>JVM中的CAS操作正是利用了处理器提供的CMPXCHG指令实现的。自旋CAS实现的基本思路就是循环进行CAS操作直至成功</p>
 <p>从Java 1.5开始，JDK的并发包里提供了一些类来支持原子操作，如AtomicBoolean(用原子方式更新的boolean值)、AtomicInteger(用原子方式更新的int值)和AtomicLong(用原子方式更新的long值)。这些原子包装类还提供了有用的工具方法，比如以原子的方式将当前值自增1和自减1</p>
 <p>在Java并发包中有一些并发框架也使用了CAS的方式来实现原子操作，比如LinkedTransferQueue类的Xfer方法。CAS虽然很高效地解决了原子操作，但是CAS仍然存在三大问题</p>
@@ -345,9 +345,9 @@
 <li><strong>循环时间长开销大</strong>：自旋CAS如果长时间不成功，会给CPU带来非常大的执行开销。如果JVM能支持处理器提供的pause指令，那么效率会有一定的提升。pause指令有两个作用：第一，它可以延迟流水线执行指令(de-pipeline)，使CPU不会消耗过多的执行资源，延迟的时间取决于具体实现的版本，在一些处理器上延迟时间是零；第二，它可以避免在退出循环的时候因内存顺序冲突(Memroy Order Violation)而引起CPU流水线被清空(CPU Pipeline Flush)，从而提高CPU执行效率</li>
 <li><strong>只能保证一个共享变量的原子操作</strong>：当对一个共享变量执行操作时，我们可以使用循环CAS的方式来保证原子操作，但是对多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候就可以用锁。还有一个取巧的办法，就是把多个共享变量合并成一个共享变量来操作。比如，有两个共享变量<code>i = 2</code>，<code>j = a</code>,合并一下<code>ij = 2a</code>，然后用CAS操作ij。从Java 1.5开始，JDK提供了AtomicReference类来保证引用对象的原子性，就可以把多个变量放在一个对象里来进行CAS操作</li>
 </ol>
-<h2><span id="42-使用锁机制实现原子操作"> 4.2 使用锁机制实现原子操作</span></h2>
+<h2 id="42-使用锁机制实现原子操作"><a class="markdownIt-Anchor" href="#42-使用锁机制实现原子操作"></a> 4.2 使用锁机制实现原子操作</h2>
 <p>锁机制保证了只有获得锁的线程才能够操作锁定的内存区域。JVM内部实现了很多种锁机制，有偏向锁、轻量级锁和互斥锁。有意思的是，除了偏向锁，JVM实现锁的方式都用来循环CAS，即当一个线程想进入同步块的时候使用循环CAS的方式来获取锁，当它退出同步块时使用循环CAS释放锁</p>
-<h1><span id="5-参考"> 5 参考</span></h1>
+<h1 id="5-参考"><a class="markdownIt-Anchor" href="#5-参考"></a> 5 参考</h1>
 <ul>
 <li>《Java并发编程的艺术》</li>
 </ul>
@@ -452,7 +452,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 术语定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 处理器如何实现原子操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 使用总线锁保证原子性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 使用缓存锁保证原子性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 Java如何实现原子操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 使用循环CAS实现原子操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 使用锁机制实现原子操作</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%9C%AF%E8%AF%AD%E5%AE%9A%E4%B9%89"><span class="nav-text"> 2 术语定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%A4%84%E7%90%86%E5%99%A8%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C"><span class="nav-text"> 3 处理器如何实现原子操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BA%BF%E9%94%81%E4%BF%9D%E8%AF%81%E5%8E%9F%E5%AD%90%E6%80%A7"><span class="nav-text"> 3.1 使用总线锁保证原子性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-%E4%BD%BF%E7%94%A8%E7%BC%93%E5%AD%98%E9%94%81%E4%BF%9D%E8%AF%81%E5%8E%9F%E5%AD%90%E6%80%A7"><span class="nav-text"> 3.2 使用缓存锁保证原子性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-%E5%B0%8F%E7%BB%93"><span class="nav-text"> 3.3 小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-java%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C"><span class="nav-text"> 4 Java如何实现原子操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E4%BD%BF%E7%94%A8%E5%BE%AA%E7%8E%AFcas%E5%AE%9E%E7%8E%B0%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C"><span class="nav-text"> 4.1 使用循环CAS实现原子操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-%E4%BD%BF%E7%94%A8%E9%94%81%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C"><span class="nav-text"> 4.2 使用锁机制实现原子操作</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8F%82%E8%80%83"><span class="nav-text"> 5 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

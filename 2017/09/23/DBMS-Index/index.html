@@ -282,7 +282,7 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-聚簇索引"> 1 聚簇索引</span></h1>
+<h1 id="1-聚簇索引"><a class="markdownIt-Anchor" href="#1-聚簇索引"></a> 1 聚簇索引</h1>
 <p>聚簇索引又可以称为聚合索引</p>
 <p>在《数据库原理》里面，对聚簇索引的解释是：聚簇索引的顺序就是数据的物理存储顺序，而对非聚簇索引的解释是：索引顺序与数据物理排列顺序无关。正式因为如此，所以一个表最多只能有一个聚簇索引</p>
 <p>不过这个定义太抽象了，我们可以这么理解，如下图</p>
@@ -290,8 +290,8 @@
 <li>聚簇索引：叶节点就是数据节点</li>
 <li>非聚簇索引：叶节点仍然是索引节点，只不过有一个指针指向对应的数据块</li>
 </ol>
-<p><img src="/images/DBMS-Index/fig1.jpg" alt="fig1"></p>
-<p><img src="/images/DBMS-Index/fig2.jpg" alt="fig2"></p>
+<p><img src="/images/DBMS-Index/fig1.jpg" alt="fig1" /></p>
+<p><img src="/images/DBMS-Index/fig2.jpg" alt="fig2" /></p>
 <p>MySQL的聚簇索引是指InnoDB引擎的特性，MYISAM并没有，如果需要该索引，只要将索引指定为主键</p>
 <p>InnoDB引擎的聚簇索引(clustered index)</p>
 <ol>
@@ -309,18 +309,18 @@
 <li>表因为使用uuid作为主键，使数据存储稀疏，这就会出现聚簇索引有可能有比全表扫面更慢，所以建议使用int的auto_increment作为主键</li>
 <li>如果主键比较大的话，那辅助索引将会变的更大，因为辅助索引的叶子存储的是主键值；过长的主键值，会导致非叶子节点占用占用更多的物理空间</li>
 </ol>
-<h1><span id="2-辅助索引"> 2 辅助索引</span></h1>
+<h1 id="2-辅助索引"><a class="markdownIt-Anchor" href="#2-辅助索引"></a> 2 辅助索引</h1>
 <p>在聚簇索引之上创建的索引称之为辅助索引，<strong>辅助索引访问数据总是需要二次查找</strong>。辅助索引叶子节点存储的不再是行的物理位置，而是主键值。通过辅助索引首先找到的是主键值，再通过主键值找到数据行的数据叶，再通过数据叶中的Page Directory找到数据行</p>
-<h2><span id="21-复合索引"> 2.1 复合索引</span></h2>
+<h2 id="21-复合索引"><a class="markdownIt-Anchor" href="#21-复合索引"></a> 2.1 复合索引</h2>
 <p>由多列创建的索引称为复合索引，在复合索引中的前导列必须出现在WHERE子句中，否则索引不会生效</p>
-<h2><span id="22-前缀索引"> 2.2 前缀索引</span></h2>
+<h2 id="22-前缀索引"><a class="markdownIt-Anchor" href="#22-前缀索引"></a> 2.2 前缀索引</h2>
 <p>当索引的字符串列很大时，创建的索引也就变得很大，为了减小索引体积，提高索引的扫描速度，就用索引的前缀子串部分索引，这样索引占用的空间就会大大减少，并且索引的选择性也不会降低很多</p>
 <p>对BLOB和TEXT列进行索引，或者非常长的VARCHAR列，就必须使用前缀索引，因为MySQL不允许索引它们的全部长度</p>
-<h2><span id="23-唯一索引"> 2.3 唯一索引</span></h2>
+<h2 id="23-唯一索引"><a class="markdownIt-Anchor" href="#23-唯一索引"></a> 2.3 唯一索引</h2>
 <p>唯一索引比较好理解，就是索引值必须唯一，这样的索引选择性是最好的</p>
-<h2><span id="24-主键索引"> 2.4 主键索引</span></h2>
+<h2 id="24-主键索引"><a class="markdownIt-Anchor" href="#24-主键索引"></a> 2.4 主键索引</h2>
 <p>主键索引就是唯一索引，不过主键索引是在创建表时就创建了，唯一索引可以随时创建。一般InnoDB的主键索引就是聚合索引</p>
-<h1><span id="3-最左匹配原则"> 3 最左匹配原则</span></h1>
+<h1 id="3-最左匹配原则"><a class="markdownIt-Anchor" href="#3-最左匹配原则"></a> 3 最左匹配原则</h1>
 <p>下面以一个例子来说明最左匹配原则</p>
 <p>假设，我们以<code>name、birthday、phone_num</code>建立一个联合索引</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> person_info(</span><br><span class="line">    name <span class="type">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    birthday <span class="type">DATE</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    phone_number <span class="type">CHAR</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    country <span class="type">varchar</span>(<span class="number">100</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    KEY idx_name_age_birthday (name, birthday, phone_number)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
@@ -336,9 +336,9 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> person_info <span class="keyword">WHERE</span> birthday <span class="operator">=</span> <span class="string">&#x27;2000-01-01&#x27;</span> <span class="keyword">AND</span> phone_number <span class="operator">=</span> <span class="string">&#x27;123456789&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> person_info <span class="keyword">WHERE</span> birthday <span class="operator">=</span> <span class="string">&#x27;2000-01-01&#x27;</span>;</span><br></pre></td></tr></table></figure>
 <p><strong>以下查询中索引<code>部分</code>失效</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> person_info <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;张三&#x27;</span>  phone_number <span class="operator">=</span> <span class="string">&#x27;123456789&#x27;</span>;</span><br></pre></td></tr></table></figure>
-<h1><span id="4-索引覆盖"> 4 索引覆盖</span></h1>
+<h1 id="4-索引覆盖"><a class="markdownIt-Anchor" href="#4-索引覆盖"></a> 4 索引覆盖</h1>
 <p>包含所有满足查询需要的数据的索引称为覆盖索引，即利用索引返回SELECT列表中的字段，而不必根据索引再次读取数据文件</p>
-<h1><span id="5-索引相关操作"> 5 索引相关操作</span></h1>
+<h1 id="5-索引相关操作"><a class="markdownIt-Anchor" href="#5-索引相关操作"></a> 5 索引相关操作</h1>
 <p><strong>创建唯一索引</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">UNIQUE</span> INDEX index_name <span class="keyword">ON</span> table_name(column_name); </span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> table_name <span class="keyword">ADD</span> <span class="keyword">UNIQUE</span> INDEX index_name(column_name);</span><br></pre></td></tr></table></figure>
 <p><strong>创建单列一般索引</strong></p>
@@ -351,7 +351,7 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> INDEX index_name <span class="keyword">on</span> table_name;;</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> table_name <span class="keyword">DROP</span> INDEX index_name;</span><br></pre></td></tr></table></figure>
 <p><strong>查看索引</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> INDEX <span class="keyword">FROM</span> table_name;</span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">CREATE</span> <span class="keyword">TABLE</span> pk_tab2;</span><br></pre></td></tr></table></figure>
-<h1><span id="6-bitmap-index"> 6 Bitmap Index</span></h1>
+<h1 id="6-bitmap-index"><a class="markdownIt-Anchor" href="#6-bitmap-index"></a> 6 Bitmap Index</h1>
 <p><code>Bitmap</code>索引是一种数据库索引，它使用位图（<code>Bitmap</code>）表示索引的数据。每一个不同的值都有一个对应的位图。</p>
 <p>基数（<code>Cardinality</code>）在数据库中通常是指某个字段具有的不同值的数量。在<code>Bitmap</code>索引的上下文中，我们指的是需要多少个不同的位图</p>
 <p>假设我们有一个<code>T-Shirt Size</code>字段，它可以有三个值：<code>S</code>、<code>M</code>和<code>L</code>，那么这个字段的基数就是<code>3</code>。我们可以为每个值创建一个位图。</p>
@@ -413,7 +413,7 @@
 <li><code>L</code>的位图为：<code>0010010010</code></li>
 </ul>
 <p>在这个例子中，<code>T-Shirt Size</code>的基数为3，因为它有三个可能的值。这就意味着我们需要三个位图来代表这个字段的索引</p>
-<h1><span id="7-参考"> 7 参考</span></h1>
+<h1 id="7-参考"><a class="markdownIt-Anchor" href="#7-参考"></a> 7 参考</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/bincoding/p/5883222.html">Mysql 索引实现原理. 聚集索引, 非聚集索引</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/36996520/answer/69999435">mysql索引最左匹配原则的理解?</a></li>
@@ -525,7 +525,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 聚簇索引</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 辅助索引</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 复合索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.2 前缀索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.3 唯一索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.4 主键索引</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 最左匹配原则</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 索引覆盖</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 索引相关操作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 Bitmap Index</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E8%81%9A%E7%B0%87%E7%B4%A2%E5%BC%95"><span class="nav-text"> 1 聚簇索引</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%BE%85%E5%8A%A9%E7%B4%A2%E5%BC%95"><span class="nav-text"> 2 辅助索引</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E5%A4%8D%E5%90%88%E7%B4%A2%E5%BC%95"><span class="nav-text"> 2.1 复合索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E5%89%8D%E7%BC%80%E7%B4%A2%E5%BC%95"><span class="nav-text"> 2.2 前缀索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-%E5%94%AF%E4%B8%80%E7%B4%A2%E5%BC%95"><span class="nav-text"> 2.3 唯一索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E4%B8%BB%E9%94%AE%E7%B4%A2%E5%BC%95"><span class="nav-text"> 2.4 主键索引</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99"><span class="nav-text"> 3 最左匹配原则</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E7%B4%A2%E5%BC%95%E8%A6%86%E7%9B%96"><span class="nav-text"> 4 索引覆盖</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C"><span class="nav-text"> 5 索引相关操作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-bitmap-index"><span class="nav-text"> 6 Bitmap Index</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%8F%82%E8%80%83"><span class="nav-text"> 7 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

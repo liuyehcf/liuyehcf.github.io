@@ -281,9 +281,9 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-kubectl-get-nodes提示tls-handshake-timeout"> 1 kubectl get nodes提示tls handshake timeout</span></h1>
+<h1 id="1-kubectl-get-nodes提示tls-handshake-timeout"><a class="markdownIt-Anchor" href="#1-kubectl-get-nodes提示tls-handshake-timeout"></a> 1 kubectl get nodes提示tls handshake timeout</h1>
 <p>抓包结果如下</p>
-<p><img src="/images/System-Issue-Logs/1-1.png" alt="1-1"></p>
+<p><img src="/images/System-Issue-Logs/1-1.png" alt="1-1" /></p>
 <p>我们可以发现如下信息</p>
 <ol>
 <li>tcp三次握手阶段的交互都是正常的，说明网络是通畅的</li>
@@ -294,9 +294,9 @@
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 发送大小是1460 + (28)字节，禁止路由器拆分数据包</span></span><br><span class="line">ping -s 1460 -M <span class="keyword">do</span> www.baidu.com</span><br></pre></td></tr></table></figure>
 <p>如何修改mtu（临时生效，重启后会复原），若要永久生效，那么可以通过nmtui或者nmcli配置相应的网卡连接信息</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">IF_NAME=<span class="string">&quot;eno1&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> 1500 &gt; /sys/class/net/<span class="variable">$&#123;IF_NAME&#125;</span>/mtu</span><br></pre></td></tr></table></figure>
-<h1><span id="2-某个cpu的软中断si占用比例特别高"> 2 某个cpu的软中断si占用比例特别高</span></h1>
+<h1 id="2-某个cpu的软中断si占用比例特别高"><a class="markdownIt-Anchor" href="#2-某个cpu的软中断si占用比例特别高"></a> 2 某个cpu的软中断si占用比例特别高</h1>
 <p><strong>场景复现：用wget下载一个大文件，使用<code>top</code>命令查看每个cpu的使用详情，可以发现cpu1的软中断（si）数值特别高，而其他cpu的该数值基本为0，如下图</strong></p>
-<p><img src="/images/System-Issue-Logs/2-1.png" alt="2-1"></p>
+<p><img src="/images/System-Issue-Logs/2-1.png" alt="2-1" /></p>
 <p>机器的外网网卡为<code>enp0s3</code>，可以通过<code>/proc/interrupts</code>找到该网卡设备对应的软中断号</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /proc/interrupts | grep <span class="string">&#x27;enp0s3&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line"> 19:         11     271072          0          0   IO-APIC-fasteoi   ehci_hcd:usb1, enp0s3</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
 <p>可以看到，该网卡只有一个队列，且该队列的软中断号为<code>19</code>，可以通过<code>/proc/irq/19/smp_affinity</code>或<code>/proc/irq/19/smp_affinity_list</code>文件获取该中断号对应的cpu亲和性配置</p>
@@ -313,11 +313,11 @@
 <p><strong>接下来，尝试修改亲和性，想要达到的结果是：所有cpu都能够处理中断号为19的中断</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1 + 2 + 4 + 8 = 15 = f</span></span><br><span class="line"><span class="built_in">echo</span> f &gt; /proc/irq/19/smp_affinity</span><br></pre></td></tr></table></figure>
 <p><strong>再次用top命令观察，发现cpu0的si数值特别高，而其他的cpu基本为0。这并不符合我们的预期。可能原因：对于网卡设备的某个队列而言，即便配置了多个亲和cpu，但是只有序号最小的cpu会生效</strong></p>
-<p><img src="/images/System-Issue-Logs/2-2.png" alt="2-2"></p>
+<p><img src="/images/System-Issue-Logs/2-2.png" alt="2-2" /></p>
 <p><strong>验证刚才这个猜想，将亲和性配置为cpu2和cpu3，预期结果为：只有cpu2的si值特别高，而其他cpu基本为0</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 4 + 8 = 12 = c</span></span><br><span class="line"><span class="built_in">echo</span> c &gt; /proc/irq/19/smp_affinity</span><br></pre></td></tr></table></figure>
 <p><strong>用top命令观察，发现cpu2的si数值特别高，而其他的cpu基本为0，符合我们的猜想</strong></p>
-<p><img src="/images/System-Issue-Logs/2-3.png" alt="2-3"></p>
+<p><img src="/images/System-Issue-Logs/2-3.png" alt="2-3" /></p>
 <p><strong>结论：</strong></p>
 <ol>
 <li>对于单队列的网卡而言，设置亲和多个cpu是无效的，只有编号最小的cpu会处理中断请求</li>
@@ -338,12 +338,12 @@
 </ol>
 </li>
 </ul>
-<h2><span id="21-参考"> 2.1 参考</span></h2>
+<h2 id="21-参考"><a class="markdownIt-Anchor" href="#21-参考"></a> 2.1 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/rainharder/article/details/73198010">软中断过高问题如何解决</a></li>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/80619249">软中断竟然是可一个CPU使劲造？</a></li>
 </ul>
-<h1><span id="3-dudf看到的大小不同"> 3 du/df看到的大小不同</span></h1>
+<h1 id="3-dudf看到的大小不同"><a class="markdownIt-Anchor" href="#3-dudf看到的大小不同"></a> 3 du/df看到的大小不同</h1>
 <p><strong>区别</strong></p>
 <ul>
 <li>du是递归统计某个目录下所有子文件和子目录的大小，可以横跨多个文件系统</li>
@@ -355,27 +355,27 @@
 <li>子目录作为另一个文件系统的挂载点，<code>df</code>不会统计这个子文件系统，但是<code>du</code>会统计</li>
 <li>A进程在读某个文件F，B进程将文件F强制删除。此时<code>du</code>会发现空间减小，但是<code>df</code>仍然是删除之前的大小，因为此时<code>inode</code>尚未释放</li>
 </ol>
-<h1><span id="4-no-space-left-on-devicemount-namespace"> 4 no space left on device（mount namespace）</span></h1>
+<h1 id="4-no-space-left-on-devicemount-namespace"><a class="markdownIt-Anchor" href="#4-no-space-left-on-devicemount-namespace"></a> 4 no space left on device（mount namespace）</h1>
 <p>最近项目上碰到一个非常奇怪的问题：执行<code>docker cp</code>拷贝容器内的文件或者执行<code>docker run</code>运行一个新的容器，都会报<code>no space left on device</code>这个错误</p>
 <p>但是通过<code>df -h</code>以及<code>df -ih</code>查看，磁盘空间以及<code>inode</code>，剩余资源都非常充足</p>
 <p>查阅大量资料后，在<a target="_blank" rel="noopener" href="https://github.com/moby/moby/pull/38993">[WIP] Fix mount loop on “docker cp” #38993</a>中找到了问题的根本原因：<strong>问题容器将主机的根目录挂载到了容器内，造成了挂载视图的扩散，每次执行docker cp都会将容器视图下的mount数量翻倍（内核默认的mount数量是10万，可以通过<code>fs.mount-max</code>参数进行设置）</strong></p>
 <p><strong>复现方式如下</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启动容器，将宿主机的根目录挂载到容器内</span></span><br><span class="line">docker run --name <span class="built_in">test</span> -d -v /:/rootfs busybox <span class="built_in">sleep</span> 3d</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看容器视图下的mount数量</span></span><br><span class="line">docker <span class="built_in">exec</span> <span class="built_in">test</span> <span class="built_in">wc</span> -l /proc/self/mountinfo</span><br><span class="line"></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">182 /proc/self/mountinfo</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行5次docker cp操作</span></span><br><span class="line">docker <span class="built_in">cp</span> <span class="built_in">test</span>:/etc/resolv.conf /tmp/resolv.conf</span><br><span class="line">docker <span class="built_in">cp</span> <span class="built_in">test</span>:/etc/resolv.conf /tmp/resolv.conf</span><br><span class="line">docker <span class="built_in">cp</span> <span class="built_in">test</span>:/etc/resolv.conf /tmp/resolv.conf</span><br><span class="line">docker <span class="built_in">cp</span> <span class="built_in">test</span>:/etc/resolv.conf /tmp/resolv.conf</span><br><span class="line">docker <span class="built_in">cp</span> <span class="built_in">test</span>:/etc/resolv.conf /tmp/resolv.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 再次查看容器视图下的mount数量</span></span><br><span class="line">docker <span class="built_in">exec</span> <span class="built_in">test</span> <span class="built_in">wc</span> -l /proc/self/mountinfo</span><br><span class="line"></span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">13309 /proc/self/mountinfo</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
 <p><strong>如何解决：<code>mount namespace</code>支持多种不同的传播级别，可以通过命令（<code>mount / --make-private</code>）将根目录的传播级别设置为<code>private</code>，这样就可以避免两个命名空间的挂载视图相互污染</strong></p>
-<h2><span id="41-参考"> 4.1 参考</span></h2>
+<h2 id="41-参考"><a class="markdownIt-Anchor" href="#41-参考"></a> 4.1 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/moby/moby/pull/38993">[WIP] Fix mount loop on “docker cp” #38993</a></li>
 <li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000006912742">Linux Namespace系列（04）：mount namespaces (CLONE_NEWNS)</a></li>
 <li><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1518101">黄东升: mount namespace和共享子树</a></li>
 </ul>
-<h1><span id="5-文件系统inode被docker占满"> 5 文件系统inode被docker占满</span></h1>
+<h1 id="5-文件系统inode被docker占满"><a class="markdownIt-Anchor" href="#5-文件系统inode被docker占满"></a> 5 文件系统inode被docker占满</h1>
 <p>项目中使用的docker版本是19.x，<code>storage driver</code>用的是<code>overlay2</code>，<code>/var/lib/docker/overlay2</code>目录下有几万条数据（大部分目录对应的容器早已退出），可以通过下面这个脚本清理</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 找出所有容器的overlayId，包括正在运行的和已停止的容器</span></span><br><span class="line">ALL_CONTAINER_IDS=( $(docker ps -aq) )</span><br><span class="line">TOTAL_CONTAINER_NUM=<span class="variable">$&#123;#ALL_CONTAINER_IDS[@]&#125;</span></span><br><span class="line"><span class="built_in">declare</span> -A VALID_OVERLAY_IDS</span><br><span class="line"><span class="keyword">for</span> ((i=<span class="number">0</span>;i&lt;<span class="variable">$&#123;TOTAL_CONTAINER_NUM&#125;</span>;i++)) </span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    CONTAINER_ID=<span class="variable">$&#123;ALL_CONTAINER_IDS[i]&#125;</span></span><br><span class="line">    MERGED_DIRECTORY=$(docker inspect <span class="variable">$&#123;CONTAINER_ID&#125;</span> -f <span class="string">&#x27;&#123;&#123;.GraphDriver.Data.MergedDir&#125;&#125;&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> [ -n <span class="string">&quot;<span class="variable">$&#123;MERGED_DIRECTORY&#125;</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        <span class="comment"># 除去最后的merged</span></span><br><span class="line">        OVERLAY_ID=<span class="variable">$&#123;MERGED_DIRECTORY%/merged&#125;</span></span><br><span class="line">        <span class="comment"># 除去开头的/var/lib/docker/overlay2/</span></span><br><span class="line">        OVERLAY_ID=<span class="variable">$&#123;OVERLAY_ID#/var/lib/docker/overlay2/&#125;</span></span><br><span class="line"></span><br><span class="line">        VALID_OVERLAY_IDS[<span class="variable">$&#123;OVERLAY_ID&#125;</span>]=<span class="variable">$&#123;CONTAINER_ID&#125;</span></span><br><span class="line">        </span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;<span class="subst">$(($&#123;i&#125;+1)</span>)/<span class="variable">$&#123;TOTAL_CONTAINER_NUM&#125;</span>: collecting valid overlay_id &#x27;<span class="variable">$&#123;OVERLAY_ID&#125;</span>&#x27;&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 找出所有泄漏的容器的overlayId，并删除</span></span><br><span class="line">ALL_INIT_DIRECTORIES=( $(<span class="built_in">ls</span> -1 /var/lib/docker/overlay2 | grep -- <span class="string">&#x27;-init&#x27;</span>) )</span><br><span class="line">TOTAL_OVERLAY_NUM=<span class="variable">$&#123;#ALL_INIT_DIRECTORIES[@]&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;\n\n\033[31mvalid overlay size=<span class="variable">$&#123;#ALL_CONTAINER_IDS[@]&#125;</span>, all overlay size=<span class="variable">$&#123;TOTAL_OVERLAY_NUM&#125;</span>\033[0m\n\n&quot;</span></span><br><span class="line"><span class="built_in">sleep</span> 3</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> ((i=<span class="number">0</span>;i&lt;<span class="variable">$&#123;TOTAL_OVERLAY_NUM&#125;</span>;i++)) </span><br><span class="line"><span class="keyword">do</span>  </span><br><span class="line">    <span class="comment"># 除去最后的-init</span></span><br><span class="line">    OVERLAY_ID=<span class="variable">$&#123;ALL_INIT_DIRECTORIES[i]%-init&#125;</span></span><br><span class="line">    <span class="comment"># 除去开头的/var/lib/docker/overlay2/</span></span><br><span class="line">    OVERLAY_ID=<span class="variable">$&#123;OVERLAY_ID#/var/lib/docker/overlay2/&#125;</span></span><br><span class="line"></span><br><span class="line">    CONTAINER_ID=<span class="variable">$&#123;VALID_OVERLAY_IDS[<span class="variable">$&#123;OVERLAY_ID&#125;</span>]&#125;</span></span><br><span class="line">    <span class="keyword">if</span> [ -n <span class="string">&quot;<span class="variable">$&#123;CONTAINER_ID&#125;</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;<span class="subst">$(($&#123;i&#125;+1)</span>)/<span class="variable">$&#123;TOTAL_OVERLAY_NUM&#125;</span>: overlayId &#x27;<span class="variable">$&#123;OVERLAY_ID&#125;</span>&#x27; is related to exist container &#x27;<span class="variable">$&#123;CONTAINER_ID&#125;</span>&#x27;, do nothing&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;<span class="subst">$(($&#123;i&#125;+1)</span>)/<span class="variable">$&#123;TOTAL_OVERLAY_NUM&#125;</span>: overlayId &#x27;<span class="variable">$&#123;OVERLAY_ID&#125;</span>&#x27; is isolated, now remove related directories&quot;</span></span><br><span class="line">        <span class="built_in">rm</span> -rf /var/lib/docker/overlay2/<span class="variable">$&#123;OVERLAY_ID&#125;</span></span><br><span class="line">        <span class="built_in">rm</span> -rf /var/lib/docker/overlay2/<span class="variable">$&#123;OVERLAY_ID&#125;</span>-init</span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-<h2><span id="51-参考"> 5.1 参考</span></h2>
+<h2 id="51-参考"><a class="markdownIt-Anchor" href="#51-参考"></a> 5.1 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/moby/moby/issues/32420">Docker does not free up disk space after container, volume and image removal</a></li>
 </ul>
-<h1><span id="6-系统内存彪高"> 6 系统内存彪高</span></h1>
+<h1 id="6-系统内存彪高"><a class="markdownIt-Anchor" href="#6-系统内存彪高"></a> 6 系统内存彪高</h1>
 <p>机器的规格为<code>4c8g</code></p>
 <p>首先通过<code>free -h</code>查看系统内存使用情况，发现<code>available</code>的大小为<code>730M</code>，内存基本被占满</p>
 <p>然后，通过<code>ps aux | awk '&#123;mem+=$6&#125;END&#123;print mem/1024/1024 G&#125;'</code>查看所有用户态进程的内存占用情况，发现总和只有<code>4.16G</code></p>
@@ -399,22 +399,22 @@
 </li>
 <li><code>slabtop</code>查看内核占用的内存大小</li>
 </ol>
-<h2><span id="61-参考"> 6.1 参考</span></h2>
+<h2 id="61-参考"><a class="markdownIt-Anchor" href="#61-参考"></a> 6.1 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="http://leeqx.github.io/2019/03/22/linux%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90_TCP%E5%86%85%E5%AD%98/">linux服务器性能分析_TCP内存</a></li>
 </ul>
-<h1><span id="7-conntrack-insert-failed"> 7 conntrack insert failed</span></h1>
+<h1 id="7-conntrack-insert-failed"><a class="markdownIt-Anchor" href="#7-conntrack-insert-failed"></a> 7 conntrack insert failed</h1>
 <p>在k8s集群中的两个服务通过k8s-service频繁相互调用，有概率会出现阻塞的情况</p>
 <p><strong>由于通过<code>k8s-service</code>进行服务的访问，那么势必会存在<code>DNAT/SNAT</code>规则，因为需要将<code>service-name</code>对应的<code>clusterIp</code>通过<code>DNAT</code>规则转换成指定的<code>podIp</code>。问题由此产生，生产环境中使用的k8s版本较低，还为支持<code>NF_NAT_RANGE_PROTO_RANDOM_FULLY</code>参数，当存在大量NAT转换的场景下，可能会出现冲突，一旦出现冲突，那么表象就是<code>insert failed</code>，如下图：</strong></p>
-<p><img src="/images/System-Issue-Logs/7-1.png" alt="7-1"></p>
+<p><img src="/images/System-Issue-Logs/7-1.png" alt="7-1" /></p>
 <p><strong>解决方式：将k8s升级到支持<code>NF_NAT_RANGE_PROTO_RANDOM_FULLY</code>参数的版本</strong></p>
-<h2><span id="71-参考"> 7.1 参考</span></h2>
+<h2 id="71-参考"><a class="markdownIt-Anchor" href="#71-参考"></a> 7.1 参考</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000021865782">k8s与debug–解决conntrack insert failed</a></li>
 <li><a target="_blank" rel="noopener" href="https://yuerblog.cc/2020/03/06/%E8%AF%9D%E8%AF%B4kubernetes%E7%BD%91%E7%BB%9C%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87/">话说kubernetes网络疑难杂症</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/tcarmet/k8s-connection-reset">k8s-connection-reset</a></li>
 </ul>
-<h1><span id="8-参考"> 8 参考</span></h1>
+<h1 id="8-参考"><a class="markdownIt-Anchor" href="#8-参考"></a> 8 参考</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="http://team.jiunile.com/blog/2020/10/docker-hang.html">docker 卡死引起的 container runtime is down</a></li>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/35684094">一个因tcp_tw_recycle引起的跨机房连接超时问题</a></li>
@@ -523,7 +523,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 kubectl get nodes提示tls handshake timeout</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 某个cpu的软中断si占用比例特别高</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 du&#x2F;df看到的大小不同</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 no space left on device（mount namespace）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 文件系统inode被docker占满</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 系统内存彪高</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 conntrack insert failed</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-kubectl-get-nodes%E6%8F%90%E7%A4%BAtls-handshake-timeout"><span class="nav-text"> 1 kubectl get nodes提示tls handshake timeout</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%9F%90%E4%B8%AAcpu%E7%9A%84%E8%BD%AF%E4%B8%AD%E6%96%ADsi%E5%8D%A0%E7%94%A8%E6%AF%94%E4%BE%8B%E7%89%B9%E5%88%AB%E9%AB%98"><span class="nav-text"> 2 某个cpu的软中断si占用比例特别高</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E5%8F%82%E8%80%83"><span class="nav-text"> 2.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-dudf%E7%9C%8B%E5%88%B0%E7%9A%84%E5%A4%A7%E5%B0%8F%E4%B8%8D%E5%90%8C"><span class="nav-text"> 3 du&#x2F;df看到的大小不同</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-no-space-left-on-devicemount-namespace"><span class="nav-text"> 4 no space left on device（mount namespace）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-%E5%8F%82%E8%80%83"><span class="nav-text"> 4.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9Finode%E8%A2%ABdocker%E5%8D%A0%E6%BB%A1"><span class="nav-text"> 5 文件系统inode被docker占满</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-%E5%8F%82%E8%80%83"><span class="nav-text"> 5.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E5%BD%AA%E9%AB%98"><span class="nav-text"> 6 系统内存彪高</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-%E5%8F%82%E8%80%83"><span class="nav-text"> 6.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-conntrack-insert-failed"><span class="nav-text"> 7 conntrack insert failed</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-%E5%8F%82%E8%80%83"><span class="nav-text"> 7.1 参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%8F%82%E8%80%83"><span class="nav-text"> 8 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

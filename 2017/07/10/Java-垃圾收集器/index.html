@@ -285,14 +285,14 @@
       
         <p><strong>阅读更多</strong></p>
 <span id="more"></span>
-<h1><span id="1-前言"> 1 前言</span></h1>
+<h1 id="1-前言"><a class="markdownIt-Anchor" href="#1-前言"></a> 1 前言</h1>
 <p>垃圾收集算法是内存回收的方法论 <a href="/2017/07/10/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95/" title="Java-垃圾收集算法">Java-垃圾收集算法</a>，而垃圾收集器就是内存回收的具体实现。Java虚拟机规范中对垃圾收集器应该如何实现并没有任何规定，因此不同厂商、不同版本的虚拟机所提供的垃圾收集器可能会有很大差别，并且一般都会提供参数供用户根据自己的应用特点和要求组合出各个年代所使用的收集器</p>
 <p>我们对各个收集器进行比较，但并非为了挑选一个最好的收集器，因为直到现在还没有最好的收集器出现，更加没有万能的收集器</p>
-<p><img src="/images/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E5%85%B3%E7%B3%BB%E5%9B%BE.png" alt="垃圾收集器关系图"></p>
+<p><img src="/images/Java-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E5%85%B3%E7%B3%BB%E5%9B%BE.png" alt="垃圾收集器关系图" /></p>
 <ul>
 <li>两个收集器之间存在连线，就说明它们可以搭配使用</li>
 </ul>
-<h1><span id="2-名词解释"> 2 名词解释</span></h1>
+<h1 id="2-名词解释"><a class="markdownIt-Anchor" href="#2-名词解释"></a> 2 名词解释</h1>
 <p><strong>并行和并发</strong></p>
 <ul>
 <li><strong>并行(Parallel)</strong>：指多条垃圾收集线程并行工作，但此时用户线程仍然处于等待状态</li>
@@ -310,18 +310,18 @@
 <li>当JVM用于启动GUI界面的交互应用时适合于使用Client模式，当JVM用于运行服务器后台程序时建议用Server模式</li>
 <li>JVM在Client模式默认-Xms是1M，-Xmx是64M；JVM在Server模式默认-Xms是128M，-Xmx是1024M。我们可以通过运行:java -version来查看jvm默认工作在什么模式</li>
 </ul>
-<h1><span id="3-serial-收集器"> 3 Serial 收集器</span></h1>
+<h1 id="3-serial-收集器"><a class="markdownIt-Anchor" href="#3-serial-收集器"></a> 3 Serial 收集器</h1>
 <p>Serial收集器是最基本，发展历史最悠久的收集器，在JDK 1.3.1之前是虚拟机<strong>新生代</strong>收集的唯一选择</p>
 <p>这个收集器是一个单线程的收集器，这里单线程的意义并不仅仅说明它只会使用一个CPU或一条收集线程去完成垃圾收集工作，更重要的是在它进行垃圾收集时，必须暂停其他所有的工作线程，直到它收集结束，可以戏称为&quot;Stop the World&quot;</p>
 <p>这项收集工作实际上由虚拟机在后台自动发起和自动完成的，在用户不可见的情况下把用户正常工作的线程全部停掉，这对很多应用来说是难以接受的</p>
 <p>对于&quot;Stop the World&quot;带给用户的不良体验，虚拟机的设计者们表示完全理解，但也表示非常委屈，“你妈妈在给你打扫房间的时候，肯定也会让你老老实实在椅子上或者房间外待着，如果你一边打扫，一边乱扔纸屑，这房间还能打扫完?”</p>
 <p>从JDK 1.3开始，一直到现在JDK 1.7，HotSpot虚拟机开发团队为消除或者减少工作线程因内存回收而导致停顿的努力一直在进行着。从Serial到Parallel，再到Concurrent Mark Sweep(CMS)乃至GC收集器的最前沿成果Garbage First(G1)收集器，用户线程的停顿时间在不断缩短，但是仍然没有办法完全消除</p>
 <p>到目前为止，Serial收集器依然是虚拟机运行在Client模式下的默认新生代收集器，它优于其他收集器的地方：简单而高效</p>
-<h1><span id="4-parnew-收集器"> 4 ParNew 收集器</span></h1>
+<h1 id="4-parnew-收集器"><a class="markdownIt-Anchor" href="#4-parnew-收集器"></a> 4 ParNew 收集器</h1>
 <p>ParNew收集器其实就是Serial收集器的多线程版本，使用多条线程进行垃圾收集</p>
 <p>ParNew收集器除了多线程收集之外，其他与Serial收集器相比并没有太多创新之处，但它却是许多运行在Server模式下的虚拟机中首选的新生代收集器，其中有一个与性能无关的重要原因：除了Serial外，只有它能与CMS收集器配合</p>
 <p>ParNew收集器在单CPU的环境中绝对不会比Serial收集器有更好的效果，甚至由于线程交互的开销，在两个CPU的环境下也不能保证比Serial更好，但是随着CPU数量继续上升，ParNew的优势会逐渐明显起来</p>
-<h1><span id="5-parallel-scavenge-收集器"> 5 Parallel Scavenge 收集器</span></h1>
+<h1 id="5-parallel-scavenge-收集器"><a class="markdownIt-Anchor" href="#5-parallel-scavenge-收集器"></a> 5 Parallel Scavenge 收集器</h1>
 <p>Parallel Scavenge收集器是一个<strong>新生代</strong>收集器，它也是使用复制算法的收集器，又是并行的多线程收集器</p>
 <p>Parallel Scavenge收集器的特点是它的关注点与其他收集器不同</p>
 <ul>
@@ -335,16 +335,16 @@
 </ul>
 <p>由于与吞吐量关系密切，Parallel Scavenge收集器也经常称为&quot;吞吐量优先&quot;收集器，除上述两个参数之外，Parallel Scavenge收集器还有一个参数-XX:+UseAdaptiveSizePolicy值得关注。这是一个开关参数，当打开这个参数后，就不需要手工指定新生代的大小、Eden(-Xmn)与Survivor区的比例(-XX:SurvivorRatio)，晋升老年代对象大小等细节参数了，虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量，这种调节方式称为GC自适应的调节策略(GC Ergonomics)</p>
 <p>自适应调节策略也是Parallel Scavenge收集器与ParNew收集器的一个重要区别</p>
-<h1><span id="6-serial-old-收集器"> 6 Serial Old 收集器</span></h1>
+<h1 id="6-serial-old-收集器"><a class="markdownIt-Anchor" href="#6-serial-old-收集器"></a> 6 Serial Old 收集器</h1>
 <p>Serial Old是Serial收集器的老年代版本，它同样是一个单线程收集器，使用&quot;标记-整理&quot;算法</p>
 <p>这个收集器的主要意义也是在给Client模式下的虚拟机使用</p>
 <p>在Server模式下，那么它主要还有两大用途：一种用途是在JDK 1.5以及之前的版本中与Parallel Scavenge收集器搭配使用，另一种用途就是作为CMS收集器的后备方案，在并发收集发生Concurrent Mode Failure时使用</p>
-<h1><span id="7-parallel-old-收集器"> 7 Parallel Old 收集器</span></h1>
+<h1 id="7-parallel-old-收集器"><a class="markdownIt-Anchor" href="#7-parallel-old-收集器"></a> 7 Parallel Old 收集器</h1>
 <p>Parallel Old是Parallel Scavenge收集器的老年代版本，使用多线程和&quot;标记-整理&quot;算法</p>
 <p>这个收集器在JDK 1.6中才开始提供，在此之前，新生代的Parallel Scavenge收集器一直处于比较尴尬的状态，原因是：如果选择了Parallel Scavenge收集器，老年代除了Serial Old(PS MarkSweep)收集器外别无选择，Parallel Scavenge收集器无法与CMS收集器配合工作</p>
 <p>由于老年代Serial Old收集器在服务端应用性能上的拖累，使用了Parallel Scavenge收集器也未必能在整体应用上获得吞吐量最大化的效果，由于单线程的老年代收集无法充分利用服务器多CPU的处理能力，在老年代很大而且硬件比较高级的环境中，这种组合的吞吐量甚至还不一定有ParNew加CMS的组合&quot;给力&quot;</p>
 <p>直到Parallel Old收集器出现后，&quot;吞吐量优先&quot;收集器终于有了比较名副其实的应用组合，在注重吞吐量以及CPU资源敏感的场合，都可以优先考虑Parallel Scavenge加Parallel Old收集器</p>
-<h1><span id="8-cms-收集器"> 8 CMS 收集器</span></h1>
+<h1 id="8-cms-收集器"><a class="markdownIt-Anchor" href="#8-cms-收集器"></a> 8 CMS 收集器</h1>
 <p>在JDK 1.5时期，HotSpot推出了一款在强交互应用中几乎可认为有划时代意义的垃圾收集器–CMS(Concurrent Mark Sweep)。这款收集器是HotSpot虚拟机中第一款真正意义上的并发(Concurrent)收集器，第一次实现了让垃圾收集线程与用户线程(基本上)同时工作</p>
 <ul>
 <li><strong>使用CMS来收集老年代的时候，新生代只能选择ParNew或者Serial收集器中的一个，因为CMS无法与新生代收集器Parallel Scavenge配合工作</strong></li>
@@ -371,7 +371,7 @@
 <li><strong>CMS收集器无法处理浮动垃圾(Floating Garbage)，可能出现&quot;Concurrent Mode Failure&quot;失败而导致另一次Full GC的产生</strong>。由于CMS并发清理阶段用户线程还在运行着，伴随程序运行自然就还会有新的垃圾不断产生，这一部分垃圾出现在标记过程之后，CMS无法在当次收集中处理掉他们，只要留待下次以GC时再清理掉，这一部分垃圾就被称为浮动垃圾。由于在垃圾收集阶段用户线程还需要运行，也就是需要预留足够的内存空间给用户线程使用，因此CMS收集器不能像其他收集器那样等到老年代几乎完全被填满了再进行收集，需要预留一部分空间提供并发收集时的程序运作使用。在JDK 1.5的默认设置下，CMS收集器当老年代使用了68%的空间后就会被激活，这是一个偏保守的设置，如果在应用中，老年代增长不是太快，可以适当调高参数-XX:CMSInitiatingOccupancyFraction的值来提高触发百分比，以降低内存回收次数从而获取更好的性能。在JDK 1.6中，CMS收集器的启动阈值提高到了92%，要是CMS运行期间预留的内存无法满足程序需要，就会出现一次&quot;Concurrent Mode Failure&quot;失败，这时虚拟机将启动后备方案：临时启用Serial Old收集器来重新进行老年代的垃圾收集(因此参数不宜设置过高，会导致大量&quot;Concurrent Mode Failure&quot;失败，性能反而降低)</li>
 <li><strong>CMS是一款基于&quot;标记-清除&quot;算法实现的收集器。这意味着收集结束会有大量的空间碎片产生</strong>。空间碎片过多，将会给大对象分配带来很大的麻烦。往往会出现老年代还有很大空间剩余，但是无法找到足够大的连续空间来分配当前对象，不得不提前触发一次Full GC。为了解决这个问题，CMS收集器提供了一个-XX:+UseCMSCompactAtFullCollection开关参数(默认开启)，用于在CMS收集器顶不住要进行FullGC时开启内存碎片的合并整理过程，内存整理是无法并发的，空间碎片问题没有了，但停顿时间不得不变长。此外虚拟机还提供另一个参数-XX:CMSFullGCsBeforeCompaction，这个参数用于设置执行多少次不压缩的Full GC后，跟着来一次带压缩的(默认值0，表示每次进入Full GC时都进行碎片整理)</li>
 </ul>
-<h1><span id="9-g1-收集器"> 9 G1 收集器</span></h1>
+<h1 id="9-g1-收集器"><a class="markdownIt-Anchor" href="#9-g1-收集器"></a> 9 G1 收集器</h1>
 <p>G1(Gargabe-First)收集器是当今收集器计数发展的最前沿成果之一。G1是一款面向服务端应用的垃圾收集器，HotSpot开发团队赋予它的使命是(在比较长期的)未来可以替换掉JDK 1.5中发布的CMS收集器，与其他GC收集器相比，G1具备如下特点：</p>
 <ul>
 <li><strong>并行与并发</strong>：G1能充分利用多<code>CPU</code>，多核环境下的硬件优势，使用多个<code>CPU</code>(或<code>CPU</code>核心)来缩短Stop-The-World停顿的时间(并行)，部分其他收集器原本需要停顿Java线程执行的GC动作，G1收集器仍然可以通过并发的方式让Java程序继续执行</li>
@@ -390,7 +390,7 @@
 <li><strong>最终标记(Final Marking)</strong>：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程Remembered Set Logs里面，最终标记阶段需要把Remembered Set Logs的数据合并到Remembered Set中，这阶段需要停顿线程，但可并行(多个GC线程)执行</li>
 <li><strong>筛选回收(Live Data Counting and Evacuation)</strong>：首先对各个Region的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定回收计划，这个阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分Region，时间是用户可控制的，而且停顿用户线程将大幅度提高收集效率，因此该阶段设置为停顿的</li>
 </ol>
-<h1><span id="10-参考"> 10 参考</span></h1>
+<h1 id="10-参考"><a class="markdownIt-Anchor" href="#10-参考"></a> 10 参考</h1>
 <ul>
 <li>《深入理解Java虚拟机》</li>
 </ul>
@@ -495,7 +495,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 名词解释</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Serial 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 ParNew 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 Parallel Scavenge 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 Serial Old 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 Parallel Old 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 CMS 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 9 G1 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 10 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A"><span class="nav-text"> 2 名词解释</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-serial-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 3 Serial 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-parnew-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 4 ParNew 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-parallel-scavenge-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 5 Parallel Scavenge 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-serial-old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 6 Serial Old 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-parallel-old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 7 Parallel Old 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-cms-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 8 CMS 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-g1-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-text"> 9 G1 收集器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-%E5%8F%82%E8%80%83"><span class="nav-text"> 10 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
