@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TensorFlow-神经网络优化">
+<meta property="og:url" content="http://example.com/2018/05/07/TensorFlow-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-07T08:12:08.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.364Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/05/07/TensorFlow-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>TensorFlow-神经网络优化 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/05/07/TensorFlow-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TensorFlow-神经网络优化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-07 16:12:08" itemprop="dateCreated datePublished" datetime="2018-05-07T16:12:08+08:00">2018-05-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/05/07/TensorFlow-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/" class="post-meta-item leancloud_visitors" data-flag-title="TensorFlow-神经网络优化" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/05/07/TensorFlow-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/05/07/TensorFlow-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-神经元模型"> 1 神经元模型</span></h1>
+<p>神经元模型，用数学公式表示为$$f(\sum_{i}{x_{i}w_{i}}+b)$$</p>
+<ol>
+<li>
+$f$为激活函数
+</li>
+<li>
+$b$为偏置项
+</li>
+</ol>
+<p><strong>激活函数引入非线性激活因素，提高模型的表达力</strong>，常用的激活函数有</p>
+<ol>
+<li><strong>relu</strong>，TensorFlow中表示为<code>tf.nn.relu()</code>$$f(x)=max(x,0)$$</li>
+<li><strong>sigmoid</strong>，TensorFlow中表示为<code>tf.nn.sigmoid()</code>$$f(x)=\frac{1}{1+e^{-x}}$$</li>
+<li><strong>tanh</strong>，TensorFlow中表示为<code>tf.nn.tanh()</code>$$f(x)=\frac{1-e^{-2x}}{1+e^{-2x}}$$</li>
+</ol>
+<h2><span id="11-神经网络的层数"> 1.1 神经网络的层数</span></h2>
+<ul>
+<li>一般不计入输入层</li>
+<li><strong>层数 = n个隐藏层 + 1个输出层</strong></li>
+</ul>
+<h2><span id="12-神经网路待优化的参数"> 1.2 神经网路待优化的参数</span></h2>
+<p>神经网络中所有参数$w$的个数 + 所有参数$b$的个数</p>
+<h1><span id="2-损失函数loss"> 2 损失函数(loss)</span></h1>
+<p>用来表示预测值$y$与已知答案$y\_$的差距。在训练神经网络时，通过不断改变神经网络中所有参数，<strong>使损失函数不断减小</strong>，从而训练出更高准确率的神经网络模型</p>
+<p>常用的损失函数有均方误差、自定义和交叉熵等</p>
+<h2><span id="21-均方误差"> 2.1 均方误差</span></h2>
+<p>均方误差$mse$：$n$个样本的预测值$y$与已知答案$y\_$之差的平方和，再求平均值，其数学形式如下：</p>
+$$MSE(y\_, y)=\frac{\sum_{i=1}^{n}{(y-y\_)^2}}{n}$$
+<p>在TensorFlow中表示为</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">loss_mse = tf.reduce_mean(tf.square(y_ - y))</span><br></pre></td></tr></table></figure>
+<h2><span id="22-自定义损失函数"> 2.2 自定义损失函数</span></h2>
+<p>根据问题的实际情况，定制合理的损失函数</p>
+<h2><span id="23-交叉熵"> 2.3 交叉熵</span></h2>
+<p>交叉熵(Cross Entropy)表示两个概率分布之间的<strong>距离</strong></p>
+<ul>
+<li>交叉熵越大，两个概率分布距离越远，两个概率分布越相异</li>
+<li>交叉熵越小，两个概率分布距离越近，两个概率分布越相似</li>
+</ul>
+<p>交叉熵计算公式如下：</p>
+$$H(y\_, y) = - \sum{y\_} * \log{y}$$
+<p>在TensorFlow中表示为</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ce= -tf.reduce_mean(y_* tf.log(tf.clip_by_value(y, <span class="number">1e-12</span>, <span class="number">1.0</span>)))</span><br></pre></td></tr></table></figure>
+<p><strong>softmax 函数</strong>：将n分类的n个输出(y1,y2…yn)变为满足以下概率分布要求的函数$$\forall{x} \;\; P(X=x)\in[0,1) \; and \; \sum{P_x(X=x)} = 1$$</p>
+<p>softmax函数表示为$$softmax(y_i)=\frac{e^{y_i}}{\sum_{i=1}^{n}{e^{y_i}}}$$</p>
+<p>在TensorFlow中，一般让模型的输出经过<code>sofemax</code>函数，以获得输出分类的概率分布，再与标准答案对比，求出交叉熵，得到损失函数，用如下函数实现</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ce = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y, labels=tf.argmax(y_, <span class="number">1</span>))</span><br><span class="line">cem = tf.reduce_mean(ce)</span><br></pre></td></tr></table></figure>
+<h1><span id="3-学习率"> 3 学习率</span></h1>
+<p>学习率（learning_rate）表示了每次参数更新的幅度大小</p>
+<ol>
+<li>学习率过大，会导致待优化的参数在最小值附近波动，不收敛</li>
+<li>学习率过小，会导致待优化的参数收敛缓慢</li>
+</ol>
+<p>参数的更新公式如下$$w_{n+1} = w_n -learning\_rate \nabla$$</p>
+<h2><span id="31-指数衰减学习率"> 3.1 指数衰减学习率</span></h2>
+<p>指数衰减学习率是指，学习率随着训练轮数变化而动态更新。其学习率计算公式如下：</p>
+$$learning\_rate = LEARNING\_RATE\_BASE \;\;*\;\; LEARNING\_RATE\_DECAY^{\frac{global\_step}{LEARNING\_RATE\_STEP}}$$
+<ul>
+<li><code>LEARNING_RATE_BASE</code>：学习率初始值</li>
+<li><code>LEARNING_RATE_DECAY</code>：学习率衰减率</li>
+<li><code>LEARNING_RATE_STEP</code>：多少轮更新一次学习率，一般来说是总样本数除以BATCH_SIZE</li>
+</ul>
+<p>在TensorFlow中表示为</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">global_step = tf.Variable(<span class="number">0</span>, trainable=<span class="literal">False</span>) <span class="comment"># 记录了当前训练轮数，为不可训练型参数</span></span><br><span class="line">learning_rate = tf.train.exponential_decay(</span><br><span class="line">    LEARNING_RATE_BASE, <span class="comment"># 学习率初始值</span></span><br><span class="line">    global_step, <span class="comment"># 第几轮（计数器）</span></span><br><span class="line">    LEARNING_RATE_STEP, LEARNING_RATE_DECAY,</span><br><span class="line">    staircase=<span class="literal">True</span>/<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+<p>其中</p>
+<ul>
+<li>若<code>staircase</code>设置为True时，表示<code>global_step/LEARNING_RATE_STEP</code>取整数，学习率<strong>阶梯型</strong>衰减</li>
+<li>若<code>staircase</code>设置为False时，学习率会是一条平滑下降的<strong>曲线</strong></li>
+</ul>
+<h1><span id="4-滑动平均"> 4 滑动平均</span></h1>
+<p>滑动平均记录了一段时间内模型中所有参数$w$和$b$各自的平均值。利用滑动平均值可以增强模型的泛化能力</p>
+<p><strong>滑动平均值（影子）计算公式</strong>：<code>影子 = 衰减率 * 影子 + (1 - 衰减率) * 参数</code>，其中$$衰减率 = min{MOVING\_AVERAGE\_DECAY, \frac{1 + 轮数}{10 + 轮数}}$$</p>
+<p>在TensorFlow中表示为</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># MOVING_AVERAGE_DECAY表示滑动平均衰减率，一般会赋接近1的值</span></span><br><span class="line"><span class="comment"># global_step表示当前训练了多少轮</span></span><br><span class="line">ema = tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY，global_step)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ema.apply()函数实现对括号内参数求滑动平均</span></span><br><span class="line"><span class="comment"># tf.trainable_variables()函数实现把所有待训练参数汇总为列表</span></span><br><span class="line">ema_op = ema.apply(tf.trainable_variables())</span><br><span class="line"><span class="keyword">with</span> tf.control_dependencies([train_step, ema_op]):</span><br><span class="line">    <span class="comment"># 该函数实现将滑动平均和训练过程同步运行</span></span><br><span class="line">    train_op = tf.no_op(name=<span class="string">&#x27;train&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h1><span id="5-正则化"> 5 正则化</span></h1>
+<p>神经网络模型在训练数据集上的准确率较高，在新的数据进行预测或分类时准确率较低，说明模型的泛化能力差。这种现象称为<strong>过拟合</strong></p>
+<p>正则化是指，在损失函数中给每个参数$w$加上权重，引入模型复杂度指标，从而抑制模型噪声，减小过拟合。使用正则化后，损失函数$loss$变为两项之和</p>
+$$loss = loss(y \;与\; y\_) + REGULARIZER \;*\; loss(w)$$
+<p><strong>正则化的两种方式</strong></p>
+<ol>
+<li>
+$L1$正则化$$loss_{L1} = \sum_i{|w_i|}$$
+</li>
+<li>
+$L2$正则化$$loss_{L1} = \sum_i{|w_i|^2}$$
+</li>
+</ol>
+<p>在TensorFlow中表示为</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># L1正则化</span></span><br><span class="line">loss(w) = tf.contrib.layers.l1_regularizer(REGULARIZER)(w)</span><br><span class="line"><span class="comment"># L2正则化</span></span><br><span class="line">loss(w) = tf.contrib.layers.l2_regularizer(REGULARIZER)(w)</span><br><span class="line"></span><br><span class="line">tf.add_to_collection(<span class="string">&#x27;losses&#x27;</span>, tf.contrib.layers.l2_regularizer(regularizer)(w)</span><br><span class="line">loss = cem + tf.add_n(tf.get_collection(<span class="string">&#x27;losses&#x27;</span>))</span><br></pre></td></tr></table></figure>
+<h1><span id="6-参考"> 6 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.icourse163.org/course/PKU-1002536002">人工智能实践：TensorFlow笔记-曹健</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/05/05/TensorFlow-%E6%90%AD%E5%BB%BA%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" rel="prev" title="TensorFlow-搭建神经网络">
+      <i class="fa fa-chevron-left"></i> TensorFlow-搭建神经网络
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/05/13/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" rel="next" title="TensorFlow-卷积神经网络">
+      TensorFlow-卷积神经网络 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 神经元模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 神经网络的层数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 神经网路待优化的参数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 损失函数(loss)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 均方误差</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.2 自定义损失函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.3 交叉熵</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 学习率</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 指数衰减学习率</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 滑动平均</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 正则化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,4425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="System-Architecture">
+<meta property="og:url" content="http://example.com/2021/11/16/System-Architecture/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/System-Architecture/3-1">
+<meta property="og:image" content="http://example.com/images/System-Architecture/3-2">
+<meta property="og:image" content="http://example.com/images/System-Architecture/3-3.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/6-1">
+<meta property="og:image" content="http://example.com/images/System-Architecture/6-2.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/6-3.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/6-4">
+<meta property="og:image" content="http://example.com/images/System-Architecture/6-5.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/6-6.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/6-7.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/7-1.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/7-2.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/7-3.png">
+<meta property="og:image" content="http://example.com/images/System-Architecture/cache-arch-1.jpeg">
+<meta property="og:image" content="http://example.com/images/System-Architecture/cache-arch-2.jpeg">
+<meta property="article:published_time" content="2021-11-16T01:19:25.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.363Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/System-Architecture/3-1">
+
+<link rel="canonical" href="http://example.com/2021/11/16/System-Architecture/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>System-Architecture | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/16/System-Architecture/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          System-Architecture
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-11-16 09:19:25" itemprop="dateCreated datePublished" datetime="2021-11-16T09:19:25+08:00">2021-11-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/System-Architecture/" itemprop="url" rel="index"><span itemprop="name">System Architecture</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/11/16/System-Architecture/" class="post-meta-item leancloud_visitors" data-flag-title="System-Architecture" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/11/16/System-Architecture/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/11/16/System-Architecture/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-概述"> 1 概述</span></h1>
+<h2><span id="11-引言"> 1.1 引言</span></h2>
+<p><strong>系统和系统架构：</strong></p>
+<ol>
+<li><strong>系统是为实现一个或多个所声明的目标而组织的相互关联的要素的组合</strong></li>
+<li><strong>系统架构是系统组件的组织结构、它们之间的关系、与环境的关系、以及指导其设计和进化的原则</strong></li>
+</ol>
+<p><strong>体系结构的定义：</strong></p>
+<ol>
+<li><strong>设计、选择和连接硬件组件以及设计硬件/软件接口，以创建一个满足功能、性能、能耗、成本和其他具体目标的计算系统的科学和艺术</strong></li>
+<li><strong>体现为描述计算机系统的功能、结构组织和实现的一组规则和方法</strong></li>
+</ol>
+<ul>
+<li><strong>广义：计算机体系结构指计算机（硬件）系统的抽象表示，基于这些抽象表示使得我们可以更好地使用可用的制造技术实现（信息处理）硬件系统，高效地设计与实现（信息处理）软件系统</strong></li>
+</ul>
+<p><strong>计算机体系结构研究范畴：</strong></p>
+<ul>
+<li><strong>早期定义（Amdahl, Blaauw, and Brooks, 1964）：程序员可见的计算系统的属性。包括：概念性的结构和功能行为。不包括：数据流和控制流的组织、逻辑设计以及物理实现</strong></li>
+<li><strong>狭义：计算机体系结构是软件设计者与硬件设备设计者（VLSI）之间的中间层（ISA），以及微体系结构</strong></li>
+<li><strong>扩展的观点：计算机体系结构包括：算法层、程序/语言层、系统软件层、ISA层、微体系结构、逻辑电路层、以及器件层</strong></li>
+</ul>
+<p><strong>计算机组成与实现：</strong></p>
+<ul>
+<li><strong>计算机组成（Computer Organization or Microarchitecture）：ISA的逻辑实现。包括，物理机器级中的数据流和控制流的组成以及逻辑设计等</strong></li>
+<li><strong>计算机实现（Computer Implementation）：计算机组成的物理实现。包括，<code>CPU</code>，<code>MEMORY</code>等的物理结构，器件的集成度、速度，模块、插件、底板的划分与连接、信号传输、电源、冷却及整机装配技术等</strong></li>
+</ul>
+<h2><span id="12-量化设计与分析基础"> 1.2 量化设计与分析基础</span></h2>
+<p><strong>管理复杂性：</strong></p>
+<ul>
+<li>将工程师或计算机科学家与门外汉区分开来的特征之一是管理复杂性的系统方法</li>
+<li>现代数字系统是由数百万甚至数十亿个晶体管组成的。没有人能够通过写出描述每个晶体管中电子运动的方程并同时解出所有方程来理解这些系统</li>
+<li><strong>管理复杂性的方法：抽象（Abstraction）+ 原则（Discipline）+ 3’Y</strong></li>
+</ul>
+<p><strong>影响体系结构技术发展的主要因素：</strong></p>
+<ul>
+<li>产品应用方面：<code>PC/Server =&gt; IoT, Mobile/Cloud</code></li>
+<li>集成电路技术方面：
+<ul>
+<li>登纳德缩放比例定律的终结：功耗成为关键制约条件</li>
+<li>Moore定律的终结：晶体管的集成度提高延缓</li>
+</ul>
+</li>
+<li>体系结构方面
+<ul>
+<li>挖掘指令级并行性方面的限制和低效，04年结束了单处理器时代</li>
+<li>Amdahl定律暗示了简单多核时代的结束</li>
+</ul>
+</li>
+</ul>
+<h2><span id="13-定量分析基础"> 1.3 定量分析基础</span></h2>
+<p><strong>过去数十年间，计算机系统设计方面的巨大变化</strong></p>
+<ul>
+<li>在过去的50年，<code>Moore's law</code>和<code>Dennard scaling</code>（登纳德缩放比例定律）主宰着芯片产业的发展
+<ul>
+<li><code>Moore</code>在1965年预测：晶体管数量随着尺寸缩小按接近平方关系增长（每18个月翻倍）</li>
+<li><code>Dennard</code>在1974年预测：晶体管尺寸变小，功耗会同比变小（相同面积下功耗不变）</li>
+<li>工艺技术的进步可在不改变软件模型的情况下，持续地提高系统性能/能耗比</li>
+</ul>
+</li>
+<li>最近10年间，工艺技术的发展受到了很大制约
+<ul>
+<li>Dennard scaling over（supply voltage ~fixed）</li>
+<li>Moore’s Law（cost/transistor）over?</li>
+<li>Energy efficiency constrains everything</li>
+</ul>
+</li>
+<li>功耗问题成为系统结构设计必须考虑的问题</li>
+<li>软件设计者必须考虑
+<ul>
+<li>Parallel systems</li>
+<li>Heterogeneous systems</li>
+</ul>
+</li>
+</ul>
+<p><strong>有关体系结构的新旧观念</strong></p>
+<ul>
+<li><strong>旧观念：</strong>
+<ul>
+<li>能源很便宜，晶体管很贵</li>
+<li>通过编译、体系结构创新来增加指令级并行</li>
+<li>乘法器速度较慢，访存速度比较快</li>
+<li>单处理器性能，每1.5年翻倍</li>
+</ul>
+</li>
+<li><strong>新观念：</strong>
+<ul>
+<li>能源很贵，晶体管很便宜</li>
+<li>挖掘指令级并行的收益越来越小</li>
+<li>乘法器速度提升了，访存成为瓶颈</li>
+<li><code>Power Wall + ILP Wall + Memory Wall = Brick Wall</code>，单处理器性能，每5年翻倍</li>
+<li>每2年，单个芯片上的处理器数量翻倍</li>
+</ul>
+</li>
+</ul>
+<p><strong>性能：</strong></p>
+<ul>
+<li>性能度量
+<ul>
+<li>响应时间</li>
+<li>吞吐率</li>
+</ul>
+</li>
+<li>CPU执行时间=<code>IC * CPI * T</code>
+<ul>
+<li><code>CPI</code>指的是<code>Cycles per Instruction</code></li>
+</ul>
+</li>
+<li><code>Latency</code>与<code>Bandwidth</code>
+<ul>
+<li><code>Latency</code>指单个任务的执行时间，<code>Bandwidth</code>指单位时间完成的任务量（rate）</li>
+<li><code>Latency</code>的提升滞后于带宽的提升（在过去的30年）</li>
+</ul>
+</li>
+<li><code>Amdahl's Law</code>用来度量加速比
+<ul>
+<li>性能提升受限于任务中可加速部分所占的比例</li>
+<li>应用于多处理器系统的基本假设：在给定的问题规模下，随着处理器数目的增加性能的变化</li>
+</ul>
+</li>
+<li><code>Benchmarks</code>：指一组用于测试的程序
+<ul>
+<li>比较计算机系统的性能（算术平均、调和平均、几何平均）</li>
+</ul>
+</li>
+</ul>
+<h2><span id="14-相关课件"> 1.4 相关课件</span></h2>
+<ul>
+<li><a href="/resources/course/System-Architecture/1-1.pdf">Chapter-1.1</a></li>
+<li><a href="/resources/course/System-Architecture/1-2.pdf">Chapter-1.2</a></li>
+<li><a href="/resources/course/System-Architecture/1-3.pdf">Chapter-1.3</a></li>
+</ul>
+<h1><span id="2-isa"> 2 ISA</span></h1>
+<h2><span id="21-isa的基本概念"> 2.1 ISA的基本概念</span></h2>
+<p><strong>什么是指令集架构？</strong></p>
+<ul>
+<li>软件子系统与硬件子系统的关键界面</li>
+<li>一组直接由硬件执行的指令，包括
+<ul>
+<li>程序员可见的机器状态</li>
+<li>程序员可见的指令集合（操作机器状态的指令）</li>
+</ul>
+</li>
+<li>应具备的特征（七个衡量指标）
+<ol>
+<li>成本（<code>cost</code>）</li>
+<li>简洁性（<code>simplicity</code>）</li>
+<li>性能（<code>performance</code>）：方便低层硬件子系统高效实现</li>
+<li>架构和具体实现分离（<code>isolation of architecture from implementation</code>）：可持续多代，以保持向后兼容</li>
+<li>可扩展空间（<code>room for growth</code>）：可用于不同应用领域（desktops、servers、embedded applications）</li>
+<li>程序大小（<code>program size</code>）：所生成的代码占用空间小</li>
+<li>易于编程/编译/链接（<code>ease of programming/compiling/linking</code>）：为高层软件的实现与开发提供方便的功能</li>
+</ol>
+</li>
+</ul>
+<p><strong>重要的系统界面（System Interface）：</strong></p>
+<ul>
+<li><code>ISA</code>界面</li>
+<li><code>ABI</code>界面</li>
+</ul>
+<p><strong><code>ISA</code>：用户级<code>ISA</code>+特权级<code>ISA</code></strong></p>
+<ul>
+<li>用户级ISA适用于操作系统和应用程序</li>
+<li>特权级ISA适用于硬件资源的管理（操作系统）</li>
+</ul>
+<p><strong>ISA必须说明哪些东西？</strong></p>
+<ul>
+<li>指令格式</li>
+<li>存储器寻址</li>
+<li>操作数的类型和大小</li>
+<li>所支持的操作</li>
+<li>控制转移类指令</li>
+</ul>
+<p><strong>尾端问题：在一个字内部的字节顺序问题，以int（<code>0x12345678</code>）为例</strong></p>
+<ul>
+<li><code>Little Endian</code>：又称小端，高位在前，但是每个字节内部的<code>bit</code>还是按原来的顺序存放，即<code>0x78-&gt;0x56-&gt;0x34-&gt;0x12</code></li>
+<li><code>Big Endian</code>：又称大端，低位在前，即<code>0x12-&gt;0x34-&gt;0x56-&gt;0x78</code></li>
+</ul>
+<p><strong>寻址方式：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Model</th>
+<th style="text-align:left">Example</th>
+<th style="text-align:left">Meaning</th>
+<th style="text-align:left">When used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Register</td>
+<td style="text-align:left"><code>Add R1, R2</code></td>
+<td style="text-align:left"><code>R1 ← R1 + R2</code></td>
+<td style="text-align:left">操作数在寄存器中</td>
+</tr>
+<tr>
+<td style="text-align:left">Immediate</td>
+<td style="text-align:left"><code>Add R1, 100</code></td>
+<td style="text-align:left"><code>R1 ← R1 + 100</code></td>
+<td style="text-align:left">立即数寻址，常量</td>
+</tr>
+<tr>
+<td style="text-align:left">Register Indirect</td>
+<td style="text-align:left"><code>Add R1, (R2)</code></td>
+<td style="text-align:left"><code>R1 ← R1 + Mem(R2)</code></td>
+<td style="text-align:left"><code>R2</code>存储的是地址</td>
+</tr>
+<tr>
+<td style="text-align:left">Displacement</td>
+<td style="text-align:left"><code>Add R1, (R2 + 16)</code></td>
+<td style="text-align:left"><code>R1 ← R1 + Mem(R2 + 16)</code></td>
+<td style="text-align:left">访问局部变量</td>
+</tr>
+<tr>
+<td style="text-align:left">Absolute</td>
+<td style="text-align:left"><code>Add R1, (1000)</code></td>
+<td style="text-align:left"><code>R1 ← R1 + Mem(1000)</code></td>
+<td style="text-align:left">访问静态变量</td>
+</tr>
+<tr>
+<td style="text-align:left">Indexed</td>
+<td style="text-align:left"><code>Add R1, (R2 + R3)</code></td>
+<td style="text-align:left"><code>R1 ← R1 + Mem(R2 + R3)</code></td>
+<td style="text-align:left">偏移寻址，<code>R2 = base</code>、<code>R3 = index</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Scaled Index</td>
+<td style="text-align:left"><code>Add R1, (R2 + s * R3)</code></td>
+<td style="text-align:left"><code>R1 ← R1 + Mem(R2 + s * R3)</code></td>
+<td style="text-align:left"><code>s = scale factor(2,4,8)</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Post-increment</td>
+<td style="text-align:left"><code>Add R1, (R2)+</code></td>
+<td style="text-align:left"><code>R1 ← R1 + Mem(R2)</code><br><code>R2 ← R2 + s</code></td>
+<td style="text-align:left">向后跳过<code>array</code>，其中<code>s = element size</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Pre-decrement</td>
+<td style="text-align:left"><code>Add R1, -(R2)</code></td>
+<td style="text-align:left"><code>R2 ← R2 - s</code><br><code>R1 ← R1 + Mem(R2)</code></td>
+<td style="text-align:left">向前跳过<code>array</code>，其中<code>s = element size</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>操作数的类型、表示和大小：</strong></p>
+<ul>
+<li>操作数类型和操作数表示是软硬件的主要界面之一</li>
+<li>操作数类型：是面向应用、面向软件系统所处理的各种数据类型</li>
+<li>操作数的表示：操作数在机器中的表示，硬件结构能够识别，指令系统可以直接使用的表示格式</li>
+</ul>
+<p><strong>控制类指令：</strong></p>
+<ol>
+<li>条件分支<code>Conditional Branch</code></li>
+<li>跳转<code>Jump</code></li>
+<li>过程调用<code>Procedure calls</code></li>
+<li>过程返回<code>Procedure returns</code></li>
+</ol>
+<p><strong>指令格式选择策略</strong></p>
+<ul>
+<li>如果代码规模最重要，那么使用变长指令格式</li>
+<li>如果性能至关重要，使用固定长度指令</li>
+<li>有些嵌入式CPU附加可选模式，由每一应用自己选择性能还是代码量</li>
+</ul>
+<h2><span id="22-isa的功能设计"> 2.2 ISA的功能设计</span></h2>
+<p><strong>功能设计：</strong></p>
+<ul>
+<li>任务：确定硬件支持哪些操作</li>
+<li>方法：统计的方法</li>
+</ul>
+<p><strong>CISC：</strong></p>
+<ul>
+<li>目标：强化指令功能，减少运行的指令条数，提高系统性能</li>
+<li>方法：面向目标程序的优化，面向高级语言和编译器的优化</li>
+</ul>
+<p><strong>RISC：</strong></p>
+<ul>
+<li>目标：通过简化指令系统，用高效的方法实现最常用的指令</li>
+<li>方法：充分发挥流水线的效率，降低CPI</li>
+</ul>
+<h3><span id="221-cisc"> 2.2.1 CISC</span></h3>
+<p><strong>目标：强化指令功能，减少指令条数，以提高系统性能</strong></p>
+<p><strong>基本优化方法：</strong></p>
+<ol>
+<li><strong>面向目标程序的优化是提高计算机系统性能最直接的方法</strong>
+<ul>
+<li>优化目标：
+<ul>
+<li>缩短程序长度</li>
+<li>缩短程序的执行时间</li>
+</ul>
+</li>
+<li>优化方法：
+<ul>
+<li>统计分析目标程序执行情况，找出使用频率高，执行时间长的指令或指令串</li>
+<li>优化使用频度高的指令</li>
+<li>用心得指令代替使用频度高的指令串</li>
+</ul>
+</li>
+<li>主要优化途径：
+<ol>
+<li>增强运算型指令的功能</li>
+<li>增强数据传送类指令的功能</li>
+<li>增强程序控制指令的功能</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><strong>面向高级语言和编译程序改进指令系统</strong>
+<ul>
+<li>优化目标：
+<ul>
+<li>缩小<code>HL-ML</code>之间的差距</li>
+</ul>
+</li>
+<li>优化方法：
+<ol>
+<li>增强面向<code>HL</code>和<code>Compiler</code>支持的指令功能
+<ul>
+<li>统计分析源程序中各种语句的使用频度和执行时间</li>
+<li>增强相关指令的功能，优化使用频度高、执行时间长的语句</li>
+<li>增加专门指令，以缩短目标程序长度，减少目标程序执行时间，缩短编译时间</li>
+</ul>
+</li>
+<li>高级语言计算机系统：缩小<code>HL</code>和<code>ML</code>的差别
+<ul>
+<li>极端：<code>HL=ML</code>，即所谓的高级语言计算机高级语言不需要经过编译，直接由机器硬件来执行</li>
+<li>如<code>LISP</code>机，<code>PROLOG</code>机</li>
+</ul>
+</li>
+<li>支持操作系统的优化实现：特权指令
+<ul>
+<li>处理器工作状态和访问方式的转换</li>
+<li>进程的管理和切换</li>
+<li>存储管理和信息保护</li>
+<li>进程同步和互斥，信号量的管理等</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ol>
+<h3><span id="222-risc"> 2.2.2 RISC</span></h3>
+<p><strong>目标：通过简化指令系统，用最高效的方法实现最常用的指令</strong></p>
+<p><strong><code>RISC</code>是一种计算机体系结构的设计思想，它不是一种产品</strong></p>
+<p><strong><code>RISC</code>是近代计算机体系结构发展史中的一个里程碑</strong></p>
+<p><strong>早期对RISC特点的描述：</strong></p>
+<ul>
+<li>大多数指令在单周期内完成</li>
+<li>采用<code>Load/Store</code>结构</li>
+<li>硬布线控制逻辑</li>
+<li>少指令和寻址方式的种类</li>
+<li>固定的指令格式</li>
+<li>注重代码的优化</li>
+</ul>
+<p><strong>从目前的发展看，<code>RISC</code>体系结构还应具有如下特点：</strong></p>
+<ul>
+<li>面向寄存器结构</li>
+<li>十分重视流水线的执行效率－尽量减少断流</li>
+<li>重视优化编译技术</li>
+</ul>
+<p><strong>减少指令平均执行周期数是<code>RISC</code>思想的精华</strong></p>
+<p><strong><code>RISC</code>如何降低<code>CPI</code>：</strong></p>
+<ul>
+<li>硬件方面：
+<ul>
+<li>硬布线控制逻辑</li>
+<li>减少指令和寻址方式的种类</li>
+<li>使用固定格式</li>
+<li>采用Load/Store</li>
+<li>指令执行过程中设置多级流水线</li>
+</ul>
+</li>
+<li>软件方面：十分强调优化编译的作用</li>
+</ul>
+<h3><span id="223-典型isa"> 2.2.3 典型ISA</span></h3>
+<h4><span id="2231-mips"> 2.2.3.1 MIPS</span></h4>
+<p><strong>MIPS是最典型的RISC 指令集架构：</strong></p>
+<ul>
+<li><code>Stanford</code>（1980）提出</li>
+<li>第一个商业实现是<code>R2000</code>（1986）</li>
+<li>最初的设计中，其整数指令集仅有58条指令，直接实现单发射、顺序流水线</li>
+<li>30年来，逐步增加到约400条指令。</li>
+</ul>
+<p><strong>主要特征：</strong></p>
+<ul>
+<li><code>Load/Store</code>型结构</li>
+<li><code>ALU</code>类指令的操作数来源于寄存器或立即数</li>
+<li>降低了<code>ISA</code>和硬件的复杂性，方便了流水线的实现</li>
+<li>依赖于优化编译技术</li>
+</ul>
+<p><strong>主要缺陷：</strong></p>
+<ul>
+<li>针对特定的微体系架构的实现方式（5级流水、单发射、顺序流水线）进行过度的优化设计</li>
+<li><code>ISA</code>对位置无关的代码（position-independent code, PIC）支持不足</li>
+<li>16位位宽立即数消耗了大量编码空间，只有少量的编码空间可供扩展指令</li>
+<li>乘除指令使用了特殊的寄存器（<code>HI</code>，<code>LO</code>），导致上下文切换内容、指令条数、代码尺寸增加，微架构实现复杂</li>
+<li>除了技术方面，<code>MIPS</code>是非开放的专属指令集，不能自由使用</li>
+</ul>
+<h4><span id="2232-sparc"> 2.2.3.2 SPARC</span></h4>
+<p><strong><code>Sun Microsystems</code>的专属指令集</strong></p>
+<p><strong><code>SPARC V8</code>主要特征</strong></p>
+<ul>
+<li>用户级整型<code>ISA</code>90条指令</li>
+<li>硬件支持<code>IEEE 754-1985</code>标准的浮点数50条</li>
+<li>特权级指令20条</li>
+</ul>
+<p><strong>主要问题：</strong></p>
+<ul>
+<li><code>SPARC</code>使用了寄存器窗口来加速函数调用。当函数调用所需的栈空间超过了窗口的寄存器数，性能会急剧下降。对于所有的实现来说，寄存器窗口都消耗很大的面积和功耗</li>
+<li>分支使用条件码。这些条件码由于在一些指令之间创建了额外的依赖关系，增加了体系结构状态并使实现复杂化</li>
+<li><code>load</code>和<code>store</code>相邻寄存器对的指令。对于简单的微体系结构很有吸引力，可以在增加很少硬件复杂性的情况下提高吞吐量。遗憾的是当使用寄存器重命名时使实现复杂化，因为在寄存器文件中数据在物理上可能不再相邻</li>
+<li>浮点寄存器文件和整数寄存器文件之间的移动必须使用内存系统作为中介，限制了系统性能</li>
+<li>唯一的原子内存操作是<code>fetch-and-store</code>，这对于实现许多无等待的数据结构是不够的</li>
+</ul>
+<h4><span id="2233-alphadec"> 2.2.3.3 Alpha（DEC）</span></h4>
+<p><strong>主要特征：</strong></p>
+<ul>
+<li>摒弃了当时非常吸引人的特性，如分支延迟、条件码、寄存器窗口等</li>
+<li>创建了64位寻址空间、设计简洁、实现简单、高性能的ISA</li>
+<li><code>Alpha</code>架构师仔细地将特权体系结构和硬件平台的大部分细节隔离在抽象接口（特权体系结构库）后面（PALcode）</li>
+</ul>
+<p><strong>主要问题：DEC对顺序微架构的Alpha进行了过度优化，并添加了一些不太适合现代实现的特性</strong></p>
+<ul>
+<li>为了追求高时钟频率，<code>ISA</code>的原始版本避免了8位和16位的<code>load/store</code>指令，实际上创建了一个字寻址的内存系统。为了补偿广泛使用这些（非字）操作的应用程序性能，添加了特殊的未对齐的<code>load/store</code>指令以及一些整数指令来加速重新对齐操作</li>
+<li>为了方便长延迟浮点指令的乱序完成，<code>Alpha</code>有一个非精确的浮点陷阱模型。这一决定单独来看是可以的。但是<code>ISA</code>还规定：如果使用这种浮点陷阱模型，必须由软件处理例程来给出异常标记和默认值</li>
+<li><code>Alpha</code>缺少整数除法指令，建议使用软件牛顿迭代法实现，导致浮点除法速度高于整数除法</li>
+<li>与其他前期的<code>RISC</code>一样，没有预先考虑可能的压缩指令集扩展，因此没有足够的操作码空间来进行更新</li>
+<li><code>ISA</code>包含有条件的<code>mov</code>操作，这使得带有寄存器重命名的微架构复杂化</li>
+<li>使用商业<code>Alpha ISAs</code>的一个重要风险：它们可能会被摒弃</li>
+</ul>
+<h4><span id="2234-armv7"> 2.2.3.4 ARMv7</span></h4>
+<p><strong><code>ARMv7</code>是32位<code>RISC ISA</code></strong></p>
+<ul>
+<li>使用最广的体系结构
+<ul>
+<li>当我们权衡指令集（选择<code>vs</code>重新设计）时，<code>ARMv7</code>是一个自然的选择</li>
+<li>大量的软件已经移植到该<code>ISA</code>上，在嵌入式和移动设备中无处不在</li>
+</ul>
+</li>
+<li>是一个封闭的标准，剪裁或扩充是不允许的，即使是微架构的创新也仅限于那些能够获得ARM所称的架构许可的组织</li>
+<li><code>ARMv7</code>十分庞大复杂。整型类指令600+条</li>
+</ul>
+<p><strong>即使知识产权不是问题，它仍然存在一些技术缺陷：</strong></p>
+<ul>
+<li>不支持64位地址，<code>ISA</code>缺乏硬件支持<code>IEEE754-2008</code>标准（<code>ARMv8</code>纠正了这些缺陷）</li>
+<li>特权体系结构的细节渗透到用户级体系结构的定义中</li>
+<li><code>ISA</code>中包含了许多实现复杂的特性。例如程序计数器PC是整数寄存器组的成员，这意味着几乎任何指令都可以改变控制流（比如<code>ADD</code>指令）</li>
+</ul>
+<h4><span id="2235-armv8"> 2.2.3.5 ARMv8</span></h4>
+<p><strong>2011年，<code>ARM</code>发布新的<code>ISA ARMv8</code></strong></p>
+<ul>
+<li>64位地址；扩展了整型寄存器组</li>
+<li>摒弃了<code>ARMv7</code>中实现复杂的一些特性</li>
+</ul>
+<p><strong>主要问题：</strong></p>
+<ul>
+<li>使用条件码</li>
+<li>存在许多特殊的寄存器</li>
+<li>指令集更加厚重：1070条指令，53种格式，8种寻址方式。说明文档达到了5778页</li>
+<li>以暴露底层实现的方式将用户级<code>ISA</code>和特权级<code>ISA</code>紧密地结合在一起</li>
+<li>随着<code>ARMv8</code>的引入，<code>ARM</code>不再支持压缩指令编码</li>
+<li><code>ARMv8</code>也是一个封闭的标准</li>
+</ul>
+<h4><span id="2236-openrisc"> 2.2.3.6 OpenRISC</span></h4>
+<p><strong>OpenRISC项目是一个开放源码处理器设计项目</strong></p>
+<ul>
+<li>来源于<code>Hennessy</code>和<code>Patterson</code>的体系结构教科书<code>DLX ISA</code></li>
+<li>适用于教学、科研和工业界的实现</li>
+</ul>
+<p><strong>主要问题：</strong></p>
+<ul>
+<li>OpenRISC项目主要是开源处理器设计项目，而不是开源的<code>ISA</code>规格说明，ISA和实现是紧密耦合的</li>
+<li>固定的32位编码与16位立即数阻碍了压缩<code>ISA</code>扩展</li>
+<li>不支持<code>IEEE 754-2008</code>标准</li>
+<li>用于分支和有条件mov的条件码使高性能实现复杂化</li>
+<li><code>ISA</code>对位置无关的寻址方式支持较弱</li>
+<li><code>OpenRISC</code>不利于虚拟化。从异常返回的指令<code>L.RFE</code>，定义为在用户模式下功能，而不是捕获</li>
+</ul>
+<h4><span id="2237-80x86"> 2.2.3.7 80x86</span></h4>
+<p><strong><code>Intel 8086</code>架构是过去40年里 笔记本电脑、台式机和服务器市场上最流行的指令集</strong></p>
+<ul>
+<li>除了嵌入式系统领域，几乎所有流行的软件都被移植到x86上，或者是为x86开发的</li>
+<li>它受欢迎的原因有很多：该架构在<code>IBM PC</code>诞生之初的偶然可用性；英特尔专注于二进制兼容性；它们积极的卓有成效的微结构实现；以及他们的前沿制造技术</li>
+<li>指令集设计质量并不是它流行的原因之一</li>
+</ul>
+<p><strong>主要问题：</strong></p>
+<ul>
+<li>1300条指令，许多寻址方式，很多特殊寄存器，多种地址翻译方式，从<code>AMD K5</code>微架构开始，所有的<code>Intel</code>支持乱序执行的微结构，都是动态地将x86指令翻译为内部的<code>RISC</code>风格的指令集。</li>
+<li>不利于虚拟化。因为一些特权指令在用户模式下会无声地失败，而不是被捕获。<code>VMware</code>的工程师们用动态二进制翻译软件解决了这一缺陷</li>
+<li><code>ISA</code>的指令长度为任意整数字节数，最多为15个字节，数量较少的短操作码已经被随意使用</li>
+<li><code>ISA</code>有数量极少的寄存器组</li>
+<li>大多数整数寄存器在<code>ISA</code>中执行特殊功能，加剧了体系结构寄存器的不足</li>
+<li>更糟糕的是，大多数x86指令只有一种破坏性的指令格式，它会覆盖其中一个源操作数</li>
+<li>一些<code>ISA</code>特性，包括隐式条件码和带有谓词的mov操作，在微架构中实现复杂</li>
+</ul>
+<p><strong>80x86是一个专有指令集</strong></p>
+<h4><span id="2238-小结"> 2.2.3.8 小结</span></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">MIPS</th>
+<th style="text-align:left">SPARAC</th>
+<th style="text-align:left">Alpha</th>
+<th style="text-align:left">ARMv7</th>
+<th style="text-align:left">ARMv8</th>
+<th style="text-align:left">OpenRISC</th>
+<th style="text-align:left">80x86</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Free and Open</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">64-bit Address</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+</tr>
+<tr>
+<td style="text-align:left">Compressed Instructions</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">Partial</td>
+</tr>
+<tr>
+<td style="text-align:left">Separate Privileged ISA</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">Position-Indep. Code</td>
+<td style="text-align:left">Partial</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+</tr>
+<tr>
+<td style="text-align:left">IEEE 754-2008</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+</tr>
+<tr>
+<td style="text-align:left">Classically Virtualizable</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">✅</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+</tr>
+</tbody>
+</table>
+<h2><span id="23-isa的实现"> 2.3 ISA的实现</span></h2>
+<p><strong>通用的<code>ISA</code>的设计理念（指导思想）：</strong></p>
+<ul>
+<li>能适应从最袖珍的嵌入式控制器，到最快的高性能计算机等各种规模的处理器</li>
+<li>能兼容各种流行的软件栈和编程语言</li>
+<li>适应所有实现技术，包括现场可编程门阵列（FPGA）、专用集成电路（ASIC）、全定制芯片，甚至未来的技术</li>
+<li>对所有微体系结构实现方式都有效。例如：
+<ul>
+<li>微程序或硬布线控制；顺序或乱序执行流水线；单发射或超标量等等</li>
+</ul>
+</li>
+<li>支持定制化，成为定制专用加速器的基础。随着摩尔定律的消退，加速器的重要性日益提高</li>
+<li>基础的指令集架构是稳定的。避免被弃用，如过去的<code>AMD Am29000</code>、<code>Digital Alpha</code>、<code>Digital VAX</code>、<code>Hewlett Packard PA-RISC</code>、<code>Intel i860</code>、<code>Intel i960</code>、<code>Motorola 88000</code>、以及<code>Zilog Z8000</code></li>
+<li>完全开源</li>
+</ul>
+<p><strong>技术目标：</strong></p>
+<ul>
+<li>将<code>ISA</code>分成基础<code>ISA</code>和可选的扩展部分
+<ul>
+<li><code>ISA</code>的基础部分足够简单、完整，可以用于教学和嵌入式处理器，包括定制加速器的控制单元。它足够完整，可以运行软件栈</li>
+<li>扩展部分提高计算的性能，并支持多处理机并行</li>
+<li>支持32位和64位地址空间</li>
+</ul>
+</li>
+<li>方便根据应用需求扩展<code>ISA</code>（指令集扩展）
+<ul>
+<li>包括紧耦合功能单元和松耦合协处理器</li>
+</ul>
+</li>
+<li>支持变长指令集扩展
+<ul>
+<li>既为了提高代码密度，也为了扩展可能的自定义<code>ISA</code>扩展的空间</li>
+</ul>
+</li>
+<li>提供对现代标准的有效硬件支持</li>
+<li>用户级<code>ISA</code>和特权级<code>ISA</code>是正交的（相互独立，互不依赖）
+<ul>
+<li>在保持用户应用程序二进制接口（ABI）兼容性的同时，允许完全虚拟化，并允许在特权<code>ISA</code>中进行实验测试</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>RISC-V ISA</code>的特点：</strong></p>
+<ul>
+<li><strong>完全开源</strong>
+<ul>
+<li>它属于一个开放的，非营利性质的<code>RISC-V</code>基金会</li>
+<li>开源采用<code>BSD</code>协议（企业完全自由免费使用，允许企业添加自有指令而不必开放共享以实现差异化发展）</li>
+</ul>
+</li>
+<li><strong>架构简单</strong>
+<ul>
+<li>没有针对某一种微体系结构实现方式做过度的架构设计</li>
+<li>新的指令集，没有向后（backward）兼容的包袱</li>
+<li>说明书的页数少</li>
+</ul>
+</li>
+<li><strong>模块化的指令集架构</strong>
+<ul>
+<li><code>RV32I</code>和<code>RV64I</code>是基础的<code>ISA</code>。可扩展增加其他特性的支持</li>
+<li>面向教育或科研，易于扩充或剪裁</li>
+<li>支持32位和64位地址空间</li>
+</ul>
+</li>
+<li><strong>面向多核并行</strong></li>
+<li><strong>有效的指令编码方式</strong></li>
+</ul>
+<p><strong>为什么学习微程序控制？</strong></p>
+<ol>
+<li>如何用一个结构简单的处理器实现复杂<code>ISA</code></li>
+<li><code>CISC</code>机器怎么发展起来的
+<ul>
+<li>CISC指令集仍然广泛使用（<code>x86</code>、<code>IBM360</code>、<code>PowerPC</code>）</li>
+</ul>
+</li>
+<li>帮助我们理解技术驱动从<code>CISC-&gt;RISC</code></li>
+</ol>
+<p><strong>微程序控制：</strong></p>
+<ul>
+<li>每条<code>宏指令</code>是通过执行一段由若干条<code>微指令</code>构成的微程序来完成</li>
+<li>微程序技术对计算机技术与产业发展起到了巨大的推动作用</li>
+<li>可以采用简单的数据通路以及微程序控制器实现复杂的指令</li>
+</ul>
+<p><strong>处理器设计可以分为<code>datapath</code>和<code>Control</code>设计两部分</strong></p>
+<ul>
+<li><code>datapath</code>：存储数据、算术逻辑运算单元、内部处理器总线</li>
+<li><code>control</code>：控制数据通路上的一系列操作</li>
+</ul>
+<p><strong>60到70年代微程序盛行的原因</strong></p>
+<ol>
+<li><code>ROM</code>比<code>DRAM</code>要快的多
+<ul>
+<li>微程序存放在<code>ROM</code>中实现扩展的复杂指令</li>
+</ul>
+</li>
+<li>对于复杂的指令集，采用微程序设计技术使得<code>datapath</code>和<code>controller</code>更便宜、更简单
+<ul>
+<li>新的指令（例如 floating point）可以在不修改数据通路情况下增加</li>
+<li>修改控制器的bug更容易</li>
+</ul>
+</li>
+<li>不同型号的机器实现<code>ISA</code>的兼容性更简单、成本更低</li>
+</ol>
+<p><strong>80年代初的微程序技术</strong></p>
+<ul>
+<li>微程序技术的进展孕育了更复杂的微程序控制的机器
+<ul>
+<li>复杂指令集导致<code>µcode</code>需要子程序和调用堆栈</li>
+<li>需要修复控制程序中的bug与<code>µROM</code>的只读属性冲突</li>
+</ul>
+</li>
+<li>随着超大规模集成电路技术的出现，有关<code>ROM</code>和<code>RAM</code>速度的假设变得无效
+<ul>
+<li>逻辑部件、存储部件（<code>RAM</code>, <code>ROM</code>）均采用MOS晶体管实现</li>
+<li>半导体<code>RAM</code>与<code>ROM</code>的存取速度相同</li>
+</ul>
+</li>
+<li>随着编译器技术的进步，复杂指令变得不再那么重要</li>
+<li>随着微结构技术的进步（pipeling, caches and buffers），使得多周期执行<code>reg-reg</code>指令失去了吸引力</li>
+</ul>
+<h2><span id="24-相关课件"> 2.4 相关课件</span></h2>
+<ul>
+<li><a href="/resources/course/System-Architecture/2-1.pdf">Chapter-2.1</a></li>
+<li><a href="/resources/course/System-Architecture/2-2.pdf">Chapter-2.2</a></li>
+<li><a href="/resources/course/System-Architecture/2-3.pdf">Chapter-2.3</a></li>
+</ul>
+<h1><span id="3-基本流水线"> 3 基本流水线</span></h1>
+<h2><span id="31-基本流水线"> 3.1 基本流水线</span></h2>
+<p><strong>流水线的基本概念</strong></p>
+<ul>
+<li>一个任务可以分解为<code>k</code>个子任务
+<ul>
+<li><code>k</code>个子任务在<code>k</code>个不同阶段（使用不同的资源）运行</li>
+<li>每个子任务执行需要1个单位时间</li>
+<li>整个任务的执行时间为<code>k</code>倍单位时间</li>
+</ul>
+</li>
+<li>流水线执行模式是重叠执行模式
+<ul>
+<li><code>k</code>个流水段并行执行<code>k</code>个不同任务</li>
+<li>每个单位时间进入/离开流水线一个任务</li>
+<li><img src="/images/System-Architecture/3-1" alt="3-1"></li>
+</ul>
+</li>
+</ul>
+<p><strong>流水线性能衡量：</strong></p>
+<ul>
+<li>设$\tau_i = time\ delay\ in\ stage\ S_i$</li>
+<li>时钟周期$\tau = max(\tau_i)$为最长的流水段延迟</li>
+<li>时钟频率$f = \frac{1}{\tau} = \frac{1}{max(\tau_i)}$</li>
+<li>流水线可以再<code>k + n -1</code>个时钟周期完成n个任务
+<ul>
+<li>完成第一个任务需要<code>k</code>个时钟周期</li>
+<li>其他<code>n-1</code>个任务需要<code>n-1</code>个时钟周期</li>
+</ul>
+</li>
+<li><code>k</code>段流水线的理想加速比（相对于串行执行）
+<ul>
+<li>
+$S_k = \frac{Serial\ execution\ in\ cycles}{Pipelined\ execution\ in\ cycles}=\frac{nk}{k+n-1}$
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>典型的RISC 5段指令流水线</strong></p>
+<ul>
+<li>5个流水段，每段的延迟为1个cycle</li>
+<li><strong><code>IF（Instruction Fetch）</code>：取指令阶段</strong>
+<ul>
+<li>选择地址：下一条指令地址、转移地址</li>
+</ul>
+</li>
+<li><strong><code>ID（Instruction Decode）</code>：指令译码</strong>
+<ul>
+<li>确定控制信号并从寄存器文件中读取寄存器值</li>
+</ul>
+</li>
+<li><strong><code>EX（Execute Address Calc）</code>：执行</strong>
+<ul>
+<li><code>Load/Store</code>：计算有效地址</li>
+<li><code>Branch</code>：计算转移地址并确定转移方向</li>
+</ul>
+</li>
+<li><strong><code>MEM（Memory Access）</code>：存储器访问（仅<code>Load</code>和<code>Store</code>）</strong></li>
+<li><strong><code>WB（Write Back）</code>：结果写回</strong></li>
+</ul>
+<p><strong>流水线的可视化表示：多条指令执行多个时钟周</strong></p>
+<ul>
+<li>指令按程序序从上到下排列</li>
+<li>图中展示了每一时钟周期资源的使用情况</li>
+<li>不同指令相邻阶段之间没有干扰</li>
+<li><img src="/images/System-Architecture/3-2" alt="3-2"></li>
+</ul>
+<p><strong>流水线的技术要点：</strong></p>
+<ul>
+<li><strong>流水线的基本概念</strong>
+<ul>
+<li>多个任务重叠（并发/并行）执行，但使用不同的资源</li>
+<li>流水线技术提高整个系统的吞吐率，不能缩短单个任务的执行时间</li>
+<li>其潜在的加速比＝流水线的级数</li>
+</ul>
+</li>
+<li><strong>流水线正常工作的基本条件</strong>
+<ul>
+<li>增加寄存器文件保存当前段传送到下一段的数据和控制信息</li>
+<li>需要更高的存储器带宽</li>
+</ul>
+</li>
+<li><strong>流水线的相关<code>Hazards</code>问题</strong>
+<ul>
+<li>由于存在相关<code>Hazards</code>问题，会导致流水线停顿</li>
+<li><code>Hazards</code>问题：流水线的执行可能会导致对资源的访问冲突，或破坏对资源的访问顺序</li>
+</ul>
+</li>
+</ul>
+<p><strong>流水线的相关<code>Hazards</code>：</strong></p>
+<ul>
+<li>结构相关：流水线中一条指令可能需要另一条指令使用的资源</li>
+<li>数据和控制相关：一条指令可能依赖于先前的指令生成的内容
+<ul>
+<li>数据相关：依赖先前指令产生的结果（数据）值</li>
+<li>控制相关：依赖关系是如何确定下一条指令地址（<code>branches</code>，<code>exceptions</code>）</li>
+</ul>
+</li>
+<li>处理相关的一般方法是插入<code>bubble</code>，导致<code>CPI&gt;1</code>（单发射理想CPI）</li>
+</ul>
+<p><strong>消减结构相关：</strong></p>
+<ul>
+<li>当两条指令同时需要相同的硬件资源时，就会发生结构相关（冲突）
+<ul>
+<li>方法1：通过将新指令延迟到前一条指令执行完（释放资源后）执行</li>
+<li>方法2：增加新的资源。例如，如果两条指令同时需要操作存储器，可以通过增加到两个存储器操作端口来避免结构冲突</li>
+</ul>
+</li>
+<li>经典的<code>RISC</code>5-段整型数流水线通过设计可以没有结构相关
+<ul>
+<li>很多<code>RISC</code>实现在时存在结构相关。例如多周期操作的<code>multipliers</code>、<code>dividers</code>、<code>floating-point units</code>等，由于没有多个寄存器文件写端口导致结构冲突</li>
+</ul>
+</li>
+</ul>
+<p><strong>三种基本的数据相关：</strong></p>
+<ul>
+<li><strong>写后读相关：<code>RAW, Read After Write</code></strong></li>
+<li><strong>读后写相关：<code>WAR, Write After Read</code></strong></li>
+<li><strong>写后写相关：<code>WAW, Write After Write</code></strong></li>
+</ul>
+<p><strong>消减数据相关的三种策略：</strong></p>
+<ol>
+<li>联锁机制（<code>Interlock</code>）：在issue阶段保持当前相关指令，等待相关解除</li>
+<li>设置旁路定向路径（<code>Bypass or Forwarding</code>）：只要结果可用，通过旁路尽快传递数据</li>
+<li>投机（Speculate）：猜测一个值继续，如果猜测错了再更正。这种技术，仅在某些情况下可以使用
+<ul>
+<li>分支预测</li>
+<li>堆栈指针更新</li>
+<li>存储器地址消除歧义</li>
+</ul>
+</li>
+</ol>
+<p><strong>延迟槽技术（<code>Branch Delay Slots</code>）</strong></p>
+<ul>
+<li>对于分支跳转指令，在指令执行完毕之前，无法知道下一条指令的具体位置。而cpu又是流水线执行，因此需要插入一些空指令，这些空指令<code>NOP</code>所占据的时空就称谓延迟槽。更高级的做法是，将一些与分支跳转指令无关的指令，填充到这个延迟槽中，以提高指令执行效率</li>
+<li>软件不得不填充延迟槽，即用<code>NOP</code>或者真实指令填充延迟槽</li>
+</ul>
+<p><strong><code>Post-1990 RISC ISAs</code>取消了延迟槽</strong></p>
+<ul>
+<li>性能问题
+<ul>
+<li>当延迟槽中填充了<code>NOP</code>指令后，增加了<code>I-Cache</code>的失效率</li>
+<li>即使延迟槽中只有一个<code>NOP</code>，<code>I-Cache</code>失效导致机器等待</li>
+</ul>
+</li>
+<li>使先进的微体系架构复杂化</li>
+<li>分支预测技术的进步减少了采用延迟槽技术的动力</li>
+</ul>
+<p><strong>解决控制相关的方法</strong></p>
+<ol>
+<li><code>Stall</code>直到分支方向确定
+<ul>
+<li>可通过修改数据通路，减少<code>Stall</code></li>
+</ul>
+</li>
+<li>预测分支失败
+<ul>
+<li>直接执行后继指令</li>
+<li>如果分支实际情况为分支成功，则撤销流水线中的指令对流水线状态的更新</li>
+<li>要保证：分支结果出来之前不会改变处理机的状态，以便一旦猜错时，处理机能够回退到原先的状态</li>
+</ul>
+</li>
+<li>预测分支成功
+<ul>
+<li>前提：先知道分支目标地址，后知道分支是否成功</li>
+</ul>
+</li>
+<li>延迟转移技术</li>
+</ol>
+<p><strong>为什么在经典的五段流水线中指令不能在每个周期都被分发<code>CPI&gt;1</code></strong></p>
+<ul>
+<li>采用全定向路径可能代价太高而无法实现
+<ul>
+<li>通常提供经常使用的定向路径</li>
+<li>一些不经常使用的定向路径可能会增加时钟周期的长度，从而抵消降低CPI的好处</li>
+</ul>
+</li>
+<li><code>Load</code>操作有两个时钟周期的延迟
+<ul>
+<li>Load指令后的指令不能马上使用<code>Load</code>的结果</li>
+<li><code>MIPS-I ISA</code>定义了延迟槽，软件可见的流水线冲突（由编译器调度无关的指令或插入<code>NOP</code>指令避免冲突），<code>MIPS-II</code>中取消了延迟槽语义（硬件上增加流水线<code>interlocks</code>机制）</li>
+</ul>
+</li>
+<li><code>Jumps/Conditional branches</code>可能会导致流水线断流（bubbles）
+<ul>
+<li>如果没有延迟槽，则<code>Stall</code>后续的指令</li>
+</ul>
+</li>
+<li>带有软件可见的延迟槽有可能需要执行大量的由编译器插入的<code>NOP</code>指令<code>NOP</code>指令降低了<code>CPI</code>，增加了程序中执行的指令条数</li>
+</ul>
+<p><strong>流水线的性能分析：</strong></p>
+<ul>
+<li>衡量指标
+<ol>
+<li>吞吐率：假设<code>k</code>段，完成<code>n</code>个任务，单位时间所实际完成的任务数</li>
+<li>加速比：<code>k</code>段流水线的速度与等功能的非流水线的速度之比</li>
+<li>效率：流水线的设备利用率</li>
+</ol>
+</li>
+<li>影响流水线性能的因素
+<ul>
+<li>流水线中的瓶颈——最慢的那一段</li>
+<li>流水段所需时间不均衡将降低加速比</li>
+<li>流水线存在装入时间和排空时间，使得加速比降低</li>
+</ul>
+</li>
+</ul>
+<p><strong>对<code>MIPS</code>的扩充：</strong></p>
+<ul>
+<li><code>Integer</code>部件处理：<code>Loads</code>、<code>Store</code>、<code>Integer ALU</code>操作和<code>Branch</code></li>
+<li><code>FP/Integer</code>乘法部件：处理浮点数和整数乘法</li>
+<li><code>FP</code>加法器：处理<code>FP</code>加，减和类型转换</li>
+<li><code>FP/Integer</code>除法部件：处理浮点数和整数除法</li>
+<li>这些功能部件未流水化</li>
+</ul>
+<h2><span id="32-基本流水线的扩展"> 3.2 基本流水线的扩展</span></h2>
+<h3><span id="321-异常处理"> 3.2.1 异常处理</span></h3>
+<p><strong>陷阱和中断：</strong></p>
+<ul>
+<li>异常（Exception）:由程序执行过程中引起的异常「内部事件」</li>
+<li>陷阱（Trap）:因异常情况而被迫将控制权移交给监控程序</li>
+<li>中断（Interrupt）:响应（处理）程序之外的「外部事件」，导致控制权转移到监控程序</li>
+<li>陷阱和中断通常由同样的流水线机制处理</li>
+</ul>
+<p><strong>异步中断：</strong></p>
+<ul>
+<li><code>I/O</code>设备通过发出中断请求信号来请求处理</li>
+<li>当处理器决定响应该中断时
+<ul>
+<li>停止当前指令<code>li</code>的执行，执行完当前指令前面的指令（执行完<code>li-1</code>） (精确中断）</li>
+<li>将<code>li</code>指令的<code>PC</code>值保存到专门寄存器<code>EPC</code>中</li>
+<li>关中断并将控制转移到以监控模式运行的指定的中断处理程序</li>
+</ul>
+</li>
+</ul>
+<p><strong>Interrupt Handler：</strong></p>
+<ul>
+<li>允许嵌套中断时，在开中断之前需要保存<code>EPC</code>
+<ul>
+<li>需要执行指令将<code>EPC</code>存入<code>GPRs</code></li>
+<li>至少在保存EPC之前，需要一种方法来暂时屏蔽进一步的中断</li>
+</ul>
+</li>
+<li>需要读取记录中断原因的状态寄存器</li>
+<li>使用专门的间接跳转指令<code>ERET</code> (<code>returnfrom-environment</code>) 返回
+<ul>
+<li>开中断</li>
+<li>将处理器恢复到用户模式</li>
+<li>恢复硬件状态和控制状态</li>
+</ul>
+</li>
+</ul>
+<p><strong>Synchronous Trap：</strong></p>
+<ul>
+<li>同步陷阱是由特定指令执行的异常引起的</li>
+<li>通常，该指令无法完成，需要在处理异常之后重新启动
+<ul>
+<li>需要撤消一个或多个部分执行的指令的效果</li>
+</ul>
+</li>
+<li>在系统调用（陷阱）的情况下，该特殊的跳转指令被认为已经完成
+<ul>
+<li>一种特殊的跳转指令，涉及到切换到特权模式的操作</li>
+</ul>
+</li>
+</ul>
+<p><strong>Exception Handling：</strong></p>
+<ul>
+<li>在流水线中将异常标志保留到提交阶段</li>
+<li>在提交阶段并入异步中断请求 (抑制其他中断)</li>
+<li>针对某一给定的指令，早期流水阶段中的异常抑制该指令的后续异常</li>
+<li>如果提交时检测到异常：
+<ul>
+<li>更新异常原因及<code>EPC</code>寄存器</li>
+<li>终止所有流水段</li>
+<li>将异常处理程序的地址送入<code>PC</code>寄存器，以跳转到处理程序中执行</li>
+</ul>
+</li>
+</ul>
+<p><strong>异常的推测：</strong></p>
+<ul>
+<li><strong>预测机制</strong>
+<ul>
+<li>异常总是比较少的，所以简单地预测为没有异常</li>
+</ul>
+</li>
+<li><strong>检查预测机制</strong>
+<ul>
+<li>在指令执行的最后阶段进行异常检测</li>
+<li>采用专门的硬件用于检测各种类型的异常</li>
+</ul>
+</li>
+<li><strong>恢复执行机制</strong>
+<ul>
+<li>仅在提交阶段改变机器状态，因此可以在发生异常后丢弃部分执行的指令</li>
+<li>刷新流水线后启动异常处理程序</li>
+</ul>
+</li>
+<li><strong>定向路径机制允许后续的指令使用没有提交的指令结果</strong></li>
+</ul>
+<h3><span id="322-多周期操作"> 3.2.2 多周期操作</span></h3>
+<p><strong>问题：</strong></p>
+<ul>
+<li>浮点操作在1～2个<code>cycles</code>完成是不现实的，一般要花费较长时间</li>
+<li>在MIPS中如何处理</li>
+</ul>
+<p><strong>在1到2个<code>cycles</code>时间内完成的处理方法：</strong></p>
+<ul>
+<li>采用较慢的时钟源，或</li>
+<li>在<code>FP</code>部件中延迟其<code>EX</code>段</li>
+</ul>
+<p><strong>现假设<code>FP</code>指令与整数指令采用相同的流水线，那么：</strong></p>
+<ul>
+<li><code>EX</code>段需要循环多次来完成<code>FP</code>操作，循环次数取决于操作类型</li>
+<li>有多个<code>FP</code>功能部件，如果发射出的指令导致结构或数据相关，需暂停</li>
+</ul>
+<p><strong><code>Latency</code>和<code>Repeat Interval</code>：</strong></p>
+<ul>
+<li>延时<code>Latency</code>
+<ul>
+<li>定义1：完成某一操作所需的<code>cycle</code>数</li>
+<li>定义2：使用当前指令所产生结果的指令与当前指令间的最小间隔周期数</li>
+</ul>
+</li>
+<li>循环间隔（Repeat/Initiation interval）
+<ul>
+<li>发射相同类型的操作所需的间隔周期数</li>
+</ul>
+</li>
+<li>对于<code>EX</code>部件流水化的新的<code>MIPS</code></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"><code>Function Unit</code></th>
+<th style="text-align:left"><code>Latency</code></th>
+<th style="text-align:left"><code>Repeat Interval</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Integer AU</td>
+<td style="text-align:left">0</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td style="text-align:left">Data Memory (Integer and FP loads(1 less for store latency))</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td style="text-align:left">FP Add</td>
+<td style="text-align:left">3</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td style="text-align:left">FP multiply</td>
+<td style="text-align:left">6</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td style="text-align:left">FP Divide (also integer divide and FP sqrt)</td>
+<td style="text-align:left">24</td>
+<td style="text-align:left">25</td>
+</tr>
+</tbody>
+</table>
+<p><strong>将部分执行部件流水化后的<code>MIPS</code>流水线如下图</strong></p>
+<p><img src="/images/System-Architecture/3-3.png" alt="3-3"></p>
+<p><strong>新的相关和定向问题：</strong></p>
+<ul>
+<li>结构冲突增多
+<ul>
+<li>非流水的<code>Divide</code>部件，使得<code>EX</code>段增长24个<code>cycles</code></li>
+</ul>
+</li>
+<li>在一个周期内可能有多个寄存器写操作</li>
+<li>可能指令乱序完成（乱序到达<code>WB</code>段）有可能存在<code>WAW</code></li>
+<li>乱序完成导致异常处理复杂</li>
+<li>由于指令的延迟加大导致<code>RAW</code>相关的<code>stall</code>数增多</li>
+<li>需要付出更多的代价来增加定向路径</li>
+</ul>
+<p><strong>解决方法：</strong></p>
+<ul>
+<li>方法1
+<ul>
+<li>在<code>ID</code>段跟踪写端口的使用情况，以便能暂停该指令的发射</li>
+<li>一旦发现冲突，暂停当前指令的发射</li>
+</ul>
+</li>
+<li>方法2
+<ul>
+<li>在进入<code>MEM</code>或<code>WB</code>段时，暂停冲突的指令，让有较长延时的指令先做。这里假设较长延时的指令，可能会更容易引起其他<code>RAW</code>相关，从而导致更多的<code>stalls</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>精确异常与非精确异常：</strong></p>
+<ul>
+<li><strong>精确异常</strong>
+<ul>
+<li>如果流水线可以控制使得引起异常的指令前序指令都执行完，故障后的指令可以重新执行，则称该流水线支持精确异常</li>
+<li>按照指令的逻辑序处理异常</li>
+<li>理想情况，引起故障的指令没有改变机器的状态</li>
+<li>要正确的处理这类异常请求，必须保证故障指令不产生副作用</li>
+</ul>
+</li>
+<li><strong>在有些机器上，浮点数异常</strong>
+<ul>
+<li>流水线段数多，在发现故障前，故障点后的指令就已经写了结果，在这种情况下，必须有办法处理</li>
+<li>很多高性能计算机，<code>Alpha 21164</code>、<code>MIPS R10000</code>等支持精确中断，但精确模式要慢10+倍，一般用在代码调试时，很多系统要求精确异常模式，如<code>IEEE FP</code>标准处理程序，虚拟存储器等</li>
+</ul>
+</li>
+<li><strong>精确异常对整数流水线而言，不是太难实现</strong>
+<ul>
+<li>指令执行的中途改变机器的状态</li>
+<li>例如<code>IA-32</code>的自动增量寻址模式</li>
+</ul>
+</li>
+</ul>
+<p><strong>处理异常的4种可能的办法：</strong></p>
+<ul>
+<li><strong>方法1：忽略这种问题，当非精确处理</strong>
+<ul>
+<li>但现代计算机对<code>IEEE</code>浮点标准的异常处理，虚拟存储的异常处理要求必须是精确异常。</li>
+</ul>
+</li>
+<li><strong>方法2：缓存操作结果，直到早期发射的指令执行完</strong>
+<ul>
+<li>当指令运行时间较长时，<code>Buffer</code>区较大</li>
+<li><code>future file</code>（Power PC620 MIPS R10000）
+<ul>
+<li>缓存执行结果，按指令序确认</li>
+</ul>
+</li>
+<li><code>history file</code>（CYBER 180/990）
+<ul>
+<li>尽快确认</li>
+<li>缓存区存放原来的操作数，如果异常发生，回卷到合适的状态</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>方法3：以非精确方式处理，用软件来修正</strong>
+<ul>
+<li>为软件修正保存足够的状态</li>
+<li>让软件仿真尚未执行完的指令的执行</li>
+<li>例如
+<ul>
+<li><code>Instruction 1 – A</code>执行时间较长，引起中断的指令</li>
+<li><code>Instruction 2, instruction 3, ….instruction n-1</code>未执行完的指令</li>
+<li><code>Instruction n</code>已执行完的指令</li>
+<li>由于第<code>n</code>条指令已执行完，希望中断返回后从第<code>n+1</code>条指令开始执行，如果我们保存所有的流水线的PC值，那么软件可以仿真<code>Instruction 1</code>到<code>Instruction n-1</code>的执行</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>方法4：暂停发射，直到确定先前的指令都可无异常的完成，再发射下面的指令</strong>
+<ul>
+<li>在EX段的前期确认（MIPS流水线在前三个周期中）</li>
+<li><code>MIPS R2K to R4K</code>以及<code>Pentium</code>使用这种方法</li>
+</ul>
+</li>
+</ul>
+<h3><span id="323-mips-r4000"> 3.2.3 MIPS R4000</span></h3>
+<p><code>MIPS R4000</code>是<code>64-bit</code>机器</p>
+<ul>
+<li>主频<code>100MHz ~200MHz</code></li>
+<li>较深的流水线（级数较多）(有时也称为<code>superpipelining</code>)</li>
+</ul>
+<p><strong><code>MIPS R4000</code>的8级整数流水线：</strong></p>
+<ul>
+<li><code>IF</code>：取指阶段前半部分，选择PC值，初始化指令<code>Cache</code>的访问</li>
+<li><code>IS</code>：取指阶段后半部分，主要完成访问指令<code>Cache</code>的操作</li>
+<li><code>RF</code>：指令译码，寄存器读取，相关检测及指令<code>Cache</code>命中检测</li>
+<li><code>EX</code>：执行，包括计算有效地址，进行<code>ALU</code>操作，计算分支目标地址和检测分支条件</li>
+<li><code>DF</code>：取数据，访问数据<code>Cache</code>的前半部分</li>
+<li><code>DS</code>：访问数据<code>Cache</code>的后半部分</li>
+<li><code>TC–tag</code>：检测，确定数据<code>Cache</code>是否命中</li>
+<li><code>WB–Load</code>：操作和<code>R-R</code>操作的结果写回</li>
+</ul>
+<h2><span id="33-小结"> 3.3 小结</span></h2>
+
+<div class="markmap-container" style="height:undefined">
+  <svg data="{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:2,&quot;p&quot;:{&quot;lines&quot;:[1,2]},&quot;v&quot;:&quot;流水线&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[2,3]},&quot;v&quot;:&quot;标量流水线&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[3,4]},&quot;v&quot;:&quot;流水线提高的是指令带宽（吞吐率），而不是单条指令的执行速度&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[4,5]},&quot;v&quot;:&quot;相关限制了流水线性能的发挥&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[5,6]},&quot;v&quot;:&quot;结构相关：需要更多的硬件资源&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[6,7]},&quot;v&quot;:&quot;数据相关：需要定向，编译器调度&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[7,8]},&quot;v&quot;:&quot;控制相关：等待、分支预测、延迟槽&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[8,9]},&quot;v&quot;:&quot;编译器可降低数据相关和控制相关的开销&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[9,10]},&quot;v&quot;:&quot;Load 延迟槽&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[10,11]},&quot;v&quot;:&quot;Branch 延迟槽&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[11,12]},&quot;v&quot;:&quot;指令流静态调度&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[12,13]},&quot;v&quot;:&quot;浮点运算使得流水线控制更加复杂&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[13,14]},&quot;v&quot;:&quot;循环间隔（Repeat/Initiation interval）&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[14,15]},&quot;v&quot;:&quot;延时（Latency）&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[15,16]},&quot;v&quot;:&quot;增加流水线级数在提高性能的同时，会增加相关产生的可能性&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[16,17]},&quot;v&quot;:&quot;异常处理 引起控制流的变化，会冲刷流水线&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[17,18]},&quot;v&quot;:&quot;流水线性能分析&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[18,19]},&quot;v&quot;:&quot;吞吐率&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[19,20]},&quot;v&quot;:&quot;加速比&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[20,21]},&quot;v&quot;:&quot;效率&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[21,22]},&quot;v&quot;:&quot;异常处理&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[22,23]},&quot;v&quot;:&quot;广义的异常：异常和中断&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[23,24]},&quot;v&quot;:&quot;异常：程序运行过程中产生的内部事件，称为异常事件，因异常事件被迫将控制权转移到监控程序，称为陷阱（Trap）&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[24,25]},&quot;v&quot;:&quot;中断：响应（处理）程序之外的外部事件，导致控制权转移到监控程序&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[25,26]},&quot;v&quot;:&quot;同步异常 vs. 异步异常&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[26,27]},&quot;v&quot;:&quot;同步：可以精确定位产生异常的指令地址&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[27,28]},&quot;v&quot;:&quot;异步：没法精确定位产生异常的指令地址&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[28,29]},&quot;v&quot;:&quot;精确异常 vs. 非精确异常&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[29,30]},&quot;v&quot;:&quot;精确：响应异常后，可精确返回引起异常的指令位置&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[30,31]},&quot;v&quot;:&quot;非精确：响应异常后，无法精确返回引起异常的指令位置&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[31,32]},&quot;v&quot;:&quot;异常处理&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[32,33]},&quot;v&quot;:&quot;异常处理的时机：指令commit阶段 即最后完成阶段&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[33,34]},&quot;v&quot;:&quot;优先级：外部事件引起的异常，内部事件引起的异常（同一条指令按时间顺序）&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[34,35]},&quot;v&quot;:&quot;过程：保存现场、处理、恢复现场&quot;}]}]}]}"/>
+</div>
+
+<h2><span id="34-相关课件"> 3.4 相关课件</span></h2>
+<ul>
+<li><a href="/resources/course/System-Architecture/3-1.pdf">Chapter-3.1</a></li>
+<li><a href="/resources/course/System-Architecture/3-2.pdf">Chapter-3.2</a></li>
+</ul>
+<h1><span id="4-存储层次结构设计"> 4 存储层次结构设计</span></h1>
+<p><strong>存储层次结构：</strong></p>
+<ul>
+<li><strong>存储系统设计是计算机体系结构设计的关键问题之一</strong>
+<ul>
+<li>容量、价格、速度的权衡</li>
+</ul>
+</li>
+<li><strong>用户对存储器的容量、价格和速度的要求是相互矛盾的</strong>
+<ul>
+<li>速度越快，每位价格就高</li>
+<li>容量越大，每位价格就低</li>
+<li>容量越大，速度就越慢</li>
+<li>目前主存一般由<code>DRAM</code>构成</li>
+</ul>
+</li>
+<li><code>Microprocessor</code>与<code>Memory</code>之间的性能差异越来越大
+<ul>
+<li><code>CPU</code>性能提高大约<code>60%/year</code></li>
+<li><code>DRAM</code>性能提高大约<code>9％/year</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>存储系统的设计目标：</strong></p>
+<ul>
+<li><strong>目标：针对典型应用平均访存时间最短</strong></li>
+<li><strong>途径：通过优化存储系统的组织</strong></li>
+</ul>
+<p><strong>多级分层结构：<code>cpu -&gt; M1 -&gt; M2 -&gt; ... -&gt; Mn</code></strong></p>
+<ul>
+<li><code>M1</code>速度最快，容量最小，每位价格最高</li>
+<li><code>Mn</code>速度最慢，容量最大，每位价格最低</li>
+<li><strong>存储系统接近<code>M1</code>的速度，容量和价格接近<code>Mn</code></strong></li>
+<li>并行</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left"><code>CPU</code></th>
+<th style="text-align:left"><code>L1 Cache</code></th>
+<th style="text-align:left"><code>L2 Cache</code></th>
+<th style="text-align:left"><code>L3 Cache</code></th>
+<th style="text-align:left"><code>Memory</code></th>
+<th style="text-align:left"><code>I/O Device</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>speed</code></td>
+<td style="text-align:left">300-500ps</td>
+<td style="text-align:left">1-2ns</td>
+<td style="text-align:left">3-10ns</td>
+<td style="text-align:left">10-20ns</td>
+<td style="text-align:left">50-100ns</td>
+<td style="text-align:left">5-10ms</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>capacity</code></td>
+<td style="text-align:left">500-1000B</td>
+<td style="text-align:left">64KB</td>
+<td style="text-align:left">256KB</td>
+<td style="text-align:left">2-4MB</td>
+<td style="text-align:left">&gt; 1GB</td>
+<td style="text-align:left">&gt; 100GB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>存储层次工作原理：Locality</strong></p>
+<ul>
+<li><strong>应用程序局部性原理：给用户</strong>
+<ul>
+<li>一个采用低成本技术达到的存储容量（容量大，价格低）</li>
+<li>一个采用高速存储技术达到的访问速度（速度快）</li>
+</ul>
+</li>
+<li><strong>Temporal Locality（时间局部性）</strong>
+<ul>
+<li>保持最近访问的数据项最接近微处理器</li>
+</ul>
+</li>
+<li><strong>Spatial Locality（空间局部性）</strong>
+<ul>
+<li>以由地址连续的若干个字构成的块为单位，从低层复制到上一层</li>
+</ul>
+</li>
+</ul>
+<p><strong>存储层次结构涉及的基本概念</strong></p>
+<ul>
+<li><strong>Block</strong>
+<ul>
+<li>不同层次的Block大小可能不同</li>
+<li>命中和命中率</li>
+<li>失效和失效率</li>
+</ul>
+</li>
+<li><strong>镜像和一致性问题</strong>
+<ul>
+<li>高层存储器是较低层存储器的一个镜像</li>
+<li>高层存储器内容的修改必须反映到低层存储器中</li>
+<li>数据一致性问题</li>
+</ul>
+</li>
+<li><strong>寻址：不管如何组织，我们必须知道如何访问数据</strong></li>
+<li><strong>要求：不同层次上块大小可以不同</strong>
+<ul>
+<li>以块为单位进行数据交换</li>
+<li>不同级<code>Cache</code>块的大小可能不同</li>
+<li>页面（块）大小通常大于<code>Cache</code>块大小</li>
+<li>存在地址映射问题</li>
+<li>物理地址格式<code>Block Frame Address + Block Offset</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>存储层次的性能参数（假设采用二级存储：<code>M1</code>和<code>M2</code>，<code>M1</code>和<code>M2</code>的容量价格访问时间分别为<code>S1, C1, TA1</code>以及<code>S2, C2, TA2</code>）</strong></p>
+<ul>
+<li><strong>存储层次的平均每位价格<code>C</code></strong>
+<ul>
+<li><code>C = (C1 * S1 + C2 * S2)/(S1 + S2)</code></li>
+</ul>
+</li>
+<li><strong>命中（<code>Hit</code>）：访问的块在存储系统的较高层次上</strong>
+<ul>
+<li>若一组程序对存储器的访问，其中<code>N1</code>次在<code>M1</code>中找到所需数据，<code>N2</code>次在<code>M2</code>中找到数据 则</li>
+<li><code>Hit Rate</code>（命中率）：存储器访问在较高层命中的比例<code>H = N1/(N1 + N2)</code></li>
+<li><code>Hit Time</code>（命中时间）：访问较高层的时间，<code>TA1</code></li>
+</ul>
+</li>
+<li><strong>失效（<code>Miss</code>）：访问的块不在存储系统的较高层次上</strong>
+<ul>
+<li><code>Miss Rate（失效率）= 1 - (Hit Rate) = 1 - H = N2/(N1 + N2)</code></li>
+<li>当在<code>M1</code>中没有命中时：一般必须从<code>M2</code>中将所访问的数据所在块搬到<code>M1</code>中，然后CPU才能在<code>M1</code>中访问</li>
+<li>设传送一个块的时间为<code>TB</code>，即不命中时的访问时间为：<code>TA2 + TB + TA1 = TA1 + TM</code>
+<ul>
+<li><code>TM</code>通常称为失效开销</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>平均访存时间</strong>
+<ul>
+<li><code>TA = H * TA1 + (1 - H)(TA1 + TM) = TA1 + (1 - H)TM</code>：<code>平均访存时间 = 命中时间 + 失效率 * 失效开销</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>常见的存储层次的组织：</strong></p>
+<ul>
+<li><strong><code>Registers&lt;-&gt;Memory</code>：由编译器完成调度</strong></li>
+<li><strong><code>Cache&lt;-&gt;Memory</code>：由硬件完成调度</strong></li>
+<li><strong><code>Memory&lt;-&gt;Disk</code>：由硬件、操作系统、应用程序完成调度</strong></li>
+</ul>
+<p><strong>在体系结构中，Cache无处不在</strong></p>
+<ul>
+<li>寄存器：<code>Cache on variables</code></li>
+<li><code>1-2级Cache</code>：<code>Cache on memory</code></li>
+<li><code>Memory</code>：<code>Cache on hard disks</code>
+<ul>
+<li><code>hard disk</code>可以视为主存的扩展（<code>VM</code>）</li>
+</ul>
+</li>
+</ul>
+<h2><span id="41-cache的基本概念"> 4.1 Cache的基本概念</span></h2>
+<p><strong><code>Cache</code></strong></p>
+<ul>
+<li>小而快（<code>SRAM</code>）的存储技术
+<ul>
+<li>存储正在访问的部分指令和数据</li>
+</ul>
+</li>
+<li>用于减少平均访存时间
+<ul>
+<li>通过保持最近访问的数据在处理器附近来挖掘时间局部性</li>
+<li>通过以块为单位在不同层次移动数据来挖掘空间局部性</li>
+</ul>
+</li>
+<li>主要目标：
+<ul>
+<li>提高访存速度</li>
+<li>降低存储系统成本</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Cache</code>的四个问题</strong></p>
+<ol>
+<li>映像规则</li>
+<li>查找方法</li>
+<li>替换算法</li>
+<li>写策略</li>
+</ol>
+<p><strong>映像规则：把一个块从主存调入<code>Cache</code>时，如何放置的问题</strong></p>
+<ul>
+<li>全相联映像：即所调入的块可以放在<code>Cache</code>中的任何位置</li>
+<li>直接相联映像：主存中每一块只能存放在<code>Cache</code>中的唯一位置
+<ul>
+<li>一般，主存块地址<code>i</code>与<code>Cache</code>中块地址<code>j</code>的关系为：<code>j = i mod (M)</code>，其中<code>M</code>为<code>Cache</code>中的块数</li>
+</ul>
+</li>
+<li>组相联映像：主存中每一块可以被放置在<code>Cache</code>中唯一的一个组中的任意一个位置，组由若干块构成，若一组由<code>n</code>块构成，我们称<code>N</code>路组相联
+<ul>
+<li>组间直接映像</li>
+<li>组内全映像</li>
+<li>如果<code>Cache</code>中有<code>G</code>组，则主存中第<code>i</code>块的组号<code>K = i mod (G)</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>不同相联度下的路数和组数，假设<code>Cache</code>的块数为<code>M</code>，每组由<code>N</code>个块构成，那么<code>Cache</code>的组数<code>G = M/N</code></strong></p>
+<ul>
+<li>相联度越高，<code>Cache</code>空间利用率就越高，块冲突概率就越小，失效率就越低</li>
+<li><code>N</code>值越大，失效率就越低，但<code>Cache</code>的实现就越复杂，代价越大</li>
+<li>现代大多数计算机都采用直接相联，两路或四路组相联</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">路数</th>
+<th style="text-align:left">组数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">全相联</td>
+<td style="text-align:left"><code>M</code></td>
+<td style="text-align:left"><code>1</code></td>
+</tr>
+<tr>
+<td style="text-align:left">直接相联</td>
+<td style="text-align:left"><code>1</code></td>
+<td style="text-align:left"><code>M</code></td>
+</tr>
+<tr>
+<td style="text-align:left">组相联</td>
+<td style="text-align:left"><code>1 &lt; N &lt; M</code></td>
+<td style="text-align:left"><code> 1 &lt; G &lt; M</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>Cache</code>查找方法</strong></p>
+<ul>
+<li>在<code>Cache</code>中每一<code>block</code>都带有<code>tag</code>域（标记域），标记分为两类
+<ul>
+<li>Address Tags：标记所访问的单元在哪一块中，这样物理地址就分为三部分：<code>Address Tags ## Block index ## block Offset</code>
+<ul>
+<li>全相联没有<code>Block Index</code></li>
+<li><code>Address Tags</code>越短，查找所需代价就越小</li>
+</ul>
+</li>
+<li><code>Status Tags</code>：标记该块的状态，如<code>Valid</code>、<code>Dirty</code>等</li>
+</ul>
+</li>
+<li>原则：所有可能的标记并行查找，<code>Cache</code>的速度至关重要，即并行查找</li>
+<li>并行查找的方法
+<ul>
+<li>用相联存储器实现，按内容检索</li>
+<li>用单体多字存储器和比较器实现</li>
+</ul>
+</li>
+<li>相联度<code>N</code>越大，实现查找的机制就越复杂，代价就越高</li>
+<li>无论直接相联还是组相联，查找时，只需比较<code>tag</code>，<code>index</code>无需参加比较</li>
+</ul>
+<p><strong><code>Cache</code>替换算法</strong></p>
+<ul>
+<li><strong>主存中块数一般比<code>Cache</code>中的块多，可能出现该块所对应的一组或一个Cache块已全部被占用的情况，这时需强制腾出其中的某一块，以接纳新调入的块，替换哪一块，这是替换算法要解决的问题</strong>
+<ul>
+<li>直接映象，因为只有一块，别无选择</li>
+<li>组相联和全相联有多种选择</li>
+</ul>
+</li>
+<li><strong>替换方法</strong>
+<ul>
+<li><strong>随机法（Random)，随机选择一块替换</strong>
+<ul>
+<li>优点：简单，易于实现</li>
+<li>缺点：没有考虑<code>Cache</code>块的使用历史，反映程序的局部性较差，失效率较高</li>
+</ul>
+</li>
+<li><strong><code>FIFO</code>－选择最早调入的块</strong>
+<ul>
+<li>优点：简单</li>
+<li>虽然利用了同一组中各块进入<code>Cache</code>的顺序，但还是反映程序局部性不够，因为最先进入的块，很可能是经常使用的块</li>
+</ul>
+</li>
+<li><strong>最近最少使用法（LRU, Least Recently Used）</strong>
+<ul>
+<li>优点：较好的利用了程序的局部性，失效率较低</li>
+<li>缺点：比较复杂，硬件实现较困难</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>实验结论</strong>
+<ul>
+<li>相联度高，失效率较低。</li>
+<li><code>Cache</code>容量较大，失效率较低。</li>
+<li><code>LRU</code>在<code>Cache</code>容量较小时，失效率较低</li>
+<li>随着<code>Cache</code>容量的加大，<code>Random</code>的失效率在降低</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Cache写策略</code></strong></p>
+<ul>
+<li>程序对存储器读操作占<code>26％</code>， 写操作占<code>9％</code>
+<ul>
+<li>写所占的存储器访问比例<code>9/(100+26+9)</code>大约为<code>7％</code></li>
+<li>写所占访问数据<code>Cache</code>的比例：<code>9/(26+9)</code>大约为<code>25%</code></li>
+</ul>
+</li>
+<li>大概率事件优先原则：优化<code>Cache</code>的读操作</li>
+<li><code>Amdahl</code>定律：不可忽视写的速度</li>
+<li>写策略就是要解决：何时更新主存问题</li>
+<li><strong>写命中（<code>Write Hit</code>）时的两种策略</strong>
+<ul>
+<li>写直达法（<code>Write Through</code>）：当写Cache命中时，<code>Cache</code>与主存同时发生写修改，因而较好的维护了与主存的内容一致性
+<ul>
+<li>优点：易于实现，容易保持不同层次间的一致性</li>
+<li>缺点：速度较慢</li>
+</ul>
+</li>
+<li>写回法（<code>Write Back</code>）：只修改<code>Cache</code>的内容，而不立即写入主存。只有当此行被换出时才写回主存
+<ul>
+<li>优点：速度快，减少访存次数</li>
+<li>缺点：一致性问题</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>写失效（<code>Write Miss</code>）时的两种策略</strong>
+<ul>
+<li>什么是写失效？当我们要更新主存时，发现主存中存储的数据与<code>Cache</code>中不一致（换言之，<code>Cache</code>中的数据已过时）</li>
+<li>按写分配法（<code>Write Allocate</code>）：写失效时，先把所写单元所在块调入<code>Cache</code>，然后再进行写入，也称写时取（<code>Fetch on Write</code>）方法</li>
+<li>不按写分配法（<code>No-write Allocate</code>）：写失效时，直接写入下一级存储器，而不将相应块调入<code>Cache</code>，也称绕写法（<code>Write Around</code>）</li>
+<li>原则上以上两种方法都可以应用于写直达法和写回法，一般情况下
+<ul>
+<li><code>Write Back</code>用<code>Write Allocate</code></li>
+<li><code>Write Through</code>用<code>No-write Allocate</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2><span id="42-cache的基本优化方法"> 4.2 Cache的基本优化方法</span></h2>
+<p><strong>Cache性能分析指标：</strong></p>
+<ul>
+<li><code>CPU time = (CPU execution clock cycles + Memory stall clock cycles) ✖️ clock cycle time</code></li>
+<li><code>Memory stall clock cycles =  (Reads ✖️ Read miss rate ✖️ Read miss penalty) + (Writes ✖️ Write miss rate ✖️ Write miss penalty)</code></li>
+<li><code>Memory stall clock cycles = Memory accesses ✖️ Miss rate ✖️ Miss penalty</code></li>
+</ul>
+<p><strong>改进Cache性能的基本途径：</strong></p>
+<ul>
+<li>降低失效率
+<ul>
+<li>增加Cache块的大小</li>
+<li>增大Cache容量</li>
+<li>提高相联度</li>
+</ul>
+</li>
+<li>减小失效开销
+<ul>
+<li>多级Cache</li>
+<li>使读失效优先于写失效</li>
+</ul>
+</li>
+<li>缩短命中时间
+<ul>
+<li>避免在索引缓存期间进行地址转换</li>
+</ul>
+</li>
+</ul>
+<h3><span id="421-降低失效率"> 4.2.1 降低失效率</span></h3>
+<p><strong><code>Cache</code>失效的原因可以分为三类</strong></p>
+<ul>
+<li>强制性失效（<code>Compulsory</code>）
+<ul>
+<li>第一次访问某一块，只能从下一级<code>Load</code>，也称为冷启动或首次访问失效</li>
+</ul>
+</li>
+<li>容量失效（<code>Capaticy</code>）
+<ul>
+<li>如果程序执行时，所需块由于容量不足，不能全部调入<code>Cache</code>，则当某些块被替换后，若又重新被访问，就会发生失效</li>
+<li>可能会发生抖动现象</li>
+</ul>
+</li>
+<li>冲突失效（<code>Conflict/Collision</code>）
+<ul>
+<li>组相联和直接相联的副作用</li>
+<li>若太多的块映像到同一组（块）中，则会出现该组中某个块被别的块替换（即使别的组或块有空闲位置)，然后又被重新访问的情况，这就属于冲突失效</li>
+</ul>
+</li>
+</ul>
+<p><strong>一些统计规律：</strong></p>
+<ul>
+<li>相联度越高，冲突失效就越小</li>
+<li>强制性失效和容量失效不受相联度的影响</li>
+<li>强制性失效不受Cache容量的影响</li>
+<li>容量失效随着容量的增加而减少</li>
+<li><code>2:1Cache</code>经验规则：即大小为<code>N</code>的直接映象<code>Cache</code>的失效率约等于大小为<code>N/2</code>的两路组相联的<code>Cache</code>失效率</li>
+</ul>
+<p><strong>降低失效率的方法：</strong></p>
+<ul>
+<li><strong>增大Cache容量</strong>
+<ul>
+<li>对冲突和容量失效的减少有利</li>
+</ul>
+</li>
+<li><strong>增大块</strong>
+<ul>
+<li>减缓强制性失效</li>
+<li>可能会增加冲突失效（因为在容量不变的情况下，块的数目减少了）</li>
+</ul>
+</li>
+<li><strong>通过预取可帮助减少强制性失效</strong>
+<ul>
+<li>必须小心不要把你需要的东西换出去</li>
+<li>需要预测比较准确（对数据较困难，对指令相对容易）</li>
+</ul>
+</li>
+</ul>
+<p><strong>块大小、容量的权衡：</strong></p>
+<ul>
+<li><strong>从统计数据可得到的结论</strong>
+<ul>
+<li>对于给定Cache容量，块大小增加时，失效率开始是下降，但后来反而上升</li>
+<li><code>Cache</code>容量越大，使失效率达到最低的块大小就越大</li>
+</ul>
+</li>
+<li><strong>分析</strong>
+<ul>
+<li>块大小增加，可使强制性失效减少（空间局部性原理）</li>
+<li>块大小增加，可使冲突失效增加（Cache中块数量减少）</li>
+<li>失效开销增大（上下层间移动，数据传输时间变大）</li>
+</ul>
+</li>
+<li>设计块大小的原则，不能仅看失效率</li>
+</ul>
+<p><strong>提高相联度</strong></p>
+<ul>
+<li>8路组相联在降低失效率方面的作用已经和全相联一样有效</li>
+<li>提高相联度，会增加命中时间</li>
+</ul>
+<p><strong><code>Victim Cache</code></strong></p>
+<ul>
+<li><strong>基本思想</strong>
+<ul>
+<li>通常<code>Cache</code>为直接映象时冲突失效率较大</li>
+<li><code>Victim Cache</code>采用全相联，因此失效率较低</li>
+<li><code>Victim Cache</code>存放由于（冲突）失效而被丢弃的那些块</li>
+<li>失效时，首先检查<code>Victim Cache</code>是否有该块，如果有就将该块与<code>Cache</code>中相应块互换</li>
+</ul>
+</li>
+<li><code>Jouppi (DEC SRC)</code>发现
+<ul>
+<li>含1到5项的<code>Victim Cache</code>对减少失效很有效，尤其是对于那些小型的直接映象数据<code>Cache</code></li>
+<li>测试结果，项为4的<code>Victim Cache</code>能使<code>4KB</code>直接映象数据</li>
+<li><code>Cache</code>冲突失效减少20%-90%</li>
+</ul>
+</li>
+</ul>
+<h3><span id="422-减小失效开销"> 4.2.2 减小失效开销</span></h3>
+<p><strong>基本手段：</strong></p>
+<ul>
+<li>多级<code>Cache</code>技术（<code>Multilevel Caches</code>）</li>
+<li>让读优先于写（<code>Giving Priority to Read Misses over Writes</code>）</li>
+</ul>
+<p><strong>多级<code>Cache</code></strong></p>
+<ul>
+<li>一级<code>Cache</code>保持较小容量
+<ul>
+<li>降低命中时间</li>
+<li>降低每次访问的能耗</li>
+</ul>
+</li>
+<li>增加二级<code>Cache</code>
+<ul>
+<li>减少与存储器的<code>gap</code></li>
+<li>减少存储器总线的负载</li>
+</ul>
+</li>
+<li>多级<code>Cache</code>的优点
+<ul>
+<li>减少失效开销</li>
+<li>缩短平均访存时间（<code>AMAT</code>）</li>
+</ul>
+</li>
+<li>较大容量的<code>L2 Cache</code>可以捕捉许多<code>L1 Cache</code>的失效
+<ul>
+<li>降低全局失效率</li>
+</ul>
+</li>
+</ul>
+<p><strong>多级包容性（<code>multilevel inclusive</code>）</strong></p>
+<ul>
+<li><code>L1 Cache</code>的块总是存在于<code>L2 Cache</code>中
+<ul>
+<li>浪费了<code>L2 Cache</code>空间，<code>L2</code>还应当有存放其他块的空间</li>
+</ul>
+</li>
+<li>在<code>L1</code>中<code>miss</code>，但在<code>L2</code>中命中，则从<code>L2</code>拷贝相应的块到<code>L1</code></li>
+<li>在<code>L1</code>和<code>L2</code>中均<code>miss</code>, 则从更低级拷贝相应的块到<code>L1</code>和<code>L2</code></li>
+<li>对<code>L1</code>写操作导致将数据同时写到<code>L1</code>和<code>L2</code></li>
+<li><code>Write Through</code>策略用于<code>L1</code>到<code>L2</code></li>
+<li><code>Write Back</code>策略可用于<code>L2</code>到更低级存储器，以降低存储总线的数据传输压力</li>
+<li><code>L2</code>的替换动作（或无效）对<code>L1</code>可见
+<ul>
+<li>即<code>L2</code>的一块被替换出去，那么其在<code>L1</code>中对应的块也要被替换出去</li>
+</ul>
+</li>
+<li><code>L1</code>和<code>L2</code>的块大小可以相同也可以不同</li>
+</ul>
+<p><strong>多级不包容（Multilevel Exclusive）</strong></p>
+<ul>
+<li><code>L1 Cache</code>中的块不会在<code>L2 Cache</code>中，以避免浪费空间</li>
+<li>在<code>L1</code>中<code>miss</code>，但在<code>L2</code>中命中，将导致<code>Cache</code>间块的互换</li>
+<li>在<code>L1</code>和<code>L2</code>均<code>miss</code>，将仅仅从更低层拷贝相应的块到<code>L1</code></li>
+<li><code>L1</code>的被替换的块移至<code>L2</code>
+<ul>
+<li><code>L2</code>存储<code>L1</code>抛弃的块，以防后续<code>L1</code>还需要使用</li>
+</ul>
+</li>
+<li><code>L1</code>到<code>L2</code>的写策略为<code>Write-Back</code></li>
+<li><code>L2</code>到更低级<code>Cache</code>的写策略为<code>Write-Back</code></li>
+<li><code>AMD Athlon</code>：<code>64KB L1</code>、<code>256KB L2</code></li>
+</ul>
+<p><strong>多级<code>Cache</code>的性能分析</strong></p>
+<ul>
+<li>局部失效率：该级<code>Cache</code>的失效次数<code>/</code>到达该级<code>Cache</code>的访存次数</li>
+<li>全局失效率：该级<code>Cache</code>的失效次数<code>/</code>CPU发出的访存总次数
+<ul>
+<li>全局失效率是度量<code>L2 Cache</code>性能的更好方法</li>
+</ul>
+</li>
+</ul>
+<p><strong>两级<code>Cache</code>的一些研究结论</strong></p>
+<ul>
+<li>在<code>L2</code>比<code>L1</code>大得多得情况下，两级<code>Cache</code>全局失效率和容量与第二级<code>Cache</code>相同的单级<code>Cache</code>的失效率接近</li>
+<li>局部失效率不是衡量第二级<code>Cache</code>的好指标
+<ul>
+<li>它是第一级<code>Cache</code>失效率的函数</li>
+<li>不能全面反映两级<code>Cache</code>体系的性能</li>
+</ul>
+</li>
+<li>第二级Cache设计需考虑的问题
+<ul>
+<li>容量：一般很大，可能没有容量失效，只有强制性失效和冲突失效
+<ul>
+<li>相联度对第二级Cache的作用</li>
+<li><code>Cache</code>可以较大，以减少失效次数</li>
+</ul>
+</li>
+<li>多级包容性问题：第一级<code>Cache</code>中的数据是否总是同时存在于第二级<code>Cache</code>中
+<ul>
+<li>如果<code>L1</code>和<code>L2</code>的块大小不同，增加了多级包容性实现的复杂性</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>让读失效优先于写</strong></p>
+<ul>
+<li>由于读操作为大概率事件，需要读失效优先，以提高性能</li>
+<li><code>Write Through Cache</code> -&gt; <code>Write Buffer</code>（写缓冲），特别对写直达法更有效
+<ul>
+<li><code>Write Buffer</code>：CPU不必等待写操作完成，即将要写的数据和地址送到<code>Write Buffer</code>后，CPU继续作其他操作</li>
+<li>写缓冲导致对存储器访问的复杂化</li>
+<li>解决问题的方法
+<ul>
+<li>推迟对读失效的处理，直到写缓冲器清空，导致新的问题——读失效开销增大。</li>
+<li>在读失效时，检查写缓冲的内容，如果没有冲突，而且存储器可访问，就可以继续处理读失效</li>
+</ul>
+</li>
+<li>写回法时，也可以利用写缓冲器来提高性能
+<ul>
+<li>把脏块放入缓冲区，然后读存储器，最后写存储器</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Write Back Cache</code> -&gt; <code>Victim Buffer</code>
+<ul>
+<li>被替换的脏块放到了<code>Victim Buffer</code></li>
+<li>在脏块被写回前，需要处理读失效</li>
+<li>问题：<code>Victim Buffer</code>可能含有该读失效要读取的块
+<ul>
+<li>Solution：查找<code>Victim Buffer</code>，如果命中直接将该块调入Cache</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2><span id="43-cache的高级优化方法"> 4.3 Cache的高级优化方法</span></h2>
+<h3><span id="431-缩短命中时间"> 4.3.1 缩短命中时间</span></h3>
+<ol>
+<li>小而简单的第一级<code>Cache</code></li>
+<li>路预测方法</li>
+</ol>
+<h3><span id="432-增加cache带宽"> 4.3.2 增加Cache带宽</span></h3>
+<ol>
+<li><code>Cache</code>访问流水化
+<ul>
+<li>提高<code>Cache</code>的带宽，有利于采用高相联度的缓存</li>
+<li><code>L1 Cache</code>的访问由多个时钟周期构成</li>
+<li>缺点
+<ul>
+<li>增加了分支预测错误造成的额外开销</li>
+<li>增加了<code>Load</code>指令与要使用其结果的指令间的latency</li>
+<li>增加了<code>I-Cache</code>和<code>D-Cache</code>的延时</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>无阻塞<code>Cache</code></li>
+<li>多体<code>Cache</code></li>
+</ol>
+<h3><span id="433-减小失效开销"> 4.3.3 减小失效开销</span></h3>
+<ol>
+<li>关键字优先和提前重启</li>
+<li>合并写</li>
+</ol>
+<h3><span id="434-降低失效率"> 4.3.4 降低失效率</span></h3>
+<ol>
+<li>编译优化</li>
+</ol>
+<h3><span id="435-通过并行降低失效开销或失效率"> 4.3.5 通过并行降低失效开销或失效率</span></h3>
+<ol>
+<li>硬件预取</li>
+<li>编译器控制的预取</li>
+</ol>
+<h2><span id="44-存储器技术与优化"> 4.4 存储器技术与优化</span></h2>
+<p><strong>存储器</strong></p>
+<ul>
+<li>存储器的访问源
+<ul>
+<li>取指令、取操作数、写操作数和<code>I/O</code></li>
+</ul>
+</li>
+<li>存储器性能指标
+<ul>
+<li>容量、速度和每位价格</li>
+<li>访问时间（Access Time）</li>
+<li>存储周期（Cycle Time）</li>
+</ul>
+</li>
+<li>种类：<code>DRAM</code>和<code>SRAM</code>
+<ul>
+<li><code>Memory</code>：<code>DRAM</code></li>
+<li><code>Cache</code>：<code>SRAM</code></li>
+</ul>
+</li>
+</ul>
+<p><strong><code>DRAM</code></strong></p>
+<ul>
+<li><code>DRAM</code>是由单个信息位构成的阵列
+<ul>
+<li>通过行选择线和列选择线访问</li>
+<li>所有DRAM都由这些阵列构成</li>
+<li>不同的结构根据性能的需求选择的阵列数可能不同</li>
+</ul>
+</li>
+<li>所有<code>DRAM</code>的访问至少三个阶段
+<ul>
+<li><code>Precharge</code></li>
+<li><code>row access</code></li>
+<li><code>column acces</code></li>
+</ul>
+</li>
+<li><code>DRAM</code>的性能
+<ul>
+<li><code>Latency</code>
+<ul>
+<li>地址信号有效到第一组数据信号有效所需要的时间</li>
+<li>处理器发出请求到所请求的第一组数据到达处理器输入引脚所需要的<code>cycle</code>数</li>
+</ul>
+</li>
+<li><code>Bandwidth</code>
+<ul>
+<li>第一组数据到达后，后续数据到达的速率</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>提高主存性能的方法：增大存储器的宽度（并行访问存储器）</strong></p>
+<ul>
+<li>最简单直接的方法</li>
+<li>优点：简单、直接，可有效增加带宽</li>
+<li>缺点
+<ul>
+<li>增加了CPU与存储器之间的连接通路的宽度，实现代价提高</li>
+<li>主存容量扩充时，增量应该是存储器的宽度</li>
+<li>写操作问题（部分写操作）</li>
+</ul>
+</li>
+<li>冲突问题
+<ul>
+<li>取指令冲突，遇到程序转移时，一个存储周期中读出的n条指令中，后面的指令将无用</li>
+<li>读操作数冲突。一次同时读出的几个操作数，不一定都有用</li>
+<li>写操作冲突。这种并行访问，必须凑齐n个字之后一起写入。如果只写一个字，必须先把属于同一个存储字的数据读到数据寄存器中，然后在地址码的控制下修改其中一个字，最后一起写</li>
+<li>读写冲突。当要读写的字在同一个存储字内时，无法并行操作</li>
+</ul>
+</li>
+<li>冲突的原因
+<ul>
+<li>从存储器本身看，主要是地址寄存器和控制逻辑只有一套</li>
+</ul>
+</li>
+</ul>
+<p><strong>采用简单的多体交叉存储器</strong></p>
+<ul>
+<li>一套地址寄存器和控制逻辑</li>
+<li>存储器组织为多个体（Bank）</li>
+<li>存储体的宽度，通常为一个字，不需要改变总线的宽度</li>
+<li>目的：在总线宽度不变的情况下，完成多个字的并行读写</li>
+<li>存储模块中所包含的体数，为避免访问冲突，基本原则为：
+<ul>
+<li>体的数目<code>&gt;=</code>访问体中一个字所需的时钟周期数</li>
+<li>例如：某一向量机的存储系统，CPU发出访存请求10个时钟周期后，CPU将从存储体0得到一个字，随后体0开始读该存储体的下一个字，而CPU依次从其余7个存储体中得到后继的7个字。在第18个周期，CPU 将需要存储体0提供下一个字，但该字要到第20个时钟周期才被读出，CPU只好等待</li>
+</ul>
+</li>
+<li>缺陷：不能对单个体单独访问，对解决冲突没有帮助，逻辑上是一种宽存储器，对各个存储体的访问被安排在不同的时间段</li>
+</ul>
+<h2><span id="45-虚拟存储器-基本原理"> 4.5 虚拟存储器-基本原理</span></h2>
+<p><strong>虚拟存储器</strong></p>
+<ul>
+<li>允许应用程序的大小，超过主存容量。目的是提高存储系统的容量</li>
+<li>帮助OS进行多进程管理
+<ul>
+<li>每个进程可以有自己的地址空间</li>
+<li>提供多个进程空间的保护</li>
+<li>可以将多个逻辑块映射到共享的物理存储器上</li>
+<li>静态重定位和动态重定位
+<ul>
+<li>应用程序运行在虚地址空间</li>
+<li>虚实地址转换对用户是透明的</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>虚拟存储管理的是主存－辅助存储器这个层面上
+<ul>
+<li>失效：页失效或地址失效</li>
+<li>块：页或段</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Cache</code>与<code>VM</code>的区别</strong></p>
+<ul>
+<li>目的不同
+<ul>
+<li><code>Cache</code>是为了提高访存速度</li>
+<li><code>VM</code>是为了提高存储容量</li>
+</ul>
+</li>
+<li>替换的控制者不同
+<ul>
+<li><code>Cache</code>失效由硬件处理</li>
+<li><code>VM</code>的页失效通常由OS处理
+<ul>
+<li>一般页失效开销很大，因此替换算法非常重要</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>地址空间
+<ul>
+<li><code>VM</code>空间由CPU的地址尺寸确定</li>
+<li>Cache的大小与CPU地址尺寸无关</li>
+</ul>
+</li>
+<li>下一级存储器
+<ul>
+<li><code>Cache</code>下一级是主存</li>
+<li><code>VM</code>下一级是磁盘，大多数磁盘含有文件系统，文件系统寻址与主存不同，它通常在I/O空间中，<code>VM</code>的下一级通常称为<code>SWAP</code>空间</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>VM</code>的四个问题</strong></p>
+<ol>
+<li>映像规则</li>
+<li>查找方法</li>
+<li>替换算法</li>
+<li>写策略</li>
+</ol>
+<p><strong>映像规则</strong></p>
+<ul>
+<li>选择策略：低失效率（复杂映象算法） vs. 高失效率（简单映射方法）</li>
+<li>由于失效开销很大，一般选择低失效率方法，即全相联映射</li>
+</ul>
+<p><strong>查找方法－用附加数据结构</strong></p>
+<ul>
+<li>固定页大小－用页表
+<ul>
+<li><code>VPN-&gt;PPN</code></li>
+<li><code>Tag</code>标识该页是否在主存</li>
+</ul>
+</li>
+<li>可变长段－段表
+<ul>
+<li>段表中存放所有可能的段信息</li>
+<li>段号-&gt;段基址再加段内偏移量</li>
+<li>可能存在许多小尺寸段</li>
+</ul>
+</li>
+<li>页表
+<ul>
+<li>页表中所含项数：一般为虚页的数量</li>
+<li>功能：<code>VPN－&gt;PPN</code>，方便页重新分配，有一位标识该页是否在内存</li>
+</ul>
+</li>
+</ul>
+<p><strong>替换规则</strong></p>
+<ul>
+<li><code>LRU</code>是最好的</li>
+<li>但真正的<code>LRU</code>方法，硬件代价较大</li>
+<li>用硬件简化，通过OS来完成
+<ul>
+<li>为了帮助OS寻找<code>LRU</code>页，每个页面设置一个<code>use bit</code></li>
+<li>当访问主存中一个页面时，其<code>use bit</code>置位</li>
+<li>OS定期复位所有使用位，这样每次复位之前，使用位的值反映了从上次复位到现在的这段时间中，哪些页曾被访问过</li>
+<li>当有失效冲突时，由OS来决定哪些页将被换出去</li>
+</ul>
+</li>
+</ul>
+<p><strong>写策略</strong></p>
+<ul>
+<li>总是用写回法（<code>Write Back</code>），因为访问硬盘速度很慢</li>
+</ul>
+<p><strong>页面大小的选择</strong></p>
+<ul>
+<li>页面选择较大的优点
+<ul>
+<li>减少了页表的大小</li>
+<li>如果局部性较好，可以提高命中率</li>
+</ul>
+</li>
+<li>页面选择较大的缺点
+<ul>
+<li>内存中的碎片较多，内存利用率低</li>
+<li>进程启动时间长</li>
+<li>失效开销加大</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>TLB</code>：</strong></p>
+<ul>
+<li>页表一般很大，存放在主存中
+<ul>
+<li>导致每次访存可能要两次访问主存，一次读取页表项，一次读写数据</li>
+<li>解决办法：采用<code>TLB</code></li>
+</ul>
+</li>
+<li><code>TLB</code>
+<ul>
+<li>存放近期经常使用的页表项，是整个页表的部分内容的副本</li>
+<li>基本信息：<code>VPN##PPN##Protection Field##use bit ## dirty bit</code></li>
+<li>OS修改页表项时，需要刷新<code>TLB</code>，或保证<code>TLB</code>中没有该页表项的副本</li>
+<li>TLB必须在片内
+<ul>
+<li>速度至关重要</li>
+<li><code>TLB</code>过小，意义不大</li>
+<li><code>TLB</code>过大，代价较高</li>
+<li>相联度较高（容量小）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2><span id="46-小结"> 4.6 小结</span></h2>
+
+<div class="markmap-container" style="height:undefined">
+  <svg data="{&quot;t&quot;:&quot;root&quot;,&quot;d&quot;:0,&quot;v&quot;:&quot;&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:2,&quot;p&quot;:{&quot;lines&quot;:[1,2]},&quot;v&quot;:&quot;Cache基本概念&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[2,3]},&quot;v&quot;:&quot;存储系统分层&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[3,4]},&quot;v&quot;:&quot;为什么要这样做？&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[4,5]},&quot;v&quot;:&quot;为什么可以这样做？&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[5,6]},&quot;v&quot;:&quot;存储系统的性能指标：速度、容量、价格&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[6,7]},&quot;v&quot;:&quot;平均访存时间 = 命中时间 + 失效率 ✖️ 失效开销&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[7,8]},&quot;v&quot;:&quot;Cache Q4&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[8,9]},&quot;v&quot;:&quot;映射规则&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[9,10]},&quot;v&quot;:&quot;查找方法&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[10,11]},&quot;v&quot;:&quot;替换策略&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[11,12]},&quot;v&quot;:&quot;写策略&quot;}]}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:2,&quot;p&quot;:{&quot;lines&quot;:[12,13]},&quot;v&quot;:&quot;基本Cache优化方法&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[13,14]},&quot;v&quot;:&quot;降低失效率：引起失效的3C&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[14,15]},&quot;v&quot;:&quot;增大Cache块&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[15,16]},&quot;v&quot;:&quot;增大Cache容量&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[16,17]},&quot;v&quot;:&quot;提高相联度&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[17,18]},&quot;v&quot;:&quot;减小失效开销&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[18,19]},&quot;v&quot;:&quot;多级Cache&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[19,20]},&quot;v&quot;:&quot;读失效优先于写失效&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[20,21]},&quot;v&quot;:&quot;缩短命中时间&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[21,22]},&quot;v&quot;:&quot;避免在缓存期间进行地址转换&quot;}]}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:2,&quot;p&quot;:{&quot;lines&quot;:[22,23]},&quot;v&quot;:&quot;高级Cache优化方法&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[23,24]},&quot;v&quot;:&quot;缩短命中时间&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[24,25]},&quot;v&quot;:&quot;小而简单的一级Cache&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[25,26]},&quot;v&quot;:&quot;路预测方法&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[26,27]},&quot;v&quot;:&quot;增加Cache带宽&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[27,28]},&quot;v&quot;:&quot;Cache访问流水化&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[28,29]},&quot;v&quot;:&quot;无阻塞Cache&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[29,30]},&quot;v&quot;:&quot;多体Cache&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[30,31]},&quot;v&quot;:&quot;减小失效开销&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[31,32]},&quot;v&quot;:&quot;关键字优先和提前重启&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[32,33]},&quot;v&quot;:&quot;合并写&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[33,34]},&quot;v&quot;:&quot;降低失效率&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[34,35]},&quot;v&quot;:&quot;编译优化&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[35,36]},&quot;v&quot;:&quot;通过并行降低失效开销或失效率&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[36,37]},&quot;v&quot;:&quot;硬件预取&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[37,38]},&quot;v&quot;:&quot;编译器控制的预取&quot;}]}]}],&quot;p&quot;:{}}"/>
+</div>
+
+<h2><span id="47-相关课件"> 4.7 相关课件</span></h2>
+<ul>
+<li><a href="/resources/course/System-Architecture/4-1.pdf">Chapter-4.1</a></li>
+<li><a href="/resources/course/System-Architecture/4-2.pdf">Chapter-4.2</a></li>
+<li><a href="/resources/course/System-Architecture/4-3.pdf">Chapter-4.3</a></li>
+<li><a href="/resources/course/System-Architecture/4-4.pdf">Chapter-4.4</a></li>
+</ul>
+<h1><span id="5-指令级并行"> 5 指令级并行</span></h1>
+<h2><span id="51-指令级并行的基本概念及静态指令流调度"> 5.1 指令级并行的基本概念及静态指令流调度</span></h2>
+<p><strong>系统结构的<code>Flynn</code>分类：</strong></p>
+<ul>
+<li><strong><code>SISD</code></strong>：单处理器模式</li>
+<li><strong><code>SIMD</code></strong>：相同的指令作用在不同的数据</li>
+<li><strong><code>MISD</code></strong>：无商业实现</li>
+<li><strong><code>MIMD</code></strong>：通用性最强的一种结构，可用来挖掘线程级并行、数据级并行。组织方式可以是松耦合方式也可以是紧耦合方式</li>
+</ul>
+<p><strong>并行的层级：</strong></p>
+<ul>
+<li><strong>请求级并行</strong>
+<ul>
+<li>多个任务可被分配到多个计算机上并行执行</li>
+</ul>
+</li>
+<li><strong>进程级并行</strong>
+<ul>
+<li>进程可被调度到不同的处理器上并行执行</li>
+</ul>
+</li>
+<li><strong>线程级并行</strong>
+<ul>
+<li>任务被组织成多个线程，多个线程共享一个进程的地址空间</li>
+<li>每个线程有自己独立的程序计数器和寄存器文件</li>
+</ul>
+</li>
+<li><strong>数据级并行</strong>
+<ul>
+<li>单线程（逻辑上）中并行处理多个数据（<code>SIMD/Vectorexecution</code>）</li>
+<li>一个程序计数器，多个执行部件</li>
+</ul>
+</li>
+<li><strong>指令级并行（<code>ILP</code>）</strong>
+<ul>
+<li>针对单一指令流，多个执行部件并行执行不同的指令</li>
+</ul>
+</li>
+</ul>
+<p><strong>指令级并行的基本概念及挑战：</strong></p>
+<ul>
+<li><code>ILP</code>：无关的指令重叠（并行）执行</li>
+<li>流水线的平均<code>CPI</code>
+<ul>
+<li>
+$\begin{split}Pipeline\ CPI\ =&\ Ideal\ Pipeline\ CPI\\&\ Struct\ Stalls\\&\ RAW\ Stalls\ +\ WAR\ Stalls\ +\ WAW\ Stalls\\&\ Control\ Stalls\\&\ Memory\ Stalls\end{split}$
+</li>
+</ul>
+</li>
+<li>本章研究：减少停顿（<code>stalls</code>）数的方法和技术</li>
+<li>基本途径
+<ul>
+<li>软件方法：
+<ul>
+<li><code>gcc</code>：17%控制类指令，<code>5 instructions + 1 branch</code></li>
+<li>在基本块上，得到更多的并行性</li>
+<li>挖掘循环级并行</li>
+</ul>
+</li>
+<li>硬件方法
+<ul>
+<li>动态调度方法</li>
+<li>以<code>MIPS</code>的浮点数操作为例</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>循环展开</strong></p>
+<ul>
+<li>基本块的定义：
+<ul>
+<li>直线型代码，无分支</li>
+<li>单入口</li>
+<li>程序由分支语句连接基本块构成</li>
+</ul>
+</li>
+<li>循环级并行（<code>for (i = 1; i &lt;= 1000; i++) x(i) = x(i) + s;</code>）
+<ul>
+<li>循环展开对循环间无关的程序是有效降低<code>stalls</code>的手段</li>
+<li>指令调度，必须保证程序运行的结果不变</li>
+<li>注意循环展开中的<code>Load</code>和<code>Store</code>，不同次循环的<code>Load</code>和<code>Store</code>是相互独立的。需要分析对存储器的引用，保证他们没有引用同一地址（检测存储器访问冲突）</li>
+<li>不同次的循环，使用不同的寄存器（寄存器重命名）</li>
+<li>删除不必要的测试和分支后，需调整循环步长等控制循环的代码</li>
+</ul>
+</li>
+</ul>
+<p><strong>从编译器角度看代码移动</strong></p>
+<ul>
+<li>编译器分析程序的相关性依赖于给定的流水线</li>
+<li>编译器通过指令调度来消除相关</li>
+<li>数据相关
+<ul>
+<li>对于指令<code>i</code>和<code>j</code>，如果指令<code>j</code>使用指令<code>i</code>产生的结果，或指令<code>j</code>与指令<code>k</code>相关，并且指令<code>k</code>与指令<code>i</code>有数据相关</li>
+<li>如果相关，不能乱序执行</li>
+<li>对于寄存器比较容易确定（<code>fixed names</code>）</li>
+<li>但对<code>memory</code>的引用，比较难确定</li>
+</ul>
+</li>
+<li>另一种相关称为名相关（<code>name dependence</code>）：两条指令使用同名参数（<code>register or memory location</code>）但不交换数据
+<ul>
+<li>反相关（<code>anti-dependence</code>）
+<ul>
+<li>指令<code>j</code>所写的寄存器或存储单元，与指令<code>i</code>所读的寄存器或存储单元相同，注指令<code>i</code>先执行</li>
+</ul>
+</li>
+<li>输出相关（<code>output dependence</code>）：（<code>WAW if a hazard for HW</code>）
+<ul>
+<li>指令<code>i</code>和指令<code>j</code>对同一寄存器或存储单元进行写操作，必须保证两条指令的写顺序</li>
+</ul>
+</li>
+<li>访问存储单元时，很难判断名相关</li>
+</ul>
+</li>
+<li>最后一种相关称为控制相关（<code>control dependence</code>）
+<ul>
+<li>例如<code>if p1 &#123;S1;&#125;;</code>：<code>S1</code>依赖于<code>P1</code>的测试结果</li>
+<li>处理控制相关的原则
+<ul>
+<li>受分支指令控制的指令，不能移到控制指令之前，以免该指令的执行不在分支指令的控制范围</li>
+<li>不受分支指令控制的指令，不能移到控制指令之后，以免该指令的执行受分支指令的控制</li>
+</ul>
+</li>
+<li>减少控制相关可以提高指令的并行性</li>
+</ul>
+</li>
+</ul>
+<h2><span id="52-硬件方法挖掘指令级并行"> 5.2 硬件方法挖掘指令级并行</span></h2>
+<p><strong>为什么要使用硬件调度方案：</strong></p>
+<ul>
+<li>在编译时无法确定的相关，可以通过硬件调度来优化</li>
+<li>简化编译器</li>
+<li>代码在不同组织结构的机器上，同样可以有效地运行</li>
+</ul>
+<p><strong>基本思想：允许<code>stall</code>后的指令继续向前流动</strong></p>
+<ul>
+<li>允许乱序执行</li>
+</ul>
+<h3><span id="521-指令流动态调度方法之一scoreboard"> 5.2.1 指令流动态调度方法之一：Scoreboard</span></h3>
+<p><strong>记分牌技术要点：</strong></p>
+<ul>
+<li><code>Out-of-order execution</code>将ID段分为
+<ul>
+<li><code>Issue</code>：译码，检测结构相关</li>
+<li><code>Read operands</code>：等待到无数据相关时，读操作数</li>
+</ul>
+</li>
+<li>起源于1964年<code>Control Data Corporation</code>推出的<code>CDC6000</code>：顺序发射，乱序执行，乱序完成，没有采用定向技术，只实现非精确中断</li>
+<li>集中相关（冲突）检查（<code>Scoreboard</code>），互锁机制（<code>interlock</code>）解决相关</li>
+<li>采用这种技术的微处理器企业
+<ul>
+<li><code>MIPS</code>、<code>HP</code>、<code>IBM</code></li>
+<li><code>Sun</code>公司的<code>UltraSparc</code></li>
+<li><code>DEC Alpha</code></li>
+</ul>
+</li>
+<li><code>Out-of-order completion =&gt; WAR, WAW hazards?</code>
+<ul>
+<li><code>WAR</code>：一般解决方案（在不采用寄存器重命名的情况下）
+<ul>
+<li>对操作排队</li>
+<li>仅在读操作数阶段读寄存器</li>
+</ul>
+</li>
+<li><code>WAW</code>：检测到相关后，停止发射前一条指令，知道前一条指令完成</li>
+</ul>
+</li>
+<li>提高效率的前提：需要有多条指令进入执行阶段=&gt;必须有多个执行部件或者执行部件是流水化的</li>
+<li>记分牌保存相关操作和状态</li>
+<li>指令执行过程：<code>IF</code>、<code>ISSUE</code>、<code>RO</code>、<code>EX</code>、<code>WR</code></li>
+</ul>
+<p><strong>记分牌控制的四阶段：</strong></p>
+<ol>
+<li><strong><code>Issue</code>：指令译码，检测结构相关</strong>
+<ul>
+<li>如果当前指令所使用的功能部件空闲，并且没有其他活动的指令使用相同的目的寄存器（<code>WAW</code>），记分牌发射该指令到功能部件，并更新记分牌内部数据，如果有结构相关或<code>WAW</code>相关，则该指令的发射暂停，并且也不发射后继指令，直到相关解除</li>
+</ul>
+</li>
+<li><strong><code>Read operands</code>：没有数据相关时，读操作数</strong>
+<ul>
+<li>如果先前已发射的正在运行的指令不对当前指令的源操作数寄存器进行写操作，或者一个正在工作的功能部件已经完成了对该寄存器的写操作，则该操作数有效。操作数有效时，记分牌控制功能部件读操作数，准备执行</li>
+<li>记分牌在这一步动态地解决了<code>RAW</code>相关，指令可能会乱序执行</li>
+</ul>
+</li>
+<li><strong><code>Execution</code>：取到操作数后执行（<code>EX</code>）</strong>
+<ul>
+<li>接收到操作数后，功能部件开始执行。当计算出结果后，它通知记分牌，可以结束该条指令的执行</li>
+</ul>
+</li>
+<li><strong><code>Write result</code>：<code>finish execution（WR）</code></strong>
+<ul>
+<li>一旦记分牌得到功能部件执行完毕的信息后，记分牌检测<code>WAR</code>相关，如果没有<code>WAR</code>相关，就写结果，如果有<code>WAR</code>相关，则暂停该条指令</li>
+</ul>
+</li>
+</ol>
+<p><strong>记分牌的结构：</strong></p>
+<ol>
+<li><strong><code>Instruction status</code>：记录正在执行的各条指令的状态步</strong></li>
+<li><strong><code>Functional unit status</code>：记录功能部件（<code>FU</code>）的状态。用9个域记录每个功能部件的9个参量：</strong>
+<ul>
+<li><code>Busy</code>：指示该部件是否空闲</li>
+<li><code>Op</code>：该部件所完成的操作</li>
+<li><code>Fi</code>：其目的寄存器编号</li>
+<li><code>Fj, Fk</code>：源寄存器编号</li>
+<li><code>Qj, Qk</code>：产生源操作数<code>Fj, Fk</code>的功能部件</li>
+<li><code>Rj, Rk</code>：标识源操作数<code>Fj, Fk</code>是否就绪的标志</li>
+</ul>
+</li>
+<li><strong><code>Register result status</code>：如果存在功能部件对某一寄存器进行写操作，在寄存器结果状态表中记录该功能部件。如果没有指令对该寄存器进行写操作，则该域为<code>Blank</code></strong></li>
+</ol>
+<p><strong>为什么顺序发射？</strong></p>
+<ul>
+<li>顺序发射使我们可以进行程序的数据流分析
+<ul>
+<li>我们可以知道某条指令的结果会流向哪些指令</li>
+<li>如果我们乱序发射，可能会混淆<code>RAW</code>和<code>WAR</code>相关</li>
+</ul>
+</li>
+<li>每一周期发射多条指令也使用该原则将会正确地工作
+<ul>
+<li>寄存器文件至少需要有<code>2x</code>个读端口和<code>x</code>个写端口</li>
+<li>当有寄存器重命名时，例如：<code>Tomasulo</code>，还需要
+<ul>
+<li>多端口的<code>rename table</code>，以同时对一组指令所用的寄存器重命名</li>
+</ul>
+</li>
+<li>在单周期内发射到多个<code>RS</code>中</li>
+</ul>
+</li>
+</ul>
+<p><strong>小结：</strong></p>
+<ul>
+<li><strong>硬件方法挖掘<code>ILP</code></strong>
+<ul>
+<li>编译阶段无法确定的相关性，在程序执行时，用硬件方法判定</li>
+<li>可以使得程序代码在其他机器上有效地执行</li>
+</ul>
+</li>
+<li><strong>记分牌的主要思想：允许<code>stall</code>后的指令继续</strong>
+<ul>
+<li>乱序执行（<code>out-of-order execution</code>） =&gt; 乱序完成（<code>out-of-order completion</code>）</li>
+<li>发射前检测结构相关和<code>WAW</code>相关</li>
+<li>读操作数前检测<code>RAW</code>相关</li>
+<li>写结果前处理<code>WAR</code>相关</li>
+</ul>
+</li>
+</ul>
+<h3><span id="522-指令流动态调度方法之二tomasulo"> 5.2.2 指令流动态调度方法之二：Tomasulo</span></h3>
+<p><strong><code>Tomasulo</code>用于在没有专用编译器的情况下，提高系统性能</strong></p>
+<p><strong><code>Tomasulo</code>三阶段：</strong></p>
+<ol>
+<li><code>Issue</code>：从<code>FP</code>操作队列中取指令
+<ul>
+<li>如果<code>RS</code>空闲（<code>no structural hazard</code>），则控制发射指令和操作数（<code>renames registers</code>）</li>
+</ul>
+</li>
+<li><code>Execution—operate on operands (EX)</code>
+<ul>
+<li>当两操作数就绪后，就可以执行如果没有准备好，则监测<code>Common Data Bus</code>以获取结果</li>
+</ul>
+</li>
+<li><code>Write result—finish execution (WB)</code>
+<ul>
+<li>将结果通过<code>Common Data Bus</code>传给所有等待该结果的部件；表示<code>RS</code>可用</li>
+</ul>
+</li>
+</ol>
+<p><strong>基本数据结构：</strong></p>
+<ol>
+<li><code>Instruction Status</code></li>
+<li><code>Reservation Station</code></li>
+<li><code>Register Result Status</code></li>
+</ol>
+<p><strong><code>Tomasulo</code>算法的特点：</strong></p>
+<ul>
+<li>控制和缓存分布在各部件中
+<ul>
+<li><code>FU</code>缓存称<code>reservation stations</code>：保存待用操作数</li>
+</ul>
+</li>
+<li>指令中的寄存器在<code>RS</code>中用寄存器值或指向<code>RS</code>的指针代替（称为<code>register renaming</code>）
+<ul>
+<li>避免<code>WAR</code>，<code>WAW hazards</code></li>
+<li><code>RS</code>多于寄存器，因此可以做更多编译器无法做的优化</li>
+</ul>
+</li>
+<li>传给<code>FU</code>的结果从<code>RS</code>来而不是从寄存器来，<code>FU</code>的计算结果通过<code>Common Data Bus</code>以广播方式发向所有功能部件
+<ul>
+<li><code>Load</code>和<code>Store</code>部件也看作带有<code>RS</code>的功能部件</li>
+</ul>
+</li>
+<li>可以跨越分支，允许<code>FP</code>操作队列中<code>FP</code>操作不仅仅局限于基本块</li>
+</ul>
+<h2><span id="53-分支预测方法"> 5.3 分支预测方法</span></h2>
+<h3><span id="531-控制相关对于性能的影响"> 5.3.1 控制相关对于性能的影响</span></h3>
+<p><strong>控制相关的动态解决技术</strong></p>
+<ul>
+<li><strong>控制相关：</strong>
+<ul>
+<li>由条件转移或程序中断引起的相关，也称全局相关</li>
+<li>控制相关对流水线的吞吐率和效率影响相对于数据相关要大得多
+<ul>
+<li>条件指令在一般程序中所占的比例相当大</li>
+<li>中断虽然在程序中所占的比例不大，但中断发生在程序中的哪条指令，发生在一条指令执行过程中的哪个功能段都是不确定的</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>处理条件转移和异常引起的控制相关的关键问题：</strong>
+<ul>
+<li>要确保流水线能够正常工作</li>
+<li>减少因断流引起的吞吐率和效率的下降</li>
+</ul>
+</li>
+<li><strong>当分支方向预测错误时：</strong>
+<ul>
+<li>流水线中有多个功能段要浪费</li>
+<li>可能造成程序执行结果发生错误</li>
+<li>因此当程序沿着错误方向运行后，作废这些程序时，一定不能破坏通用寄存器和主存储器的内容</li>
+</ul>
+</li>
+</ul>
+<p><strong>条件转移指令对流水线性能的影响：</strong></p>
+<ul>
+<li>条件转移指令对流水线的影响很大，必须采取相关措施来减少这种影响</li>
+<li>预测可以是静态预测<code>Static (at compile time)</code>或动态预测<code>Dynamic (at runtime)</code></li>
+</ul>
+<h3><span id="532-基于bht的分支预测"> 5.3.2 基于BHT的分支预测</span></h3>
+<p><strong>术语：</strong></p>
+<ul>
+<li><code>Not taken | taken</code>：跳转|不跳转（成功|失败）</li>
+<li>预测准确率（<code>Accuracy</code>），预测错误率（<code>Misprediction</code>）</li>
+</ul>
+<p><strong><code>Branch History Table</code>：</strong></p>
+<ul>
+<li>分支指令的PC的低位索引</li>
+<li>该表记录上一次转移是否成功</li>
+<li>不做地址检查</li>
+</ul>
+<p><strong><code>1-bit BHT</code>以及<code>2-bit BHT</code></strong></p>
+<ul>
+<li><code>1-bit BHT</code>记录上一次跳转的结果</li>
+<li><code>2-bit BHT</code>记录上两次跳转的结果</li>
+</ul>
+<p><strong><code>BHT</code>正确性</strong></p>
+<ul>
+<li>分支预测错误的原因：
+<ul>
+<li>预测错误</li>
+<li>由于使用<code>PC</code>的地位查找<code>BHT</code>表，可能得到错误的分支历史记录</li>
+</ul>
+</li>
+<li><code>BHT</code>表的大小问题
+<ul>
+<li>4096项的表分支预测错误的比例为1%</li>
+<li>再增加项数，对提高预测准确率几乎没有效果</li>
+</ul>
+</li>
+</ul>
+<h3><span id="533-基于btb的分支预测"> 5.3.3 基于BTB的分支预测</span></h3>
+<p><strong><code>BTB, Branch Target Buffer</code></strong></p>
+<ul>
+<li>分支指令的地址作为<code>BTB</code>的索引，以得到分支预测地址</li>
+<li>投机执行面临的挑战：预测间接跳转
+<ul>
+<li>运行时才能确定分支目标地址</li>
+</ul>
+</li>
+<li>多数间接跳转来源于<code>Procedure Return</code>
+<ul>
+<li>采用<code>BTB</code>时，对于过程返回的预测精度较低</li>
+</ul>
+</li>
+<li>使用一个小的缓存（栈）存放<code>Return Address</code></li>
+</ul>
+<h2><span id="54-基于硬件的推测执行"> 5.4 基于硬件的推测执行</span></h2>
+<h2><span id="55-存储器访问冲突消解及多发射技术"> 5.5 存储器访问冲突消解及多发射技术</span></h2>
+<h2><span id="56-多线程技术"> 5.6 多线程技术</span></h2>
+<p><strong>多发射处理器受到的限制：</strong></p>
+<ul>
+<li>程序内在的<code>ILP</code>的限制
+<ul>
+<li>如果每5条指令中有1条相关指令：如何保持5-路<code>VLIW</code>并行?</li>
+<li>部件的操作延时：许多操作需要调度，使部件延时加大</li>
+</ul>
+</li>
+<li>多指令流出的处理器需要大量的硬件资源
+<ul>
+<li>需要多个功能部件来使得多个操作并行（<code>Easy</code>）</li>
+<li>需要更大的指令访问带宽（<code>Easy</code>）</li>
+<li>需要增加寄存器文件的端口数（以及通信带宽，<code>Hard</code>）</li>
+<li>增加存储器的端口数（带宽，Harder）</li>
+</ul>
+</li>
+</ul>
+<p><strong>Multithreading：</strong></p>
+<ul>
+<li>背景：从单线程程序挖掘指令集并行越来越困难</li>
+<li>前提：许多工作任务可以使用线程级并行来完成
+<ul>
+<li>线程级并行来源于多道程序设计</li>
+<li>线程级并行的基础是多线程应用，即一个任务可以用多个线程并行来加速</li>
+</ul>
+</li>
+<li>基本思想：多线程应用可以用线程级并行来提高单个处理器的利用率
+<ul>
+<li>针对单个处理器：多个线程以重叠方式共享单个处理器的功能</li>
+</ul>
+</li>
+<li><strong>如何保证流水线中指令间无数据依赖关系？一种办法是：在相同的流水线中交叉执行来自不同线程的指令</strong></li>
+</ul>
+<p><strong>多线程开销：</strong></p>
+<ul>
+<li>每个线程需要拥有自己的用户态信息（<code>user state</code>) ：包括<code>PC</code>、<code>GPRs</code></li>
+<li>需要自己的系统态信息（<code>system state</code>）
+<ul>
+<li>虚拟存储的页表基地址寄存器（<code>Virtual-memory pagetable-base register</code>）</li>
+<li>异常处理寄存器（<code>Exception-handling registers</code>）</li>
+</ul>
+</li>
+<li>其他开销
+<ul>
+<li>需要处理由于线程竞争导致的<code>Cache/TLB</code>冲突或需要更大的<code>Cache/TLB</code>容量</li>
+<li>更多的OS调度开销</li>
+</ul>
+</li>
+</ul>
+<p><strong>线程调度策略：</strong></p>
+<ul>
+<li>固定交叉模式（<code>CDC 6600 PPUs, 1964</code>）
+<ul>
+<li>针对<code>N</code>个线程，每个线程每隔<code>N</code>个周期执行一条指令</li>
+<li>如果流水线的某一时隙（<code>slot</code>）其对应线程未就绪，插入<code>pipeline bubble</code></li>
+</ul>
+</li>
+<li>软件控制的交叉模式（<code>TI ASC PPUs, 1971</code>）
+<ul>
+<li>OS为<code>N</code>个线程分配流水线的<code>S</code>个<code>pipeline slots</code></li>
+<li>硬件针对<code>S</code>个<code>slots</code>采用固定交叉模式执行相应的线程</li>
+</ul>
+</li>
+<li>硬件控制的线程调度（<code>HEP, 1982</code>）
+<ul>
+<li>硬件跟踪哪些线程处于<code>ready</code>状态</li>
+<li>根据优先级方案选择线程执行</li>
+</ul>
+</li>
+</ul>
+<h2><span id="57-相关课件"> 5.7 相关课件</span></h2>
+<ul>
+<li><a href="/resources/course/System-Architecture/5-1.pdf">Chapter-5.1</a></li>
+<li><a href="/resources/course/System-Architecture/5-2.pdf">Chapter-5.2</a></li>
+<li><a href="/resources/course/System-Architecture/5-3.pdf">Chapter-5.3</a></li>
+<li><a href="/resources/course/System-Architecture/5-4.pdf">Chapter-5.4</a></li>
+<li><a href="/resources/course/System-Architecture/5-5.pdf">Chapter-5.5</a></li>
+<li><a href="/resources/course/System-Architecture/5-6.pdf">Chapter-5.6</a></li>
+<li><a href="/resources/course/System-Architecture/5-7.pdf">Chapter-5.7</a></li>
+</ul>
+<h1><span id="6-数据级并行"> 6 数据级并行</span></h1>
+<p><strong>动机：</strong></p>
+<ul>
+<li><strong>传统指令级并行技术的问题</strong>
+<ul>
+<li>程序内在的并行性</li>
+<li>提高流水线的时钟频率：提高时钟频率，有时导致<code>CPI</code>随着增加（<code>branches, other hazards</code>）</li>
+<li>指令预取和译码：有时在每个时钟周期很难预取和译码多条指令</li>
+<li>提高<code>Cache</code>命中率：在有些计算量较大的应用中（科学计算）需要大量的数据，其局部性较差，有些程序处理的是连续的媒体流（multimedia），其局部性也较差</li>
+</ul>
+</li>
+<li><strong><code>Data-Level Parallelism, DLP</code>的兴起</strong>
+<ul>
+<li>应用需求和技术发展推动着体系结构的发展</li>
+<li>图形、机器视觉、语音识别、机器学习等新的应用均需要大量的数值计算，其算法通常具有数据并行特征</li>
+<li><code>SIMD-based</code>结构（<code>vector-SIMD,subword-SIMD, SIMT/GPUs</code>）是执行这些算法的最有效途径</li>
+</ul>
+</li>
+<li><strong><code>SIMD</code>结构的优势</strong>
+<ul>
+<li><code>SIMD</code>结构可有效地挖掘数据级并行
+<ul>
+<li>基于矩阵运算的科学计算</li>
+<li>图像和声音处理</li>
+<li>…</li>
+</ul>
+</li>
+<li><code>SIMD</code>比<code>MIMD</code>更节能
+<ul>
+<li>针对每组数据操作仅需要取指一次</li>
+<li><code>SIMD</code>对<code>PMD</code>（<code>personal mobile devices</code>）更具吸引力</li>
+</ul>
+</li>
+<li><code>SIMD</code>允许程序员继续以串行模式思维</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>SIMD</code>结构的种类</strong></p>
+<ul>
+<li>向量体系结构</li>
+<li>多媒体<code>SIMD</code>指令集扩展</li>
+<li><code>Graphics Processor Units, GPUs</code></li>
+<li>对于x86处理器：
+<ul>
+<li>每年增加<code>2cores/chip</code></li>
+<li><code>SIMD</code>宽度每4年翻一番</li>
+<li><code>SIMD</code>潜在加速比是<code>MIMD</code>的2倍</li>
+</ul>
+</li>
+</ul>
+<h2><span id="61-向量处理机模型"> 6.1 向量处理机模型</span></h2>
+<p><strong>向量处理机具有更高层次的操作，一条向量指令可以处理<code>N</code>个或<code>N</code>对操作数（处理对象是向量）</strong></p>
+<p><img src="/images/System-Architecture/6-1" alt="6-1"></p>
+<p><strong>向量处理机的基本特性：</strong></p>
+<ul>
+<li>基本思想：两个向量的对应分量进行运算，产生一个结果向量</li>
+<li>简单的一条向量指令包含了多个操作：<code>fewer instruction fetches</code></li>
+<li>每一结果独立于前面的结果
+<ul>
+<li>长流水线，编译器保证操作间没有相关性</li>
+<li>硬件仅需检测两条向量指令间的相关性</li>
+<li>较高的时钟频率</li>
+</ul>
+</li>
+<li>向量指令以已知的模式访问存储器
+<ul>
+<li>可有效发挥多体交叉存储器的优势</li>
+<li>可通过重叠减少存储器操作的延时。例如：一个向量包含64个元素</li>
+<li>不需要数据<code>Cache</code>，仅使用指令<code>Cache</code>（为什么？指的是一个指令的操作数会一次性取到寄存器？）</li>
+</ul>
+</li>
+<li>在流水线控制中减少了控制相关</li>
+</ul>
+<p><strong>向量处理机的基本结构：</strong></p>
+<ul>
+<li><code>memory-memory vector processors</code>：所有的向量操作是存储器到存储器</li>
+<li><code>vector-register processors</code>：除了<code>Load</code>和<code>Store</code>操作外，所有的操作是向量寄存器与向量寄存器间的操作
+<ul>
+<li>向量机的<code>Load/Store</code>结构</li>
+<li>1980年以后的所有的向量处理机都是这种结构：Cray, Convex, Fujitsu, Hitachi, NEC</li>
+</ul>
+</li>
+</ul>
+<p><strong>向量指令的优势：</strong></p>
+<ul>
+<li>格式紧凑
+<ul>
+<li>一条指令包含N个操作</li>
+</ul>
+</li>
+<li>表达能力强
+<ul>
+<li>一条指令包含N个操作</li>
+<li>使用同样的功能部件</li>
+<li>访问不相交的寄存器</li>
+<li>访问存储器中的连续块</li>
+<li>以已知的模式访问存储器</li>
+</ul>
+</li>
+<li>可扩展性好
+<ul>
+<li>可以在多个并行的流水线上运行同样的代码</li>
+</ul>
+</li>
+</ul>
+<p><strong>向量处理机的基本组成单元：</strong></p>
+<ul>
+<li><strong><code>Vector Register</code></strong>：固定长度的一块区域，存放单个向量
+<ul>
+<li>至少2个读端口和一个写端口（一般最少16个读端口，8个写端口）</li>
+<li>典型的有8-32向量寄存器，每个寄存器存放<code>64</code>到<code>128</code>个<code>64</code>位元素</li>
+</ul>
+</li>
+<li><strong><code>Vector Functional Units (FUs)</code></strong>：全流水化的，每一个<code>clock</code>启动一个新的操作
+<ul>
+<li>一般4到8个<code>FUs</code>：<code>FP add</code>、<code>FP mult</code>、<code>FP reciprocal (1/X)</code>、<code>integer add</code>、<code>logical</code>、<code>shift</code>。可能有些重复设置的部件</li>
+</ul>
+</li>
+<li><strong><code>Vector Load-Store Units (LSUs)</code></strong>: 全流水化地<code>Load</code>或<code>Store</code>一个向量，可能会配置多个<code>LSU</code>部件</li>
+<li><strong><code>Scalar registers</code></strong>：存放单个元素用于标量处理或存储地址</li>
+</ul>
+<h2><span id="62-向量处理机模型优化"> 6.2 向量处理机模型优化</span></h2>
+<h3><span id="621-链接优化"> 6.2.1 链接优化</span></h3>
+<p><strong>不采用链接技术，必须处理完前一条指令的最后一个元素，才能启动下一条相关的指令</strong></p>
+<p><img src="/images/System-Architecture/6-2.png" alt="6-2"></p>
+<p><strong>采用链接技术，前一条指令的第一个结果出来后，就可以启动下一条相关指令的执行</strong></p>
+<p><img src="/images/System-Architecture/6-3.png" alt="6-3"></p>
+<h3><span id="622-条件执行"> 6.2.2 条件执行</span></h3>
+<p>例如下面这段伪代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for i from 1 to 64</span><br><span class="line">    if (A(i) != 0) </span><br><span class="line">        A(i) = A(i) - B(i)</span><br></pre></td></tr></table></figure>
+<p><strong>原理：</strong></p>
+<ul>
+<li><code>vector-mask control</code>使用长度为<code>MVL</code>的布尔向量控制向量指令的执行</li>
+<li>当<code>vector-mask register</code>使能时，向量指令操作仅对<code>vector-mask register中</code>对应位为1的分量起作用</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>简单实现时，条件不满足时向量指令仍然需要花费时间</li>
+<li>有些向量处理器带条件的向量执行仅控制向目标寄存器的写操作，可能会有除法错</li>
+</ul>
+<h3><span id="623-稀疏矩阵"> 6.2.3 稀疏矩阵</span></h3>
+<p>看下面这段伪代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">for i from 1 to n</span><br><span class="line">    A(K(i)) = A(K(i)) - B(M(i))</span><br></pre></td></tr></table></figure>
+<p><strong>原理：</strong></p>
+<ul>
+<li><code>gather (LVI) operation</code>：使用<code>index vector</code>（伪代码中的<code>K</code>和<code>M</code>）中给出的偏移再加基址来读取 =&gt; <code>a nonsparse vector in a vector register</code></li>
+<li>这些元素以密集的方式操作完成后，再使用同样的<code>index vector</code>存储到稀疏矩阵的对应位置</li>
+<li>这些操作编译时可能无法完成。主要原因：编译器无法预知<code>K(i)</code>以及是否有数据相关</li>
+<li>使用<code>CVI</code>设置步长（<code>index 0, 1xm, 2xm, ..., 63xm</code>）</li>
+</ul>
+<h2><span id="63-面向多媒体应用的simd指令集扩展"> 6.3 面向多媒体应用的SIMD指令集扩展</span></h2>
+<h2><span id="64-gpu-1"> 6.4 GPU-1</span></h2>
+<p><strong><code>GPU</code>起源：</strong></p>
+<ul>
+<li>源于计算机图形学。1960年在<code>Ivan Sutherland</code>的<code>Sketchpad</code>项目中首先提到计算机图形学
+<ul>
+<li>早期，计算机图形学用于电影动画离线渲染，以及游戏中的实时渲染</li>
+</ul>
+</li>
+<li>硬件支持渲染。显卡始于1981年<code>IBM Monochrome Display Adapter (MDA)</code>，后来支持<code>2D</code>、<code>3D</code>加速</li>
+<li>早期的3D加速卡（<code>Graphics Processing Unit</code>）：用来渲染图形的专用处理器
+<ul>
+<li>如1999年<code>NVIDIA GeForce 256</code>功能相对固定</li>
+<li>早期的<code>GPU</code>是指带有高性能浮点运算部件、可高效生成3D图形的具有固定功能的专用设备（<code>mid-late 1990s</code>）</li>
+<li>用户可以配置图形处理流水线，可编程性较弱</li>
+</ul>
+</li>
+<li>GPU的可编程性
+<ul>
+<li>2001年<code>NVIDIA</code>改善了<code>GPU</code>的可编程性（<code>GeForce3</code>）</li>
+<li>2003年，学术界研究将矩阵数据转换为纹理数据并使用<code>shaders</code>完成运算，从而在<code>GPU</code>上实现通用计算，这些努力激发了<code>GPU</code>制造商直接支持通用计算</li>
+<li>第一个支持通用计算的<code>GPU</code>是<code>GeForce 8</code>系列</li>
+<li><code>Fermi architecture</code>：具有缓存读写数据的能力</li>
+<li><code>AMD</code>的混合结构（<code>GPU</code>和<code>CPU</code>集成在一个芯片中，支持<code>thread</code>的动态调度）</li>
+<li><code>Volta architecture</code>：引入<code>Tensor Cores</code>可有效加速机器学习应用</li>
+</ul>
+</li>
+<li>现代<code>GPU, GP-GPU</code>是可编程的，可用于通用计算</li>
+</ul>
+<p><strong><code>GPU</code>基本硬件结构</strong></p>
+<ul>
+<li><code>CPU + GPU</code>异构多核系统
+<ul>
+<li>针对每个任务选择合适的处理器和存储器</li>
+</ul>
+</li>
+<li><code>CPU</code>适合执行一些串行的线程（强控制、弱计算）
+<ul>
+<li>串行执行快</li>
+<li>带有cache，访问存储器延时低</li>
+</ul>
+</li>
+<li><code>GPU</code>适合执行大量并行线程（弱控制、强计算）
+<ul>
+<li>可扩放的并行执行</li>
+<li>高带宽的并行存取</li>
+</ul>
+</li>
+</ul>
+<p><strong>多核 vs. 多线程：</strong></p>
+<ul>
+<li>多核处理器结构随着线程数的增加会落入性能低谷
+<ul>
+<li><code>Cache</code>容量不足时，性能就会下降</li>
+</ul>
+</li>
+<li>当线程数较少时多线程结构（<code>GPU</code>）会落入性能低估
+<ul>
+<li>无法抵消对片外存储访问的延时</li>
+</ul>
+</li>
+</ul>
+<h3><span id="641-gpu编程模型"> 6.4.1 GPU编程模型</span></h3>
+<p><strong>概念：</strong></p>
+<ul>
+<li>编程模型：指程序员如何描述应用（从程序员角度看到的机器模型）
+<ul>
+<li>例如，顺序模型（<code>von Neumann</code>），数据并行（<code>SIMD</code>），数据流模型、多线程模型（<code>MIMD</code>，<code>SPMD</code>）</li>
+</ul>
+</li>
+<li>执行模型：指硬件底层如何执行代码
+<ul>
+<li>例如，乱序执行、向量机、数据流处理机、多处理机、多线程处理机等</li>
+</ul>
+</li>
+<li>执行模型与编程模型可以差别很大
+<ul>
+<li>例如，顺序模型可以在乱序执行的处理器上执行</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>SPMD</code></strong></p>
+<ul>
+<li><code>SPMD</code>是一种编程模型而不是计算机组织</li>
+<li>每个处理单元执行同样的过程，处理不同的数据
+<ul>
+<li>这些过程可以在程序中的某个点上同步，例如<code>barriers</code></li>
+</ul>
+</li>
+<li>多条指令流执行相同的程序
+<ul>
+<li>每个程序/过程
+<ul>
+<li>操作不同的数据</li>
+<li>运行时可以执行不同的控制流路径</li>
+</ul>
+</li>
+<li>许多科学计算应用以这种方式编程，运行在<code>MIMD</code>硬件结构上（<code>multiprocessors</code>）</li>
+<li>现代<code>GPUs</code>以这种类似的方式编程，运行在<code>SIMD</code>硬件上</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>GPU</code>编程模型</strong></p>
+<ul>
+<li><code>CUDA</code>
+<ul>
+<li><code>Nvidia</code>研制开发的专用模型</li>
+<li>第一个<code>GP-GPUs</code>编程环境</li>
+</ul>
+</li>
+<li><code>C++ AMP</code>
+<ul>
+<li>微软研制开发</li>
+<li><code>CUDA/OpenCL</code>的更高层抽象</li>
+</ul>
+</li>
+<li>OpenACC – Open Accelerator
+<ul>
+<li><code>UDA/OpenCL</code>的更高层抽象</li>
+</ul>
+</li>
+<li>OpenCL
+<ul>
+<li>最早由苹果公司研制开发，后来形成开放的异构平台编程规范</li>
+<li>异构平台编程框架，<code>OpenCL</code>用来编写设备端程序</li>
+<li><code>OpenCL</code>工作组的成员包括：<code>3Dlab</code>s、<code>AMD</code>、苹果、<code>ARM</code>、<code>Codeplay</code>、爱立信、飞思卡尔、华为、HSA基金会、<code>GraphicRemedy</code>、<code>IBM</code>、<code>Imagination Technologies</code>、<code>Intel</code>、诺基亚、<code>NVIDIA</code>、摩托罗拉、<code>QNX</code>、高通，三星、<code>Seaweed</code>、德州仪器、布里斯托尔大学、瑞典Ume大学</li>
+</ul>
+</li>
+</ul>
+<p><strong>Threads and Blocks：</strong></p>
+<ul>
+<li>一个线程对应一个数据元素</li>
+<li>许多线程组织成一个线程块（<code>Block</code>）</li>
+<li>许多线程块组成一个网格（<code>Grid</code>）</li>
+<li><code>GPU</code>由硬件对线程进行管理</li>
+</ul>
+<h3><span id="642-gpu执行模型"> 6.4.2 GPU执行模型</span></h3>
+<p><strong><code>GPU</code>执行模型：<code>SIMT</code></strong></p>
+<ul>
+<li><code>GPU</code>不是用<code>SIMD</code>指令编程</li>
+<li>使用多线程模型 (一种<code>SPMD</code>编程模型)
+<ul>
+<li>每个线程执行同样的代码，但操作不同的数据元素</li>
+<li>每个线程有自己的上下文（即可以独立地启动/执行等）</li>
+</ul>
+</li>
+<li>一组执行相同指令的线程由硬件动态组织成<code>warp</code>
+<ul>
+<li>一个warp是由硬件形成的<code>SIMD</code>操作</li>
+<li><code>lockstep</code>模式执行</li>
+</ul>
+</li>
+</ul>
+<h3><span id="643-gpu存储模型"> 6.4.3 GPU存储模型</span></h3>
+<p><img src="/images/System-Architecture/6-4" alt="6-4"></p>
+<h2><span id="65-gpu-2"> 6.5 GPU-2</span></h2>
+<p><strong><code>GPU: throughput processing</code>：</strong></p>
+<ul>
+<li><code>GPU</code>使用许多精简的core并行运行</li>
+<li>包含大量<code>ALU</code>的<code>Core</code>形成的<code>SIMD Processing</code></li>
+<li>通过交叉执行许多组片段来避免延迟（数据访问）</li>
+</ul>
+<p><strong><code>CPU vs. GPU</code>：</strong></p>
+<ul>
+<li><code>CPU</code>：<img src="/images/System-Architecture/6-5.png" alt="6-5"></li>
+<li><code>GPU</code>
+<ul>
+<li>架构1：将那些协助单处理器运行得更快的组件从CPU中移除：<img src="/images/System-Architecture/6-6.png" alt="6-6"></li>
+<li>架构2：添加<code>ALU</code>，用以分摊管理指令流的成本/复杂性：<img src="/images/System-Architecture/6-7.png" alt="6-7"></li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Warps are multithreaded on core</code>：</strong></p>
+<ul>
+<li>一个<code>warp</code>由32个<code>μthreads</code>构成</li>
+<li>多个<code>μthreads</code>线程在单个核上交叉运行，以隐藏存储器访问和功能部件的延迟</li>
+<li>1个线程块包含多个<code>warp</code>，这些<code>warp</code>都映射到同一个核上</li>
+<li>多个线程块也可以在同一个核上运行</li>
+</ul>
+<h3><span id="651-分支处理"> 6.5.1 分支处理</span></h3>
+<p><strong>问题引入：每个线程可以包含相同的控制流指令，且这些线程可以执行不同的控制流路径。当一个<code>warp</code>中的线程分支到不同的执行路径时，产生分支发散</strong></p>
+<p><strong>如何处理分支发散：</strong></p>
+<ul>
+<li>硬件跟踪各<code>µthreads</code>转移的方向（判定哪些是成功的转移，哪些是失败的转移）</li>
+<li>如果所有线程所走的路径相同，那么可以保持这种<code>SIMD</code>执行模式</li>
+<li>如果各线程选择的方向不一致，那么创建一个屏蔽（<code>mask</code>）向量来指示各线程的转移方向（成功、失败）</li>
+<li>继续执行分支失败的路径，将分支成功的路径压入硬件堆栈（分支同步堆栈），待后续执行</li>
+</ul>
+<p><strong><code>SIMT</code>的主要优点：</strong></p>
+<ul>
+<li>可以独立地处理线程，即每个线程可以在任何标量流水线上单独执行（<code>MIMD</code>处理模式）</li>
+<li>可以将线程组织成<code>warp</code>，即可以将执行相同指令流的线程构成<code>warp</code>，形成<code>SIMD processing</code>处理模式，以充分发挥<code>SIMD</code>处理的优势</li>
+<li>如果有许多线程，对具有相同<code>PC</code>值的线程可以将它们动态组织到一个<code>warp</code>中
+<ul>
+<li>这样可以减少分支发散，提高<code>SIMD</code>利用率（执行有用操作的<code>SIMD lanes</code>的比例）</li>
+</ul>
+</li>
+</ul>
+<p><strong>动态构成<code>warp</code>：</strong></p>
+<ul>
+<li>分支发散之后，动态合并执行相同指令的线程</li>
+<li>固定模式的存储器访问相对简单，当动态构成<code>warp</code>时，使得访问模式具有随机性，使得问题变得复杂。降低存储器访问的局部性
+<ul>
+<li>需要有相关技术来解决存储器发散访问问题</li>
+</ul>
+</li>
+</ul>
+<h2><span id="66-小结"> 6.6 小结</span></h2>
+
+<div class="markmap-container" style="height:undefined">
+  <svg data="{&quot;t&quot;:&quot;root&quot;,&quot;d&quot;:0,&quot;v&quot;:&quot;&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:2,&quot;p&quot;:{&quot;lines&quot;:[1,2]},&quot;v&quot;:&quot;向量体系结构&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[2,3]},&quot;v&quot;:&quot;基本概念&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[3,4]},&quot;v&quot;:&quot;两个向量的对应分量进行运算，产生一个结果向量&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[4,5]},&quot;v&quot;:&quot;基本特征&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[5,6]},&quot;v&quot;:&quot;VSIW，一条指令包含多个操作&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[6,7]},&quot;v&quot;:&quot;单条向量指令内包含多个操作&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[7,8]},&quot;v&quot;:&quot;以已知模式访问存储器-多体交叉存储系统&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[8,9]},&quot;v&quot;:&quot;控制相关少&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[9,10]},&quot;v&quot;:&quot;基本结构&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[10,11]},&quot;v&quot;:&quot;向量指令并行执行&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[11,12]},&quot;v&quot;:&quot;向量运算部件以流水线方式执行&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[12,13]},&quot;v&quot;:&quot;向量部件结构-多条运算流水线&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[13,14]},&quot;v&quot;:&quot;性能优化&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[14,15]},&quot;v&quot;:&quot;链接技术&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[15,16]},&quot;v&quot;:&quot;条件执行&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[16,17]},&quot;v&quot;:&quot;稀疏矩阵&quot;}]}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:2,&quot;p&quot;:{&quot;lines&quot;:[17,18]},&quot;v&quot;:&quot;GPU-多线程协处理器&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[18,19]},&quot;v&quot;:&quot;GPU编程模型：SPMD&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[19,20]},&quot;v&quot;:&quot;使用线程而不是SIMD指令&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[20,21]},&quot;v&quot;:&quot;每个线程执行相同的代码，但操作不同的数据元素&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[21,22]},&quot;v&quot;:&quot;每个线程有自己的上下文（可以独立地启动、执行等）&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[22,23]},&quot;v&quot;:&quot;计算由大量的相互独立的线程完成，这些线程组合成线程块&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[23,24]},&quot;v&quot;:&quot;GPU执行模型：SIMT&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[24,25]},&quot;v&quot;:&quot;一组执行相同指令的线程由硬件动态组织成warp&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[25,26]},&quot;v&quot;:&quot;一个warp是由硬件形成的SIMD操作&quot;}]}]}],&quot;p&quot;:{}}"/>
+</div>
+
+<h2><span id="67-相关课件"> 6.7 相关课件</span></h2>
+<ul>
+<li><a href="/resources/course/System-Architecture/6-1.pdf">Chapter-6.1</a></li>
+<li><a href="/resources/course/System-Architecture/6-2.pdf">Chapter-6.2</a></li>
+<li><a href="/resources/course/System-Architecture/6-3.pdf">Chapter-6.3</a></li>
+<li><a href="/resources/course/System-Architecture/6-4.pdf">Chapter-6.4</a></li>
+</ul>
+<h1><span id="7-多处理器及线程级并行"> 7 多处理器及线程级并行</span></h1>
+<p><strong>并行计算机体系结构的分类:</strong></p>
+<ul>
+<li>按照<code>Flynn</code>分类法，可把计算机分成
+<ul>
+<li>单指令流单数据流（<code>SISD</code>）</li>
+<li>单指令流多数据流（<code>SIMD</code>）</li>
+<li>多指令流单数据流（<code>MISD</code>）</li>
+<li>多指令流多数据流（<code>MIMD</code>）</li>
+</ul>
+</li>
+<li><code>MIMD</code>已成为通用多处理机体系结构的选择，原因：
+<ul>
+<li><code>MIMD</code>灵活性高</li>
+<li><code>MIMD</code>可以充分利用商品化微处理器在性价比方面的优势</li>
+</ul>
+</li>
+</ul>
+<p><strong>通信模型和存储器的结构模型：</strong></p>
+<ul>
+<li>两种地址空间的组织方案
+<ul>
+<li>共享存储（多处理机）：物理上分离的多个存储器可作为一个逻辑上共享的存储空间进行编址</li>
+<li>非共享存储（多计算机）：
+<ul>
+<li>整个地址空间由多个独立的地址空间构成，它们在逻辑上也是独立的，远程的处理器不能对其直接寻址</li>
+<li>每一个处理器-存储器模块实际上是一个单独的计算机，这种机器也称为多计算机</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>两种通信模型
+<ul>
+<li>共享地址空间的机器：称为共享存储器通信
+<ul>
+<li>利用Load/Store指令的地址隐含地进行数据通讯</li>
+</ul>
+</li>
+<li>多个地址空间的机器：称为消息传递通信
+<ul>
+<li>通过处理器间显式地传递消息完成</li>
+<li>通过<code>Send</code>、<code>Receive</code>操作来进行数据通信</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>不同通信机制的优点：</strong></p>
+<ul>
+<li>共享存储器通信的主要优点
+<ul>
+<li>当处理器通信方式复杂或程序执行动态变化时易于编程，同时在简化编译器设计方面也占有优势</li>
+<li>通信数据量较小时，通信开销较低，带宽利用较好</li>
+<li>通过硬件控制的Cache减少了远程通信的频度，减少了通信延迟以及对共享数据的访问冲突</li>
+</ul>
+</li>
+<li>消息传递通信的主要优点
+<ul>
+<li>硬件较简单。</li>
+<li>通信是显式的，从而引起编程者和编译程序的注意，着重处理开销大的通信</li>
+</ul>
+</li>
+</ul>
+<p><strong>并行处理面临的挑战：</strong></p>
+<ul>
+<li>并行处理面临着两个重要的挑战和一个重要问题：
+<ul>
+<li>程序中有限的并行性</li>
+<li>相对较高的通信开销</li>
+<li>一个重要问题：存储器访问的序问题</li>
+</ul>
+</li>
+<li>挑战之一：有限的并行性使机器要达到好的加速比十分困难</li>
+<li>挑战之二：多处理机中远程访问的较大延迟。在现有的机器中，处理器之间的数据通信大约需要35～&gt;500个时钟周期</li>
+</ul>
+<p><strong>存储器访问的序问题：</strong></p>
+<ul>
+<li>存储同一性（<code>Consistency</code>）：
+<ul>
+<li>也有翻译为存储一致性</li>
+<li>不同处理器发出的所有存储器操作的顺序问题（即针对不同存储单元或相同存储单元）</li>
+<li>所有存储器访问的全序问题</li>
+</ul>
+</li>
+<li><code>Cache</code>一致性（<code>Coherence</code>）：
+<ul>
+<li>不同处理器访问相同存储单元时的访问顺序问题</li>
+<li>访问每个<code>Cache</code>块的局部序问题</li>
+</ul>
+</li>
+</ul>
+<p><strong>如何应对挑战/问题？</strong></p>
+<ul>
+<li>如何应对并行性不足问题：
+<ul>
+<li>通过采用并行性更好的算法来解决</li>
+</ul>
+</li>
+<li>如何降低远程访问的延迟：
+<ul>
+<li>靠体系结构支持和编程技术</li>
+</ul>
+</li>
+<li>如何正确有效地访问共享存储器
+<ul>
+<li>一致性协议</li>
+</ul>
+</li>
+</ul>
+<h2><span id="71-集中式共享存储器体系结构"> 7.1 集中式共享存储器体系结构</span></h2>
+<p><strong>集中式共享存储器体系结构的特点：</strong></p>
+<ul>
+<li>多个处理器共享一个存储器</li>
+<li>当处理器规模较小时，这种机器十分经济</li>
+<li>支持对共享数据和私有数据的<code>Cache</code>缓存
+<ul>
+<li>私有数据供一个单独的处理器使用，而共享数据供多个处理器使用</li>
+</ul>
+</li>
+<li>共享数据进入Cache产生了一个新的问题：<code>Cache</code>的一致性问题</li>
+</ul>
+<p><strong>不一致产生的原因（<code>Cache</code>一致性问题）：</strong></p>
+<ul>
+<li><code>I/O</code>操作
+<ul>
+<li><code>Cache</code>中的内容可能与由<code>I/O</code>子系统输入输出形成的存储器对应部分的内容不同</li>
+</ul>
+</li>
+<li>共享数据
+<ul>
+<li>不同处理器的<code>Cache</code>都保存有对应存储器单元的内容</li>
+</ul>
+</li>
+</ul>
+<p><strong>关于存储系统是一致的的定义：</strong></p>
+<ul>
+<li>如果对某个数据项的任何读操作均可得到其最新写入的值，则认为这个存储系统是一致的（非正式定义）</li>
+<li>如果存储系统行为满足条件：
+<ul>
+<li>处理器<code>P</code>对<code>X</code>进行一次写之后又对<code>X</code>进行读，读和写之间没有其它处理器对<code>X</code>进行写，则读的返回值总是写进的值</li>
+<li>一个处理器对<code>X</code>进行写之后，另一处理器对<code>X</code>进行读，读和写之间无其它写，则读<code>X</code>的返回值应为写进的值</li>
+<li>对同一单元的写是顺序化的，即任意两个处理器对同一单元的两次写，从所有处理器看来顺序都应是相同的</li>
+</ul>
+</li>
+<li>2点假设
+<ul>
+<li>直到所有的处理器均看到了写的结果，一次写操作才算完成（写传播）</li>
+<li>允许处理器无序读，但必须以程序序进行写（写串行化）</li>
+</ul>
+</li>
+</ul>
+<p><strong>实现一致性的基本方案：</strong></p>
+<ul>
+<li>在一致的多处理机中，<code>Cache</code>提供两种功能
+<ul>
+<li>共享数据的迁移: 共享块迁移到私有<code>Cache</code>中
+<ul>
+<li>降低了对远程共享数据的访问延迟和对共享存储器的带宽要求</li>
+</ul>
+</li>
+<li>共享数据的复制：共享块被复制到多个私有<code>Cache</code>中
+<ul>
+<li>不仅降低了访存的延迟，也减少了访问共享数据所产生的冲突</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>小规模多处理机不是采用软件而是采用硬件技术实现<code>Cache</code>一致性</li>
+</ul>
+<p><strong><code>Cache</code>一致性协议：</strong></p>
+<ul>
+<li>对多个处理器维护存储一致性的协议</li>
+<li>关键：跟踪共享数据块的状态</li>
+<li>共享数据状态跟踪技术
+<ul>
+<li>目录：物理存储器中共享数据块的状态及相关信息均被保存在一个称为目录的地方</li>
+<li>监听：每个<code>Cache</code>除了包含物理存储器中块的数据拷贝之外，也保存着各个块的共享状态信息</li>
+</ul>
+</li>
+</ul>
+<p><strong>基于监听的两种协议：</strong></p>
+<ul>
+<li>写作废协议
+<ul>
+<li>在一个处理器写某个数据项之前保证它对该数据项有唯一的访问权</li>
+</ul>
+</li>
+<li>写更新协议
+<ul>
+<li>当一个处理器写某数据项时，通过广播使其它<code>Cache</code>中所有对应的该数据项拷贝进行更新</li>
+</ul>
+</li>
+<li>写更新和写作废协议性能上的差别
+<ul>
+<li>对同一数据（字）的多个写而中间无读操作情况,写更新协议需进行多次写广播操作，而在写作废协议下只需一次作废操作</li>
+<li>对同一块中多个（不同）字进行写，写更新协议对每个字的写均要进行一次广播，而在写作废协议下仅在对本块第一次写时进行作废操作</li>
+<li>一个处理器写到另一个处理器读 之间的延迟通常在写更新模式中较低。而在写作废协议中，需要读一个新的拷贝</li>
+</ul>
+</li>
+<li>在基于总线的多处理机中，写作废协议成为绝大多数系统设计的选择</li>
+</ul>
+<p><strong>监听协议的基本实现技术：</strong></p>
+<ul>
+<li>小规模多处理机中实现写作废协议的关键利用总线进行作废操作，每个块的有效位使作废机制的实现较容易</li>
+<li>写直达<code>Cache</code>，因为所有写的数据同时被写回主存，则从主存中总可以取到最新的数据值</li>
+<li>对于写回<code>Cache</code>，得到数据的最新值会困难一些，因为最新值可能在某个<code>Cache</code>中，也可能在主存中</li>
+<li>在写回<code>Cache</code>条件下的实现技术
+<ul>
+<li>用<code>Cache</code>中块的标志位实现监听过程</li>
+<li>给每个<code>Cache</code>块加一个特殊的状态位说明它是否为共享</li>
+</ul>
+</li>
+</ul>
+<h3><span id="711-msi-protocol"> 7.1.1 MSI Protocol</span></h3>
+<p><strong><code>MSI Write-Back Invalidate Protocol</code>（为什么有2个<code>4 bus transactions</code>）</strong></p>
+<ul>
+<li><code>3 states</code>：
+<ul>
+<li>Modified：仅该<code>Cache</code>拥有修改过的、有效的该块<code>copy</code></li>
+<li>Shared：该块是干净块，其他<code>Cache</code>中也可能含有该块，存储器中的内容是最新的</li>
+<li>Invalid：该块是无效块</li>
+</ul>
+</li>
+<li><code>4 bus transactions</code>：
+<ul>
+<li><code>Read Miss</code>：服务于<code>Read Miss on Bus</code></li>
+<li><code>Write Miss</code>：服务于<code>Write Miss on Bus</code>，得到一个独占的块</li>
+<li><code>Invalidate</code>：作废该块在其他处理器中的<code>Copy</code></li>
+<li><code>Write back</code>：替换操作将修改过的块写回</li>
+</ul>
+</li>
+<li>写操作时，作废所有其他块
+<ul>
+<li>直到<code>Invalidate transaction</code>出现在总线上，写操作才算完成</li>
+<li>写串行化：总线事务在总线上串行化</li>
+</ul>
+</li>
+<li><code>4 bus transactions</code>：
+<ul>
+<li><code>Bus Read</code>：读失效时产生<code>BusRd</code>总线事务</li>
+<li><code>Bus Read Exclusive</code>：<code>BusRdX</code>
+<ul>
+<li>得到独占的（<code>exclusive</code>）<code>cache block</code></li>
+<li>bus read with intention to write</li>
+</ul>
+</li>
+<li><code>Bus Write-Back</code>：<code>BusWB</code>用于<code>Cache</code>块的替换</li>
+<li><code>Flush on BusRd or BusRdX</code>
+<ul>
+<li><code>Cache</code>将数据块放到总线上（而不是从存储器取数据）完成<code>Cache-to-Cache</code>的传送，并更新存储器</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>State Transitions in the MSI Protocol</code></strong></p>
+<ul>
+<li><img src="/images/System-Architecture/7-1.png" alt="7-1"></li>
+<li><code>Processor Read</code>
+<ul>
+<li><code>Cache miss</code>：产生BusRd事务</li>
+<li><code>Cache hit (S or M)</code>：无总线动作</li>
+</ul>
+</li>
+<li><code>Processor Write</code>
+<ul>
+<li>当在非<code>Modified</code>状态时，产生总线<code>BusRdX</code>事务，<code>BusRdX</code>导致其他Cache中的对应块作废（<code>invalidate</code>）</li>
+<li>当在<code>Modified</code>状态时，无总线动作</li>
+</ul>
+</li>
+<li><code>Observing a Bus Read</code>
+<ul>
+<li>如果该块是<code>Modified</code>，产生<code>Flush</code>总线事务
+<ul>
+<li>更新存储器和有需求的<code>Cache</code></li>
+<li>引起总线事务的<code>Cache</code>块状态：<code>Shared</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Observing a Bus Read Exclusive</code>
+<ul>
+<li>作废相关<code>block</code></li>
+<li>如果该块是<code>Modified</code>，产生<code>Flush</code>总线事务</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Lower-level Design Choices</code>：</strong></p>
+<ul>
+<li>引入<code>Bus Upgrade (BusUpgr)</code>将<code>Cache</code>块状态从<code>S</code>到<code>M</code>
+<ul>
+<li>引起作废操作 (类似<code>BusRdX</code>) ，但避免块的读操作</li>
+</ul>
+</li>
+<li>当<code>M</code>态的块观察到<code>BusRd</code>时，变迁到哪个态
+<ul>
+<li><code>Transition to state S</code>或者<code>Transition to state I</code>取决于访问模式</li>
+</ul>
+</li>
+<li><code>Transition to state S</code>：
+<ul>
+<li>如果不久会有本地读操作，而不是其他处理器的写操作</li>
+<li>比较适合于经常发生读操作的访问模式</li>
+</ul>
+</li>
+<li><code>Transition to state I</code>：
+<ul>
+<li>经常发生其他处理器写操作</li>
+<li>比较适合数据迁移操作：即本地写后，其他处理器将会发出读和写请求，然后本地又进行读和写。即连续的对称式访问模式</li>
+</ul>
+</li>
+<li>不同选择方案会影响存储器的性能</li>
+</ul>
+<p><strong><code>Satisfying Coherence</code>：</strong></p>
+<ul>
+<li>写传播（<code>Write propagation</code>）
+<ul>
+<li>对一个<code>Shared</code>或<code>Invalid</code>块的写，其他<code>Cache</code>都可见
+<ul>
+<li>使用<code>Bus Read-exclusive (BusRdX) </code>事务，<code>Bus Read- exclusive</code>事务作废其他<code>Cache</code>中的块</li>
+<li>其他处理器在未看到该写操作的效果前体验到的是<code>Cache Miss</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>写串行（<code>Write serialization</code>）
+<ul>
+<li>所有出现在<code>bus</code>上的写操作（<code>BusRdX</code>）被总线串行化
+<ul>
+<li>所有处理器（含发出写操作的处理器）以同样的方式排序</li>
+<li>首先更新发出写操作的处理器的本地<code>Cache</code>，然后处理其他事务</li>
+</ul>
+</li>
+<li>并不是所有的写操作都会出现在总线上
+<ul>
+<li>对<code>Modified</code>块的写序列来自同一个处理器将不会产生总线事务</li>
+<li>同一处理器是串行化的写：由同一处理器进行读操作将会看到串行序的写序列</li>
+<li>其他处理器对该块的读操作：会导致一个总线事务，这保证了写操作的顺序对其他处理器而言也是串行化的</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Snoopy Cache-Coherence Protocols</code>：</strong></p>
+<ul>
+<li>总线作为广播的媒介，<code>Caches</code>可知总线的行为
+<ul>
+<li>总线上的事务对所有<code>Cache</code>是可见的</li>
+<li>这些事务对所有控制器以同样的顺序可见</li>
+</ul>
+</li>
+<li><code>Cache</code>控制器监测（<code>snoop</code>）共享总线上的所有事务
+<ul>
+<li>根据<code>Cache</code>中块的状态不同会产生不同的事务</li>
+<li>通过执行不同的总线事务来保证<code>Cache</code>的一致性</li>
+</ul>
+</li>
+</ul>
+<h3><span id="712-mesi-protocol"> 7.1.2 MESI Protocol</span></h3>
+<p><strong><code>MESI Write-Back Invalidation Protocol</code></strong></p>
+<ul>
+<li><code>MSI Protocol</code>的缺陷
+<ul>
+<li>读进+修改一个<code>block</code>，产生2个总线事务
+<ul>
+<li>首先是读操作产生<code>BusRd</code> (<code>I→S</code>)，并置状态为<code>Shared</code>，写更新时产生BusRdX (<code>S→M</code>)</li>
+</ul>
+</li>
+<li>即使一个块是<code>Cache</code>独占的这种情况仍然存在</li>
+<li>使用多道程序负载时，这种情况很普遍</li>
+</ul>
+</li>
+<li>增加<code>exclusive state</code>，减少总线事务
+<ul>
+<li><code>Exclusive state</code>表示仅当前<code>Cache</code>包含该块，并且是干净的块</li>
+<li>区分独占块的<code>clean</code>和<code>dirty</code></li>
+<li>一个处于<code>exclusive state</code>的块，更新时不产生总线事务</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Four States: MESI</code>：</strong></p>
+<ul>
+<li><code>M, Modified</code>
+<ul>
+<li>仅当前<code>Cache</code>含有该块，并且该块被修改过</li>
+<li>内存中的<code>Copy</code>是陈旧的值</li>
+</ul>
+</li>
+<li><code>E, Exclusive or exclusive-clean</code>
+<ul>
+<li>仅当前<code>Cache</code>含有该块，并且该块没被修改过</li>
+<li>内存中的数据是最新的</li>
+</ul>
+</li>
+<li><code>S, Shared</code>
+<ul>
+<li>多个<code>Cache</code>中都含有本块，而且都没有修改过</li>
+<li>内存中的数据是最新的</li>
+</ul>
+</li>
+<li><code>I, Invalid</code>
+<ul>
+<li>该块是无效块</li>
+</ul>
+</li>
+<li>也称<code>Illinois protocol</code>
+<ul>
+<li>首先是由<code>Illinois</code>的研究人员研制并发表论文</li>
+<li><code>MESI</code>协议的变种广泛应用于现代微处理器中</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Hardware Support for MESI</code>：</strong></p>
+<ul>
+<li>总线互连的新要求
+<ul>
+<li>增加一个称为<code>shared signal S</code>，必须对所有<code>Cache</code>控制器可用</li>
+<li>可以实现成<code>wired-OR line</code></li>
+</ul>
+</li>
+<li>所有<code>cache controllers</code>监测<code>BusRd</code>
+<ul>
+<li>如果所访问的块的状态是（<code>state S, E, or M</code>）</li>
+<li>请求<code>Cache</code>根据<code>shared signal</code>选择<code>E</code>或<code>S</code></li>
+</ul>
+</li>
+</ul>
+<p><strong><code>MESI State Transition Diagram</code>：</strong></p>
+<ul>
+<li><img src="/images/System-Architecture/7-2.png" alt="7-2"></li>
+<li><code>Processor Read</code>
+<ul>
+<li>读失效时产生<code>BusRd</code>事务，进而有可能产生<code>replace</code>动作？</li>
+<li><code>BusRd(S) =&gt; shared line asserted</code>
+<ul>
+<li>在其他<code>Cache</code>中有有效的<code>copy</code></li>
+<li><code>Goto state S</code></li>
+</ul>
+</li>
+<li><code>BusRd(~S) =&gt; shared line not asserted</code>
+<ul>
+<li>在其他<code>Cache</code>中不存在该块</li>
+<li><code>Goto state E</code></li>
+</ul>
+</li>
+<li>读命中时不产生总线事务</li>
+</ul>
+</li>
+<li><code>Processor Write</code>
+<ul>
+<li>该<code>Cache</code>块的状态转至<code>M</code></li>
+<li>在<code>I</code>或<code>S</code>态（命中）产生<code>BusRdX/BusUpgr</code>
+<ul>
+<li>作废其他<code>Cache</code>中的<code>Copies</code></li>
+</ul>
+</li>
+<li>写命中且<code>Cache</code>块处于<code>E</code>和<code>M</code>态时，不产生总线事务</li>
+<li>写失效时，<code>E</code>或<code>S</code>态的块有可能引起<code>replace</code>动作</li>
+<li>写失效时，<code>M</code>态的块有可能引起<code>replace</code>和<code>BusWB</code></li>
+</ul>
+</li>
+<li><code>Observing a BusRd</code>
+<ul>
+<li>该块的状态从<code>E</code>降至<code>S</code>
+<ul>
+<li>因为存在其他<code>copy</code></li>
+</ul>
+</li>
+<li>该块从<code>M</code>降至<code>S</code>
+<ul>
+<li>将引起更新过的块刷新操作</li>
+<li>刷新内存和其他有需求的<code>Cache</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Observing a BusRdX or BusUpgr</code>
+<ul>
+<li>将作废相应的<code>block</code></li>
+<li>对于处于<code>modified</code>状态的块，将产生<code>flush</code>事务</li>
+<li><code>BusUpgr</code>：仅引起作废其他块，不产生读块操作</li>
+</ul>
+</li>
+<li><code>Cache-to-Cache (C2C) Sharing</code>
+<ul>
+<li>原来的<code>Illinois version</code>支持这种共享</li>
+<li>由<code>Cache</code>提供数据，而不是由内存提供数据</li>
+</ul>
+</li>
+</ul>
+<h3><span id="713-moesi-protocol"> 7.1.3 MOESI Protocol</span></h3>
+<p><strong><code>MOESI</code>中的<code>Owned</code>和<code>Shared</code>状态：</strong></p>
+<ul>
+<li><code>Owned</code>位
+<ul>
+<li><code>O</code>位为<code>1</code>表示在当前<code>Cache</code>块中包含的数据是当前处理器系统最新的数据拷贝，而且在其他CPU中一定具有该<code>Cache</code>块的副本，其他CPU的<code>Cache</code>块状态为S</li>
+<li>如果存储器的数据在多个CPU的<code>Cache</code>中都具有副本时，有且仅有一个CPU的<code>Cache</code>块状态为O，其他CPU的<code>Cache</code>块状态只能为<code>S</code></li>
+<li>与MESI协议中的S状态不同，状态为<code>O</code>的<code>Cache</code>块中的数据与存储器中的数据并不一致</li>
+</ul>
+</li>
+<li><code>Shared</code>位
+<ul>
+<li>当<code>Cache</code>块状态为<code>S</code>时，其包含的数据并不一定与存储器一致</li>
+<li>如果在其他CPU的<code>Cache</code>中不存在状态为<code>O</code>的副本时，该<code>Cache</code>块中的数据与存储器一致</li>
+<li>如果在其他CPU的<code>Cache</code>中存在状态为<code>O</code>的副本时，<code>Cache</code>块中的数据与存储器不一致</li>
+</ul>
+</li>
+</ul>
+<h3><span id="714-cache一致性引起的失效缺失"> 7.1.4 Cache一致性引起的失效（缺失）</span></h3>
+<p><strong><code>Coherency Misses</code>：</strong></p>
+<ul>
+<li>由于对共享块的写操作引起
+<ul>
+<li>共享块在多个本地<code>Cache</code>有副本</li>
+<li>当某处理器对共享块进行写操作时会 作废其他处理器的本地<code>Cache</code>的副本</li>
+<li>其他处理器对共享块进行读操作时会有<code>coherence miss</code></li>
+</ul>
+</li>
+<li><code>True sharing misses</code>：<code>Cache coherence</code>机制引起的数据通信
+<ul>
+<li>通常是不同的处理器写或读同一个变量</li>
+<li>对共享块（<code>S</code>态块）某一字的第一次写操作引起作废其他<code>cache</code>中的共享块</li>
+<li>处理器试图读一个存在于其他处理器的<code>Cache</code>中并且已经修改过的字（<code>modified</code>），这会导致失效，并将当前<code>Cache</code>中的对应块写回</li>
+<li>即时块大小为1个字，失效仍然会发生</li>
+</ul>
+</li>
+<li><code>False sharing misses</code>：由于某个字在某个失效块中
+<ul>
+<li>读写同一块中的不同变量</li>
+<li>失效并没有通过通信产生新的值，仅仅是产生了额外的失效</li>
+<li>块是共享的，但块中没有真正共享的字</li>
+<li>如果块的大小为1个字，那么就不会产生这种失效</li>
+</ul>
+</li>
+</ul>
+<h2><span id="72-分布式共享存储器体系结构"> 7.2 分布式共享存储器体系结构</span></h2>
+<h3><span id="721-问题分析"> 7.2.1 问题分析</span></h3>
+<p><strong><code>Limitations of Snooping Protocols</code>：</strong></p>
+<ul>
+<li>总线的可扩放性受到一定限制
+<ul>
+<li>总线上能够连接的处理器数目有限</li>
+<li>共享总线存在竞争使用问题</li>
+<li>在由大量处理器构成的多处理器系统中，监听带宽是瓶颈</li>
+</ul>
+</li>
+<li>解决方案之一：片上互连网络 -&gt; 并行通信
+<ul>
+<li>多个处理器可并行访问共享的<code>Cache banks</code></li>
+<li>允许片上多处理器包含有更多的处理器</li>
+<li>可扩放性仍然受到限制</li>
+</ul>
+</li>
+<li>在非总线或环的网络上监听是比较困难的
+<ul>
+<li>将一致性相关信息广播到所有处理器，这是比较低效的</li>
+</ul>
+</li>
+<li><strong>如何不采用广播方式而保持<code>Cache coherence</code></strong>
+<ul>
+<li>使用目录（<code>directory</code>）来记录每个<code>Cached</code>块的状态</li>
+<li>目录项说明了哪个私有<code>Cache</code>包含了该块的副本</li>
+</ul>
+</li>
+</ul>
+<p><strong>解决<code>Cache</code>一致性问题的关键：</strong></p>
+<ul>
+<li>寻找替代监听协议的一致性协议</li>
+<li>目录协议
+<ul>
+<li>目录：用于记录共享块相关信息的数据结构，它记录着可以进入<code>Cache</code>的每个数据块的访问状态、该块在各个处理器的共享状态以及是否修改过等信息</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/System-Architecture/7-3.png" alt="7-3"></p>
+<h3><span id="722-基于目录的一致性协议"> 7.2.2 基于目录的一致性协议</span></h3>
+<p><strong>目录（<code>Home directory</code>）：</strong></p>
+<ul>
+<li>目录在所有处理器共享的最外层<code>Cache</code>（共享<code>Cache</code>）中
+<ul>
+<li>目录记录了每个私有<code>Cache</code>中块的相关信息</li>
+</ul>
+</li>
+<li>最外层<code>Cache</code>分成若干个<code>banks</code>，以便并行访问
+<ul>
+<li><code>Cache</code>的<code>banks</code>数可以与<code>cores</code>的数量相同，也可以不同</li>
+</ul>
+</li>
+<li><code>Shared Cache</code>包含所有的私有<code>Cache</code>
+<ul>
+<li>共享<code>Cache</code>是私有<code>Cache</code>块的超集</li>
+</ul>
+</li>
+<li>目录在共享<code>Cache</code>中
+<ul>
+<li>共享<code>Cache</code>中的每个块增加若干<code>presence bits</code></li>
+<li>如果有<code>k</code>个<code>processors</code>，那么共享Cache中每个块都含有<code>k</code>位的<code>presence bits</code>以及<code>state</code>位</li>
+<li><code>presence bits</code>指示了包含该块<code>copy</code>的<code>cores</code></li>
+<li>每个块都有其在私有<code>Cache</code>和共享<code>Cache</code>中的状态信息</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>States for Local and Shared Cache</code>：</strong></p>
+<ul>
+<li>对于私有<code>Cache</code>块，存在3种状态：
+<ol>
+<li><code>Modified</code>：仅当前Cache具有该块修改过的副本</li>
+<li><code>Shared</code>：该块可能在多个Cache中有副本</li>
+<li><code>Invalid</code>：该块无效</li>
+</ol>
+</li>
+<li>对于共享<code>Cache</code>中的块 ，存在4种状态:
+<ol>
+<li><code>Modified</code>：只有一个本地<code>Cache</code>是这个块的拥有者
+<ul>
+<li>只有一个本地<code>Cache</code>具有该块修改后的副本</li>
+</ul>
+</li>
+<li><code>Owned</code>：共享<code>Cache</code>是<code>Modified</code>块的拥有者
+<ul>
+<li><code>Modified block</code>被写回到共享<code>Cache</code>，但不是内存</li>
+<li>处于<code>Owned</code>态的块可以被多个本地<code>Cache</code>共享</li>
+</ul>
+</li>
+<li><code>Shared</code>：该块可能被复制到多个<code>Cache</code>中</li>
+<li><code>Uncached</code>：该块不在任何本地或共享<code>Cache</code>中</li>
+</ol>
+</li>
+</ul>
+<p><strong><code>Read Miss by Processor P</code>：</strong></p>
+<ul>
+<li><strong><code>Processor P</code>发送<code>Read Miss</code>消息给<code>Home directory</code></strong></li>
+<li><strong><code>Home Directory</code>：<code>block</code>是<code>Modified</code>状态</strong>
+<ul>
+<li><code>Directory</code>发送<code>Fetch Message</code>给拥有该块的<code>Remote Cache</code></li>
+<li><code>Remote Cache</code>发送<code>Write-Back Message</code>到<code>Directory(SharedCache)</code></li>
+<li><code>Remote Cache</code>将该块状态修改为<code>Shared</code></li>
+<li><code>Directory</code>将其所对应的共享块状态修改为<code>Owned</code></li>
+<li><code>Directory</code>发送数据给<code>P</code>，并将对应于<code>P</code>的<code>presence bit</code>置位</li>
+<li><code>P</code>的<code>Local Cache</code>将所接收到的块状态置为<code>shared</code></li>
+</ul>
+</li>
+<li><strong><code>Home Directory</code>：<code>block</code>是<code>Shared</code>或<code>Owned</code>状态</strong>
+<ul>
+<li><code>Directory</code>发送数据给<code>P</code>，并将对应<code>P</code>的<code>presence bit</code>置位</li>
+<li><code>P</code>的<code>Local cache</code>将所接收到的块状态置为<code>Shared</code></li>
+</ul>
+</li>
+<li><strong><code>Home Directory</code>：<code>Uncached</code></strong>
+<ul>
+<li>从存储器中获取块</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>Write Miss Message by P to Directory</code>：</strong></p>
+<ul>
+<li><strong><code>Home Directory</code>：<code>block</code>是<code>Modified</code>状态</strong>
+<ul>
+<li><code>Directory</code>发送<code>Fetch-Invalidate Message</code>给处理器<code>Q</code>的<code>Cache(Remote Cache)</code></li>
+<li>处理器<code>Q</code>的<code>Cache</code>直接发送数据应答消息给<code>P</code></li>
+<li><code>Q</code>的<code>Cache</code>将对应块的状态修改为<code>Invalid</code></li>
+<li><code>P</code>的<code>Cache(Local)</code>将接收到的块的状态信息修改为<code>Modified</code></li>
+<li><code>Directory</code>将对应于Q的<code>presence bit</code>复位，并将对应于<code>P</code>的<code>presence bit</code>置位</li>
+</ul>
+</li>
+<li><strong><code>Home Directory</code>：<code>block</code>是<code>Shared</code>或<code>Owned</code>状态</strong>
+<ul>
+<li><code>Directory</code>根据<code>presence bit</code>位给所有的共享者发送<code>Invalidate Message</code></li>
+<li><code>Directory</code>接收<code>Acknowledge Message</code>并将对应的<code>presence bits</code>复位</li>
+<li><code>Directory</code>发送数据回复信息给<code>P</code>，并将<code>P</code>对应的<code>presence bit</code>置位</li>
+<li><code>P</code>的<code>Cache</code>和<code>Directory</code>将该块的状态修改为<code>Modified</code></li>
+</ul>
+</li>
+<li><strong><code>Home Directory</code>：<code>Uncached</code></strong>
+<ul>
+<li>从存储器获取数据</li>
+</ul>
+</li>
+</ul>
+<h2><span id="73-存储同一性"> 7.3 存储同一性</span></h2>
+<p><strong>存储同一性的定义：共享地址空间的存储同一性模型是在多个处理器对存储单元并发读写操作时，每个进程看到的这些操作被完成的序的一种约定</strong></p>
+<ul>
+<li>
+<p><code>Cache</code>一致性（<code>Coherence</code>）保证的是当对共享存储空间中的某一单元修改后，对所有读取者是可见的。即每个单元都能返回最后一次写<br>
+操作的值</p>
+</li>
+<li>
+<p>没有明确所写入的数据何时成为可见的</p>
+</li>
+<li>
+<p><code>Cache</code>一致性协议没有涉及处理器<code>P1</code>和<code>P2</code>对不同地址单元的访问顺序</p>
+</li>
+<li>
+<p><code>Cache</code>一致性协议没有涉及到<code>P2</code>对不同存储单元的读操作相对于<code>P1</code>所见到的顺序</p>
+</li>
+</ul>
+<p><strong>顺序同一性（<code>Sequential Consistency，Lamport</code>）：该模型要求所有处理器的读、写和交换（<code>swap</code>）操作以某种序执行所形成的全局存储器次序，符合各处理器的原有程序次序。即：不论指令流如何交叠执行，全局序必须保持所有进程的程序序</strong></p>
+<ul>
+<li>所有读写操作执行以某种顺序执行</li>
+<li>每一进程的操作以程序序（<code>program order</code>）执行</li>
+</ul>
+<p><strong>多处理器操作的困难：</strong></p>
+<ul>
+<li><strong>大多数并行计算机体系结构所研究的问题：</strong>
+<ul>
+<li>如何克服顺序执行和并行执行的瓶颈，以得到更高的性能和效率</li>
+<li>如何为用户提供良好的编程模型，以便编写正确而高性能的并行程序</li>
+</ul>
+</li>
+<li><strong>Load/store操作的顺序问题</strong>
+<ul>
+<li><code>Operations: A, B, C, D</code>
+<ul>
+<li>硬件以何种顺序执行（和报告结果）这些操作？</li>
+</ul>
+</li>
+<li>程序员与微结构设计人员的协议由<code>ISA</code>来约定</li>
+<li>保留程序员所希望的执行顺序
+<ul>
+<li>可降低编程的难度，如：易于<code>debugging</code>、易于状态恢复、异常处理等</li>
+<li>通常会使得硬件设计变得困难，特别是当我们的设计目标为高性能处理器时，乱序<code>Load-Store</code>的执行，使得问题变得复杂</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>单个处理器存储器操作的序：</strong></p>
+<ul>
+<li>操作顺序由<code>Von Neumann</code>模型约定</li>
+<li>顺序串行执行
+<ul>
+<li>硬件执行<code>Load</code>和<code>Store</code>操作以程序序顺序执行</li>
+</ul>
+</li>
+<li>乱序执行不改变程序语义
+<ul>
+<li>硬件以程序序报告<code>Load</code>和<code>Store</code>操作的结果</li>
+</ul>
+</li>
+<li>优点：
+<ul>
+<li>在执行时机器状态是确定的</li>
+<li>程序的不同次运行机器状态是一致的，有利于程序调试</li>
+</ul>
+</li>
+<li>缺点：维护这种序的额外开销，降低了性能，增加了复杂性，降低了可扩放性</li>
+</ul>
+<p><strong>数据流处理器的存储器操作的序：</strong></p>
+<ul>
+<li>当操作数准备好就可以执行存储器操作</li>
+<li>操作的顺序仅仅由数据依赖性来确定</li>
+<li>相互独立的操作可以以任意序执行和提交</li>
+<li>结果
+<ul>
+<li>优点：并行度高，性能高</li>
+<li>缺点：相同程序的不同次运行次序可以不同，使得调试困难</li>
+</ul>
+</li>
+</ul>
+<p><strong>序的重要性：</strong></p>
+<ul>
+<li>易于调试
+<ul>
+<li>若程序的每次执行都是相同的序有利于程序的调试</li>
+</ul>
+</li>
+<li>正确性
+<ul>
+<li>从不同处理器看到的存储器操作序可能会不同</li>
+<li>性能和代价权衡</li>
+<li>强制符合严格<code>Sequential Ordering</code>使得硬件设计人员实现性能增强技术变得十分复杂</li>
+</ul>
+</li>
+<li><code>&lt;p</code>：程序序（<code>program order</code>）</li>
+<li><code>&lt;m</code>：存储器操作序（<code>memory order</code>）</li>
+</ul>
+<p><strong>顺序同一性的充分条件：</strong></p>
+<ul>
+<li>多个进程可以交织执行，但顺序同一性模型没有定义具体的交织方式，满足每个进程程序序的总体执行序可能会很多。因此有下列定义
+<ul>
+<li>顺序同一性的执行：如果程序的一次执行产生的结果与前面定义的任意一种可能的总体序产生的结果一致，那么程序的这次执行就称为是顺序同一的</li>
+<li>顺序同一性的系统：如果在一个系统上的任何可能的执行都是顺序同一的，那么这个系统就是顺序同一的</li>
+</ul>
+</li>
+<li>每个进程按照程序执行序发出存储操作</li>
+<li>发出写操作后，进程要等待写的完成，才能发出它的下一个操作</li>
+<li>发出读操作后，进程不仅要等待读的完成，还要等待产生所读数据的那个写操作完成，才能发出它的下个操作。即：如果该写操作对这个处理器来说完成了，那么这个处理器应该等待该写操作对所有处理器都完成了</li>
+<li>第三个条件保证了写操作的原子性。即读操作必须等待逻辑上先前的写操作变得全局可见</li>
+</ul>
+<p><strong><code>Memory Fences</code></strong></p>
+<ul>
+<li>实现弱同一性或放松的存储器模型的处理器（允许针对不同地址的<code>Loads</code>和<code>Stores</code>操作乱序）需要提供存储器栅栏指令来强制对某些存储<br>
+器操作串行化</li>
+</ul>
+<h2><span id="74-同步与通信"> 7.4 同步与通信</span></h2>
+<p><strong><code>Synchronization</code>：</strong></p>
+<ul>
+<li>系统中只要存在并发进程，即使是单核系统都需要同步操作</li>
+<li>总体上存在两类同步操作问题
+<ol>
+<li>生产者-消费者问题：一个消费者进程必须等待生产者进程产生数据</li>
+<li>互斥问题（<code>Mutual Exclusion</code>）：保证在一个给定的时间内只有一个进程使用共享资源（临界区）</li>
+</ol>
+</li>
+</ul>
+<p><strong><code>Atomic Operations</code>：</strong></p>
+<ul>
+<li>顺序一致性并不保证操作的原子性</li>
+<li>原子性：存储器操作使用原子性操作，操作序列一次全部完成。例如<code>exchange</code>（交换操作）</li>
+</ul>
+<h2><span id="75-小结"> 7.5 小结</span></h2>
+
+<div class="markmap-container" style="height:undefined">
+  <svg data="{&quot;t&quot;:&quot;root&quot;,&quot;d&quot;:0,&quot;v&quot;:&quot;&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:2,&quot;p&quot;:{&quot;lines&quot;:[1,2]},&quot;v&quot;:&quot;并行计算机体系结构&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[2,3]},&quot;v&quot;:&quot;SISD&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[3,4]},&quot;v&quot;:&quot;SIMD&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[4,5]},&quot;v&quot;:&quot;MISD&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[5,6]},&quot;v&quot;:&quot;MIMD&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:2,&quot;p&quot;:{&quot;lines&quot;:[6,7]},&quot;v&quot;:&quot;MIMD的通信模型及存储器结构&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[7,8]},&quot;v&quot;:&quot;地址空间的组织模式&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[8,9]},&quot;v&quot;:&quot;共享存储（多处理机）&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[9,10]},&quot;v&quot;:&quot;非共享存储（多计算机）&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[10,11]},&quot;v&quot;:&quot;共享存储的MIMD结构&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[11,12]},&quot;v&quot;:&quot;集中式共享存储（SMP）&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[12,13]},&quot;v&quot;:&quot;分布式共享存储（DSM）&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[13,14]},&quot;v&quot;:&quot;共享存储器结构的存储器行为&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[14,15]},&quot;v&quot;:&quot;Cache一致性问题 (Coherence)：使得多处理机系统的Cache像单处理机的Cache一样对程序员而言是透明的&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[15,16]},&quot;v&quot;:&quot;存储器同一性问题(Consistency)：在多线程并发执行的情况下，提供一些规则来定义正确的共享存储器行为。通常允许有多种运行顺序&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[16,17]},&quot;v&quot;:&quot;Cache一致性（定义）&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[17,18]},&quot;v&quot;:&quot;处理器P对X写之后又对X进行读，读和写之间没有其它处理器对X进行写，则读的返回值总是写进的值&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[18,19]},&quot;v&quot;:&quot;处理器对X写之后，另一处理器对X进行读，读和写之间无其它写，则读X的返回值应为写进的值&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[19,20]},&quot;v&quot;:&quot;对同一单元的写是顺序化的，即任意两个处理器对同一单元的两次写，从所有处理器看来顺序是相同的&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[20,21]},&quot;v&quot;:&quot;共享数据块的跟踪：监听和目录&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[21,22]},&quot;v&quot;:&quot;Cache一致性协议实现&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[22,23]},&quot;v&quot;:&quot;写作废&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[23,24]},&quot;v&quot;:&quot;写更新&quot;}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[24,25]},&quot;v&quot;:&quot;集中式共享存储体系结构&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[25,26]},&quot;v&quot;:&quot;Snoopy Cache-Coherence Protocols&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[26,27]},&quot;v&quot;:&quot;MSI&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[27,28]},&quot;v&quot;:&quot;MESI&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:8,&quot;p&quot;:{&quot;lines&quot;:[28,29]},&quot;v&quot;:&quot;MOESI&quot;}]}]},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:4,&quot;p&quot;:{&quot;lines&quot;:[29,30]},&quot;v&quot;:&quot;Coherency Misses&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[30,31]},&quot;v&quot;:&quot;True Sharing&quot;},{&quot;t&quot;:&quot;list_item&quot;,&quot;d&quot;:6,&quot;p&quot;:{&quot;lines&quot;:[31,32]},&quot;v&quot;:&quot;False Sharing&quot;}]}]}],&quot;p&quot;:{}}"/>
+</div>
+
+<h2><span id="76-相关课件"> 7.6 相关课件</span></h2>
+<ul>
+<li><a href="/resources/course/System-Architecture/7-1.pdf">Chapter-7.1</a></li>
+<li><a href="/resources/course/System-Architecture/7-2.pdf">Chapter-7.2</a></li>
+<li><a href="/resources/course/System-Architecture/7-3.pdf">Chapter-7.3</a></li>
+</ul>
+<h1><span id="8-faq"> 8 FAQ</span></h1>
+<ol>
+<li>Cache架构
+<ul>
+<li><img src="/images/System-Architecture/cache-arch-1.jpeg" alt="Cache in Bit Picture">
+<ul>
+<li><code>L1d</code>：level 1 data cache</li>
+<li><code>L1i</code>：level 1 instruction cache</li>
+</ul>
+</li>
+<li><img src="/images/System-Architecture/cache-arch-2.jpeg" alt="Cache in Bit Picture">
+<ul>
+<li>橙色：<code>Thread</code>：共享<code>L1 Cache</code></li>
+<li>深灰阴影：<code>Core</code>：独占<code>L1 Cache</code>，共享<code>L2/L3 Cache</code></li>
+<li>浅灰阴影：<code>Processor</code>：不共享任意一级的<code>Cache</code>（这个其实取决于硬件设计）</li>
+<li>亮绿色：<code>L1 Cache</code></li>
+<li>绿色：<code>L2 Cache</code></li>
+<li>深绿色：<code>L3 Cache</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>在现代CPU中，访存缓存/内存时，一般需要多少指令周期。
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.quora.com/How-many-machine-cycles-does-it-take-a-CPU-to-fetch-a-value-from-the-SRAM-cache">How many machine cycles does it take a CPU to fetch a value from the SRAM cache?</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/4087280/approximate-cost-to-access-various-caches-and-main-memory">Approximate cost to access various caches and main memory?</a></li>
+<li><code>SRAM-L1</code>：<code>3–5 cycles</code></li>
+<li><code>SRAM-L2</code>：<code>8–20 cycles</code></li>
+<li><code>SRAM-L3</code>：<code>30–80 cycles</code></li>
+<li><code>DRAM</code>：<code>150-180 cycles</code></li>
+</ul>
+</li>
+<li>Cache的大小（<code>getconf -a | grep -i cache</code>）
+<ul>
+<li><code>L1</code>：<code>8KB - 64KB</code></li>
+<li><code>L2</code>：<code>256KB - 8MB</code></li>
+<li><code>L3</code>：<code>10MB - 64MB</code></li>
+</ul>
+</li>
+<li>Cache Line大小，一般是64字节（<code>getconf -a | grep -i cache</code>）</li>
+<li>主板南北桥。简单来说，北桥负责与CPU通信，并且连接高速设备，例如内存、显卡，并且与南桥通信；南桥负责与低速设备（硬盘/USB）通信，时钟、BIOS、系统管理、旧式设备控制，并且与北桥通信
+<ul>
+<li>Intel从第一代<code>Core i7 (i7 9xx)</code>开始，将原属于北桥功能的内存控制器整合到CPU当中，在主流机更将<code>PCI-e</code>控制器（主要负责连接显卡）整合到CPU当中，这时候传统意义上的北桥的所有功能都已经整合到CPU内部了，所以<code>Intel 50</code>系芯片组（<code>X58</code>除外，这是搭配<code>i7 9xx</code>用的，还有北桥）已经没有传统意义的北桥了，而南桥依然负责处理低速设备（<code>SATA</code>、<code>USB</code>、<code>PCI</code>等）、时钟等功能</li>
+</ul>
+</li>
+<li>并行等级
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Instruction-level_parallelism">指令级并行（<code>ILP</code>）</a>：
+<ul>
+<li><code>Pipeline</code></li>
+<li><code>VLIW</code></li>
+<li><code>OOO Execution, Out-of-order</code></li>
+<li><code>Register renaming</code></li>
+<li><code>Speculative execution</code></li>
+<li><code>Branch prediction</code></li>
+</ul>
+</li>
+<li>数据级并行（<code>DLP</code>）：<code>SIMD</code></li>
+<li>线程级并行（<code>TLP</code>）：<code>SMP</code></li>
+</ul>
+</li>
+</ol>
+<h1><span id="9-参考"> 9 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://staff.ustc.edu.cn/~xhzhou/CA-Spring2021/CA.html">计算机体系结构(Spring 2021)</a></li>
+<li>《Computer Architecture: A Quantitative Approach》</li>
+<li><a target="_blank" rel="noopener" href="https://plantegg.github.io/2021/06/01/CPU%E7%9A%84%E5%88%B6%E9%80%A0%E5%92%8C%E6%A6%82%E5%BF%B5/">cpu的制造和</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/10/15/Cpp-Performance-Optimization/" rel="prev" title="Cpp-Performance-Optimization">
+      <i class="fa fa-chevron-left"></i> Cpp-Performance-Optimization
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/11/19/TPC-DS/" rel="next" title="TPC-DS">
+      TPC-DS <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 量化设计与分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.3 定量分析基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 ISA的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.2 ISA的功能设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 2.2.1 CISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 2.2.2 RISC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 2.2.3 典型ISA</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 2.2.3.1 MIPS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 2.2.3.2 SPARC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 2.2.3.3 Alpha（DEC）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 2.2.3.4 ARMv7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 2.2.3.5 ARMv8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 2.2.3.6 OpenRISC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 2.2.3.7 80x86</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 2.2.3.8 小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.3 ISA的实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 基本流水线</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 基本流水线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 基本流水线的扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 3.2.1 异常处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 3.2.2 多周期操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 3.2.3 MIPS R4000</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.4 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 存储层次结构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 Cache的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 Cache的基本优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.2.1 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.2.2 减小失效开销</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.3 Cache的高级优化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.3.1 缩短命中时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.3.2 增加Cache带宽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.3.3 减小失效开销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.3.4 降低失效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.3.5 通过并行降低失效开销或失效率</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.4 存储器技术与优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.5 虚拟存储器-基本原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 指令级并行的基本概念及静态指令流调度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.2 硬件方法挖掘指令级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.2.1 指令流动态调度方法之一：Scoreboard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.2.2 指令流动态调度方法之二：Tomasulo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.3 分支预测方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.3.1 控制相关对于性能的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.3.2 基于BHT的分支预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.3.3 基于BTB的分支预测</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.4 基于硬件的推测执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.5 存储器访问冲突消解及多发射技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.6 多线程技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 数据级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.1 向量处理机模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.2 向量处理机模型优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 6.2.1 链接优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 6.2.2 条件执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 6.2.3 稀疏矩阵</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.3 面向多媒体应用的SIMD指令集扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.4 GPU-1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 6.4.1 GPU编程模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 6.4.2 GPU执行模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 6.4.3 GPU存储模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.5 GPU-2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 6.5.1 分支处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.6 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.7 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 多处理器及线程级并行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.1 集中式共享存储器体系结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.1.1 MSI Protocol</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.1.2 MESI Protocol</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.1.3 MOESI Protocol</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.1.4 Cache一致性引起的失效（缺失）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.2 分布式共享存储器体系结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.2.1 问题分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 7.2.2 基于目录的一致性协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.3 存储同一性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.4 同步与通信</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.5 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.6 相关课件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 FAQ</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 9 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script src="/js/markmap.js"></script></body>
+</html>

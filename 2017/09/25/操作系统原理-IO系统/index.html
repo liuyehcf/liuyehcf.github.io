@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统原理-IO系统">
+<meta property="og:url" content="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig1.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig2.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig3.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig4.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig5.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig6.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig7.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig8.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig9.jpg">
+<meta property="article:published_time" content="2017-09-25T07:23:50.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.366Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>操作系统原理-IO系统 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          操作系统原理-IO系统
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-25 15:23:50" itemprop="dateCreated datePublished" datetime="2017-09-25T15:23:50+08:00">2017-09-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/" itemprop="url" rel="index"><span itemprop="name">Operating System</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/Principle/" itemprop="url" rel="index"><span itemprop="name">Principle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/" class="post-meta-item leancloud_visitors" data-flag-title="操作系统原理-IO系统" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-io管理概述"> 1 I/O管理概述</span></h1>
+<p><strong>计算机I/O系统结构示意图如下：</strong></p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig1.jpg" alt="fig1"></p>
+<p><strong>I/O管理示意图如下：</strong></p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig2.jpg" alt="fig2"></p>
+<p><strong>I/O特点：</strong></p>
+<ul>
+<li>I/O性能经常成为系统性能的瓶颈</li>
+<li>操作系统庞大复杂的原因之一：资源多、杂，并发，均来自I/O
+<ul>
+<li>速度差异很大</li>
+<li>应用</li>
+<li>控制接口的复杂性</li>
+<li>传送单位</li>
+<li>数据表示</li>
+<li>错误条件</li>
+</ul>
+</li>
+<li>与其他功能联系密切，特别是文件系统</li>
+</ul>
+<h2><span id="11-设备的分类"> 1.1 设备的分类</span></h2>
+<p><strong>按数据组织分</strong></p>
+<ul>
+<li><strong>块设备</strong>
+<ul>
+<li>以数据块为单位存储、传输信息</li>
+<li>传输速率较高、可寻址（随机读写）</li>
+</ul>
+</li>
+<li><strong>字符设备</strong>
+<ul>
+<li>以字符为单位存储、传输信息</li>
+<li>传输速率低、不可寻址</li>
+</ul>
+</li>
+</ul>
+<p><strong>从资源分配角度</strong></p>
+<ul>
+<li><strong>独占设备</strong>
+<ul>
+<li>在一段时间内只能有一个进程使用的设备，一般为低速I/O设备（如打印机，磁带等）</li>
+</ul>
+</li>
+<li><strong>共享设备</strong>
+<ul>
+<li>在一段时间内可有多个进程共同使用的设备，多个进程以交叉的方式来使用设备，其资源利用率高（如硬盘）</li>
+</ul>
+</li>
+<li><strong>虚设备</strong>
+<ul>
+<li>在一类设备上模拟另一类设备，常用共享设备模拟独占设备，用高速设备模拟低速设备，被模拟的设备称为虚设备</li>
+<li>目的：将慢速的独占设备改造成多个用户可共享的设备，提高设备的利用率</li>
+<li>实例：SPOOLing技术，利用虚设备技术——用硬盘模拟输入输出设备</li>
+</ul>
+</li>
+</ul>
+<h2><span id="12-io管理的任务和目标"> 1.2 I/O管理的任务和目标</span></h2>
+<ol>
+<li><strong>按照用户的请求，控制设备的各种操作，完成I/O设备与内存之间的数据交换，最终完成用户的I/O请求</strong>
+<ul>
+<li>设备分配与回收
+<ul>
+<li>记录设备的状态</li>
+<li>根据用户的请求和设备的类型，采用一定的分配算法，选择一条数据通路</li>
+</ul>
+</li>
+<li>执行设备驱动程序，实现真正的I/O操作</li>
+<li>设备中断处理：处理外部设备的中断</li>
+<li>缓冲区管理：管理I/O缓冲区</li>
+</ul>
+</li>
+<li><strong>建立方便、统一的独立于设备的接口</strong>
+<ul>
+<li>方便性：向用户提供使用外部设备的方便接口，使用户编程时不考虑设备的复杂物理特性</li>
+<li>统一性：对不同的设备采取统一的操作方式，即在用户程序中使用的是逻辑设备
+<ul>
+<li>逻辑设备与物理设备</li>
+<li>屏蔽硬件细节（设备的物理特性、错误处理、不同I/O过程的差异性）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>通用性（CPU与I/O的速度差别大，减少由于速度差异造成的整体性能开销，尽量使两者交叠运行）</strong>
+<ul>
+<li>I/O设备种类繁多、结构各异</li>
+<li>设计简单、避免错误</li>
+<li>采用统一的方式处理所有设备</li>
+</ul>
+</li>
+<li><strong>充分利用各种技术（通道，中断，缓冲，异步I/O等）提高CPU与设备、设备与设备之间的并行工作能力，充分利用资源，提高资源利用率</strong>
+<ul>
+<li>并行性</li>
+<li>均衡性（使设备充分忙碌）</li>
+</ul>
+</li>
+<li><strong>保护</strong>
+<ul>
+<li>设备传送或管理的数据应该是安全的、不被破坏的、保密的</li>
+</ul>
+</li>
+</ol>
+<h1><span id="2-io硬件组成"> 2 I/O硬件组成</span></h1>
+<h2><span id="21-io设备组成"> 2.1 I/O设备组成</span></h2>
+<p>I/O设备一般由机械和电子两部分组成</p>
+<ol>
+<li>机械部分是设备本身（物理装置）</li>
+<li>电子部分又称设备控制器(或适配器)
+<ul>
+<li>（端口）地址译码</li>
+<li>按照主机与设备之间约定的格式和过程接受计算机发来的数据和控制信号或向主机发送数据和状态信号</li>
+<li>将计算机的数字信号转换成机械部分能识别的模拟信号，或反之</li>
+<li>实现设备内部硬件缓冲、数据加工等提高性能或增强功能</li>
+</ul>
+</li>
+</ol>
+<h2><span id="22-接口设备"> 2.2 接口设备</span></h2>
+<p>操作系统将命令写入控制器的接口寄存器（或接口缓冲区）中，以实现输入／输出，并从接口寄存器读取状态信息或结果信息</p>
+<p>当控制器接受一条命令后，可独立于CPU完成指定操作，CPU可以另外执行其他计算；命令完成时，控制器产生一个中断，CPU响应中断，控制转给操作系统；通过读控制器寄存器中的信息，获得操作结果和设备状态</p>
+<p>控制器与设备之间的接口常常是一个低级接口</p>
+<p>控制器的任务：把串行的位流转换为字节块，并进行必要的错误修正：首先，控制器按位进行组装，然后存入控制器内部的缓冲区中形成以字节为单位的块；在对块验证检查和并证明无错误时，再将它复制到内存中</p>
+<h2><span id="23-io端口地址"> 2.3 I/O端口地址</span></h2>
+<p>I/O端口地址：接口电路中每个寄存器具有的、唯一的地址，是个整数</p>
+<p>所有I/O端口地址形成I/O端口空间(受到保护)</p>
+<p>I/O指令形式与I/O地址是相互关联的，主要有两种形式：</p>
+<ul>
+<li>内存映像编址（内存映像I/O模式）</li>
+<li>I/O独立编址（I/O专用指令）</li>
+</ul>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig3.jpg" alt="fig3"></p>
+<h3><span id="231-io独立编址"> 2.3.1 I/O独立编址</span></h3>
+<p>分配给系统中所有端口的地址空间完全独立，与内存地址空间无关<br>
+使用专门的I/O指令对端口进行操作</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li>外设不占用内存的地址空间</li>
+<li>编程时，易于区分是对内存操作还是对I/O端口操作</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>I/O端口操作的指令类型少</li>
+<li>操作不灵活</li>
+<li>例子：8086/8088，分配给I/O端口的地址空间64K，0000H~0FFFFH，只能用in和out指令进行读写操作</li>
+</ul>
+<h3><span id="232-内存映像编址"> 2.3.2 内存映像编址</span></h3>
+<p>分配给系统中所有端口的地址空间与内存的地址空间统一编址</p>
+<p>把I/O端口看作一个存储单元，对I/O的读写操作等同于对内存的操作</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li>凡是可对内存操作的指令都可对I/O端口操作</li>
+<li>不需要专门的I/O指令</li>
+<li>I/O端口可占有较大的地址空间</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>占用内存空间</li>
+</ul>
+<h3><span id="233-内存映射io"> 2.3.3 内存映射I/O</span></h3>
+<p><strong>优点：</strong></p>
+<ul>
+<li><strong>不需要特殊的保护机制来阻止用户进程执行I/O操作</strong>。操作系统必须要做的事情：避免把包含控制寄存器的那部分地址空间放入任何用户的虚拟地址空间之中</li>
+<li><strong>可以引用内存的每一条指令也可以引用控制寄存器</strong>。例如，如果指令TEST可以测试一个内存字是否为0，那么它也可以用来测试一个控制寄存器是否为0</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>
+<p>对一个设备控制寄存器不能进行高速缓存</p>
+</li>
+<li>
+<p>考虑以下汇编代码循环，第一次引用PORT_4将导致它被高速缓存，随后的引用将只从高速缓存中取值并且不会再查询设备，之后当设备最终变为就绪时，软件将没有办法发现这一点，结果循环将永远进行下去</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">LOOP：TEST PORT_4 //检测端口4是否为0</span><br><span class="line">BEQ READY //如果为0，转向READY</span><br><span class="line">BRANCH LOOP //否则，继续测试</span><br><span class="line">READY：</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>为避免这一情形，硬件必须针对每个页面具备选择性禁用高速缓存的能力，操作系统必须管理选择性高速缓存，所以这一特性为硬件和操作系统两者增添了额外的复杂性</p>
+</li>
+</ul>
+<h1><span id="3-io控制方式"> 3 I/O控制方式</span></h1>
+<ol>
+<li><strong>可编程I/O（轮询/查询）</strong>：由CPU代表进程给I/O模块发I/O命令，进程进入忙等待，直到操作完成才继续执行</li>
+<li><strong>中断驱动I/O</strong>：为了减少设备驱动程序不断地询问控制器状态寄存器的开销。I/O操作结束后，<strong>由设备控制器主动通知设备驱动程序</strong></li>
+<li><strong>DMA</strong></li>
+</ol>
+<p>轮询I/O工作过程，示意图如下</p>
+<ol>
+<li>应用程序提出I/O请求</li>
+<li>设备驱动程序检查设备的状态</li>
+<li>如果状态正常，驱动程序就发出相应的控制命令，进行I/O操作</li>
+<li><strong>不断地轮询测试设备的状态，查看I/O操作是否完成</strong></li>
+<li>如果I/O操作完成了，就把数据输送给应用程序</li>
+</ol>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig4.jpg" alt="fig4"></p>
+<p>中断驱动I/O的工作过程，示意图如下</p>
+<ol>
+<li>应用程序提出I/O请求</li>
+<li>设备驱动程序检查设备的状态</li>
+<li>如果状态正常，驱动程序就发出相应的控制命令，进行I/O操作</li>
+<li>将状态记录在设备状态表中，CPU此时可以做其他事情</li>
+<li>当设备完成I/O操作时，会给CPU发中断信号，转入中断处理程序</li>
+<li>中断处理程序发现这个中断表示I/O操作正常完成，就把处理结果提交给设备处理程序</li>
+<li>设备处理程序从设备状态表中取出对应的设备状态</li>
+<li>把相应数据送给应用程序</li>
+<li>通知应用程序继续执行</li>
+</ol>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig5.jpg" alt="fig5"></p>
+<h2><span id="31-io部件的演化"> 3.1 I/O部件的演化</span></h2>
+<ol>
+<li>CPU直接控制外围设备</li>
+<li>增加了控制器或I/O部件，CPU使用非中断的可编程I/O
+<ul>
+<li>CPU开始从外部设备接口的具体细节中分离出来</li>
+</ul>
+</li>
+<li>与2相同，但采用了中断方式
+<ul>
+<li>CPU无需花费等待执行一次I/O操作所需的时间，效率提高</li>
+</ul>
+</li>
+<li>I/O部件通过DMA直接控制存储器
+<ul>
+<li>可以在没有CPU参与的情况下，从内存中移出或者往内存中移入一块数据，仅仅在传送开始和结束时需要CPU干预</li>
+</ul>
+</li>
+<li>I/O部件增强为一个单独的处理器，有专门为I/O设计的指令集；CPU指导I/O处理器执行内存中的一个I/O程序。I/O处理器在没有CPU干涉的情况下取指令并执行这些指令</li>
+<li>I/O部件有自己的局部存储器(其本身就是一台计算机)
+<ul>
+<li>使用这种体系结构可以控制许多I/O设备，并且使需要CPU参与程度降到最小（通常用于控制与交互终端的通信，I/O处理器负责大多数控制终端的任务）</li>
+</ul>
+</li>
+</ol>
+<h1><span id="4-io软件的组成"> 4 I/O软件的组成</span></h1>
+<p><strong>分层的设计思想</strong></p>
+<ul>
+<li>把I/O软件组织成多个层次</li>
+<li>每一层都执行操作系统所需要的功能的一个相关子集，它依赖于更低一层所执行的更原始的功能，从而可以隐藏这些功能的细节；同时，它又给高一层提供服务</li>
+<li>较低层考虑硬件的特性，并向较高层软件提供接口</li>
+<li>较高层不依赖于硬件，并向用户提供一个友好的、清晰的、简单的、功能更强的接口</li>
+</ul>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig6.jpg" alt="fig6"></p>
+<h2><span id="41-io软件层次"> 4.1 I/O软件层次</span></h2>
+<ol>
+<li>用户进程层执行输入输出系统调用，对I/O数据进行格式化，为假脱机输入/输出作准备</li>
+<li>独立于设备的软件实现设备的命名、设备的保护、成块处理、缓冲技术和设备分配</li>
+<li>设备驱动程序设置设备寄存器、检查设备的执行状态</li>
+<li>中断处理程序负责I/O完成时，唤醒设备驱动程序进程，进行中断处理</li>
+<li>硬件层实现物理I/O的操作</li>
+</ol>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig7.jpg" alt="fig7"></p>
+<h2><span id="42-编程独立性设备无关性"> 4.2 编程独立性（设备无关性）</span></h2>
+<p><strong>用户编写的程序可以访问任意I/O设备，无需事先指定设备</strong></p>
+<ul>
+<li><strong>从用户角度</strong>：用户在编制程序时，使用逻辑设备名，由系统实现从逻辑设备到物理设备（实际设备）的转换，并实施I/O操作</li>
+<li><strong>从系统角度</strong>：设计并实现I/O软件时，除了直接与设备打交道的低层软件之外，其他部分的软件不依赖于硬件</li>
+</ul>
+<h1><span id="5-io相关技术"> 5 I/O相关技术</span></h1>
+<h2><span id="51-缓冲技术"> 5.1 缓冲技术</span></h2>
+<p><strong>缓冲技术是操作系统中最早引入的技术</strong></p>
+<ul>
+<li>解决CPU与I/O设备之间速度的不匹配问题：凡是数据到达和离去速度不匹配的地方均可采用缓冲技术</li>
+<li>提高CPU与I/O设备之间的并行性</li>
+<li>减少了I/O设备对CPU的中断请求次数，放宽CPU对中断响应时间的要求</li>
+</ul>
+<p><strong>缓冲区分类</strong></p>
+<ul>
+<li><strong>硬缓冲</strong>：由硬件寄存器实现（例如：设备中设置的缓冲区）</li>
+<li><strong>软缓冲</strong>：在内存中开辟一个空间，用作缓冲区</li>
+</ul>
+<p><strong>缓冲区管理</strong></p>
+<ul>
+<li><strong>单缓冲</strong></li>
+<li><strong>双缓冲</strong></li>
+<li><strong>缓冲池（多缓冲，循环缓冲）</strong>：统一管理多个缓冲区，采用有界缓冲区的生产者/消费者模型对缓冲池中的缓冲区进行循环使用</li>
+</ul>
+<h2><span id="52-unix-system-v缓冲技术"> 5.2 UNIX SYSTEM V缓冲技术</span></h2>
+<p>采用缓冲池技术，可平滑和加快信息在内存和磁盘之间的传输</p>
+<ul>
+<li>缓冲区结合提前读和延迟写技术对具有重复性及阵发性I/O进程、提高I/O速度很有帮助</li>
+<li>可以充分利用之前从磁盘读入、虽已传入用户区但仍在缓冲区的数据（尽可能减少磁盘I/O的次数，提高系统运行的速度）</li>
+</ul>
+<p><strong>实现方式</strong>：</p>
+<ul>
+<li>缓冲池：200个缓冲区(512字节或1024字节)</li>
+<li>每个缓冲区由两部分组成
+<ul>
+<li>缓冲控制块或缓冲首部 + 缓冲数据区</li>
+<li>系统通过缓冲控制块来实现对缓冲区的管理</li>
+</ul>
+</li>
+<li>空闲缓冲区队列(av链)
+<ul>
+<li>队列头部为bfreelist</li>
+</ul>
+</li>
+<li>设备缓冲队列（b链）
+<ul>
+<li>链接所有分配给各类设备使用的缓冲区，按照散列方式组织</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig8.jpg" alt="fig8"></p>
+<p>数据结构如上图所示</p>
+<ul>
+<li><strong>逻辑设备号和盘块号</strong>分别标志出文件系统和数据所在的盘块号，是缓冲区的唯一标志</li>
+<li><strong>状态</strong>标识缓冲区的当前状态：忙/闲、上锁/开锁、是否延迟写、数据有效性等</li>
+<li>两组指针（av和b）用于对缓冲池的分配管理</li>
+</ul>
+<p><strong>具体实现细节描述如下：</strong></p>
+<ol>
+<li>当进程想从指定的盘块读取数据时，系统根据盘块号从设备b链(散列队列)中查找，如找到缓冲区，则将该缓冲区状态标记为“忙”，并从空闲av队列中取下，并完成从缓冲区到内存用户区的数据传送</li>
+<li>如果在设备b链中未找到时，则从空闲av链队首摘取一个缓冲区，插入设备I/O请求队列；并从原设备b链中取下，插入由读入信息盘块号确定的新的设备b链中</li>
+<li>当数据从磁盘块读入到缓冲区后，缓冲区从设备I/O请求队列取下；当系统完成从缓冲区到内存用户区的数据传送后，要把缓冲区释放，链入空闲av链队尾</li>
+<li>当数据从磁盘块读入到缓冲区，并传送到内存用户区后，该缓冲区一直保留在原设备b链中，即它的数据一直有效。若又要使用它，则从空闲av链中取下，使用完后插入到空闲av链队尾。若一直未使用它，则该缓冲区从空闲av链队尾慢慢升到队首，最后被重新分配，旧的盘块数据才被置换</li>
+</ol>
+<h1><span id="6-io设备管理"> 6 I/O设备管理</span></h1>
+<h2><span id="61-设备管理有关的数据结构"> 6.1 设备管理有关的数据结构</span></h2>
+<ol>
+<li><strong>描述设备、控制器等部件的表格</strong>：系统中常常为每一个部件、每一台设备分别设置一张表格，常称为设备表或部件控制块。这类表格具体描述设备的类型、标识符、状态，以及当前使用者的进程标识符等</li>
+<li><strong>建立同类资源的队列</strong>：系统为了方便对I/O设备的分配管理，通常在设备表的基础上通过指针将相同物理属性的设备连成队列（称设备队列）</li>
+<li><strong>面向进程I/O请求的动态数据结构</strong>：每当进程发出I/O请求时，系统建立一张表格（称I/O请求包），将此次I/O请求的参数填入表中，同时也将该I/O有关的系统缓冲区地址等信息填入表中。I/O请求包随着I/O的完成而被删除</li>
+<li><strong>建立I/O队列</strong>：如请求包队列</li>
+</ol>
+<h2><span id="62-独占设备的分配"> 6.2 独占设备的分配</span></h2>
+<p>在申请设备时，如果设备空闲，就将其独占，不再允许其他进程申请使用，一直等到该设备被释放，才允许被其他进程申请使用。需要考虑效率问题，并避免由于不合理的分配策略造成死锁</p>
+<p><strong>静态分配</strong>：在进程运行前，完成设备分配；运行结束时，收回设备。缺点：设备利用率低</p>
+<p><strong>动态分配</strong>：在进程运行过程中，当用户提出设备要求时，进行分配，一旦停止使用立即收回<br>
+优点：效率好；缺点：分配策略不好时，容易产生死锁</p>
+<h2><span id="63-分时式共享设备的分配"> 6.3 分时式共享设备的分配</span></h2>
+<p>所谓分时式共享就是以一次I/O为单位分时使用设备，不同进程的I/O操作请求以排队方式分时地占用设备进行I/O</p>
+<p>由于同时有多个进程同时访问，且访问频繁，就会影响整个设备使用效率，影响系统效率。因此要考虑多个访问请求到达时服务的顺序，使平均服务时间越短越好</p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-IO%E7%B3%BB%E7%BB%9F/fig9.jpg" alt="fig9"></p>
+<h2><span id="64-设备驱动程序"> 6.4 设备驱动程序</span></h2>
+<p>与设备密切相关的代码放在设备驱动程序中，每个设备驱动程序处理一种设备类型</p>
+<p>一般，设备驱动程序的任务是接收来自与设备无关的上层软件的抽象请求，并执行这个请求</p>
+<p>每一个控制器都设有一个或多个设备寄存器，用来存放向设备发送的命令和参数。设备驱动程序负责释放这些命令，并监督它们正确执行</p>
+<p>在设备驱动程序的进程释放一条或多条命令后，系统有两种处理方式，多数情况下，执行设备驱动程序的进程必须等待命令完成，这样，在命令开始执行后，它阻塞自已，直到中断处理时将它解除阻塞为止；而在其它情况下，命令执行不必延迟就很快完成</p>
+<p><strong>设备驱动程序与外界的接口</strong></p>
+<ul>
+<li>与操作系统的接口
+<ul>
+<li>为实现设备无关性，设备作为特殊文件处理。用户的I/O请求、对命令的合法性检查以及参数处理在文件系统中完成。在需要各种设备执行具体操作时，通过相应数据结构转入不同的设备驱动程序</li>
+</ul>
+</li>
+<li>与系统引导的接口（初始化，包括分配数据结构，建立设备的请求队列）</li>
+<li>与设备的接口</li>
+</ul>
+<p><strong>设备驱动程序的接口函数</strong></p>
+<ul>
+<li>驱动程序初始化函数（如向操作系统登记该驱动程序的接口函数，该初始化函数在系统启动时或驱动程序安装入内核时执行）</li>
+<li>驱动程序卸载函数</li>
+<li>申请设备函数</li>
+<li>释放设备函数</li>
+<li>I/O操作函数
+<ul>
+<li>对独占设备，包含启动I/O的指令；对共享设备，将I/O请求形成一个请求包，排到设备请求队列，如果请求队列空，则直接启动设备</li>
+</ul>
+</li>
+<li>中断处理函数
+<ul>
+<li>对I/O完成做善后处理，一般是唤醒等待刚完成I/O请求的阻塞进程，使其能进一步做后续工作；如果存在I/O请求队列，则启动下一个I/O请求</li>
+</ul>
+</li>
+</ul>
+<h2><span id="65-io进程"> 6.5 I/O进程</span></h2>
+<p><strong>I/O进程：专门处理系统中的I/O请求和I/O中断工作</strong></p>
+<ul>
+<li>是系统进程，一般赋予最高优先级。一旦被唤醒，它可以很快抢占处理机投入运行</li>
+<li>I/O进程开始运行后，首先关闭中断，然后用receive去接收消息</li>
+<li>两种情形：
+<ul>
+<li>没有消息，则开中断，将自己阻塞</li>
+<li>有消息，则判断消息类型（I/O请求或I/O中断）
+<ul>
+<li>I/O请求：准备通道程序，发出启动I/O指令，继续判断有无消息</li>
+<li>I/O中断，进一步判断正常或异常结束。正常：唤醒要求进行I/O操作的进程；异常：转入相应的错误处理程序</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>I/O请求的进入</strong></p>
+<ul>
+<li>用户程序：调用send将I/O请求发送给I/O进程；调用block将自己阻塞，直到I/O任务完成后被唤醒</li>
+<li>系统：利用wakeup唤醒I/O进程，完成用户所要求的I/O处理</li>
+</ul>
+<p><strong>I/O中断的进入</strong></p>
+<ul>
+<li>当I/O中断发生时，内核中的中断处理程序发一条消息给I/O进程，由I/O进程负责判断并处理中断</li>
+</ul>
+<h1><span id="7-io性能问题"> 7 I/O性能问题</span></h1>
+<p><strong>目标</strong></p>
+<ol>
+<li>使CPU利用率尽可能不被I/O降低</li>
+<li>使CPU尽可能摆脱I/O
+<ul>
+<li>减少或缓解速度差距 → 缓冲技术</li>
+<li>使CPU不等待I/O → 异步I/O</li>
+<li>让CPU摆脱I/O操作 → DMA、通道</li>
+</ul>
+</li>
+</ol>
+<p>Windows提供两种模式的I/O操作：异步和同步</p>
+<ul>
+<li>异步模式：用于优化应用程序的性能
+<ul>
+<li>通过异步I/O，应用程序可以启动一个I/O操作，然后在I/O请求执行的同时继续处理</li>
+<li>基本思想：填充I/O操作间等待的CPU时间</li>
+</ul>
+</li>
+<li>同步I/O：应用程序被阻塞直到I/O操作完成</li>
+</ul>
+<p><strong>异步传输I/O</strong></p>
+<ul>
+<li>系统实现
+<ul>
+<li>通过切换到其他线程保证CPU利用率</li>
+<li>对少量数据的I/O操作会引入切换的开销</li>
+</ul>
+</li>
+<li>用户实现
+<ul>
+<li>将访问控制分成两段进行</li>
+<li>发出读取指令后继续做其他操作</li>
+<li>当需要用读入的数据的时候，再使用wait命令等待其完成</li>
+<li>不引入线程切换，减少开销</li>
+</ul>
+</li>
+</ul>
+<h1><span id="8-参考"> 8 参考</span></h1>
+<ul>
+<li>《MOOC-操作系统原理-陈向群》</li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/" rel="prev" title="操作系统原理-文件系统2">
+      <i class="fa fa-chevron-left"></i> 操作系统原理-文件系统2
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E6%AD%BB%E9%94%81/" rel="next" title="操作系统原理-死锁">
+      操作系统原理-死锁 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 I&#x2F;O管理概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 设备的分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 I&#x2F;O管理的任务和目标</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 I&#x2F;O硬件组成</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 I&#x2F;O设备组成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.2 接口设备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.3 I&#x2F;O端口地址</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 2.3.1 I&#x2F;O独立编址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 2.3.2 内存映像编址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 2.3.3 内存映射I&#x2F;O</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 I&#x2F;O控制方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 I&#x2F;O部件的演化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 I&#x2F;O软件的组成</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 I&#x2F;O软件层次</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 编程独立性（设备无关性）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 I&#x2F;O相关技术</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 缓冲技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.2 UNIX SYSTEM V缓冲技术</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 I&#x2F;O设备管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.1 设备管理有关的数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.2 独占设备的分配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.3 分时式共享设备的分配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.4 设备驱动程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.5 I&#x2F;O进程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 I&#x2F;O性能问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

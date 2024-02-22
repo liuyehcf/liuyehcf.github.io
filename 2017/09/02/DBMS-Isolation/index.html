@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DBMS-Isolation">
+<meta property="og:url" content="http://example.com/2017/09/02/DBMS-Isolation/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/DBMS-Isolation/fig1.jpeg">
+<meta property="og:image" content="http://example.com/images/DBMS-Isolation/fig2.jpeg">
+<meta property="og:image" content="http://example.com/images/DBMS-Isolation/fig3.jpeg">
+<meta property="article:published_time" content="2017-09-02T06:13:31.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.336Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/DBMS-Isolation/fig1.jpeg">
+
+<link rel="canonical" href="http://example.com/2017/09/02/DBMS-Isolation/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>DBMS-Isolation | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/09/02/DBMS-Isolation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DBMS-Isolation
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-02 14:13:31" itemprop="dateCreated datePublished" datetime="2017-09-02T14:13:31+08:00">2017-09-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/" itemprop="url" rel="index"><span itemprop="name">Database</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/Basic-Concepts/" itemprop="url" rel="index"><span itemprop="name">Basic Concepts</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/09/02/DBMS-Isolation/" class="post-meta-item leancloud_visitors" data-flag-title="DBMS-Isolation" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/09/02/DBMS-Isolation/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/09/02/DBMS-Isolation/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-前言"> 1 前言</span></h1>
+<p>本篇文章针对<code>MySQL</code>的<code>InnoDB数据库引擎</code></p>
+<h1><span id="2-acid"> 2 ACID</span></h1>
+<p><strong>A：事务的原子性(Atomicity)</strong>：指一个事务要么全部执行，要么不执行。也就是说一个事务不可能只执行了一半就停止了。比如你从取款机取钱，这个事务可以分成两个步骤：1划卡，2出钱。不可能划了卡，而钱却没出来。这两步必须同时完成，要么就不完成<br>
+<strong>C：事务的一致性(Consistency)</strong>：指事务的运行并不改变数据库中数据的一致性。例如，完整性约束了a+b=10，一个事务改变了a，那么b也应该随之改变<br>
+<strong>I：独立性(Isolation)</strong>：事务的独立性也有称作隔离性，是指两个以上的事务不会出现交错执行的状态。因为这样可能会导致数据不一致<br>
+<strong>D：持久性(Durability)</strong>：事务的持久性是指事务执行成功以后，该事务所对数据库所作的更改便是持久的保存在数据库之中，不会无缘无故的回滚</p>
+<h1><span id="3-名词解释"> 3 名词解释</span></h1>
+<h2><span id="31-第一类丢失更新"> 3.1 第一类丢失更新</span></h2>
+<p>A事务撤销时，把已经提交的B事务的更新数据覆盖了</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">时间</th>
+<th style="text-align:left">取款事务A</th>
+<th style="text-align:left">转账事务B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">T1</td>
+<td style="text-align:left"><strong>开始事务</strong></td>
+<td style="text-align:left">/</td>
+</tr>
+<tr>
+<td style="text-align:left">T2</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left"><strong>开始事务</strong></td>
+</tr>
+<tr>
+<td style="text-align:left">T3</td>
+<td style="text-align:left">查询账户余额为1000元</td>
+<td style="text-align:left">/</td>
+</tr>
+<tr>
+<td style="text-align:left">T4</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">查询账户余额为1000元</td>
+</tr>
+<tr>
+<td style="text-align:left">T5</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">汇入100元，把余额改为1100元</td>
+</tr>
+<tr>
+<td style="text-align:left">T6</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left"><strong>提交事务</strong></td>
+</tr>
+<tr>
+<td style="text-align:left">T7</td>
+<td style="text-align:left">取出100元，把余额改为900元</td>
+<td style="text-align:left">/</td>
+</tr>
+<tr>
+<td style="text-align:left">T8</td>
+<td style="text-align:left"><strong>撤销事务</strong></td>
+<td style="text-align:left">/</td>
+</tr>
+<tr>
+<td style="text-align:left">T9</td>
+<td style="text-align:left"><strong>余额恢复为1000元(丢失更新)</strong></td>
+<td style="text-align:left">/</td>
+</tr>
+</tbody>
+</table>
+<p><strong>第一类丢失更新的本质是：<code>回滚覆盖</code>，这个基本上可以算是数据库实现的bug了，mysql的任何隔离级别都不会有这个问题</strong></p>
+<h2><span id="32-第二类丢失更新"> 3.2 第二类丢失更新</span></h2>
+<p>A事务覆盖B事务已经提交的数据，造成B事务所作的操作丢失</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">时间</th>
+<th style="text-align:left">取款事务A</th>
+<th style="text-align:left">转账事务B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">T1</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left"><strong>开始事务</strong></td>
+</tr>
+<tr>
+<td style="text-align:left">T2</td>
+<td style="text-align:left"><strong>开始事务</strong></td>
+<td style="text-align:left">/</td>
+</tr>
+<tr>
+<td style="text-align:left">T3</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">查询账户余额为1000元</td>
+</tr>
+<tr>
+<td style="text-align:left">T4</td>
+<td style="text-align:left">查询账户余额为1000元</td>
+<td style="text-align:left">/</td>
+</tr>
+<tr>
+<td style="text-align:left">T5</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">取出100元，把余额改为900元</td>
+</tr>
+<tr>
+<td style="text-align:left">T6</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left"><strong>提交事务</strong></td>
+</tr>
+<tr>
+<td style="text-align:left">T7</td>
+<td style="text-align:left">汇入100元</td>
+<td style="text-align:left">/</td>
+</tr>
+<tr>
+<td style="text-align:left">T8</td>
+<td style="text-align:left"><strong>提交事务</strong></td>
+<td style="text-align:left">/</td>
+</tr>
+<tr>
+<td style="text-align:left">T9</td>
+<td style="text-align:left"><strong>把余额改为1100元(丢失更新)</strong></td>
+<td style="text-align:left">/</td>
+</tr>
+</tbody>
+</table>
+<p><strong>第二类丢失更新的本质是：<code>提交覆盖</code>，基于一个过时的查询结果进行更新。因此Repeatable read可以解决第二类丢失更新问题</strong></p>
+<h2><span id="33-脏读"> 3.3 脏读</span></h2>
+<p>脏读就是指当一个事务正在访问数据，并且对数据进行了修改，而这种修改还没有提交到数据库中，这时，另外一个事务也访问这个数据，然后使用了这个数据</p>
+<h2><span id="34-不可重复读"> 3.4 不可重复读</span></h2>
+<p>是指在一个事务内，多次读同一数据。在这个事务还没有结束时，另外一个事务也访问该同一数据。那么，在第一个事务中的两次读数据之间，由于第二个事务的修改，那么第一个事务两次读到的的数据可能是不一样的。这样就发生了在一个事务内两次读到的数据是不一样的，因此称为是不可重复读</p>
+<h2><span id="35-幻读"> 3.5 幻读</span></h2>
+<p>一个事务在前后两次查询同一范围的时候，后一次查询看到了前一次查询没有看到的行。除非上表锁，否则无法阻止插入新的数据</p>
+<h2><span id="36-快照当前读"> 3.6 快照/当前读</span></h2>
+<p>快照读是MVCC中的概念，即读的是数据副本，不加任何锁</p>
+<p><code>当前读</code>又称为<code>加锁读</code>或<code>阻塞读</code>，查询的是数据的最新版本，根据加锁的不同，又可以分为两类</p>
+<ul>
+<li><code>SELECT ... LOCK IN SHARE MODE</code>：S锁</li>
+<li><code>SELECT ... FOR UPDATE</code>：X锁</li>
+<li><code>INSERT / UPDATE / DELETE</code>：X锁</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">快照读</th>
+<th style="text-align:left">当前读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">读未提交</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">读取最新版本</td>
+</tr>
+<tr>
+<td style="text-align:left">读已提交</td>
+<td style="text-align:left">读取最新一份快照</td>
+<td style="text-align:left">读取最新版本，并加<code>记录锁</code></td>
+</tr>
+<tr>
+<td style="text-align:left">可重复读</td>
+<td style="text-align:left">读取事务开始时的快照</td>
+<td style="text-align:left">读取最新版本，并加<code>记录锁</code>以及<code>间隙锁</code></td>
+</tr>
+<tr>
+<td style="text-align:left">可序列化</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">读取最新版本，并加<code>记录锁</code>以及<code>间隙锁</code></td>
+</tr>
+</tbody>
+</table>
+<h1><span id="4-事务隔离级别以及实现方式"> 4 事务隔离级别以及实现方式</span></h1>
+<h2><span id="41-read-uncommitted读未提交"> 4.1 Read uncommitted(读未提交)</span></h2>
+<p><strong>实现方式</strong>：</p>
+<ul>
+<li>事务读数据时<strong>不加锁</strong>，只有当前读，无快照读</li>
+<li>事务写数据的时候(写操作时才加锁而不是事务一开始就加锁)加<strong>行级独占锁</strong>，<strong>事务结束释放</strong></li>
+</ul>
+<p>行级别的共享锁可以防止两个同时的写操作，但是不会对读产生影响。因此可以避免第一类丢失更新，但是会产生脏读的问题</p>
+<h3><span id="411-验证"> 4.1.1 验证</span></h3>
+<p><strong>准备工作</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE IF <span class="keyword">EXISTS</span> test;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> test.user(</span><br><span class="line">id <span class="type">INT</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> &quot;&quot;,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id)</span><br><span class="line">)Engine<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test.user(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;张三&quot;);</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> READ<span class="operator">-</span>UNCOMMITTED       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张三   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> READ<span class="operator">-</span>UNCOMMITTED       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.01</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;张八&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 更新数据</span></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">1</span>  Changed: <span class="number">1</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张八   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1读取到了客户端2未提交的数据，符合预期</strong></p>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">ROLLBACK</span>; <span class="comment">-- 回滚事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张三   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1读取到了客户端2回滚后的数据，符合预期。接下来我们分析一下加锁情况(接着上面操作继续)</strong></p>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;李四&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 更新数据</span></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">1</span>  Changed: <span class="number">1</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;李四&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 更新数据</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端2阻塞了，符合预期</strong></p>
+<p><strong>客户端3</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> information_schema.INNODB_LOCKS; <span class="comment">-- 查看锁状态</span></span><br><span class="line"><span class="operator">+</span><span class="comment">---------------+-------------+-----------+-----------+---------------+------------+------------+-----------+----------+-----------+</span></span><br><span class="line"><span class="operator">|</span> lock_id       <span class="operator">|</span> lock_trx_id <span class="operator">|</span> lock_mode <span class="operator">|</span> lock_type <span class="operator">|</span> lock_table    <span class="operator">|</span> lock_index <span class="operator">|</span> lock_space <span class="operator">|</span> lock_page <span class="operator">|</span> lock_rec <span class="operator">|</span> lock_data <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">---------------+-------------+-----------+-----------+---------------+------------+------------+-----------+----------+-----------+</span></span><br><span class="line"><span class="operator">|</span> <span class="number">16652</span>:<span class="number">176</span>:<span class="number">3</span>:<span class="number">2</span> <span class="operator">|</span> <span class="number">16652</span>       <span class="operator">|</span> X         <span class="operator">|</span> RECORD    <span class="operator">|</span> `test`.`<span class="keyword">user</span>` <span class="operator">|</span> <span class="keyword">PRIMARY</span>    <span class="operator">|</span>        <span class="number">176</span> <span class="operator">|</span>         <span class="number">3</span> <span class="operator">|</span>        <span class="number">2</span> <span class="operator">|</span> <span class="number">1</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> <span class="number">16651</span>:<span class="number">176</span>:<span class="number">3</span>:<span class="number">2</span> <span class="operator">|</span> <span class="number">16651</span>       <span class="operator">|</span> X         <span class="operator">|</span> RECORD    <span class="operator">|</span> `test`.`<span class="keyword">user</span>` <span class="operator">|</span> <span class="keyword">PRIMARY</span>    <span class="operator">|</span>        <span class="number">176</span> <span class="operator">|</span>         <span class="number">3</span> <span class="operator">|</span>        <span class="number">2</span> <span class="operator">|</span> <span class="number">1</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">---------------+-------------+-----------+-----------+---------------+------------+------------+-----------+----------+-----------+</span></span><br><span class="line"><span class="number">2</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span>, <span class="number">1</span> warning (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> information_schema.INNODB_LOCKS\G; <span class="comment">-- 将得到列状的输出</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">    lock_id: <span class="number">16652</span>:<span class="number">176</span>:<span class="number">3</span>:<span class="number">2</span></span><br><span class="line">lock_trx_id: <span class="number">16652</span></span><br><span class="line">  lock_mode: X</span><br><span class="line">  lock_type: RECORD</span><br><span class="line"> lock_table: `test`.`<span class="keyword">user</span>`</span><br><span class="line"> lock_index: <span class="keyword">PRIMARY</span></span><br><span class="line"> lock_space: <span class="number">176</span></span><br><span class="line">  lock_page: <span class="number">3</span></span><br><span class="line">   lock_rec: <span class="number">2</span></span><br><span class="line">  lock_data: <span class="number">1</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">2.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">    lock_id: <span class="number">16651</span>:<span class="number">176</span>:<span class="number">3</span>:<span class="number">2</span></span><br><span class="line">lock_trx_id: <span class="number">16651</span></span><br><span class="line">  lock_mode: X</span><br><span class="line">  lock_type: RECORD</span><br><span class="line"> lock_table: `test`.`<span class="keyword">user</span>`</span><br><span class="line"> lock_index: <span class="keyword">PRIMARY</span></span><br><span class="line"> lock_space: <span class="number">176</span></span><br><span class="line">  lock_page: <span class="number">3</span></span><br><span class="line">   lock_rec: <span class="number">2</span></span><br><span class="line">  lock_data: <span class="number">1</span></span><br><span class="line"><span class="number">2</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span>, <span class="number">1</span> warning (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">ERROR:</span><br><span class="line"><span class="keyword">No</span> query specified</span><br></pre></td></tr></table></figure>
+<p>可以看到写操作是有锁的，而且是X锁(排他锁)</p>
+<p><strong>客户端3</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> information_schema.INNODB_TRX; <span class="comment">-- 查看事务状态</span></span><br><span class="line">...省略输出...</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> information_schema.INNODB_TRX\G; <span class="comment">-- 将得到列状的输出</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">                    trx_id: <span class="number">16652</span></span><br><span class="line">                 trx_state: LOCK WAIT</span><br><span class="line">               trx_started: <span class="number">2021</span><span class="number">-05</span><span class="number">-15</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">54</span></span><br><span class="line">     trx_requested_lock_id: <span class="number">16652</span>:<span class="number">176</span>:<span class="number">3</span>:<span class="number">2</span></span><br><span class="line">          trx_wait_started: <span class="number">2021</span><span class="number">-05</span><span class="number">-15</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">54</span></span><br><span class="line">                trx_weight: <span class="number">2</span></span><br><span class="line">       trx_mysql_thread_id: <span class="number">9</span></span><br><span class="line">                 trx_query: <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;李四&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span></span><br><span class="line">       trx_operation_state: starting index read</span><br><span class="line">         trx_tables_in_use: <span class="number">1</span></span><br><span class="line">         trx_tables_locked: <span class="number">1</span></span><br><span class="line">          trx_lock_structs: <span class="number">2</span></span><br><span class="line">     trx_lock_memory_bytes: <span class="number">1136</span></span><br><span class="line">           trx_rows_locked: <span class="number">1</span></span><br><span class="line">         trx_rows_modified: <span class="number">0</span></span><br><span class="line">   trx_concurrency_tickets: <span class="number">0</span></span><br><span class="line">       trx_isolation_level: READ UNCOMMITTED</span><br><span class="line">         trx_unique_checks: <span class="number">1</span></span><br><span class="line">    trx_foreign_key_checks: <span class="number">1</span></span><br><span class="line">trx_last_foreign_key_error: <span class="keyword">NULL</span></span><br><span class="line"> trx_adaptive_hash_latched: <span class="number">0</span></span><br><span class="line"> trx_adaptive_hash_timeout: <span class="number">0</span></span><br><span class="line">          trx_is_read_only: <span class="number">0</span></span><br><span class="line">trx_autocommit_non_locking: <span class="number">0</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">2.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">                    trx_id: <span class="number">16651</span></span><br><span class="line">                 trx_state: <span class="keyword">RUNNING</span></span><br><span class="line">               trx_started: <span class="number">2021</span><span class="number">-05</span><span class="number">-15</span> <span class="number">11</span>:<span class="number">09</span>:<span class="number">44</span></span><br><span class="line">     trx_requested_lock_id: <span class="keyword">NULL</span></span><br><span class="line">          trx_wait_started: <span class="keyword">NULL</span></span><br><span class="line">                trx_weight: <span class="number">3</span></span><br><span class="line">       trx_mysql_thread_id: <span class="number">8</span></span><br><span class="line">                 trx_query: <span class="keyword">NULL</span></span><br><span class="line">       trx_operation_state: <span class="keyword">NULL</span></span><br><span class="line">         trx_tables_in_use: <span class="number">0</span></span><br><span class="line">         trx_tables_locked: <span class="number">1</span></span><br><span class="line">          trx_lock_structs: <span class="number">2</span></span><br><span class="line">     trx_lock_memory_bytes: <span class="number">1136</span></span><br><span class="line">           trx_rows_locked: <span class="number">1</span></span><br><span class="line">         trx_rows_modified: <span class="number">1</span></span><br><span class="line">   trx_concurrency_tickets: <span class="number">0</span></span><br><span class="line">       trx_isolation_level: READ UNCOMMITTED</span><br><span class="line">         trx_unique_checks: <span class="number">1</span></span><br><span class="line">    trx_foreign_key_checks: <span class="number">1</span></span><br><span class="line">trx_last_foreign_key_error: <span class="keyword">NULL</span></span><br><span class="line"> trx_adaptive_hash_latched: <span class="number">0</span></span><br><span class="line"> trx_adaptive_hash_timeout: <span class="number">0</span></span><br><span class="line">          trx_is_read_only: <span class="number">0</span></span><br><span class="line">trx_autocommit_non_locking: <span class="number">0</span></span><br><span class="line"><span class="number">2</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">ERROR:</span><br><span class="line"><span class="keyword">No</span> query specified</span><br></pre></td></tr></table></figure>
+<p><strong>可以看出，一个事务(Client1)处于RUNNING状态，另一个事务(Client2)处于锁定状态。且独占锁在写操作后并未释放，而是等到事务结束后才释放</strong></p>
+<h2><span id="42-read-committed读已提交"> 4.2 Read committed(读已提交)</span></h2>
+<p><strong>实现方式</strong>：</p>
+<ul>
+<li>事务读数据（<strong>对于mysql而言，特指S锁当前读</strong>）的时候(读操作时才加锁而不是事务一开始就加锁)加<strong>行级共享锁</strong>，<strong>读完释放</strong></li>
+<li>事务写数据的时候(写操作时才加锁而不是事务一开始就加锁)加<strong>行级独占锁</strong>，<strong>事务结束释放</strong></li>
+</ul>
+<p>由于事务写操作加上独占锁，因此事务写操作时，读操作不能进行，因此，不能读到事务的未提交数据，避免了脏读问题，<strong>但是由于读操作的锁加在读上面，而不是加在事务之上，所以，在同一事务的两次读操作之间可以插入其他事务的写操作，所以可能发生不可重复读的问题</strong></p>
+<h3><span id="421-验证"> 4.2.1 验证</span></h3>
+<p>可以很负责人的跟大家说，<strong>MySQL中的READ COMMITTED隔离级别不单单是通过加锁实现的，实际上还有REPEATABLE READ隔离级别，其实这两个隔离级别效果的实现还需要一个辅助，这个辅助就是MVCC-多版本并发控制</strong>，但其实它又不是严格意义上的多版本并发控制，是不是很懵，没关系，我们一一剖析</p>
+<h4><span id="4211-快照读"> 4.2.1.1 快照读</span></h4>
+<p><strong>准备工作</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE IF <span class="keyword">EXISTS</span> test;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> test.user(</span><br><span class="line">id <span class="type">INT</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> &quot;&quot;,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id)</span><br><span class="line">)Engine<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test.user(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;张三&quot;);</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> READ<span class="operator">-</span>COMMITTED         <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;张八&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 更新数据</span></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">1</span>  Changed: <span class="number">1</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> READ<span class="operator">-</span>COMMITTED         <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张三   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>这里的读事务并没有按照预期那样阻塞，而是读到了写事务(Client1)事务开始前的数据。<strong>因为内部使用了MVCC机制，实现了一致性非阻塞读，大大提高了并发读写效率，写不影响读，且读到的是记录的镜像版本</strong></p>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">COMMIT</span>; <span class="comment">-- 提交事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.01</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张八   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>在客户端2的事务中，读到了客户端1所提交的数据，符合预期</strong></p>
+<h4><span id="4212-当前读"> 4.2.1.2 当前读</span></h4>
+<p><strong>准备工作</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE IF <span class="keyword">EXISTS</span> test;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> test.user(</span><br><span class="line">id <span class="type">INT</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> &quot;&quot;,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id)</span><br><span class="line">)Engine<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test.user(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;张三&quot;);</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> READ<span class="operator">-</span>COMMITTED         <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;张八&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 更新数据</span></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">1</span>  Changed: <span class="number">1</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> READ<span class="operator">-</span>COMMITTED         <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span> LOCK <span class="keyword">IN</span> SHARE MODE; <span class="comment">-- 查询数据</span></span><br></pre></td></tr></table></figure>
+<p><strong>当前读阻塞，符合预期</strong></p>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">COMMIT</span>; <span class="comment">-- 提交事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.01</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+从阻塞中恢复</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span> LOCK <span class="keyword">IN</span> SHARE MODE; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张八   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">2.33</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>事务2读到了事务1提交的数据，符合预期</strong></p>
+<h2><span id="43-undoredo-log"> 4.3 undo/redo log</span></h2>
+<p>数据库通常借助日志来实现事务，常见的有<code>undo log</code>、<code>redo log</code>，<code>undo/redo log</code>都能保证事务特性，这里主要是原子性和持久性，即事务相关的操作，要么全做，要么不做，并且修改的数据能得到持久化</p>
+<p>在概念上，<code>innodb</code>通过<code>force log at commit</code>机制实现事务的持久性，即在事务提交的时候，必须先将该事务的所有事务日志写入到磁盘上的<code>redo log file</code>和<code>undo log file</code>中进行持久化</p>
+<p>假设数据库在操作时，按如下约定记录日志：</p>
+<ol>
+<li>事务开始时，记录<code>START T</code></li>
+<li>事务修改时，记录<code>(T, x, v)</code>，说明事务<code>T</code>操作对象<code>x</code>，<code>x</code>的值为<code>v</code></li>
+<li>事务结束时，记录<code>COMMIT T </code></li>
+</ol>
+<h3><span id="431-undo-log"> 4.3.1 undo log</span></h3>
+<p><strong><code>undo log</code>有两个作用：提供回滚和多个行版本控制(MVCC)</strong></p>
+<p><code>undo log</code>是把所有没有<code>COMMIT</code>的事务回滚到事务开始前的状态，系统崩溃时，可能有些事务还没有<code>COMMIT</code>，在系统恢复时，这些没有<code>COMMIT</code>的事务就需要借助<code>undo log</code>来进行回滚</p>
+<p><strong>使用<code>undo log</code>时，要求</strong></p>
+<ol>
+<li>记录修改日志时，<code>(T, x, v)</code>中<code>v</code>为<code>x</code>修改前的值，这样才能借助这条日志来回滚</li>
+<li>事务提交后，必须在事务的所有修改（包括记录的修改日志）都持久化后才能写事务<code>T</code>的<code>COMMIT</code>日志；这样才能保证，宕机恢复时，已经<code>COMMIT</code>的事务的所有修改都已经持久化，不需要回滚</li>
+</ol>
+<p><strong>使用<code>undo log</code>时事务执行顺序</strong></p>
+<ol>
+<li>记录<code>START T</code></li>
+<li>记录需要修改的记录的旧值（要求持久化）</li>
+<li>根据事务的需要更新数据库（要求持久化）</li>
+<li>记录<code>COMMIT T</code></li>
+</ol>
+<p><strong>使用<code>undo log</code>进行宕机回滚</strong></p>
+<ol>
+<li>扫描日志，找出所有已经<code>START</code>，还没有<code>COMMIT</code>的事务</li>
+<li>针对所有未<code>COMMIT</code>的日志，根据<code>undo log</code>来进行回滚</li>
+</ol>
+<p><strong>如果数据库访问很多，日志量也会很大，宕机恢复时，回滚的工作量也就很大，为了加快回滚，可以通过<code>checkpoint</code>机制来加速回滚</strong></p>
+<ol>
+<li>在日志中记录<code>checkpoint_start(T1, T2, ..., Tn)</code> (<code>Tx</code>代表做<code>checkpoint</code>时，正在进行还未<code>COMMIT</code>的事务）</li>
+<li>等待所有正在进行的事务<code>(T1~Tn)</code>执行<code>COMMIT</code>操作</li>
+<li>在日志中记录<code>checkpoint_end</code></li>
+</ol>
+<p><strong>借助<code>checkpoint</code>来进行回滚：从后往前，扫描<code>undo log</code></strong></p>
+<ol>
+<li>如果先遇到<code>checkpoint_start</code>，则将<code>checkpoint_start</code>之后的所有未提交的事务进行回滚</li>
+<li>如果先遇到<code>checkpoint_end</code>，则将前一个<code>checkpoint_start</code>之后所有未提交的事务进行回滚（在<code>checkpoint</code>的过程中，可能有很多新的事务<code>START</code>或者<code>COMMIT</code>)</li>
+</ol>
+<h3><span id="432-redo-log"> 4.3.2 redo log</span></h3>
+<p>为了实现持久化这一特性，必须保证：在事务提交后，所有的数据修改都需要落盘。<strong>最简单的做法是在每次事务提交的时候，将该事务涉及修改的数据页全部刷新到磁盘中。但是这么做会有严重的性能问题，主要体现在两个方面</strong></p>
+<ol>
+<li>因为<code>Innodb</code>是以<code>页</code>为单位进行磁盘交互的，而一个事务很可能只修改一个数据页里面的几个字节，这个时候将完整的数据页刷到磁盘的话，太浪费资源了</li>
+<li>一个事务可能涉及修改多个数据页，并且这些数据页在物理上并不连续，使用随机IO写入性能太差</li>
+</ol>
+<p><strong>于是<code>mysql</code>设计了<code>redo log</code>，具体来说就是只记录事务对数据页做了哪些修改，这样就能完美地解决性能问题了</strong></p>
+<ol>
+<li><strong>随机写改为顺序写</strong></li>
+<li><strong>每次写改为批量写</strong></li>
+</ol>
+<p><code>redo log</code>包括两部分：一个是内存中的日志缓冲<code>redo log buffer</code>，另一个是磁盘上的日志文件<code>redo log file</code>。mysql每执行一条<code>DML</code>语句，先将记录写入<code>redo log buffer</code>，后续某个时间点再一次性将多个操作记录写到<code>redo log file</code>。这种先写日志，再写磁盘的技术就是<code>WAL(Write-Ahead Logging)</code>技术</p>
+<p><strong>使用<code>redo log</code>时事务执行顺序</strong></p>
+<ol>
+<li>记录<code>START T</code></li>
+<li>记录事务需要修改记录的新值（要求持久化）</li>
+<li>记录<code>COMMIT T</code>（要求持久化）</li>
+<li>将事务相关的修改写入数据库</li>
+</ol>
+<p><strong>在日志中使用checkpoint</strong></p>
+<ol>
+<li>在日志中记录<code>checkpoint_start(T1, T2, ..., Tn)</code>（<code>Tx</code>代表做<code>checkpoint</code>时，正在进行还未<code>COMMIT</code>的日志）</li>
+<li>将所有已提交的事务的更改进行持久化</li>
+<li>在日志中记录<code>checkpoint_end</code></li>
+</ol>
+<p><strong>根据checkpoint来加速恢复：从后往前，扫描<code>redo log</code></strong></p>
+<ol>
+<li>如果先遇到<code>checkpoint_start</code>，则把<code>T1~Tn</code>以及<code>checkpoint_start</code>之后的所有已经<code>COMMIT</code>的事务进行重做</li>
+<li>如果先遇到<code>checkpoint_end</code>，则<code>T1~Tn</code>以及前一个<code>checkpoint_start</code>之后所有已经<code>COMMIT</code>的事务进行重做</li>
+</ol>
+<h2><span id="44-mvcc机制剖析"> 4.4 MVCC机制剖析</span></h2>
+<p>在MySQL中<code>MVCC(Multi-Version Concurrency Control)</code>是在Innodb存储引擎中得到支持的，Innodb为每行记录都实现了三个隐藏字段：</p>
+<ol>
+<li>隐藏的ID</li>
+<li>6字节的事务ID（<code>DB_TRX_ID</code>）：当某个事务对某条记录进行改动时，对会把对应的事务id赋值给该字段</li>
+<li>7字节的回滚指针（<code>DB_ROLL_PTR</code>）：可以通过这个指针找到该记录修改前的信息</li>
+</ol>
+<p><strong>MVCC在MySQL中的实现依赖的是<code>undo log</code>与<code>read view</code></strong></p>
+<ol>
+<li><strong><code>undo log</code></strong>：<code>undo log</code>中记录的是数据表记录行的多个版本，也就是事务执行过程中的回滚段，其实就是MVCC中的一行原始数据的多个版本镜像数据</li>
+<li><strong><code>read view</code></strong>：主要用来判断当前版本数据的可见性</li>
+</ol>
+<p><strong>行的更新过程</strong></p>
+<ol>
+<li>初始数据行
+<ul>
+<li><img src="/images/DBMS-Isolation/fig1.jpeg" alt="fig1"></li>
+<li>F1～F6是某行列的名字，1～6是其对应的数据。后面三个隐含字段分别对应该行的事务号和回滚指针，假如这条数据是刚INSERT的，可以认为ID为1，其他两个字段为空</li>
+</ul>
+</li>
+<li>事务1更改该行的各字段的值
+<ul>
+<li><img src="/images/DBMS-Isolation/fig2.jpeg" alt="fig2"></li>
+<li>当事务1更改该行的值时，会进行如下操作：
+<ul>
+<li>用排他锁锁定该行</li>
+<li>记录redo log</li>
+<li>把该行修改前的值Copy到<code>undo log</code>，即上图中下面的行</li>
+<li>修改当前行的值，填写事务编号，使回滚指针指向<code>undo log</code>中的修改前的行</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>事务2修改该行的值
+<ul>
+<li><img src="/images/DBMS-Isolation/fig3.jpeg" alt="fig3"></li>
+<li>与事务1相同，此时<code>undo log</code>，中有有两行记录，并且通过回滚指针连在一起</li>
+</ul>
+</li>
+</ol>
+<p><strong><code>read view</code>判断当前版本数据项是否可见</strong>：在innodb中，创建一个新事务的时候，innodb会将当前系统中的活跃事务列表创建一个副本（<code>read view</code>），副本中保存的是系统<strong>当前不应该被本事务看到的其他事务id列表</strong>。当用户在这个事务中要读取该行记录的时候，innodb会将该行当前的版本号与该<code>read view</code>进行比较。主要的概念如下</p>
+<ol>
+<li><code>m_ids</code>：表示在生成<code>read view</code>时，当前系统中活跃的读写事务id列表</li>
+<li><code>min_trx_id</code>：表示在生成<code>read view</code>时，当前系统中活跃的读写事务中最小的事务id，也就是<code>m_ids</code>中最小的值</li>
+<li><code>max_trx_id</code>：表示在生成<code>read view</code>时，系统中应该分配给下一个事务的id值</li>
+<li><code>creator_trx_id</code>：表示在生成<code>read view</code>时，事务的id</li>
+</ol>
+<p><strong><code>read view</code>具体的算法如下：</strong></p>
+<ul>
+<li>设该行的当前事务id为<code>trx_id</code></li>
+</ul>
+<ol>
+<li>如果被访问版本的<code>trx_id</code>，与<code>read view</code>中的<code>creator_trx_id</code>值相同，表明当前事务在访问自己修改过的记录，该版本可以被当前事务访问</li>
+<li>如果被访问版本的<code>trx_id</code>，小于<code>read view</code>中的<code>min_trx_id</code>值，表明生成该版本的事务在当前事务生成<code>read view</code>前已经提交（<code>m_ids</code>存的是活跃的事务列表，如果不在这个列表中的话，就表示已提交），该版本可以被当前事务访问</li>
+<li>如果被访问版本的<code>trx_id</code>，大于或等于<code>read view</code>中的<code>max_trx_id</code>值，表明生成该版本的事务在当前事务生成<code>read view</code>后才开启，该版本不可以被当前事务访问</li>
+<li>如果被访问版本的<code>trx_id</code>，值在<code>read view</code>的<code>min_trx_id</code>和<code>max_trx_id</code>之间，就需要判断<code>trx_id</code>属性值是不是在<code>m_ids</code>列表中
+<ul>
+<li>如果在：说明创建<code>read view</code>时生成该版本的事务还是活跃的，该版本不可以被访问</li>
+<li>如果不在：说明创建<code>read view</code>时生成该版本的事务已经被提交，该版本可以被访问</li>
+</ul>
+</li>
+</ol>
+<p><strong>生成<code>read view</code>时机</strong></p>
+<ul>
+<li><code>RC隔离级别</code>：每次读取数据前，都生成一个<code>read view</code>，只要当前语句执行前已经提交的数据都是可见的</li>
+<li><code>RR隔离级别</code>：在第一次读取数据前，生成一个<code>read view</code>，只要是当前事务执行前已经提交的数据都是可见的</li>
+</ul>
+<h3><span id="441-问题"> 4.4.1 问题</span></h3>
+<ol>
+<li><strong>事务尚未提交或者回滚之前，已经修改的数据是否会持久化到磁盘上？</strong>
+<ul>
+<li>会持久化到硬盘中。这也就是为什么在<code>Read uncommitted</code>这一事务隔离级别中，可以读取到未提交的数据</li>
+<li>在<code>Read committed</code>及<code>Repeatable read</code>事务隔离级别中，其他事务可以通过<code>undo log</code>来读取记录的初始值</li>
+</ul>
+</li>
+<li><strong>事务A更新某一行，提交；事务B同时更新同一行，回滚（在时间上，提交早于回滚）。<code>undo log</code>如何工作？</strong>
+<ul>
+<li>当前事务id记为<code>id_current</code>，事务B对应的<code>undo log</code>中记录的原始数据的事务id记为<code>id_original</code>，若<code>id_current &gt; id_original</code>且<code>id_current</code>对应的事务已提交，那么不做任何操作（<strong>这只是我的猜想</strong>）</li>
+</ul>
+</li>
+</ol>
+<h2><span id="45-repeatable-read可重复读"> 4.5 Repeatable read(可重复读)</span></h2>
+<p><strong>实现方式</strong>：</p>
+<ul>
+<li>事务读数据（<strong>对于mysql而言，特指S锁当前读</strong>）的时候(读操作时才加锁而不是事务一开始就加锁)加<strong>行级共享锁</strong>，<strong>事务结束释放</strong></li>
+<li>事务写数据的时候(写操作时才加锁而不是事务一开始就加锁)加<strong>行级独占锁</strong>，<strong>事务结束释放</strong></li>
+</ul>
+<p>由于事务读操作在事务结束后才释放共享锁，因此可以避免在同一读事务中读取到不同的数据，另外可以避免第二类丢失更新的问题</p>
+<h3><span id="451-验证"> 4.5.1 验证</span></h3>
+<p>真实情况是：读不影响写，写不影响读</p>
+<ol>
+<li>读不影响写：事务以排他锁的形式修改原始数据，读时不加锁，因为MySQL在事务隔离级别Read committed 、Repeatable Read下，<strong>InnoDB存储引擎采用非锁定性一致读</strong>–即读取不占用和等待表上的锁。即采用的是MVCC中一致性非锁定读模式。因读时不加锁，所以不会阻塞其他事务在相同记录上加X锁来更改这行记录</li>
+<li>写不影响读：事务以排他锁的形式修改原始数据，当读取的行正在执行delete或者update 操作，这时读取操作不会因此去等待行上锁的释放。相反地，InnoDB存储引擎会去读取行的一个快照数据</li>
+</ol>
+<h4><span id="4511-当前读"> 4.5.1.1 当前读</span></h4>
+<p><strong>准备工作</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE IF <span class="keyword">EXISTS</span> test;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> test.user(</span><br><span class="line">id <span class="type">INT</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> &quot;&quot;,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id)</span><br><span class="line">)Engine<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test.user(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;张三&quot;);</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> REPEATABLE<span class="operator">-</span>READ        <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;张八&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 更新数据</span></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">1</span>  Changed: <span class="number">1</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> REPEATABLE<span class="operator">-</span>READ        <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张三   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>这里的读事务并没有按照预期那样阻塞，而是读到了写事务(Client1)事务开始前的数据。<strong>因为内部使用了MVCC机制，实现了一致性非阻塞读，大大提高了并发读写效率，写不影响读，且读到的是记录的镜像版本</strong></p>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">COMMIT</span>; <span class="comment">-- 提交事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张三   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>在客户端2的事务中，读到的还是事务1提交之前的数据，符合预期</strong></p>
+<h4><span id="4512-当前读"> 4.5.1.2 当前读</span></h4>
+<p><strong>准备工作</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE IF <span class="keyword">EXISTS</span> test;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> test.user(</span><br><span class="line">id <span class="type">INT</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> &quot;&quot;,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id)</span><br><span class="line">)Engine<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test.user(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;张三&quot;);</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> REPEATABLE<span class="operator">-</span>READ        <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;张八&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 更新数据</span></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">1</span>  Changed: <span class="number">1</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> REPEATABLE<span class="operator">-</span>READ        <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span> LOCK <span class="keyword">IN</span> SHARE MODE; <span class="comment">-- 查询数据</span></span><br></pre></td></tr></table></figure>
+<p><strong>当前读阻塞，符合预期</strong></p>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">COMMIT</span>; <span class="comment">-- 提交事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.01</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+从阻塞中恢复</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span> LOCK <span class="keyword">IN</span> SHARE MODE; <span class="comment">-- 查询数据</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张八   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">16.77</span> sec)</span><br></pre></td></tr></table></figure>
+<h2><span id="46-serializable串行化"> 4.6 Serializable(串行化)</span></h2>
+<p><strong>实现方式</strong>：</p>
+<ul>
+<li>事务读数据的时候(读操作时才加锁而不是事务一开始就加锁)加<strong>表级共享锁</strong>，<strong>事务结束释放</strong></li>
+<li>事务写数据的时候(写操作时才加锁而不是事务一开始就加锁)加<strong>表级独占锁</strong>，<strong>事务结束释放</strong></li>
+</ul>
+<h3><span id="461-验证"> 4.6.1 验证</span></h3>
+<p><strong>准备工作</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE IF <span class="keyword">EXISTS</span> test;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> test.user(</span><br><span class="line">id <span class="type">INT</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> &quot;&quot;,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id)</span><br><span class="line">)Engine<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test.user(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;张三&quot;);</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> SERIALIZABLE           <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">UPDATE</span> test.user <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;张八&#x27;</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 更新数据</span></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">1</span>  Changed: <span class="number">1</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端2</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SET</span> SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE; <span class="comment">-- 修改隔离级别</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation; <span class="comment">-- 查看隔离级别</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> @<span class="variable">@session</span>.tx_isolation <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="operator">|</span> SERIALIZABLE           <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">BEGIN</span>; <span class="comment">-- 开始事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> name <span class="keyword">FROM</span> test.user <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>; <span class="comment">-- 查询数据</span></span><br></pre></td></tr></table></figure>
+<p><strong>此时Client2阻塞了，与预期一致</strong></p>
+<p><strong>客户端1</strong><br>
+执行如下操作</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">COMMIT</span>; <span class="comment">-- 提交事务</span></span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p><strong>此时，客户端2从阻塞中恢复，显示查询结果</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> name   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="operator">|</span> 张八   <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">40.93</span> sec)</span><br></pre></td></tr></table></figure>
+<h2><span id="47-总结"> 4.7 总结</span></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">隔离级别</th>
+<th style="text-align:left">是否出现脏读</th>
+<th style="text-align:left">是否出现不可重复读</th>
+<th style="text-align:left">是否出现幻读</th>
+<th style="text-align:left">是否出现第一类丢失更新</th>
+<th style="text-align:left">是否出现第二类丢失更新</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Serializable</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">否</td>
+</tr>
+<tr>
+<td style="text-align:left">Repeatable read</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">否</td>
+</tr>
+<tr>
+<td style="text-align:left">Read committed</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">是</td>
+</tr>
+<tr>
+<td style="text-align:left">Read uncommitted</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">否</td>
+<td style="text-align:left">是</td>
+</tr>
+</tbody>
+</table>
+<h1><span id="5-如何查看修改隔离级别"> 5 如何查看/修改隔离级别</span></h1>
+<p><strong>修改隔离级别</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> [SESSION <span class="operator">|</span> <span class="keyword">GLOBAL</span>] TRANSACTION ISOLATION LEVEL &#123;READ UNCOMMITTED <span class="operator">|</span> READ COMMITTED <span class="operator">|</span> REPEATABLE READ <span class="operator">|</span> SERIALIZABLE&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>默认的行为（不带session和global）是为下一个（未开始）事务设置隔离级别</li>
+<li>如果你使用GLOBAL关键字，语句在全局对从那点开始创建的所有新连接（除了不存在的连接）设置默认事务级别。你需要SUPER权限来做这个</li>
+<li>使用SESSION关键字为将来在当前连接上执行的事务设置默认事务级别。任何客户端都能自由改变会话隔离级别（甚至在事务的中间），或者为下一个事务设置隔离级别</li>
+</ul>
+<p><strong>查询隔离级别</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@global</span>.tx_isolation;</span><br><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@session</span>.tx_isolation;</span><br><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@tx_isolation</span>;</span><br></pre></td></tr></table></figure>
+<h1><span id="6-死锁问题分析"> 6 死锁问题分析</span></h1>
+<p><strong>准备工作</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 将隔离级别设置为 RR</span></span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> TRANSACTION ISOLATION LEVEL REPEATABLE READ; </span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> test(</span><br><span class="line">id <span class="type">INT</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">name <span class="type">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> &quot;&quot;,</span><br><span class="line"><span class="keyword">PRIMARY</span> KEY(id),</span><br><span class="line"><span class="keyword">UNIQUE</span> KEY `uk_name` (`name`)</span><br><span class="line">)Engine<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;member1&quot;);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;member2&quot;);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test(name)</span><br><span class="line"><span class="keyword">VALUES</span>(&quot;member3&quot;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> test;</span><br><span class="line"><span class="operator">+</span><span class="comment">----+---------+</span></span><br><span class="line"><span class="operator">|</span> id <span class="operator">|</span> name    <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+---------+</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">1</span> <span class="operator">|</span> member1 <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">2</span> <span class="operator">|</span> member2 <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">3</span> <span class="operator">|</span> member3 <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+---------+</span></span><br><span class="line"><span class="number">3</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>下面构造死锁场景</p>
+<img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXMtYXNjaWkiIHN0YW5kYWxvbmU9Im5vIj8+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBjb250ZW50U3R5bGVUeXBlPSJ0ZXh0L2NzcyIgaGVpZ2h0PSIzODFweCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSIgc3R5bGU9IndpZHRoOjk2MnB4O2hlaWdodDozODFweDtiYWNrZ3JvdW5kOiNFRUVCREM7IiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA5NjIgMzgxIiB3aWR0aD0iOTYycHgiIHpvb21BbmRQYW49Im1hZ25pZnkiPjxkZWZzLz48Zz48cmVjdCBmaWxsPSIjRUVFQkRDIiBoZWlnaHQ9IjM4MSIgc3R5bGU9InN0cm9rZTpub25lO3N0cm9rZS13aWR0aDoxLjA7IiB3aWR0aD0iOTYyIiB4PSIwIiB5PSIwIi8+PHBhdGggZD0iTTM0LDM5Ljc4OTEgTDM0LjI4MDIsMzkuNzg5MSBMMzMuNDQ3Niw0OS44OTExIEwzNC4yNTc3LDU5Ljk5MzIgTDM0LjUzMjksNzAuMDk1MyBMMzMuMDQ4OCw4MC4xOTc0IEwzMy44OTY0LDkwLjI5OTUgTDMzLjQzMTMsMTAwLjQwMTYgTDMzLjQ4ODcsMTEwLjUwMzYgTDMzLjkwOTEsMTIwLjYwNTcgTDMzLjA3ODIsMTMwLjcwNzggTDM0LjczODIsMTQwLjgwOTkgTDMzLjE1OTYsMTUwLjkxMiBMMzMuNzM2MywxNjEuMDE0MSBMMzQuNTc1OSwxNzEuMTE2MSBMMzMuODg1NiwxODEuMjE4MiBMMzQuMDkxLDE5MS4zMjAzIEwzMy45NTc0LDIwMS40MjI0IEwzNC4yMzgsMjExLjUyNDUgTDM0LjMxODgsMjIxLjYyNjYgTDM0Ljc4MDksMjMxLjcyODYgTDM0Ljg5NDcsMjQxLjgzMDcgTDM0LjkwNTcsMjUxLjkzMjggTDM0LjMzOTUsMjYyLjAzNDkgTDM0LjYxODEsMjcyLjEzNyBMMzQuOTM2MywyODIuMjM5MSBMMzMuMDM4NCwyOTIuMzQxMSBMMzQuOTA0NywzMDIuNDQzMiBMMzMuNjA0NywzMTIuNTQ1MyBMMzQuNzExNywzMjIuNjQ3NCBMMzMuMzQsMzMyLjc0OTUgTDM0LDM0Mi44NTE2ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDAwMEZGO3N0cm9rZS13aWR0aDowLjU7c3Ryb2tlLWRhc2hhcnJheTo1LjAsNS4wOyIvPjxwYXRoIGQ9Ik02MTIuNSwzOS43ODkxIEw2MTIuNzgwMiwzOS43ODkxIEw2MTEuOTQ3Niw0OS44OTExIEw2MTIuNzU3Nyw1OS45OTMyIEw2MTMuMDMyOSw3MC4wOTUzIEw2MTEuNTQ4OCw4MC4xOTc0IEw2MTIuMzk2NCw5MC4yOTk1IEw2MTEuOTMxMywxMDAuNDAxNiBMNjExLjk4ODcsMTEwLjUwMzYgTDYxMi40MDkxLDEyMC42MDU3IEw2MTEuNTc4MiwxMzAuNzA3OCBMNjEzLjIzODIsMTQwLjgwOTkgTDYxMS42NTk2LDE1MC45MTIgTDYxMi4yMzYzLDE2MS4wMTQxIEw2MTMuMDc1OSwxNzEuMTE2MSBMNjEyLjM4NTYsMTgxLjIxODIgTDYxMi41OTEsMTkxLjMyMDMgTDYxMi40NTc0LDIwMS40MjI0IEw2MTIuNzM4LDIxMS41MjQ1IEw2MTIuODE4OCwyMjEuNjI2NiBMNjEzLjI4MDksMjMxLjcyODYgTDYxMy4zOTQ3LDI0MS44MzA3IEw2MTMuNDA1NywyNTEuOTMyOCBMNjEyLjgzOTUsMjYyLjAzNDkgTDYxMy4xMTgxLDI3Mi4xMzcgTDYxMy40MzYzLDI4Mi4yMzkxIEw2MTEuNTM4NCwyOTIuMzQxMSBMNjEzLjQwNDcsMzAyLjQ0MzIgTDYxMi4xMDQ3LDMxMi41NDUzIEw2MTMuMjExNywzMjIuNjQ3NCBMNjExLjg0LDMzMi43NDk1IEw2MTIuNSwzNDIuODUxNiAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2U6IzAwMDBGRjtzdHJva2Utd2lkdGg6MC41O3N0cm9rZS1kYXNoYXJyYXk6NS4wLDUuMDsiLz48cG9seWdvbiBmaWxsPSIjMUU5MEZGIiBwb2ludHM9IjcuNSw1LDcuNSw1LjIxMDIsMTguMyw0LjU4NTcsMjkuMSw1LjE5MzMsMzkuOSw1LjM5OTcsNTAuNyw0LjI4NjYsNjEuNSw1LDYxLjQ5MDEsNC45NzYxLDYxLjc5OTEsNS4wMTUxLDYyLjE1ODIsNS4xNzQ4LDYyLjU1Miw1LjQxODQsNjIuODI2LDUuMzcyOSw2My4yNjc4LDUuNzMyMiw2My40MzgzLDUuODAyOSw2My4yMjAxLDYuMDA1NCw2My40OTk4LDYuNDE0MSw2My44NDAxLDYuODQ4LDYzLjgyNzEsNy4xMzU1LDY0LDcuNSw2NC4wMjI3LDcuNSw2My45ODk0LDEzLjI1NzgsNjQuMDU5NSwxOS4wMTU2LDY0LjA3OTcsMjQuNzczNCw2NC4xOTUyLDMwLjUzMTMsNjQsMzYuMjg5MSw2NC4yMDY3LDM2LjM3NDcsNjQuMDYyNywzNi43MjkzLDYzLjc4NTUsMzcuMDI4Niw2My43MDM0LDM3LjQwODksNjMuNjMwNSwzNy43OTI5LDYzLjI2NzgsMzguMDU2OCw2My4xNzU4LDM3LjgzNDcsNjMuMDAwOCwzOC40MTIyLDYyLjUyMjgsMzguMjU4NCw2Mi4yNzUyLDM4LjY2MDYsNjEuNzkwNCwzOC40OTAyLDYxLjUsMzguNzg5MSw2MS41LDM4LjcyMDYsNTAuNywzOS41MzA3LDM5LjksMzguNzQwMywyOS4xLDM4Ljg5NDQsMTguMywzOS4xMjc3LDcuNSwzOC43ODkxLDcuNTUzMSwzOC45MTcyLDcuMTQ1OSwzOC42NDE0LDYuODI5NSwzOC41ODQ2LDYuMzY2MywzOC4xNzM0LDYuMTIyMSwzOC4yOTA5LDUuNzMyMiwzOC4wNTY4LDUuOTAxMSwzOC4xMjY4LDUuNzIyNywzNy43Niw1LjYyODEsMzcuNDI3OSw1LjE0NDEsMzYuOTM0NSw0Ljk0NTYsMzYuNTU5NCw1LDM2LjI4OTEsNC43OTI5LDM2LjI4OTEsNC45ODA0LDMwLjUzMTMsNC45MzQ1LDI0Ljc3MzQsNS4yMjcxLDE5LjAxNTYsNC45NDE4LDEzLjI1NzgsNSw3LjUsNC44OTQ0LDcuNDU2Miw1LjIxNjcsNy4xNzU2LDUuMDg3NSw2LjcwNzgsNS4yNzk1LDYuMzczMSw1Ljc4NTYsNi4xNjg2LDUuNzMyMiw1LjczMjIsNS43ODc4LDUuODY2NCw2LjE3OTUsNS44MTIsNi4zOTgzLDUuMzQwMiw2LjgzMzYsNS4zOTEyLDcuMjIxOCw1LjMyODMsNy41LDUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MC41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNDUiIHg9IjEyIiB5PSIyNy43Nzk4Ij4mIzIwMTA3OyYjMjExNTM7MTwvdGV4dD48cG9seWdvbiBmaWxsPSIjMUU5MEZGIiBwb2ludHM9IjcuNSwzNDEuODUxNiw3LjUsMzQyLjA2MTcsMTguMywzNDEuNDM3MiwyOS4xLDM0Mi4wNDQ4LDM5LjksMzQyLjI1MTIsNTAuNywzNDEuMTM4Miw2MS41LDM0MS44NTE2LDYxLjQ5MDEsMzQxLjgyNzYsNjEuNzk5MSwzNDEuODY2Nyw2Mi4xNTgyLDM0Mi4wMjY0LDYyLjU1MiwzNDIuMjY5OSw2Mi44MjYsMzQyLjIyNDQsNjMuMjY3OCwzNDIuNTgzOCw2My40MzgzLDM0Mi42NTQ0LDYzLjIyMDEsMzQyLjg1NjksNjMuNDk5OCwzNDMuMjY1Nyw2My44NDAxLDM0My42OTk2LDYzLjgyNzEsMzQzLjk4NzEsNjQsMzQ0LjM1MTYsNjQuMDIyNywzNDQuMzUxNiw2My45ODk0LDM1MC4xMDk0LDY0LjA1OTUsMzU1Ljg2NzIsNjQuMDc5NywzNjEuNjI1LDY0LjE5NTIsMzY3LjM4MjgsNjQsMzczLjE0MDYsNjQuMjA2NywzNzMuMjI2Miw2NC4wNjI3LDM3My41ODA4LDYzLjc4NTUsMzczLjg4MDIsNjMuNzAzNCwzNzQuMjYwNCw2My42MzA1LDM3NC42NDQ0LDYzLjI2NzgsMzc0LjkwODQsNjMuMTc1OCwzNzQuNjg2Myw2My4wMDA4LDM3NS4yNjM4LDYyLjUyMjgsMzc1LjExLDYyLjI3NTIsMzc1LjUxMjEsNjEuNzkwNCwzNzUuMzQxNyw2MS41LDM3NS42NDA2LDYxLjUsMzc1LjU3MjEsNTAuNywzNzYuMzgyMiwzOS45LDM3NS41OTE5LDI5LjEsMzc1Ljc0NTksMTguMywzNzUuOTc5Myw3LjUsMzc1LjY0MDYsNy41NTMxLDM3NS43Njg4LDcuMTQ1OSwzNzUuNDkzLDYuODI5NSwzNzUuNDM2Miw2LjM2NjMsMzc1LjAyNSw2LjEyMjEsMzc1LjE0MjQsNS43MzIyLDM3NC45MDg0LDUuOTAxMSwzNzQuOTc4Myw1LjcyMjcsMzc0LjYxMTUsNS42MjgxLDM3NC4yNzk1LDUuMTQ0MSwzNzMuNzg2MSw0Ljk0NTYsMzczLjQxMSw1LDM3My4xNDA2LDQuNzkyOSwzNzMuMTQwNiw0Ljk4MDQsMzY3LjM4MjgsNC45MzQ1LDM2MS42MjUsNS4yMjcxLDM1NS44NjcyLDQuOTQxOCwzNTAuMTA5NCw1LDM0NC4zNTE2LDQuODk0NCwzNDQuMzA3OCw1LjIxNjcsMzQ0LjAyNzEsNS4wODc1LDM0My41NTk0LDUuMjc5NSwzNDMuMjI0Nyw1Ljc4NTYsMzQzLjAyMDEsNS43MzIyLDM0Mi41ODM4LDUuNzg3OCwzNDIuNzE4LDYuMTc5NSwzNDIuNjYzNSw2LjM5ODMsMzQyLjE5MTgsNi44MzM2LDM0Mi4yNDI4LDcuMjIxOCwzNDIuMTc5OCw3LjUsMzQxLjg1MTYiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MC41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNDUiIHg9IjEyIiB5PSIzNjQuNjMxMyI+JiMyMDEwNzsmIzIxMTUzOzE8L3RleHQ+PHBvbHlnb24gZmlsbD0iIzFFOTBGRiIgcG9pbnRzPSI1ODYsNSw1ODYsNS4yMTAyLDU5Ni42LDQuNTg1Nyw2MDcuMiw1LjE5MzMsNjE3LjgsNS4zOTk3LDYyOC40LDQuMjg2Niw2MzksNSw2MzguOTkwMSw0Ljk3NjEsNjM5LjI5OTEsNS4wMTUxLDYzOS42NTgyLDUuMTc0OCw2NDAuMDUyLDUuNDE4NCw2NDAuMzI2LDUuMzcyOSw2NDAuNzY3OCw1LjczMjIsNjQwLjkzODMsNS44MDI5LDY0MC43MjAxLDYuMDA1NCw2NDAuOTk5OCw2LjQxNDEsNjQxLjM0MDEsNi44NDgsNjQxLjMyNzEsNy4xMzU1LDY0MS41LDcuNSw2NDEuNTIyNyw3LjUsNjQxLjQ4OTQsMTMuMjU3OCw2NDEuNTU5NSwxOS4wMTU2LDY0MS41Nzk3LDI0Ljc3MzQsNjQxLjY5NTIsMzAuNTMxMyw2NDEuNSwzNi4yODkxLDY0MS43MDY3LDM2LjM3NDcsNjQxLjU2MjcsMzYuNzI5Myw2NDEuMjg1NSwzNy4wMjg2LDY0MS4yMDM0LDM3LjQwODksNjQxLjEzMDUsMzcuNzkyOSw2NDAuNzY3OCwzOC4wNTY4LDY0MC42NzU4LDM3LjgzNDcsNjQwLjUwMDgsMzguNDEyMiw2NDAuMDIyOCwzOC4yNTg0LDYzOS43NzUyLDM4LjY2MDYsNjM5LjI5MDQsMzguNDkwMiw2MzksMzguNzg5MSw2MzksMzguNzIwNiw2MjguNCwzOS41MzA3LDYxNy44LDM4Ljc0MDMsNjA3LjIsMzguODk0NCw1OTYuNiwzOS4xMjc3LDU4NiwzOC43ODkxLDU4Ni4wNTMxLDM4LjkxNzIsNTg1LjY0NTksMzguNjQxNCw1ODUuMzI5NSwzOC41ODQ2LDU4NC44NjYzLDM4LjE3MzQsNTg0LjYyMjEsMzguMjkwOSw1ODQuMjMyMiwzOC4wNTY4LDU4NC40MDExLDM4LjEyNjgsNTg0LjIyMjcsMzcuNzYsNTg0LjEyODEsMzcuNDI3OSw1ODMuNjQ0MSwzNi45MzQ1LDU4My40NDU2LDM2LjU1OTQsNTgzLjUsMzYuMjg5MSw1ODMuMjkyOSwzNi4yODkxLDU4My40ODA0LDMwLjUzMTMsNTgzLjQzNDUsMjQuNzczNCw1ODMuNzI3MSwxOS4wMTU2LDU4My40NDE4LDEzLjI1NzgsNTgzLjUsNy41LDU4My4zOTQ0LDcuNDU2Miw1ODMuNzE2Nyw3LjE3NTYsNTgzLjU4NzUsNi43MDc4LDU4My43Nzk1LDYuMzczMSw1ODQuMjg1Niw2LjE2ODYsNTg0LjIzMjIsNS43MzIyLDU4NC4yODc4LDUuODY2NCw1ODQuNjc5NSw1LjgxMiw1ODQuODk4Myw1LjM0MDIsNTg1LjMzMzYsNS4zOTEyLDU4NS43MjE4LDUuMzI4Myw1ODYsNSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDowLjU7Ii8+PHRleHQgZmlsbD0iI0E5RENERiIgZm9udC1mYW1pbHk9IkltcGFjdCIgZm9udC1zaXplPSIxNyIgbGVuZ3RoQWRqdXN0PSJzcGFjaW5nIiB0ZXh0TGVuZ3RoPSI0NCIgeD0iNTkwLjUiIHk9IjI3Ljc3OTgiPiYjMjAxMDc7JiMyMTE1MzsyPC90ZXh0Pjxwb2x5Z29uIGZpbGw9IiMxRTkwRkYiIHBvaW50cz0iNTg2LDM0MS44NTE2LDU4NiwzNDIuMDYxNyw1OTYuNiwzNDEuNDM3Miw2MDcuMiwzNDIuMDQ0OCw2MTcuOCwzNDIuMjUxMiw2MjguNCwzNDEuMTM4Miw2MzksMzQxLjg1MTYsNjM4Ljk5MDEsMzQxLjgyNzYsNjM5LjI5OTEsMzQxLjg2NjcsNjM5LjY1ODIsMzQyLjAyNjQsNjQwLjA1MiwzNDIuMjY5OSw2NDAuMzI2LDM0Mi4yMjQ0LDY0MC43Njc4LDM0Mi41ODM4LDY0MC45MzgzLDM0Mi42NTQ0LDY0MC43MjAxLDM0Mi44NTY5LDY0MC45OTk4LDM0My4yNjU3LDY0MS4zNDAxLDM0My42OTk2LDY0MS4zMjcxLDM0My45ODcxLDY0MS41LDM0NC4zNTE2LDY0MS41MjI3LDM0NC4zNTE2LDY0MS40ODk0LDM1MC4xMDk0LDY0MS41NTk1LDM1NS44NjcyLDY0MS41Nzk3LDM2MS42MjUsNjQxLjY5NTIsMzY3LjM4MjgsNjQxLjUsMzczLjE0MDYsNjQxLjcwNjcsMzczLjIyNjIsNjQxLjU2MjcsMzczLjU4MDgsNjQxLjI4NTUsMzczLjg4MDIsNjQxLjIwMzQsMzc0LjI2MDQsNjQxLjEzMDUsMzc0LjY0NDQsNjQwLjc2NzgsMzc0LjkwODQsNjQwLjY3NTgsMzc0LjY4NjMsNjQwLjUwMDgsMzc1LjI2MzgsNjQwLjAyMjgsMzc1LjExLDYzOS43NzUyLDM3NS41MTIxLDYzOS4yOTA0LDM3NS4zNDE3LDYzOSwzNzUuNjQwNiw2MzksMzc1LjU3MjEsNjI4LjQsMzc2LjM4MjIsNjE3LjgsMzc1LjU5MTksNjA3LjIsMzc1Ljc0NTksNTk2LjYsMzc1Ljk3OTMsNTg2LDM3NS42NDA2LDU4Ni4wNTMxLDM3NS43Njg4LDU4NS42NDU5LDM3NS40OTMsNTg1LjMyOTUsMzc1LjQzNjIsNTg0Ljg2NjMsMzc1LjAyNSw1ODQuNjIyMSwzNzUuMTQyNCw1ODQuMjMyMiwzNzQuOTA4NCw1ODQuNDAxMSwzNzQuOTc4Myw1ODQuMjIyNywzNzQuNjExNSw1ODQuMTI4MSwzNzQuMjc5NSw1ODMuNjQ0MSwzNzMuNzg2MSw1ODMuNDQ1NiwzNzMuNDExLDU4My41LDM3My4xNDA2LDU4My4yOTI5LDM3My4xNDA2LDU4My40ODA0LDM2Ny4zODI4LDU4My40MzQ1LDM2MS42MjUsNTgzLjcyNzEsMzU1Ljg2NzIsNTgzLjQ0MTgsMzUwLjEwOTQsNTgzLjUsMzQ0LjM1MTYsNTgzLjM5NDQsMzQ0LjMwNzgsNTgzLjcxNjcsMzQ0LjAyNzEsNTgzLjU4NzUsMzQzLjU1OTQsNTgzLjc3OTUsMzQzLjIyNDcsNTg0LjI4NTYsMzQzLjAyMDEsNTg0LjIzMjIsMzQyLjU4MzgsNTg0LjI4NzgsMzQyLjcxOCw1ODQuNjc5NSwzNDIuNjYzNSw1ODQuODk4MywzNDIuMTkxOCw1ODUuMzMzNiwzNDIuMjQyOCw1ODUuNzIxOCwzNDIuMTc5OCw1ODYsMzQxLjg1MTYiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MC41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNDQiIHg9IjU5MC41IiB5PSIzNjQuNjMxMyI+JiMyMDEwNzsmIzIxMTUzOzI8L3RleHQ+PHBhdGggZD0iTTYxMi41LDcwLjkyMTkgTDYxMi41LDcxLjAxNTMgTDYyMC45LDcwLjczNzcgTDYyOS4zLDcxLjAwNzggTDYzNy43LDcxLjA5OTUgTDY0Ni4xLDcwLjYwNDggTDY1NC41LDcwLjkyMTkgIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjEuMDsiLz48cGF0aCBkPSJNNjU0LjUsNzAuOTIxOSBMNjU0LjU5MzQsNzAuOTIxOSBMNjU0LjMxNTksNzMuNTIxOSBMNjU0LjU4NTksNzYuMTIxOSBMNjU0LjY3NzYsNzguNzIxOSBMNjU0LjE4MjksODEuMzIxOSBMNjU0LjUsODMuOTIxOSAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS4wOyIvPjxwYXRoIGQ9Ik02MTMuNSw4My45MjE5IEw2MTMuNSw4NC4wMTUzIEw2MjEuNyw4My43Mzc3IEw2MjkuOSw4NC4wMDc4IEw2MzguMSw4NC4wOTk1IEw2NDYuMyw4My42MDQ4IEw2NTQuNSw4My45MjE5ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBvbHlnb24gZmlsbD0iIzAwQkZGRiIgcG9pbnRzPSI2MjMuNSw3OS45MjE5LDYyMy41MjYsNzkuOTg2OSw2MjEuNDQ4Nyw4MC41OTM2LDYxOS41MjM5LDgxLjU4MTcsNjE3LjU0OTUsODIuNDQ1Niw2MTUuNDExNyw4Mi45MDExLDYxMy41LDgzLjkyMTksNjEzLjQ5MDQsODMuODk3OCw2MTUuNDQ3Miw4NC41ODk5LDYxNy40NTI1LDg1LjQwMzIsNjE5LjQ5MTYsODYuMzAwOCw2MjEuNDE0NCw4Ni45MDc5LDYyMy41LDg3LjkyMTksNjIzLjYzMDUsODguMDUyNCw2MjIuNTUxNCw4Ni45NzMzLDYyMS44NTM0LDg2LjI3NTMsNjIxLjIwMTgsODUuNjIzNyw2MjAuMjc5OCw4NC43MDE3LDYxOS41LDgzLjkyMTksNjE5LjUxNjEsODMuOTM4LDYyMC4yOTI1LDgzLjExNDMsNjIxLjE0MjEsODIuMzY0LDYyMS45NTY0LDgxLjU3ODIsNjIyLjgzOCw4MC44NTk5LDYyMy41LDc5LjkyMTkiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS4wOyIvPjx0ZXh0IGZpbGw9IiMwMDAwMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjQzIiB4PSI2MTkuNSIgeT0iNjUuODU2Ij5CRUdJTjs8L3RleHQ+PHBhdGggZD0iTTYxMi41LDExMy4wNTQ3IEw2MTIuNSwxMTMuMTQ4MSBMNjIwLjksMTEyLjg3MDUgTDYyOS4zLDExMy4xNDA2IEw2MzcuNywxMTMuMjMyMyBMNjQ2LjEsMTEyLjczNzYgTDY1NC41LDExMy4wNTQ3ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBhdGggZD0iTTY1NC41LDExMy4wNTQ3IEw2NTQuNTkzNCwxMTMuMDU0NyBMNjU0LjMxNTksMTE1LjY1NDcgTDY1NC41ODU5LDExOC4yNTQ3IEw2NTQuNjc3NiwxMjAuODU0NyBMNjU0LjE4MjksMTIzLjQ1NDcgTDY1NC41LDEyNi4wNTQ3ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBhdGggZD0iTTYxMy41LDEyNi4wNTQ3IEw2MTMuNSwxMjYuMTQ4MSBMNjIxLjcsMTI1Ljg3MDUgTDYyOS45LDEyNi4xNDA2IEw2MzguMSwxMjYuMjMyMyBMNjQ2LjMsMTI1LjczNzYgTDY1NC41LDEyNi4wNTQ3ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBvbHlnb24gZmlsbD0iIzAwQkZGRiIgcG9pbnRzPSI2MjMuNSwxMjIuMDU0Nyw2MjMuNTI2LDEyMi4xMTk3LDYyMS40NDg3LDEyMi43MjY1LDYxOS41MjM5LDEyMy43MTQ1LDYxNy41NDk1LDEyNC41Nzg0LDYxNS40MTE3LDEyNS4wMzM5LDYxMy41LDEyNi4wNTQ3LDYxMy40OTA0LDEyNi4wMzA2LDYxNS40NDcyLDEyNi43MjI3LDYxNy40NTI1LDEyNy41MzYsNjE5LjQ5MTYsMTI4LjQzMzYsNjIxLjQxNDQsMTI5LjA0MDcsNjIzLjUsMTMwLjA1NDcsNjIzLjYzMDUsMTMwLjE4NTIsNjIyLjU1MTQsMTI5LjEwNjEsNjIxLjg1MzQsMTI4LjQwODEsNjIxLjIwMTgsMTI3Ljc1NjUsNjIwLjI3OTgsMTI2LjgzNDUsNjE5LjUsMTI2LjA1NDcsNjE5LjUxNjEsMTI2LjA3MDgsNjIwLjI5MjUsMTI1LjI0NzIsNjIxLjE0MjEsMTI0LjQ5NjgsNjIxLjk1NjQsMTIzLjcxMTEsNjIyLjgzOCwxMjIuOTkyNyw2MjMuNSwxMjIuMDU0NyIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHRleHQgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iMzAyIiB4PSI2MTkuNSIgeT0iMTA3Ljk4ODgiPkRFTEVURSBGUk9NIHRlc3QgV0hFUkUgbmFtZSA9ICdtZW1iZXIyJzs8L3RleHQ+PHBhdGggZD0iTTM0LjUsMTU1LjE4NzUgTDM0LjUsMTU1LjI4MDkgTDQyLjksMTU1LjAwMzQgTDUxLjMsMTU1LjI3MzQgTDU5LjcsMTU1LjM2NTEgTDY4LjEsMTU0Ljg3MDQgTDc2LjUsMTU1LjE4NzUgIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjEuMDsiLz48cGF0aCBkPSJNNzYuNSwxNTUuMTg3NSBMNzYuNTkzNCwxNTUuMTg3NSBMNzYuMzE1OSwxNTcuNzg3NSBMNzYuNTg1OSwxNjAuMzg3NSBMNzYuNjc3NiwxNjIuOTg3NSBMNzYuMTgyOSwxNjUuNTg3NSBMNzYuNSwxNjguMTg3NSAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS4wOyIvPjxwYXRoIGQ9Ik0zNS41LDE2OC4xODc1IEwzNS41LDE2OC4yODA5IEw0My43LDE2OC4wMDM0IEw1MS45LDE2OC4yNzM0IEw2MC4xLDE2OC4zNjUxIEw2OC4zLDE2Ny44NzA0IEw3Ni41LDE2OC4xODc1ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBvbHlnb24gZmlsbD0iIzAwQkZGRiIgcG9pbnRzPSI0NS41LDE2NC4xODc1LDQ1LjUyNiwxNjQuMjUyNSw0My40NDg3LDE2NC44NTkzLDQxLjUyMzksMTY1Ljg0NzMsMzkuNTQ5NSwxNjYuNzExMiwzNy40MTE3LDE2Ny4xNjY3LDM1LjUsMTY4LjE4NzUsMzUuNDkwNCwxNjguMTYzNCwzNy40NDcyLDE2OC44NTU1LDM5LjQ1MjUsMTY5LjY2ODgsNDEuNDkxNiwxNzAuNTY2NCw0My40MTQ0LDE3MS4xNzM1LDQ1LjUsMTcyLjE4NzUsNDUuNjMwNSwxNzIuMzE4LDQ0LjU1MTQsMTcxLjIzODksNDMuODUzNCwxNzAuNTQwOSw0My4yMDE4LDE2OS44ODkzLDQyLjI3OTgsMTY4Ljk2NzMsNDEuNSwxNjguMTg3NSw0MS41MTYxLDE2OC4yMDM2LDQyLjI5MjUsMTY3LjM4LDQzLjE0MjEsMTY2LjYyOTYsNDMuOTU2NCwxNjUuODQzOSw0NC44MzgsMTY1LjEyNTUsNDUuNSwxNjQuMTg3NSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHRleHQgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNDMiIHg9IjQxLjUiIHk9IjE1MC4xMjE2Ij5CRUdJTjs8L3RleHQ+PHBhdGggZD0iTTM0LjUsMjEyLjQ1MzEgTDM0LjUsMjEyLjU0NjUgTDQyLjksMjEyLjI2OSBMNTEuMywyMTIuNTM5IEw1OS43LDIxMi42MzA4IEw2OC4xLDIxMi4xMzYxIEw3Ni41LDIxMi40NTMxICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBhdGggZD0iTTc2LjUsMjEyLjQ1MzEgTDc2LjU5MzQsMjEyLjQ1MzEgTDc2LjMxNTksMjE1LjA1MzEgTDc2LjU4NTksMjE3LjY1MzEgTDc2LjY3NzYsMjIwLjI1MzEgTDc2LjE4MjksMjIyLjg1MzEgTDc2LjUsMjI1LjQ1MzEgIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjEuMDsiLz48cGF0aCBkPSJNMzUuNSwyMjUuNDUzMSBMMzUuNSwyMjUuNTQ2NSBMNDMuNywyMjUuMjY5IEw1MS45LDIyNS41MzkgTDYwLjEsMjI1LjYzMDggTDY4LjMsMjI1LjEzNjEgTDc2LjUsMjI1LjQ1MzEgIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjEuMDsiLz48cG9seWdvbiBmaWxsPSIjMDBCRkZGIiBwb2ludHM9IjQ1LjUsMjIxLjQ1MzEsNDUuNTI2LDIyMS41MTgyLDQzLjQ0ODcsMjIyLjEyNDksNDEuNTIzOSwyMjMuMTEyOSwzOS41NDk1LDIyMy45NzY4LDM3LjQxMTcsMjI0LjQzMjMsMzUuNSwyMjUuNDUzMSwzNS40OTA0LDIyNS40MjkxLDM3LjQ0NzIsMjI2LjEyMTEsMzkuNDUyNSwyMjYuOTM0NCw0MS40OTE2LDIyNy44MzIsNDMuNDE0NCwyMjguNDM5Miw0NS41LDIyOS40NTMxLDQ1LjYzMDUsMjI5LjU4MzYsNDQuNTUxNCwyMjguNTA0Niw0My44NTM0LDIyNy44MDY1LDQzLjIwMTgsMjI3LjE1NDksNDIuMjc5OCwyMjYuMjMyOSw0MS41LDIyNS40NTMxLDQxLjUxNjEsMjI1LjQ2OTIsNDIuMjkyNSwyMjQuNjQ1Niw0My4xNDIxLDIyMy44OTUyLDQzLjk1NjQsMjIzLjEwOTUsNDQuODM4LDIyMi4zOTEyLDQ1LjUsMjIxLjQ1MzEiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS4wOyIvPjx0ZXh0IGZpbGw9IiMwMDAwMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjMwMiIgeD0iNDEuNSIgeT0iMTkyLjI1NDQiPkRFTEVURSBGUk9NIHRlc3QgV0hFUkUgbmFtZSA9ICdtZW1iZXIyJzs8L3RleHQ+PHRleHQgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNzgiIHg9IjQxLjUiIHk9IjIwNy4zODcyIj4mIzM2ODI1OyYjMzczMjQ7JiMyMDI1MDsmIzM4NDU5OyYjMjI2MjI7JiMyMDMwMzs8L3RleHQ+PHBhdGggZD0iTTYxMi41LDI1NC41ODU5IEw2MTIuNSwyNTQuNjc5NCBMNjIwLjksMjU0LjQwMTggTDYyOS4zLDI1NC42NzE4IEw2MzcuNywyNTQuNzYzNiBMNjQ2LjEsMjU0LjI2ODkgTDY1NC41LDI1NC41ODU5ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBhdGggZD0iTTY1NC41LDI1NC41ODU5IEw2NTQuNTkzNCwyNTQuNTg1OSBMNjU0LjMxNTksMjU3LjE4NTkgTDY1NC41ODU5LDI1OS43ODU5IEw2NTQuNjc3NiwyNjIuMzg1OSBMNjU0LjE4MjksMjY0Ljk4NTkgTDY1NC41LDI2Ny41ODU5ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBhdGggZD0iTTYxMy41LDI2Ny41ODU5IEw2MTMuNSwyNjcuNjc5NCBMNjIxLjcsMjY3LjQwMTggTDYyOS45LDI2Ny42NzE4IEw2MzguMSwyNjcuNzYzNiBMNjQ2LjMsMjY3LjI2ODkgTDY1NC41LDI2Ny41ODU5ICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHBvbHlnb24gZmlsbD0iIzAwQkZGRiIgcG9pbnRzPSI2MjMuNSwyNjMuNTg1OSw2MjMuNTI2LDI2My42NTEsNjIxLjQ0ODcsMjY0LjI1NzcsNjE5LjUyMzksMjY1LjI0NTgsNjE3LjU0OTUsMjY2LjEwOTYsNjE1LjQxMTcsMjY2LjU2NTEsNjEzLjUsMjY3LjU4NTksNjEzLjQ5MDQsMjY3LjU2MTksNjE1LjQ0NzIsMjY4LjI1MzksNjE3LjQ1MjUsMjY5LjA2NzIsNjE5LjQ5MTYsMjY5Ljk2NDgsNjIxLjQxNDQsMjcwLjU3Miw2MjMuNSwyNzEuNTg1OSw2MjMuNjMwNSwyNzEuNzE2NCw2MjIuNTUxNCwyNzAuNjM3NCw2MjEuODUzNCwyNjkuOTM5Myw2MjEuMjAxOCwyNjkuMjg3Nyw2MjAuMjc5OCwyNjguMzY1Nyw2MTkuNSwyNjcuNTg1OSw2MTkuNTE2MSwyNjcuNjAyLDYyMC4yOTI1LDI2Ni43Nzg0LDYyMS4xNDIxLDI2Ni4wMjgsNjIxLjk1NjQsMjY1LjI0MjMsNjIyLjgzOCwyNjQuNTI0LDYyMy41LDI2My41ODU5IiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjEuMDsiLz48dGV4dCBmaWxsPSIjMDAwMDAwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgbGVuZ3RoQWRqdXN0PSJzcGFjaW5nIiB0ZXh0TGVuZ3RoPSIzMzYiIHg9IjYxOS41IiB5PSIyNDkuNTIiPklOU0VSVCBJTlRPIHRlc3QgKGlkLCBuYW1lKSBWQUxVRVMgKDUsICdtZW1iZXIyJyk7PC90ZXh0PjxwYXRoIGQ9Ik0zNC41LDMxMS44NTE2IEwzNC41LDMxMS45NDUgTDQyLjksMzExLjY2NzQgTDUxLjMsMzExLjkzNzUgTDU5LjcsMzEyLjAyOTIgTDY4LjEsMzExLjUzNDUgTDc2LjUsMzExLjg1MTYgIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjEuMDsiLz48cGF0aCBkPSJNNzYuNSwzMTEuODUxNiBMNzYuNTkzNCwzMTEuODUxNiBMNzYuMzE1OSwzMTQuNDUxNiBMNzYuNTg1OSwzMTcuMDUxNiBMNzYuNjc3NiwzMTkuNjUxNiBMNzYuMTgyOSwzMjIuMjUxNiBMNzYuNSwzMjQuODUxNiAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MS4wOyIvPjxwYXRoIGQ9Ik0zNS41LDMyNC44NTE2IEwzNS41LDMyNC45NDUgTDQzLjcsMzI0LjY2NzQgTDUxLjksMzI0LjkzNzUgTDYwLjEsMzI1LjAyOTIgTDY4LjMsMzI0LjUzNDUgTDc2LjUsMzI0Ljg1MTYgIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjEuMDsiLz48cG9seWdvbiBmaWxsPSIjMDBCRkZGIiBwb2ludHM9IjQ1LjUsMzIwLjg1MTYsNDUuNTI2LDMyMC45MTY2LDQzLjQ0ODcsMzIxLjUyMzMsNDEuNTIzOSwzMjIuNTExNCwzOS41NDk1LDMyMy4zNzUzLDM3LjQxMTcsMzIzLjgzMDgsMzUuNSwzMjQuODUxNiwzNS40OTA0LDMyNC44Mjc1LDM3LjQ0NzIsMzI1LjUxOTYsMzkuNDUyNSwzMjYuMzMyOSw0MS40OTE2LDMyNy4yMzA1LDQzLjQxNDQsMzI3LjgzNzYsNDUuNSwzMjguODUxNiw0NS42MzA1LDMyOC45ODIxLDQ0LjU1MTQsMzI3LjkwMyw0My44NTM0LDMyNy4yMDQ5LDQzLjIwMTgsMzI2LjU1MzQsNDIuMjc5OCwzMjUuNjMxMyw0MS41LDMyNC44NTE2LDQxLjUxNjEsMzI0Ljg2NzYsNDIuMjkyNSwzMjQuMDQ0LDQzLjE0MjEsMzIzLjI5MzYsNDMuOTU2NCwzMjIuNTA3OSw0NC44MzgsMzIxLjc4OTYsNDUuNSwzMjAuODUxNiIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDoxLjA7Ii8+PHRleHQgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iOTEiIHg9IjQxLjUiIHk9IjI5MS42NTI4Ij4mIzI1NTUyOyYjMzEwMzQ7JiMyMDk4NjsmIzI5NjE2OyYjMjc1MTU7JiMzODE0NTsmIzY1MzA2OzwvdGV4dD48dGV4dCBmaWxsPSIjMDAwMDAwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgbGVuZ3RoQWRqdXN0PSJzcGFjaW5nIiB0ZXh0TGVuZ3RoPSI1NjQiIHg9IjQxLjUiIHk9IjMwNi43ODU2Ij5FUlJPUiAxMjEzICg0MDAwMSk6IERlYWRsb2NrIGZvdW5kIHdoZW4gdHJ5aW5nIHRvIGdldCBsb2NrOyB0cnkgcmVzdGFydGluZyB0cmFuc2FjdGlvbjwvdGV4dD48IS0tU1JDPVtaTDlGSW5qMTczcmRGaUtGRlBZMEdaUGphTE9LRGpiOTZxV0pzU0h3eUpCUF9IYzdQNlZNc0diSEltLVUxOU5RR21fTEdxN21BZFlFWWJ5Y3FVUktoejNUbjllclF3Nk42TlpsX1R2eHlvVGVTVTRwbkpuZUNBVkxMQjhadDg5aUltTXBiREF5TEkzMWFzQUIyUlVoa0RPZUdBaUVhWFdOdTdPN1hPRm1jUUhDZk1IdFI2OFgtaE5NUmh1VGdiRWNld05BSS1NWVVlNGp5cXFpU3U1bkdVQ3ZDenRHVjZpTGgyOTlhVEdnS3ZleHQ2VDJfcENXaGZib2lnSlJIOU1HNVFORzVVT1hiM29WRUpoMXJWV1VXaDZPbTFGcm5ZVVYyY05SN1ZQOEpPUUk1X09pdzBhUHJKQVBacGxhMm83LTkxemMtaHNabVU2dkNHQ2kwQnJabDRKYzdpYVM4VTZvaTE4a3hvMUZ0dlNnSXA3MGVjTFFmcjJxZ256MU93MVhfR0VyQU9XZVVYZGNGRkdRZzc5cHFPV0haSFduWnhfMF90ZmlZNXp0ZnlFM3VfeERzVjM3elUzeVBfX3M5NVFiTEFiSGtudmt6VWhPOWl0VC1QNUIxWndQdkpMUVdfSVItT2JWOWp4WF9rSlJtcUxsU0QxeC03ZnJWdGF6X0J4Xy0gLVBpR3IzUmhqZld2OG5OYTd3VHBNUURKNVdOY1RrTUpXaXNldFUyeGpSZWctem9xR0dqZU9hUThkT2ZtYTI1RlFBaFpKWjVIMTMtNDJ4NTdtMDBdLS0+PC9nPjwvc3ZnPg==">
+<p><strong>接下来使用<code>SHOW ENGINE INNODB STATUS;</code>命令可以查看死锁日志</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> ENGINE INNODB STATUS;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- ... 省略无关部分</span></span><br><span class="line"></span><br><span class="line"><span class="comment">------------------------</span></span><br><span class="line">LATEST DETECTED DEADLOCK</span><br><span class="line"><span class="comment">------------------------</span></span><br><span class="line"><span class="number">2020</span><span class="number">-02</span><span class="number">-29</span> <span class="number">20</span>:<span class="number">00</span>:<span class="number">36</span> <span class="number">0x70000839a000</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> (<span class="number">1</span>) TRANSACTION:</span><br><span class="line">TRANSACTION <span class="number">15917</span>, ACTIVE <span class="number">9</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line">LOCK WAIT <span class="number">2</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">1</span> <span class="type">row</span> lock(s)</span><br><span class="line">MySQL thread id <span class="number">2</span>, OS thread handle <span class="number">123145440026624</span>, query id <span class="number">45</span> localhost root updating</span><br><span class="line"><span class="comment">-- 此时事务1正执行下面的语句</span></span><br><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> test <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;member2&#x27;</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> (<span class="number">1</span>) WAITING <span class="keyword">FOR</span> THIS LOCK <span class="keyword">TO</span> BE GRANTED:</span><br><span class="line"><span class="comment">-- 事务1排队获取索引uk_name的排它锁（lock_mode X）</span></span><br><span class="line">RECORD LOCKS space id <span class="number">156</span> page <span class="keyword">no</span> <span class="number">4</span> n bits <span class="number">72</span> index uk_name <span class="keyword">of</span> <span class="keyword">table</span> `deadlock`.`test` trx id <span class="number">15917</span> lock_mode X waiting</span><br><span class="line">Record lock, heap <span class="keyword">no</span> <span class="number">3</span> PHYSICAL RECORD: n_fields <span class="number">2</span>; compact format; info bits <span class="number">32</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">7</span>; hex <span class="number">6</span>d656d62657232; <span class="keyword">asc</span> member2;;</span><br><span class="line"> <span class="number">1</span>: len <span class="number">4</span>; hex <span class="number">80000002</span>; <span class="keyword">asc</span>     ;;</span><br><span class="line"></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> (<span class="number">2</span>) TRANSACTION:</span><br><span class="line">TRANSACTION <span class="number">15912</span>, ACTIVE <span class="number">22</span> sec inserting</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line"><span class="number">4</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">3</span> <span class="type">row</span> lock(s), undo log entries <span class="number">2</span></span><br><span class="line">MySQL thread id <span class="number">3</span>, OS thread handle <span class="number">123145440305152</span>, query id <span class="number">46</span> localhost root <span class="keyword">update</span></span><br><span class="line"><span class="comment">-- 此时事务2正执行下面的语句</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test (id, name) <span class="keyword">VALUES</span> (<span class="number">5</span>, <span class="string">&#x27;member2&#x27;</span>)</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> (<span class="number">2</span>) HOLDS THE LOCK(S):</span><br><span class="line"><span class="comment">-- 此刻，事务2已经获取了索引uk_name的排它锁（lock_mode X），该排他锁是事务2在执行delete语句时获取的</span></span><br><span class="line">RECORD LOCKS space id <span class="number">156</span> page <span class="keyword">no</span> <span class="number">4</span> n bits <span class="number">72</span> index uk_name <span class="keyword">of</span> <span class="keyword">table</span> `deadlock`.`test` trx id <span class="number">15912</span> lock_mode X locks rec but <span class="keyword">not</span> gap</span><br><span class="line">Record lock, heap <span class="keyword">no</span> <span class="number">3</span> PHYSICAL RECORD: n_fields <span class="number">2</span>; compact format; info bits <span class="number">32</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">7</span>; hex <span class="number">6</span>d656d62657232; <span class="keyword">asc</span> member2;;</span><br><span class="line"> <span class="number">1</span>: len <span class="number">4</span>; hex <span class="number">80000002</span>; <span class="keyword">asc</span>     ;;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 同时，事务2排队获取索引uk_name的共享锁（lock mode S），insert语句在普通情况下会申请所有索引的排它锁，但是这里出现了共享锁，因为uk_name索引是一个唯一索引，所以insert语句会在插入前进行一次duplicate key的检查，为了使这次检查成功，需要申请uk_name索引的共享锁，防止其他事务对name字段的修改。</span></span><br><span class="line"><span class="comment">-- 但是对uk_name索引的锁的申请是需要排队的，而事务1在此之前已经申请uk_name索引的排它锁，所以本次申请必须等待，因此形成了循环，死锁出现了</span></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> (<span class="number">2</span>) WAITING <span class="keyword">FOR</span> THIS LOCK <span class="keyword">TO</span> BE GRANTED:</span><br><span class="line">RECORD LOCKS space id <span class="number">156</span> page <span class="keyword">no</span> <span class="number">4</span> n bits <span class="number">72</span> index uk_name <span class="keyword">of</span> <span class="keyword">table</span> `deadlock`.`test` trx id <span class="number">15912</span> lock mode S waiting</span><br><span class="line">Record lock, heap <span class="keyword">no</span> <span class="number">3</span> PHYSICAL RECORD: n_fields <span class="number">2</span>; compact format; info bits <span class="number">32</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">7</span>; hex <span class="number">6</span>d656d62657232; <span class="keyword">asc</span> member2;;</span><br><span class="line"> <span class="number">1</span>: len <span class="number">4</span>; hex <span class="number">80000002</span>; <span class="keyword">asc</span>     ;;</span><br><span class="line"></span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> WE ROLL BACK TRANSACTION (<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- ... 省略无关部分</span></span><br></pre></td></tr></table></figure>
+<h1><span id="7-参考"> 7 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/yangtianyu1218/article/details/51543634">数据库事务隔离级别和锁的实现方式</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/lqglqglqg/article/details/48582905">第一类第二类丢失更新</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/jiesa/article/details/51317164">数据库事务隔离级别-- 脏读、幻读、不可重复读（清晰解释）</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/d75fcdeb07a3">数据库事务特征、数据库隔离级别，以及各级别数据库加锁情况(含实操)–read uncommitted篇</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/fd51cb8dc03b">数据库事务特征、数据库隔离级别，各级别数据库加锁情况(含实操)–read committed &amp;&amp; MVCC</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/814cf518f88d">数据库事务特征、数据库隔离级别，各级别数据库加锁情况(含实操)–Repeatable Read &amp;&amp; MVCC</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/joy0921/article/details/80128857">MVCC原理探究及MySQL源码实现分析</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/110263562">mysql版本链&amp;readview</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/metoy/p/5545580.html">Mysql加锁过程详解</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/matt8/article/details/53096405">Innodb中的事务隔离级别实现原理</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.imooc.com/article/17290">MySQL数据库事务各隔离级别加锁情况–read committed &amp;&amp; MVCC</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.51cto.com/14257804/2390505?cid=732583">记录一次Mysql死锁排查过程</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zcl_love_wx/article/details/82052479">一分钟理清Mysql的锁类型——《深究Mysql锁》</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/octachrome/innodb-locks">InnoDB locking</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/35574452/">undo log与redo log原理分析</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/52977862">数据库基础（四）Innodb MVCC实现原理</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/f-ck-need-u/archive/2018/05/08/9010872.html">详细分析MySQL事务日志(redo log和undo log)</a></li>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000023827696">必须了解的mysql三大日志-binlog、redo log和undo log</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/08/28/%E4%B9%90%E8%A7%82%E9%94%81/" rel="prev" title="乐观锁">
+      <i class="fa fa-chevron-left"></i> 乐观锁
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/09/04/DBMS-Monitor/" rel="next" title="DBMS-Monitor">
+      DBMS-Monitor <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 ACID</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 名词解释</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 第一类丢失更新</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 第二类丢失更新</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 脏读</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.4 不可重复读</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.5 幻读</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.6 快照&#x2F;当前读</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 事务隔离级别以及实现方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 Read uncommitted(读未提交)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.1.1 验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 Read committed(读已提交)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.2.1 验证</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 4.2.1.1 快照读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 4.2.1.2 当前读</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.3 undo&#x2F;redo log</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.3.1 undo log</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.3.2 redo log</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.4 MVCC机制剖析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.4.1 问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.5 Repeatable read(可重复读)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.5.1 验证</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 4.5.1.1 当前读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 4.5.1.2 当前读</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.6 Serializable(串行化)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.6.1 验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.7 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 如何查看&#x2F;修改隔离级别</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 死锁问题分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

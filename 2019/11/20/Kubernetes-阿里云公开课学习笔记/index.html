@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes-阿里云公开课学习笔记">
+<meta property="og:url" content="http://example.com/2019/11/20/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-1-1.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-2-1.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-2-2.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-2-3.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-3-1.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-3-2.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-3-3.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-3-4.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-1.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-2.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-3.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-4.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-5.png">
+<meta property="og:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-6.png">
+<meta property="article:published_time" content="2019-11-20T01:17:34.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.348Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-1-1.png">
+
+<link rel="canonical" href="http://example.com/2019/11/20/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Kubernetes-阿里云公开课学习笔记 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/11/20/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kubernetes-阿里云公开课学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-20 09:17:34" itemprop="dateCreated datePublished" datetime="2019-11-20T09:17:34+08:00">2019-11-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/11/20/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Kubernetes-阿里云公开课学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/11/20/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/20/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-云原生概述"> 1 云原生概述</span></h1>
+<h2><span id="11-云原生技术发展简史"> 1.1 云原生技术发展简史</span></h2>
+<p>首先从第一个问题进行分享，那就是“为什么要开设云原生技术公开课？”云原生、<code>CNCF</code>都是目前非常热门的关键词，但是这些技术并不是非常新鲜的内容。</p>
+<ol>
+<li>2004年—2007年，<code>Google</code>已在内部大规模地使用像<code>Cgroups</code>这样的容器技术</li>
+<li>2008年，<code>Google</code>将<code>Cgroups</code>合并进入了Linux内核主干</li>
+<li>2013年，<code>Docker</code>项目正式发布</li>
+<li>2014年，<code>Kubernetes</code>项目也正式发布。这样的原因也非常容易理解，因为有了容器和<code>Docker</code>之后，就需要有一种方式去帮助大家方便、快速、优雅地管理这些容器，这就是 <code>Kubernetes</code>项目的初衷。在<code>Google</code>和<code>Redhat</code>发布了<code>Kubernetes</code>之后，这个项目的发展速度非常之快</li>
+<li>2015年，由<code>Google</code>、<code>Redhat</code>以及微软等大型云计算厂商以及一些开源公司共同牵头成立了<code>CNCF</code>云原生基金会。<code>CNCF</code>成立之初，就有22个创始会员，而且<code>Kubernetes</code>也成为了<code>CNCF</code>托管的第一个开源项目。在这之后，<code>CNCF</code>的发展速度非常迅猛</li>
+<li>2017年，<code>CNCF</code>达到170个成员和14个基金项目</li>
+<li>2018年，<code>CNCF</code>成立三周年有了195个成员，19个基金会项目和11个孵化项目，如此之快的发展速度在整个云计算领域都是非常罕见的</li>
+</ol>
+<h2><span id="12-我们正处于时代的关键节点"> 1.2 我们正处于时代的关键节点</span></h2>
+<p>2019年正是云原生时代的关键节点，为什么这么说？我们这里就为大家简单梳理一下</p>
+<p>从2013年<code>Docker</code>项目发布开始说起，<code>Docker</code>项目的发布使得全操作系统语义的沙盒技术唾手可得，使得用户能够更好地、更完整地打包自己的应用，使得开发者可以轻而易举的获得了一个应用的最小可运行单位，而不需要依赖任何<code>PaaS</code>能力。这对经典PaaS产业其实是一个“降维打击”</p>
+<p>2014年的时候，<code>Kubernetes</code>项目发布，其意义在于<code>Google</code>将内部的<code>Borg/Omega</code>系统思想借助开源社区实现了“重生”，并且提出了“容器设计模式”的思想。而<code>Google</code>之所以选择间接开源<code>Kubernetes</code>而不是直接开源<code>Borg</code>项目，其实背后的原因也比较容易理解：<code>Borg/Omega</code>这样的系统太复杂了，是没办法提供给<code>Google</code>之外的人使用，但是<code>Borg/Omega</code>这样的设计思想却可以借助<code>Kubernetes</code>让大家接触到，这也是开源<code>Kubernetes</code>的重要背景</p>
+<p>这样到了2015年-2016年，就到了容器编排“三国争霸”的时代，当时<code>Docker</code>、<code>Swarm</code>、<code>Mesos</code>、<code>Kubernetes</code>都在容器编排领域展开角逐，他们竞争的原因其实也比较容易理解， 那就是<code>Docker</code>或者容器本身的价值虽然大，但是如果想要让其产生商业价值或者说对云的价值，那么就一定需要在编排上面占据一个有利的位置</p>
+<p><code>Swarm</code>和<code>Mesos</code>的特点，那就是各自只在生态和技术方面比较强，其中，<code>Swarm</code>更偏向于生态，而<code>Mesos</code>技术更强一些。相比之下，<code>Kubernetes</code>则兼具了两者优势，最终在 2017年“三国争霸”的局面中得以胜出，成为了当时直到现在的容器编排标准。这一过程的代表性事件就是<code>Docker</code>公司宣布在核心产品中内置了<code>Kubernetes</code>服务，并且<code>Swarm</code>项目逐渐停止维护</p>
+<p>到了2018年的时候，云原生技术理念开始逐渐萌芽，这是因为此时<code>Kubernetes</code>以及容器都成为了云厂商的既定标准，以“云”为核心的软件研发思想逐步形成</p>
+<p>而到了2019年，情况似乎又将发生一些变化</p>
+<h2><span id="13-2019年云原生技术普及元年"> 1.3 2019年——云原生技术普及元年</span></h2>
+<p>为什么说2019年很可能是一个关键节点呢？我们认为2019年是云原生技术的普及元年</p>
+<p>首先大家可以看到，在2019年，阿里巴巴宣布要全面上云，而且“上云就要上云原生”。我们还可以看到，以“云”为核心的软件研发思想，正逐步成为所有开发者的默认选项。像<code>Kubernetes</code>等云原生技术正在成为技术人员的必修课，大量的工作岗位正在涌现出来</p>
+<p>这种背景下，“会<code>Kubernetes</code>”已经远远不够了，“懂<code>Kubernetes</code>”、“会云原生架构”的重要性正日益凸显出来。从2019年开始，云原生技术将会大规模普及，这也是为什么大家都要在这个时间点上学习和投资云原生技术的重要原因</p>
+<h2><span id="14-云原生的技术范畴"> 1.4 云原生的技术范畴</span></h2>
+<p>云原生的技术范畴包括了以下几个方面：</p>
+<ol>
+<li>第一部分是云应用定义与开发流程。这包括应用定义与镜像制作、配置<code>CI/CD</code>、消息和<code>Streaming</code>以及数据库等</li>
+<li>第二部分是云应用的编排与管理流程。这也是<code>Kubernetes</code>比较关注的一部分，包括了应用编排与调度、服务发现治理、远程调用、API 网关以及<code>Service Mesh</code></li>
+<li>第三部分是监控与可观测性。这部分所强调的是云上应用如何进行监控、日志收集、Tracing以及在云上如何实现破坏性测试，也就是混沌工程的概念</li>
+<li>第四部分就是云原生的底层技术，比如容器运行时、云原生存储技术、云原生网络技术等</li>
+<li>第五部分是云原生工具集，在前面的这些核心技术点之上，还有很多配套的生态或者周边的工具需要使用，比如流程自动化与配置管理、容器镜像仓库、云原生安全技术以及云端密码管理等</li>
+<li>最后则是<code>Serverless</code>。<code>Serverless</code>是一种<code>PaaS</code>的特殊形态，它定义了一种更为“极端抽象”的应用编写方式，包含了<code>FaaS</code>和<code>BaaS</code>这样的概念。而无论是<code>FaaS</code>还是<code>BaaS</code>，其最为典型的特点就是按实际使用计费（Pay as you go），因此<code>Serverless</code>计费也是重要的知识和概念</li>
+</ol>
+<h2><span id="15-云原生思想的两个理论"> 1.5 云原生思想的两个理论</span></h2>
+<p>在了解完云原生的技术范畴之后你就会发现，其所包含的技术内容还是很多的，但是这些内容的技术本质却是类似的。云原生技术的本质是两个理论基础。</p>
+<ol>
+<li><strong>第一个理论基础是：不可变基础设施</strong>。这一点目前是通过容器镜像来实现的，其含义就是应用的基础设施应该是不可变的，是一个自包含、自描述可以完全在不同环境中迁移的东西</li>
+<li><strong>第二个理论基础就是：云应用编排理论</strong>。当前的实现方式就是<code>Google</code>所提出来的“容器设计模式”，这也是本系列课程中的<code>Kubernetes</code>部分所需主要讲解的内容</li>
+</ol>
+<h2><span id="16-基础设施向云演进的过程"> 1.6 基础设施向云演进的过程</span></h2>
+<p>首先为大家介绍一下“不可变基础设施”的概念。其实，应用所依赖的基础设施也在经历一个向云演进的过程，举例而言，对于传统的应用基础设施而言，其实往往是可变的。</p>
+<p>大家可能经常会干这样一件事情，比如需要发布或者更新一个软件，那么流程大致是这样的，先通过<code>SSH</code>连到服务器，然后手动升级或者降级软件包，逐个调整服务器上的配置文件，并且将新代码直接都部署到现有服务器上。因此，这套基础设施会不断地被调整和修改</p>
+<p>但是在云上，对“云”友好的应用基础设施是不可变的</p>
+<p>这种场景下的上述更新过程会这么做：一旦应用部署完成之后，那么这套应用基础设施就不会再修改了。如果需要更新，那么需要现更改公共镜像来构建新服务直接替换旧服务。而我们之所以能够实现直接替换，就是因为容器提供了自包含的环境（包含应用运行所需的所有依赖）。所以对于应用而言，完全不需要关心容器发生了什么变化，只需要把容器镜像本身修改掉就可以了。因此，对于云友好的基础设施是随时可以替换和更换的，这就是因为容器具有敏捷和一致性的能力，也就是云时代的应用基础设施</p>
+<p>所以，总结而言，云时代的基础设施就像是可以替代的“牲口”，可以随时替换；而传统的基础设施则是独一无二的“宠物”，需要细心呵护，这就体现出了云时代不可变基础设施的优点</p>
+<h2><span id="17-基础设施向云演进的意义"> 1.7 基础设施向云演进的意义</span></h2>
+<p>所以，像这样的基础设施向“不可变”演进的过程，为我们提供了两个非常重要的优点</p>
+<ol>
+<li>基础设施的一致性和可靠性。同样一个镜像，无论是在美国打开，在中国打开，还是在印度打开都是一样的。并且其中的<code>OS</code>环境对于应用而言都是一致的。而对于应用而言，它就不需要关心容器跑在哪里，这就是基础设施一致性非常重要的一个特征</li>
+<li>这样的镜像本身就是自包含的，其包含了应用运行所需要的所有依赖，因此也可以漂移到云上的任何一个位置</li>
+</ol>
+<p>此外，云原生的基础设施还提供了简单、可预测的部署和运维能力。由于现在有了镜像，应用还是自描述的，通过镜像运行起来的整个容器其实可以像<code>Kubernetes</code>的<code>Operator</code>技术一样将其做成自运维的，所以整个应用本身都是自包含的行为，使得其能够迁移到云上任何一个位置。这也使得整个流程的自动化变得非常容易</p>
+<p>应用本身也可以更好地扩容，从1个实例变成100个实例，进而变成1万个实例，这个过程对于容器化后的应用没有任何特殊的。最后，我们这时也能够通过不可变的基础设施来地快速周围的管控系统和支撑组件。因为，这些组件本身也是容器化的，是符合不可变基础设施这样一套理论的组件</p>
+<p>以上就是不可变基础设施为用户带来的最大的优点</p>
+<h2><span id="18-云原生关键技术点"> 1.8 云原生关键技术点</span></h2>
+<p>当我们回过头来看云原生关键技术点或者说它所依赖的技术理论的时候，可以看到主要有这样的四个方向：</p>
+<ol>
+<li>如何构建自包含、可定制的应用镜像</li>
+<li>能不能实现应用快速部署与隔离能力</li>
+<li>应用基础设施创建和销毁的自动化管理</li>
+<li>可复制的管控系统和支撑组件</li>
+</ol>
+<h1><span id="2-容器基本概念"> 2 容器基本概念</span></h1>
+<h2><span id="21-容器与镜像"> 2.1 容器与镜像</span></h2>
+<p><strong>什么是容器？</strong></p>
+<p>在介绍容器的具体概念之前，先简单回顾一下操作系统是如何管理进程的</p>
+<p>首先，当我们登录到操作系统之后，可以通过<code>ps</code>等操作看到各式各样的进程，这些进程包括系统自带的服务和用户的应用进程。那么，这些进程都有什么样的特点？</p>
+<ol>
+<li>这些进程可以相互看到、相互通信</li>
+<li>它们使用的是同一个文件系统，可以对同一个文件进行读写操作</li>
+<li>这些进程会使用相同的系统资源</li>
+</ol>
+<p><strong>这样的三个特点会带来什么问题呢？</strong></p>
+<ol>
+<li>因为这些进程能够相互看到并且进行通信，高级权限的进程可以攻击其他进程</li>
+<li>因为它们使用的是同一个文件系统，因此会带来两个问题
+<ul>
+<li>这些进程可以对于已有的数据进行增删改查，具有高级权限的进程可能会将其他进程的数据删除掉，破坏掉其他进程的正常运行</li>
+<li>此外，进程与进程之间的依赖可能会存在冲突，如此一来就会给运维带来很大的压力</li>
+</ul>
+</li>
+<li>因为这些进程使用的是同一个宿主机的资源，应用之间可能会存在资源抢占的问题，当一个应用需要消耗大量<code>CPU</code>和内存资源的时候，就可能会破坏其他应用的运行，导致其他应用无法正常地提供服务</li>
+</ol>
+<p><strong>针对上述的三个问题，如何为进程提供一个独立的运行环境呢？</strong></p>
+<p>针对不同进程使用同一个文件系统所造成的问题而言，<code>Linux</code>和<code>Unix</code>操作系统可以通过<code>chroot</code>系统调用将子目录变成根目录，达到视图级别的隔离；进程在<code>chroot</code>的帮助下可以具有独立的文件系统，对于这样的文件系统进行增删改查不会影响到其他进程</p>
+<p>因为进程之间相互可见并且可以相互通信，使用<code>Namespace</code>技术来实现进程在资源的视图上进行隔离。在<code>chroot</code>和<code>Namespace</code>的帮助下，进程就能够运行在一个独立的环境下了</p>
+<p>但在独立的环境下，进程所使用的还是同一个操作系统的资源，一些进程可能会侵蚀掉整个系统的资源。为了减少进程彼此之间的影响，可以通过<code>Cgroup</code>来限制其资源使用率，设置其能够使用的<code>CPU</code>以及内存量</p>
+<p><strong>那么，应该如何定义这样的进程集合呢？其实，容器就是一个视图隔离、资源可限制、独立文件系统的进程集合</strong></p>
+<ul>
+<li>所谓“视图隔离”就是能够看到部分进程以及具有独立的主机名等</li>
+<li>控制资源使用率则是可以对于内存大小以及<code>CPU</code>使用个数等进行限制</li>
+<li>容器就是一个进程集合，它将系统的其他资源隔离开来，具有自己独立的资源视图</li>
+<li>容器具有一个独立的文件系统，因为使用的是系统的资源，所以在独立的文件系统内不需要具备内核相关的代码或者工具，我们只需要提供容器所需的二进制文件、配置文件以及依赖即可。只要容器运行时所需的文件集合都能够具备，那么这个容器就能够运行起来</li>
+</ul>
+<p><strong>什么是镜像？综上所述，我们将这些容器运行时所需要的所有的文件集合称之为容器镜像</strong></p>
+<p>那么，一般都是通过什么样的方式来构建镜像的呢？通常情况下，我们会采用<code>Dockerfile</code>来构建镜像，这是因为<code>Dockerfile</code>提供了非常便利的语法糖，能够帮助我们很好地描述构建的每个步骤。当然，每个构建步骤都会对已有的文件系统进行操作，这样就会带来文件系统内容的变化，我们将这些变化称之为<code>changeset</code>。当我们把构建步骤所产生的变化依次作用到一个空文件夹上，就能够得到一个完整的镜像</p>
+<p><code>changeset</code>的分层以及复用特点能够带来几点优势：</p>
+<ol>
+<li>能够提高分发效率，简单试想一下，对于大的镜像而言，如果将其拆分成各个小块就能够提高镜像的分发效率，这是因为镜像拆分之后就可以并行下载这些数据</li>
+<li>因为这些数据是相互共享的，也就意味着当本地存储上包含了一些数据的时候，只需要下载本地没有的数据即可，举个简单的例子就是<code>golang</code>镜像是基于<code>alpine</code>镜像进行构建的，当本地已经具有了<code>alpine</code>镜像之后，在下载<code>golang</code>镜像的时候只需要下载本地<code>alpine</code>镜像中没有的部分即可</li>
+<li>因为镜像数据是共享的，因此可以节约大量的磁盘空间，简单设想一下，当本地存储具有了<code>alpine</code>镜像和<code>golang</code>镜像，在没有复用的能力之前，<code>alpine</code>镜像具有<code>5M</code>大小，<code>golang</code>镜像有<code>300M</code>大小，因此就会占用<code>305M</code>空间；而当具有了复用能力之后，只需要<code>300M</code>空间即可</li>
+</ol>
+<p><strong>如何构建镜像？</strong></p>
+<ol>
+<li><code>FROM</code>行表示以下的构建步骤基于什么镜像进行构建，正如前面所提到的，镜像是可以复用的</li>
+<li><code>WORKDIR</code>行表示会把接下来的构建步骤都在哪一个相应的具体目录下进行，其起到的作用类似于<code>Shell</code>里面的<code>cd</code></li>
+<li><code>COPY</code>行表示的是可以将宿主机上的文件拷贝到容器镜像内</li>
+<li><code>RUN</code>行表示在具体的文件系统内执行相应的动作。当我们运行完毕之后就可以得到一个应用了</li>
+<li><code>CMD</code>行表示使用镜像时的默认程序名字</li>
+</ol>
+<p>当有了<code>Dockerfile</code>之后，就可以通过<code>docker build</code>命令构建出所需要的应用。构建出的结果存储在本地，一般情况下，镜像构建会在打包机或者其他的隔离环境下完成</p>
+<p>那么，这些镜像如何运行在生产环境或者测试环境上呢？这时候就需要一个中转站或者中心存储，我们称之为<code>docker registry</code>，也就是镜像仓库，其负责存储所有产生的镜像数据。我们只需要通过<code>docker push</code>就能够将本地镜像推动到镜像仓库中，这样一来，就能够在生产环境上或者测试环境上将相应的数据下载下来并运行了</p>
+<p><strong>如何运行容器？运行一个容器一般情况下分为三步：</strong></p>
+<ol>
+<li>从镜像仓库中将相应的镜像下载下来</li>
+<li>当镜像下载完成之后就可以通过<code>docker images</code>来查看本地镜像，这里会给出一个完整的列表，我们可以在列表中选中想要的镜像</li>
+<li>当选中镜像之后，就可以通过<code>docker run</code>来运行这个镜像得到想要的容器，当然可以通过多次运行得到多个容器。一个镜像就相当于是一个模板，一个容器就像是一个具体的运行实例，因此镜像就具有了一次构建、到处运行的特点</li>
+</ol>
+<p><strong>小结</strong></p>
+<p>简单回顾一下，容器就是和系统其它部分隔离开来的进程集合，这里的其他部分包括进程、网络资源以及文件系统等。而镜像就是容器所需要的所有文件集合，其具备一次构建、到处运行的特点</p>
+<h2><span id="22-容器的生命周期"> 2.2 容器的生命周期</span></h2>
+<p><strong>容器运行时的生命周期</strong></p>
+<p>容器是一组具有隔离特性的进程集合，在使用<code>docker run</code>的时候会选择一个镜像来提供独立的文件系统并指定相应的运行程序。这里指定的运行程序称之为<code>initial</code>进程，这个<code>initial</code>进程启动的时候，容器也会随之启动，当<code>initial</code>进程退出的时候，容器也会随之退出。</p>
+<p>因此，可以认为容器的生命周期和<code>initial</code>进程的生命周期是一致的。当然，因为容器内不只有这样的一个<code>initial</code>进程，<code>initial</code>进程本身也可以产生其他的子进程或者通过<code>docker exec</code>产生出来的运维操作，也属于<code>initial</code>进程管理的范围内。当<code>initial</code>进程退出的时候，所有的子进程也会随之退出，这样也是为了防止资源的泄漏</p>
+<p>但是这样的做法也会存在一些问题，首先应用里面的程序往往是有状态的，其可能会产生一些重要的数据，当一个容器退出被删除之后，数据也就会丢失了，这对于应用方而言是不能接受的，所以需要将容器所产生出来的重要数据持久化下来。容器能够直接将数据持久化到指定的目录上，这个目录就称之为数据卷</p>
+<p>数据卷有一些特点，其中非常明显的就是数据卷的生命周期是独立于容器的生命周期的，也就是说容器的创建、运行、停止、删除等操作都和数据卷没有任何关系，因为它是一个特殊的目录，是用于帮助容器进行持久化的。简单而言，我们会将数据卷挂载到容器内，这样一来容器就能够将数据写入到相应的目录里面了，而且容器的退出并不会导致数据的丢失</p>
+<p><strong>通常情况下，数据卷管理主要有两种方式：</strong></p>
+<ol>
+<li>通过<code>bind</code>的方式，直接将宿主机的目录直接挂载到容器内。这种方式比较简单，但是会带来运维成本，因为其依赖于宿主机的目录，需要对于所有的宿主机进行统一管理</li>
+<li>将目录管理交给运行引擎</li>
+</ol>
+<h2><span id="23-容器项目架构"> 2.3 容器项目架构</span></h2>
+<p><strong><code>moby</code>容器引擎架构</strong></p>
+<p><code>moby</code>是目前最流行的容器管理引擎，<code>moby daemon</code>会对上提供有关于容器、镜像、网络以及 <code>Volume</code>的管理。<code>moby daemon</code>所依赖的最重要的组件就是<code>containerd</code>，<code>containerd</code>是一个容器运行时管理引擎，其独立于<code>moby daemon</code>，可以对上提供容器、镜像的相关管理</p>
+<p><code>containerd</code>底层有<code>containerd shim</code>模块，其类似于一个守护进程，这样设计的原因有几点：</p>
+<ol>
+<li>首先，<code>containerd</code>需要管理容器生命周期，而容器可能是由不同的容器运行时所创建出来的，因此需要提供一个灵活的插件化管理。而<code>shim</code>就是针对于不同的容器运行时所开发的，这样就能够从<code>containerd</code>中脱离出来，通过插件的形式进行管理</li>
+<li>其次，因为<code>shim</code>插件化的实现，使其能够被<code>containerd</code>动态接管。如果不具备这样的能力，当<code>moby daemon</code>或者<code>containerd daemon</code>意外退出的时候，容器就没人管理了，那么它也会随之消失、退出，这样就会影响到应用的运行</li>
+<li>最后，因为随时可能会对<code>moby</code>或者<code>containerd</code>进行升级，如果不提供<code>shim</code>机制，那么就无法做到原地升级，也无法做到不影响业务的升级，因此<code>containerd shim</code>非常重要，它实现了动态接管的能力</li>
+</ol>
+<h2><span id="24-容器-vs-vm"> 2.4 容器 VS VM</span></h2>
+<p><strong>容器和<code>VM</code>之间的差异</strong></p>
+<p><code>VM</code>利用<code>Hypervisor</code>虚拟化技术来模拟<code>CPU</code>、内存等硬件资源，这样就可以在宿主机上建立一个 <code>Guest OS</code>，这是常说的安装一个虚拟机</p>
+<p>每一个<code>Guest OS</code>都有一个独立的内核，比如<code>Ubuntu</code>、<code>CentOS</code>甚至是<code>Windows</code>等，在这样的 <code>Guest OS</code>之下，每个应用都是相互独立的，<code>VM</code>可以提供一个更好的隔离效果。但这样的隔离效果需要付出一定的代价，因为需要把一部分的计算资源交给虚拟化，这样就很难充分利用现有的计算资源，并且每个<code>Guest OS</code>都需要占用大量的磁盘空间，比如<code>Windows</code>操作系统的安装需要<code>10~30G</code>的磁盘空间，<code>Ubuntu</code>也需要 5~6G，同时这样的方式启动很慢。正是因为虚拟机技术的缺点，催生出了容器技术</p>
+<p>容器是针对于进程而言的，因此无需<code>Guest OS</code>，只需要一个独立的文件系统提供其所需要文件集合即可。所有的文件隔离都是进程级别的，因此启动时间快于<code>VM</code>，并且所需的磁盘空间也小于<code>VM</code>。当然了，进程级别的隔离并没有想象中的那么好，隔离效果相比<code>VM</code>要差很多。</p>
+<p>总体而言，容器和<code>VM</code>相比，各有优劣，因此容器技术也在向着强隔离方向发展</p>
+<h2><span id="25-总结"> 2.5 总结</span></h2>
+<ol>
+<li>容器是一个进程集合，具有自己独特的视图视角</li>
+<li>镜像是容器所需要的所有文件集合，其具备一次构建、到处运行的特点</li>
+<li>容器的生命周期和<code>initial</code>进程的生命周期是一样的</li>
+<li>容器和<code>VM</code>相比，各有优劣，容器技术在向着强隔离方向发展</li>
+</ol>
+<h1><span id="3-kubernetes核心概念"> 3 Kubernetes核心概念</span></h1>
+<h2><span id="31-什么是kubernetes"> 3.1 什么是Kubernetes</span></h2>
+<p><code>Kubernetes</code>，从官方网站上可以看到，它是一个工业级的容器编排平台。<code>Kubernetes</code>这个单词是希腊语，它的中文翻译是“舵手”或者“飞行员”。在一些常见的资料中也会看到“ks”这个词，也就是“k8s”，它是通过将8个字母“ubernete”替换为“8”而导致的一个缩写</p>
+<p><code>Kubernetes</code>为什么要用“舵手”来命名呢？大家可以看一下这张图：</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-1-1.png" alt="3-1-1"></p>
+<p>这是一艘载着一堆集装箱的轮船，轮船在大海上运着集装箱奔波，把集装箱送到它们该去的地方。我们之前其实介绍过一个概念叫做<code>container</code>，<code>container</code>这个英文单词也有另外的一个意思就是“集装箱”。<code>Kubernetes</code>也就借着这个寓意，希望成为运送集装箱的一个轮船，来帮助我们管理这些集装箱，也就是管理这些容器</p>
+<p>这个就是为什么会选用<code>Kubernetes</code>这个词来代表这个项目的原因。更具体一点地来说：<code>Kubernetes</code>是一个自动化的容器编排平台，它负责应用的部署、应用的弹性以及应用的管理，这些都是基于容器的</p>
+<h2><span id="32-kubernetes的几个核心的功能"> 3.2 Kubernetes的几个核心的功能</span></h2>
+<ol>
+<li>服务的发现与负载的均衡</li>
+<li>容器的自动装箱，我们也会把它叫做<code>scheduling</code>，就是“调度”，把一个容器放到一个集群的某一个机器上，<code>Kubernetes</code>会帮助我们去做存储的编排，让存储的声明周期与容器的生命周期能有一个连接</li>
+<li><code>Kubernetes</code>会帮助我们去做自动化的容器的恢复。在一个集群中，经常会出现宿主机的问题或者说是<code>OS</code>的问题，导致容器本身的不可用，<code>Kubernetes</code>会自动地对这些不可用的容器进行恢复</li>
+<li><code>Kubernetes</code>会帮助我们去做应用的自动发布与应用的回滚，以及与应用相关的配置密文的管理</li>
+<li>对于<code>job</code>类型任务，<code>Kubernetes</code>可以去做批量的执行</li>
+<li>为了让这个集群、这个应用更富有弹性，<code>Kubernetes</code>也支持水平的伸缩</li>
+</ol>
+<p>下面，我们希望以三个例子跟大家更切实地介绍一下<code>Kubernetes</code>的能力</p>
+<h3><span id="321-调度"> 3.2.1 调度</span></h3>
+<p><code>Kubernetes</code>可以把用户提交的容器放到<code>Kubernetes</code>管理的集群的某一台节点上去。<code>Kubernetes</code>的调度器是执行这项能力的组件，它会观察正在被调度的这个容器的大小、规格</p>
+<p>比如说它所需要的<code>CPU</code>以及它所需要的<code>memory</code>，然后在集群中找一台相对比较空闲的机器来进行一次<code>placement</code>，也就是一次放置的操作。在这个例子中，它可能会把红颜色的这个容器放置到第二个空闲的机器上，来完成一次调度的工作</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-2-1.png" alt="3-2-1"></p>
+<h3><span id="322-自动修复"> 3.2.2 自动修复</span></h3>
+<p><code>Kubernetes</code>有一个节点健康检查的功能，它会监测这个集群中所有的宿主机，当宿主机本身出现故障，或者软件出现故障的时候，这个节点健康检查会自动对它进行发现</p>
+<p>下面<code>Kubernetes</code>会把运行在这些失败节点上的容器进行自动迁移，迁移到一个正在健康运行的宿主机上，来完成集群内容器的一个自动恢复</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-2-2.png" alt="3-2-2"></p>
+<h3><span id="323-水平伸缩"> 3.2.3 水平伸缩</span></h3>
+<p><code>Kubernetes</code>有业务负载检查的能力，它会监测业务上所承担的负载，如果这个业务本身的<code>CPU</code>利用率过高，或者响应时间过长，它可以对这个业务进行一次扩容</p>
+<p>比如说在下面的例子中，黄颜色的过度忙碌，<code>Kubernetes</code>就可以把黄颜色负载从一份变为三份。接下来，它就可以通过负载均衡把原来打到第一个黄颜色上的负载平均分到三个黄颜色的负载上去，以此来提高响应的时间</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-2-3.png" alt="3-2-3"></p>
+<h2><span id="33-kubernetes的架构"> 3.3 Kubernetes的架构</span></h2>
+<p><code>Kubernetes</code>架构是一个比较典型的<code>二层架构</code>和<code>server-client</code>架构。<code>Master</code>作为中央的管控节点，会去与<code>Node</code>进行一个连接</p>
+<p>所有<code>UI</code>的、<code>clients</code>、这些<code>user</code>侧的组件，只会和<code>Master</code>进行连接，把希望的状态或者想执行的命令下发给<code>Master</code>，<code>Master</code>会把这些命令或者状态下发给相应的节点，进行最终的执行</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-3-1.png" alt="3-3-1"></p>
+<p><code>Kubernetes</code>的<code>Master</code>包含四个主要的组件：<code>API Server</code>、<code>Controller</code>、<code>Scheduler</code>以及<code>etcd</code>。如下图所示：</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-3-2.png" alt="3-3-2"></p>
+<ul>
+<li><strong><code>API Server</code></strong>：顾名思义是用来处理<code>API</code>操作的，<code>Kubernetes</code>中所有的组件都会和<code>API Server</code>进行连接，组件与组件之间一般不进行独立的连接，都依赖于<code>API Server</code>进行消息的传送</li>
+<li><strong><code>Controller</code></strong>：是控制器，它用来完成对集群状态的一些管理。比如刚刚我们提到的两个例子之中，第一个自动对容器进行修复、第二个自动进行水平扩张，都是由<code>Kubernetes</code>中的<code>Controller</code>来进行完成的</li>
+<li><strong><code>Scheduler</code></strong>：是调度器，“调度器”顾名思义就是完成调度的操作，就是我们刚才介绍的第一个例子中，把一个用户提交的<code>Container</code>，依据它对<code>CPU</code>、对<code>memory</code>请求大小，找一台合适的节点，进行放置</li>
+<li><strong><code>etcd</code></strong>：是一个分布式的一个存储系统，<code>API Server</code>中所需要的这些原信息都被放置在<code>etcd</code>中，<code>etcd</code>本身是一个高可用系统，通过<code>etcd</code>保证整个<code>Kubernetes</code>的<code>Master</code>组件的高可用性</li>
+</ul>
+<p>我们刚刚提到的<code>API Server</code>，它本身在部署结构上是一个可以水平扩展的一个部署组件；<code>Controller</code>是一个可以进行热备的一个部署组件，它只有一个<code>active</code>，它的调度器也是相应的，虽然只有一个<code>active</code>，但是可以进行热备</p>
+<p><strong><code>Kubernetes</code>的架构<code>Node</code></strong></p>
+<p><code>Kubernetes</code>的<code>Node</code>是真正运行业务负载的，每个业务负载会以<code>Pod</code>的形式运行。等一下我会介绍一下<code>Pod</code>的概念。一个<code>Pod</code>中运行的一个或者多个容器，真正去运行这些<code>Pod</code>的组件的是叫做<code>kubelet</code>，也就是<code>Node</code>上最为关键的组件，它通过<code>API Server</code>接收到所需要<code>Pod</code>运行的状态，然后提交到我们下面画的这个<code>Container Runtime</code>组件中</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-3-3.png" alt="3-3-3"></p>
+<p>在<code>OS</code>上去创建容器所需要运行的环境，最终把容器或者<code>Pod</code>运行起来，也需要对存储跟网络进行管理。<code>Kubernetes</code>并不会直接进行网络存储的操作，他们会靠<code>Storage Plugin</code>或者是网络的 <code>Plugin</code>来进行操作。用户自己或者云厂商都会去写相应的<code>Storage Plugin</code>或者<code>Network Plugin</code>，去完成存储操作或网络操作</p>
+<p>在<code>Kubernetes</code>自己的环境中，也会有<code>Kubernetes</code>的<code>Network</code>，它是为了提供<code>Service network</code>来进行搭网组网的。（等一下我们也会去介绍“service”这个概念。）真正完成<code>service</code>组网的组件的是<code>Kube-proxy</code>，它是利用了<code>iptable</code>的能力来进行组建<code>Kubernetes</code>的<code>Network</code>，就是<code>cluster network</code>，以上就是<code>Node</code>上面的四个组件</p>
+<p><code>Kubernetes</code>的<code>Node</code>并不会直接和<code>user</code>进行<code>interaction</code>，它的<code>interaction</code>只会通过<code>Master</code>。而<code>User</code>是通过<code>Master</code>向节点下发这些信息的。<code>Kubernetes</code>每个<code>Node</code>上，都会运行我们刚才提到的这几个组件</p>
+<p>下面我们以一个例子再去看一下<code>Kubernetes</code>架构中的这些组件，是如何互相进行<code>interaction</code>的</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-3-4.png" alt="3-3-4"></p>
+<p>用户可以通过<code>UI</code>或者<code>CLI</code>提交一个<code>Pod</code>给<code>Kubernetes</code>进行部署，这个<code>Pod</code>请求首先会通过<code>CLI</code>或者<code>UI</code>提交给<code>Kubernetes API Server</code>，下一步<code>API Server</code>会把这个信息写入到它的存储系统<code>etcd</code>，之后<code>Scheduler</code>会通过<code>API Server</code>的<code>watch</code>或者叫做<code>notification</code>机制得到这个信息：有一个<code>Pod</code>需要被调度</p>
+<p>这个时候<code>Scheduler</code>会根据它的内存状态进行一次调度决策，在完成这次调度之后，它会向<code>API Server report</code>说：“OK！这个 Pod 需要被调度到某一个节点上。”</p>
+<p>这个时候<code>API Server</code>接收到这次操作之后，会把这次的结果再次写到<code>etcd</code>中，然后<code>API Server</code>会通知相应的节点进行这次<code>Pod</code>真正的执行启动。相应节点的<code>kubelet</code>会得到这个通知，<code>kubelet</code>就会去调<code>Container runtime</code>来真正去启动配置这个容器和这个容器的运行环境，去调度<code>Storage Plugin</code>来去配置存储，<code>network Plugin</code>去配置网络</p>
+<p>这个例子我们可以看到：这些组件之间是如何相互沟通相互通信，协调来完成一次<code>Pod</code>的调度执行操作的</p>
+<h2><span id="34-kubernetes的核心概念与它的api"> 3.4 Kubernetes的核心概念与它的API</span></h2>
+<h3><span id="341-核心概念"> 3.4.1 核心概念</span></h3>
+<h4><span id="3411-第一个概念pod"> 3.4.1.1 第一个概念：Pod</span></h4>
+<p><strong><code>Pod</code>是<code>Kubernetes</code>的一个最小调度以及资源单元</strong>。用户可以通过<code>Kubernetes</code>的<code>Pod API</code>生产一个<code>Pod</code>，让<code>Kubernetes</code>对这个<code>Pod</code>进行调度，也就是把它放在某一个<code>Kubernetes</code>管理的节点上运行起来。一个<code>Pod</code>简单来说是对一组容器的抽象，它里面会包含一个或多个容器</p>
+<p>比如像下面的这幅图里面，它包含了两个容器，每个容器可以指定它所需要资源大小。比如说，<code>1</code>个核<code>1</code>个<code>G</code>，或者说<code>0.5</code>个核，<code>0.5</code>个<code>G</code></p>
+<p>当然在这个<code>Pod</code>中也可以包含一些其他所需要的资源：比如说我们所看到的<code>Volume</code>卷这个存储资源；比如说我们需要<code>100</code>个<code>GB</code>的存储或者<code>20GB</code>的另外一个存储</p>
+<p>在<code>Pod</code>里面，我们也可以去定义容器所需要运行的方式。比如说运行容器的<code>Command</code>，以及运行容器的环境变量等等。<code>Pod</code>这个抽象也给这些容器提供了一个共享的运行环境，它们会共享同一个网络环境，这些容器可以用<code>localhost</code>来进行直接的连接。而<code>Pod</code>与<code>Pod</code>之间，是互相有<code>isolation</code>隔离的</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-1.png" alt="3-4-1"></p>
+<h4><span id="3412-第二个概念volume"> 3.4.1.2 第二个概念：Volume</span></h4>
+<p><code>Volume</code>就是卷的概念，它是用来管理<code>Kubernetes</code>存储的，是用来声明在<code>Pod</code>中的容器可以访问文件目录的，一个卷可以被挂载在<code>Pod</code>中一个或者多个容器的指定路径下面</p>
+<p>而<code>Volume</code>本身是一个抽象的概念，一个<code>Volume</code>可以去支持多种的后端的存储。比如说<code>Kubernetes</code>的<code>Volume</code>就支持了很多存储插件，它可以支持本地的存储，可以支持分布式的存储，比如说像<code>ceph</code>，<code>GlusterFS</code>；它也可以支持云存储，比如说阿里云上的云盘、<code>AWS</code>上的云盘、<code>Google</code>上的云盘等等</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-2.png" alt="3-4-2"></p>
+<h4><span id="3413-第三个概念deployment"> 3.4.1.3 第三个概念：Deployment</span></h4>
+<p><code>Deployment</code>是在<code>Pod</code>这个抽象上更为上层的一个抽象，它可以定义一组<code>Pod</code>的副本数目、以及这个<code>Pod</code>的版本。一般大家用<code>Deployment</code>这个抽象来做应用的真正的管理，而<code>Pod</code>是组成<code>Deployment</code>最小的单元</p>
+<p><code>Kubernetes</code>是通过<code>Controller</code>，也就是我们刚才提到的控制器去维护<code>Deployment</code>中<code>Pod</code>的数目，它也会去帮助<code>Deployment</code>自动恢复失败的<code>Pod</code></p>
+<p>比如说我可以定义一个<code>Deployment</code>，这个<code>Deployment</code>里面需要两个<code>Pod</code>，当一个<code>Pod</code>失败的时候，控制器就会监测到，它重新把<code>Deployment</code>中的<code>Pod</code>数目从一个恢复到两个，通过再去新生成一个<code>Pod</code>。通过控制器，我们也会帮助完成发布的策略。比如说进行滚动升级，进行重新生成的升级，或者进行版本的回滚</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-3.png" alt="3-4-3"></p>
+<h4><span id="3414-第四个概念service"> 3.4.1.4 第四个概念：Service</span></h4>
+<p><code>Service</code>提供了一个或者多个<code>Pod</code>实例的稳定访问地址</p>
+<p>比如在上面的例子中，我们看到：一个<code>Deployment</code>可能有两个甚至更多个完全相同的<code>Pod</code>。对于一个外部的用户来讲，访问哪个<code>Pod</code>其实都是一样的，所以它希望做一次负载均衡，在做负载均衡的同时，我只想访问某一个固定的<code>VIP</code>，也就是<code>Virtual IP</code>地址，而不希望得知每一个具体的<code>Pod</code>的<code>IP</code>地址。</p>
+<p>我们刚才提到，这个<code>Pod</code>本身可能<code>terminal go</code>（终止），如果一个<code>Pod</code>失败了，可能会换成另外一个新的</p>
+<p>对一个外部用户来讲，提供了多个具体的<code>Pod</code>地址，这个用户要不停地去更新<code>Pod</code>地址，当这个<code>Pod</code>再失败重启之后，我们希望有一个抽象，把所有<code>Pod</code>的访问能力抽象成一个第三方的一个<code>IP</code>地址，实现这个的<code>Kubernetes</code>的抽象就叫<code>Service</code></p>
+<p>实现<code>Service</code>有多种方式，<code>Kubernetes</code>支持<code>Cluster IP</code>，上面我们讲过的<code>Kuber-proxy</code>的组网，它也支持<code>nodePort</code>、<code>LoadBalancer</code>等其他的一些访问的能力</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-4.png" alt="3-4-4"></p>
+<h4><span id="3415-第五个概念namespace"> 3.4.1.5 第五个概念：Namespace</span></h4>
+<p><code>Namespace</code>是用来做一个集群内部的逻辑隔离的，它包括鉴权、资源管理等。<code>Kubernetes</code>的每个资源，比如刚才讲的<code>Pod</code>、<code>Deployment</code>、<code>Service</code>都属于一个<code>Namespace</code>，同一个<code>Namespace</code>中的资源需要命名的唯一性，不同的<code>Namespace</code>中的资源可以重名</p>
+<p><code>Namespace</code>一个用例，比如像在阿里巴巴，我们内部会有很多个<code>business units</code>，在每一个 <code>business units</code>之间，希望有一个视图上的隔离，并且在鉴权上也不一样，在<code>cuda</code>上面也不一样，我们就会用<code>Namespace</code>来去给每一个<code>BU</code>提供一个他所看到的这么一个看到的隔离的机制</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-5.png" alt="3-4-5"></p>
+<h3><span id="342-kubernetes的api"> 3.4.2 Kubernetes的API</span></h3>
+<p>下面我们介绍一下<code>Kubernetes</code>的<code>API</code>的基础知识。从<code>high-level</code>上看，<code>Kubernetes API</code>是由<code>HTTP+JSON</code>组成的：用户访问的方式是<code>HTTP</code>，访问的<code>API</code>中<code>content</code>的内容是<code>JSON</code>格式的</p>
+<p><code>Kubernetes</code>的<code>kubectl</code>也就是<code>command tool</code>，<code>Kubernetes UI</code>，或者有时候用<code>curl</code>，直接与<code>Kubernetes</code>进行沟通，都是使用<code>HTTP + JSON</code>这种形式</p>
+<p>下面有个例子：比如说，对于这个<code>Pod</code>类型的资源，它的<code>HTTP</code>访问的路径，就是<code>API</code>，然后是<code>apiVesion: V1</code>, 之后是相应的<code>Namespaces</code>，以及<code>Pods</code>资源，最终是<code>Podname</code>，也就是<code>Pod</code>的名字。</p>
+<p><img src="/images/Kubernetes-%E9%98%BF%E9%87%8C%E4%BA%91%E5%85%AC%E5%BC%80%E8%AF%BE%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/3-4-6.png" alt="3-4-6"></p>
+<p>如果我们去提交一个<code>Pod</code>，或者<code>get</code>一个<code>Pod</code>的时候，它的<code>content</code>内容都是用<code>JSON</code>或者是<code>YAML</code>表达的。上图中有个<code>yaml</code>的例子，在这个<code>yaml file</code>中，对<code>Pod</code>资源的描述也分为几个部分。</p>
+<p>第一个部分，一般来讲会是<code>API</code>的<code>version</code>。比如在这个例子中是<code>V1</code>，它也会描述我在操作哪个资源；比如说我的<code>kind</code>如果是<code>pod</code>，在<code>Metadata</code>中，就写上这个<code>Pod</code>的名字；比如说<code>nginx</code>，我们也会给它打一些<code>label</code>，我们等下会讲到<code>label</code>的概念。在<code>Metadata</code>中，有时候也会去写<code>annotation</code>，也就是对资源的额外的一些用户层次的描述</p>
+<p>比较重要的一个部分叫做<code>Spec</code>，<code>Spec</code>也就是我们希望<code>Pod </code>达到的一个预期的状态。比如说它内部需要有哪些<code>container</code>被运行；比如说这里面有一个<code>nginx</code>的<code>container</code>，它的<code>image</code>是什么？它暴露的<code>port</code>是什么？</p>
+<p>当我们从<code>Kubernetes API</code>中去获取这个资源的时候，一般来讲在<code>Spec</code>下面会有一个项目叫<code>status</code>，它表达了这个资源当前的状态；比如说一个<code>Pod</code>的状态可能是正在被调度、或者是已经 <code>running</code>、或者是已经被<code>terminates</code>，就是被执行完毕了</p>
+<p>刚刚在<code>API</code>之中，我们讲了一个比较有意思的<code>metadata</code>叫做“label”，这个<code>label</code>可以是一组<code>KeyValuePair</code></p>
+<p>比如下图的第一个<code>Pod</code>中，<code>label</code>就可能是一个<code>color</code>等于<code>red</code>，即它的颜色是红颜色。当然你也可以加其他<code>label</code>，比如说<code>size: big</code>就是大小，定义为大的，它可以是一组<code>label</code></p>
+<p>这些<code>label</code>是可以被<code>selector</code>，也就是选择器所查询的。这个能力实际上跟我们的<code>sql</code>类型的<code>select</code>语句是非常相似的，比如下图中的三个<code>Pod</code>资源中，我们就可以进行<code>select</code>。<code>name color</code>等于<code>red</code>，就是它的颜色是红色的，我们也可以看到，只有两个被选中了，因为只有他们的<code>label</code>是红色的，另外一个<code>label</code>中写的<code>color</code>等于<code>yellow</code>，也就是它的颜色是黄色，是不会被选中的</p>
+<p>通过<code>label</code>，<code>Kubernetes</code>的<code>API</code>层就可以对这些资源进行一个筛选，那这些筛选也是 <code>Kubernetes</code>对资源的集合所表达默认的一种方式。</p>
+<p>例如说，我们刚刚介绍的<code>Deployment</code>，它可能是代表一组的<code>Pod</code>，它是一组<code>Pod</code>的抽象，一组<code>Pod</code>就是通过<code>label selector</code>来表达的。当然我们刚才讲到说<code>service</code>对应的一组<code>Pod</code>，就是一个<code>service</code>要对应一个或者多个的<code>Pod</code>，来对它们进行统一的访问，这个描述也是通过<code>label selector</code>来进行<code>select</code>选取的一组<code>Pod</code></p>
+<p>所以可以看到<code>label</code>是一个非常核心的<code>Kubernetes API</code>的概念，我们在接下来的课程中也会着重地去讲解和介绍<code>label</code>这个概念，以及如何更好地去使用它</p>
+<h2><span id="35-本节总结"> 3.5 本节总结</span></h2>
+<ol>
+<li><code>Kubernetes</code>是一个自动化的容器编排平台，它负责应用的部署、应用的弹性以及应用的管理，这些都是基于容器的</li>
+<li><code>Kubernetes</code>架构是一个比较典型的二层架构和<code>server-client</code>架构；</li>
+</ol>
+<h1><span id="4-理解pod和容器设计模式"> 4 理解Pod和容器设计模式</span></h1>
+<h2><span id="41-为什么需要pod"> 4.1 为什么需要Pod</span></h2>
+<h3><span id="411-容器的基本概念"> 4.1.1 容器的基本概念</span></h3>
+<p>现在来看第一个问题：为什么需要<code>Pod</code>？我们知道<code>Pod</code>是<code>Kubernetes</code>项目里面一个非常重要的概念，也是非常重要的一个原子调度单位，但是为什么我们会需要这样一个概念呢？我们在使用容器<code>Docker</code>的时候，也没有这个说法。其实如果要理解<code>Pod</code>，我们首先要理解容器，所以首先来回顾一下容器的概念：</p>
+<p><strong>容器的本质实际上是一个进程，是一个视图被隔离，资源受限的进程</strong></p>
+<p>容器里面<code>PID=1</code>的进程就是应用本身，这意味着管理虚拟机等于管理基础设施，因为我们是在管理机器，但管理容器却等于直接管理应用本身。这也是之前说过的不可变基础设施的一个最佳体现，这个时候，你的应用就等于你的基础设施，它一定是不可变的</p>
+<p>在以上面的例子为前提的情况下，<code>Kubernetes</code>又是什么呢？我们知道，很多人都说<code>Kubernetes</code>是云时代的操作系统，这个非常有意思，因为如果以此类推，容器镜像就是这个操作系统的软件安装包，它们之间是这样的一个类比关系</p>
+<h3><span id="412-真实操作系统里的例子"> 4.1.2 真实操作系统里的例子</span></h3>
+<p>如果说<code>Kubernetes</code>就是操作系统的话，那么我们不妨看一下真实的操作系统的例子</p>
+<p>例子里面有一个程序叫做<code>Helloworld</code>，这个<code>Helloworld</code>程序实际上是由一组进程组成的，需要注意一下，这里说的进程实际上等同于<code>Linux</code>中的线程</p>
+<p>因为<code>Linux</code>中的线程是轻量级进程，所以如果从<code>Linux</code>系统中去查看<code>Helloworld</code>中的<code>pstree</code>，将会看到这个<code>Helloworld</code>实际上是由四个线程组成的，分别是<code>&#123;api、main、log、compute&#125;</code>。也就是说，四个这样的线程共同协作，共享<code>Helloworld</code>程序的资源，组成了<code>Helloworld</code>程序的真实工作情况</p>
+<p>这是操作系统里面进程组或者线程组中一个非常真实的例子，以上就是进程组的一个概念</p>
+<p>那么大家不妨思考一下，在真实的操作系统里面，一个程序往往是根据进程组来进行管理的。<code>Kubernetes</code>把它类比为一个操作系统，比如说<code>Linux</code>。针对于容器我们前面提到可以类比为进程，就是前面的<code>Linux</code>线程。那么<code>Pod</code>又是什么呢？实际上<code>Pod</code>就是我们刚刚提到的进程组，也就是<code>Linux</code>里的线程组</p>
+<h3><span id="413-进程组概念"> 4.1.3 进程组概念</span></h3>
+<p>说到进程组，首先建议大家至少有个概念上的理解，然后我们再详细的解释一下</p>
+<p>还是前面那个例子：<code>Helloworld</code>程序由四个进程组成，这些进程之间会共享一些资源和文件。那么现在有一个问题：假如说现在把<code>Helloworld</code>程序用容器跑起来，你会怎么去做？</p>
+<p>当然，最自然的一个解法就是，我现在就启动一个<code>Docker</code>容器，里面运行四个进程。可是这样会有一个问题，这种情况下容器里面<code>PID=1</code>的进程该是谁? 比如说，它应该是我的<code>main</code>进程，那么问题来了，“谁”又负责去管理剩余的<code>3</code>个进程呢？</p>
+<p>这个核心问题在于，容器的设计本身是一种“单进程”模型，不是说容器里只能起一个进程，由于容器的应用等于进程，所以只能去管理<code>PID=1</code>的这个进程，其他再起来的进程其实是一个托管状态。 所以说服务应用进程本身就具有“进程管理”的能力</p>
+<p>比如说<code>Helloworld</code>的程序有<code>system</code>的能力，或者直接把容器里<code>PID=1</code>的进程直接改成<code>systemd</code>，否则这个应用，或者是容器是没有办法去管理很多个进程的。因为<code>PID=1</code>进程是应用本身，如果现在把这个<code>PID=1</code>的进程给<code>kill</code>了，或者它自己运行过程中死掉了，那么剩下三个进程的资源就没有人回收了，这个是非常非常严重的一个问题</p>
+<p>而反过来真的把这个应用本身改成了<code>systemd</code>，或者在容器里面运行了一个<code>systemd</code>，将会导致另外一个问题：使得管理容器，不再是管理应用本身了，而等于是管理<code>systemd</code>，这里的问题就非常明显了。比如说我这个容器里面<code>run</code>的程序或者进程是<code>systemd</code>，那么接下来，这个应用是不是退出了？是不是<code>fail</code>了？是不是出现异常失败了？实际上是没办法直接知道的，因为容器管理的是<code>systemd</code>。这就是为什么在容器里面运行一个复杂程序往往比较困难的一个原因</p>
+<p>这里再帮大家梳理一下：由于容器实际上是一个“单进程”模型，所以如果你在容器里启动多个进程，只有一个可以作为<code>PID=1</code>的进程，而这时候，如果这个<code>PID=1</code>的进程挂了，或者说失败退出了，那么其他三个进程就会自然而然的成为孤儿，没有人能够管理它们，没有人能够回收它们的资源，这是一个非常不好的情况</p>
+<p>注意：<code>Linux</code>容器的“单进程”模型，指的是容器的生命周期等同于<code>PID=1</code>的进程（容器应用进程）的生命周期，而不是说容器里不能创建多进程。当然，一般情况下，容器应用进程并不具备进程管理能力，所以你通过<code>exec</code>或者<code>ssh</code>在容器里创建的其他进程，一旦异常退出（比如<code>ssh</code>终止）是很容易变成孤儿进程的</p>
+<p>反过来，其实可以在容器里面<code>run</code>一个<code>systemd</code>，用它来管理其他所有的进程。这样会产生第二个问题：实际上没办法直接管理我的应用了，因为我的应用被<code>systemd</code>给接管了，那么这个时候应用状态的生命周期就不等于容器生命周期。这个管理模型实际上是非常非常复杂的。</p>
+<h3><span id="414-pod-进程组"> 4.1.4 Pod = “进程组”</span></h3>
+<p>在<code>kubernetes</code>里面，<code>Pod</code>实际上正是<code>kubernetes</code>项目为你抽象出来的一个可以类比为进程组的概念</p>
+<p>前面提到的，由四个进程共同组成的一个应用<code>Helloworld</code>，在<code>Kubernetes</code>里面，实际上会被定义为一个拥有四个容器的<code>Pod</code>，这个概念大家一定要非常仔细的理解</p>
+<p>就是说现在有四个职责不同、相互协作的进程，需要放在容器里去运行，在<code>Kubernetes</code>里面并不会把它们放到一个容器里，因为这里会遇到两个问题。那么在<code>Kubernetes</code>里会怎么去做呢？它会把四个独立的进程分别用四个独立的容器启动起来，然后把它们定义在一个<code>Pod</code>里面</p>
+<p>所以当<code>Kubernetes</code>把<code>Helloworld</code>给拉起来的时候，你实际上会看到四个容器，它们共享了某些资源，这些资源都属于<code>Pod</code>，所以我们说<code>Pod</code>在<code>Kubernetes</code>里面只有一个逻辑单位，没有一个真实的东西对应说这个就是<code>Pod</code>，不会有的。真正起来在物理上存在的东西，就是四个容器。这四个容器，或者说是多个容器的组合就叫做<code>Pod</code>。并且还有一个概念一定要非常明确，<code>Pod</code>是<code>Kubernetes</code>分配资源的一个单位，因为里面的容器要共享某些资源，所以<code>Pod</code>也是<code>Kubernetes</code>的原子调度单位</p>
+<p>上面提到的<code>Pod</code>设计，也不是<code>Kubernetes</code>项目自己想出来的， 而是早在<code>Google</code>研发<code>Borg</code>的时候，就已经发现了这样一个问题。这个在<code>Borg paper</code>里面有非常非常明确的描述。简单来说<code>Google</code>工程师发现在<code>Borg</code>下面部署应用时，很多场景下都存在着类似于“进程与进程组”的关系。更具体的是，这些应用之前往往有着密切的协作关系，使得它们必须部署在同一台机器上并且共享某些信息</p>
+<p>以上就是进程组的概念，也是 Pod 的用法</p>
+<h3><span id="415-为什么pod必须是原子调度单位"> 4.1.5 为什么Pod必须是原子调度单位？</span></h3>
+<p>可能到这里大家会有一些问题：虽然了解这个东西是一个进程组，但是为什么要把<code>Pod</code>本身作为一个概念抽象出来呢？或者说能不能通过调度把<code>Pod</code>这个事情给解决掉呢？为什么<code>Pod</code>必须是<code>Kubernetes</code>里面的原子调度单位？</p>
+<p>下面我们通过一个例子来解释。</p>
+<p>假如现在有两个容器，它们是紧密协作的，所以它们应该被部署在一个<code>Pod</code>里面。具体来说，第一个容器叫做<code>App</code>，就是业务容器，它会写日志文件；第二个容器叫做 <code>LogCollector</code>，它会把刚刚<code>App</code>容器写的日志文件转发到后端的<code>ElasticSearch</code>中</p>
+<p>两个容器的资源需求是这样的：<code>App</code>容器需要<code>1G</code>内存，<code>LogCollector</code>需要<code>0.5G</code>内存，而当前集群环境的可用内存是这样一个情况：<code>Node_A：1.25G</code>内存，<code>Node_B：2G</code>内存。</p>
+<p>假如说现在没有<code>Pod</code>概念，就只有两个容器，这两个容器要紧密协作、运行在一台机器上。可是，如果调度器先把<code>App</code>调度到了<code>Node_A</code>上面，接下来会怎么样呢？这时你会发现：<code>LogCollector</code>实际上是没办法调度到<code>Node_A</code>上的，因为资源不够。其实此时整个应用本身就已经出问题了，调度已经失败了，必须去重新调度</p>
+<p>以上就是一个非常典型的成组调度失败的例子。英文叫做：<code>Task co-scheduling</code>问题，这个问题不是说不能解，在很多项目里面，这样的问题都有解法</p>
+<p>比如说在<code>Mesos</code>里面，它会做一个事情，叫做资源囤积（resource hoarding）：即当所有设置了<code>Affinity</code>约束的任务都达到时，才开始统一调度，这是一个非常典型的成组调度的解法</p>
+<p>所以上面提到的“App”和“LogCollector”这两个容器，在<code>Mesos</code>里面，他们不会说立刻调度，而是等两个容器都提交完成，才开始统一调度。这样也会带来新的问题，首先调度效率会损失，因为需要等待。由于需要等还会有外一个情况会出现，就是产生死锁，就是互相等待的一个情况。这些机制在<code>Mesos</code>里都是需要解决的，也带来了额外的复杂度</p>
+<p>另一种解法是<code>Google</code>的解法。它在<code>Omega</code>系统（就是<code>Borg</code>下一代）里面，做了一个非常复杂且非常厉害的解法，叫做乐观调度。比如说：不管这些冲突的异常情况，先调度，同时设置一个非常精妙的回滚机制，这样经过冲突后，通过回滚来解决问题。这个方式相对来说要更加优雅，也更加高效，但是它的实现机制是非常复杂的。这个有很多人也能理解，就是悲观锁的设置一定比乐观锁要简单</p>
+<p>而像这样的一个<code>Task co-scheduling</code>问题，在<code>Kubernetes</code>里，就直接通过<code>Pod</code>这样一个概念去解决了。因为在<code>Kubernetes</code>里，这样的一个<code>App</code>容器和<code>LogCollector</code>容器一定是属于一个<code>Pod</code>的，它们在调度时必然是以一个<code>Pod</code>为单位进行调度，所以这个问题是根本不存在的</p>
+<h3><span id="416-再次理解pod"> 4.1.6 再次理解Pod</span></h3>
+<p>在讲了前面这些知识点之后，我们来再次理解一下<code>Pod</code>，首先<code>Pod</code>里面的容器是“超亲密关系”</p>
+<p>这里有个“超”字需要大家理解，正常来说，有一种关系叫做亲密关系，这个亲密关系是一定可以通过调度来解决的</p>
+<p>比如说现在有两个<code>Pod</code>，它们需要运行在同一台宿主机上，那这样就属于亲密关系，调度器一定是可以帮助去做的。但是对于超亲密关系来说，有一个问题，即它必须通过<code>Pod</code>来解决。因为如果超亲密关系赋予不了，那么整个<code>Pod</code>或者说是整个应用都无法启动</p>
+<p><strong>什么叫做超亲密关系呢？大概分为以下几类：</strong></p>
+<ol>
+<li>比如说两个进程之间会发生文件交换，前面提到的例子就是这样，一个写日志，一个读日志</li>
+<li>两个进程之间需要通过<code>localhost</code>或者说是本地的<code>Socket</code>去进行通信，这种本地通信也是超亲密关系</li>
+<li>这两个容器或者是微服务之间，需要发生非常频繁的<code>RPC</code>调用，出于性能的考虑，也希望它们是超亲密关系</li>
+<li>两个容器或者是应用，它们需要共享某些<code>Linux Namespace</code>。最简单常见的一个例子，就是我有一个容器需要加入另一个容器的<code>Network Namespace</code>。这样我就能看到另一个容器的网络设备，和它的网络信息</li>
+</ol>
+<p>像以上几种关系都属于超亲密关系，它们都是在<code>Kubernetes</code>中会通过<code>Pod</code>的概念去解决的</p>
+<p>现在我们理解了<code>Pod</code>这样的概念设计，理解了为什么需要<code>Pod</code>。它解决了两个问题：</p>
+<ol>
+<li>我们怎么去描述超亲密关系</li>
+<li>我们怎么去对超亲密关系的容器或者说是业务去做统一调度，这是<code>Pod</code>最主要的一个诉求</li>
+</ol>
+<h2><span id="42-pod的实现机制"> 4.2 Pod的实现机制</span></h2>
+<h3><span id="421-pod要解决的问题"> 4.2.1 Pod要解决的问题</span></h3>
+<p>像<code>Pod</code>这样一个东西，本身是一个逻辑概念。那在机器上，它究竟是怎么实现的呢？这就是我们要解释的第二个问题</p>
+<p>既然说<code>Pod</code>要解决这个问题，核心就在于如何让一个<code>Pod</code>里的多个容器之间最高效的共享某些资源和数据</p>
+<p>因为容器之间原本是被<code>Linux Namespace</code>和<code>cgroups</code>隔开的，所以现在实际要解决的是怎么去打破这个隔离，然后共享某些事情和某些信息。这就是<code>Pod</code>的设计要解决的核心问题所在</p>
+<p><strong>所以说具体的解法分为两个部分：网络和存储</strong></p>
+<p><strong>共享网络</strong></p>
+<p>第一个问题是<code>Pod</code>里的多个容器怎么去共享网络？下面是个例子：</p>
+<p>比如说现在有一个<code>Pod</code>，其中包含了一个容器<code>A</code>和一个容器<code>B</code>，它们两个就要共享<code>Network Namespace</code>。在<code>Kubernetes</code>里的解法是这样的：它会在每个<code>Pod</code>里，额外起一个<code>Infra container</code>小容器来共享整个<code>Pod</code>的<code>Network Namespace</code></p>
+<p><code>Infra container</code>是一个非常小的镜像，大概<code>100~200KB</code>左右，是一个汇编语言写的、永远处于“暂停”状态的容器。由于有了这样一个<code>Infra container</code>之后，其他所有容器都会通过<code>Join Namespace</code>的方式加入到<code>Infra container</code>的<code>Network Namespace</code>中</p>
+<p>所以说一个<code>Pod</code>里面的所有容器，它们看到的网络视图是完全一样的。即：它们看到的网络设备、IP地址、Mac地址等等，跟网络相关的信息，其实全是一份，这一份都来自于<code>Pod</code>第一次创建的这个<code>Infra container</code>。这就是<code>Pod</code>解决网络共享的一个解法</p>
+<p>在<code>Pod</code>里面，一定有一个<code>IP</code>地址，是这个<code>Pod</code>的<code>Network Namespace</code>对应的地址，也是这个<code>Infra container</code>的<code>IP</code>地址。所以大家看到的都是一份，而其他所有网络资源，都是一个<code>Pod</code>一份，并且被<code>Pod</code>中的所有容器共享。这就是<code>Pod</code>的网络实现方式</p>
+<p>由于需要有一个相当于说中间的容器存在，所以整个<code>Pod</code>里面，必然是<code>Infra container</code>第一个启动。并且整个<code>Pod</code>的生命周期是等同于<code>Infra container</code>的生命周期的，与容器<code>A</code>和<code>B</code>是无关的。这也是为什么在<code>Kubernetes</code>里面，它是允许去单独更新<code>Pod</code>里的某一个镜像的，即：做这个操作，整个<code>Pod</code>不会重建，也不会重启，这是非常重要的一个设计</p>
+<p><strong>共享存储</strong></p>
+<p>第二问题：<code>Pod</code>怎么去共享存储？<code>Pod</code>共享存储就相对比较简单</p>
+<p>比如说现在有两个容器，一个是<code>Nginx</code>，另外一个是非常普通的容器，在<code>Nginx</code>里放一些文件，让我能通过<code>Nginx</code>访问到。所以它需要去<code>share</code>这个目录。我<code>share</code>文件或者是<code>share</code>目录在<code>Pod</code>里面是非常简单的，实际上就是把<code>volume</code>变成了<code>Pod level</code>。然后所有容器，就是所有同属于一个<code>Pod</code>的容器，他们共享所有的<code>volume</code></p>
+<p>比如说上图的例子，这个<code>volume</code>叫做<code>shared-data</code>，它是属于<code>Pod level</code>的，所以在每一个容器里可以直接声明：要挂载<code>shared-data</code>这个<code>volume</code>，只要你声明了你挂载这个<code>volume</code>，你在容器里去看这个目录，实际上大家看到的就是同一份。这个就是<code>Kubernetes</code>通过<code>Pod</code>来给容器共享存储的一个做法</p>
+<p>所以在之前的例子中，应用容器<code>App</code>写了日志，只要这个日志是写在一个<code>volume</code>中，只要声明挂载了同样的<code>volume</code>，这个<code>volume</code>就可以立刻被另外一个<code>LogCollector</code>容器给看到。以上就是<code>Pod</code>实现存储的方式。</p>
+<h2><span id="43-详解容器设计模式"> 4.3 详解容器设计模式</span></h2>
+<p>现在我们知道了为什么需要<code>Pod</code>，也了解了<code>Pod</code>这个东西到底是怎么实现的。最后，以此为基础，详细介绍一下<code>Kubernetes</code>非常提倡的一个概念，叫做容器设计模式。</p>
+<p><strong>举例</strong></p>
+<p>接下来将会用一个例子来给大家进行讲解</p>
+<p>比如我现在有一个非常常见的一个诉求：我现在要发布一个应用，这个应用是<code>JAVA</code>写的，有一个<code>WAR</code>包需要把它放到<code>Tomcat</code>的<code>web APP</code>目录下面，这样就可以把它启动起来了。可是像这样一个<code>WAR</code>包或<code>Tomcat</code>这样一个容器的话，怎么去做，怎么去发布？这里面有几种做法</p>
+<ol>
+<li>第一种方式：可以把<code>WAR</code>包和<code>Tomcat</code>打包放进一个镜像里面。但是这样带来一个问题，就是现在这个镜像实际上揉进了两个东西。那么接下来，无论是我要更新<code>WAR</code>包还是说我要更新<code>Tomcat</code>，都要重新做一个新的镜像，这是比较麻烦的</li>
+<li>第二种方式：就是镜像里面只打包<code>Tomcat</code>。它就是一个<code>Tomcat</code>，但是需要使用数据卷的方式，比如说<code>hostPath</code>，从宿主机上把<code>WAR</code>包挂载进我们<code>Tomcat</code>容器中，挂到我的<code>web APP</code>目录下面，这样把这个容器启用起来之后，里面就能用了</li>
+</ol>
+<p>但是这时会发现一个问题：这种做法一定需要维护一套分布式存储系统。因为这个容器可能第一次启动是在宿主机<code>A</code>上面，第二次重新启动就可能跑到<code>B</code>上去了，容器它是一个可迁移的东西，它的状态是不保持的。所以必须维护一套分布式存储系统，使容器不管是在<code>A</code>还是在<code>B</code>上，都可以找到这个<code>WAR</code>包，找到这个数据</p>
+<p>注意，即使有了分布式存储系统做<code>Volume</code>，你还需要负责维护<code>Volume</code>里的<code>WAR</code>包。比如：你需要单独写一套<code>Kubernetes Volume</code>插件，用来在每次<code>Pod</code>启动之前，把应用启动所需的<code>WAR</code>包下载到这个<code>Volume</code>里，然后才能被应用挂载使用到</p>
+<p>这样操作带来的复杂程度还是比较高的，且这个容器本身必须依赖于一套持久化的存储插件（用来管理<code>Volume</code>里的<code>WAR</code>包内容）</p>
+<p><strong>InitContainer</strong></p>
+<p>所以大家有没有考虑过，像这样的组合方式，有没有更加通用的方法？哪怕在本地<code>Kubernetes</code>上，没有分布式存储的情况下也能用、能玩、能发布</p>
+<p>实际上方法是有的，在<code>Kubernetes</code>里面，像这样的组合方式，叫做<code>Init Container</code></p>
+<p>还是同样一个例子：在上图的<code>yaml</code>里，首先定义一个<code>Init Container</code>，它只做一件事情，就是把<code>WAR</code>包从镜像里拷贝到一个<code>Volume</code>里面，它做完这个操作就退出了，所以<code>Init Container</code>会比用户容器先启动，并且严格按照定义顺序来依次执行</p>
+<p>然后，这个关键在于刚刚拷贝到的这样一个目的目录<code>APP</code>目录，实际上是一个<code>Volume</code>。而我们前面提到，一个<code>Pod</code>里面的多个容器，它们是可以共享<code>Volume</code>的，所以现在这个<code>Tomcat</code>容器，只是打包了一个<code>Tomcat</code>镜像。但在启动的时候，要声明使用<code>APP</code>目录作为我的<code>Volume</code>，并且要把它们挂载在<code>Web APP</code>目录下面</p>
+<p>而这个时候，由于前面已经运行过了一个<code>Init Container</code>，已经执行完拷贝操作了，所以这个<code>Volume</code>里面已经存在了应用的<code>WAR</code>包：就是<code>sample.war</code>，绝对已经存在这个<code>Volume</code>里面了。等到第二步执行启动这个<code>Tomcat</code>容器的时候，去挂这个<code>Volume</code>，一定能在里面找到前面拷贝来的<code>sample.war</code></p>
+<p>所以可以这样去描述：这个<code>Pod</code>就是一个自包含的，可以把这一个<code>Pod</code>在全世界任何一个<code>Kubernetes</code>上面都顺利启用起来。不用担心没有分布式存储、<code>Volume</code>不是持久化的，它一定是可以公布的</p>
+<p>所以这是一个通过组合两个不同角色的容器，并且按照这样一些像<code>Init Container</code>这样一种编排方式，统一的去打包这样一个应用，把它用<code>Pod</code>来去做的非常典型的一个例子。像这样的一个概念，在<code>Kubernetes</code>里面就是一个非常经典的容器设计模式，叫做：“Sidecar”。</p>
+<h3><span id="431-容器设计模式sidecar"> 4.3.1 容器设计模式：Sidecar</span></h3>
+<p>什么是<code>Sidecar</code>？就是说其实在<code>Pod</code>里面，可以定义一些专门的容器，来执行主业务容器所需要的一些辅助工作，比如我们前面举的例子，其实就干了一个事儿，这个<code>Init Container</code>，它就是一个<code>Sidecar</code>，它只负责把镜像里的<code>WAR</code>包拷贝到共享目录里面，以便被<code>Tomcat</code>能够用起来</p>
+<p>其它有哪些操作呢？比如说：</p>
+<ol>
+<li>原本需要在容器里面执行<code>SSH</code>需要干的一些事情，可以写脚本、一些前置的条件，其实都可以通过像<code>Init Container</code>或者另外像<code>Sidecar</code>的方式去解决</li>
+<li>当然还有一个典型例子就是我的日志收集，日志收集本身是一个进程，是一个小容器，那么就可以把它打包进<code>Pod</code>里面去做这个收集工作</li>
+<li>还有一个非常重要的东西就是<code>Debug</code>应用，实际上现在<code>Debug</code>整个应用都可以在应用<code>Pod</code>里面再次定义一个额外的小的<code>Container</code>，它可以去<code>exec</code>应用<code>pod</code>的<code>namespace</code></li>
+<li>查看其他容器的工作状态，这也是它可以做的事情。不再需要去<code>SSH</code>登陆到容器里去看，只要把监控组件装到额外的小容器里面就可以了，然后把它作为一个<code>Sidecar</code>启动起来，跟主业务容器进行协作，所以同样业务监控也都可以通过<code>Sidecar</code>方式来去做</li>
+</ol>
+<p>这种做法一个非常明显的优势就是在于其实将辅助功能从我的业务容器解耦了，所以我就能够独立发布<code>Sidecar</code>容器，并且更重要的是这个能力是可以重用的，即同样的一个监控<code>Sidecar</code>或者日志<code>Sidecar</code>，可以被全公司的人共用的。这就是设计模式的一个威力</p>
+<p><strong>Sidecar：应用与日志收集</strong></p>
+<p>接下来，我们再详细细化一下<code>Sidecar</code>这样一个模式，它还有一些其他的场景</p>
+<p>比如说前面提到的应用日志收集，业务容器将日志写在一个<code>Volume</code>里面，而由于<code>Volume</code>在<code>Pod</code>里面是被共享的，所以日志容器 —— 即<code>Sidecar</code>容器一定可以通过共享该<code>Volume</code>，直接把日志文件读出来，然后存到远程存储里面，或者转发到另外一个例子。现在业界常用的<code>Fluentd</code>日志进程或日志组件，基本上都是这样的工作方式</p>
+<p><strong>Sidecar：代理容器</strong></p>
+<p><code>Sidecar</code>的第二个用法，可以称作为代理容器<code>Proxy</code>。什么叫做代理容器呢？</p>
+<p>假如现在有个<code>Pod</code>需要访问一个外部系统，或者一些外部服务，但是这些外部系统是一个集群，那么这个时候如何通过一个统一的、简单的方式，用一个<code>IP</code>地址，就把这些集群都访问到？有一种方法就是：修改代码。因为代码里记录了这些集群的地址；另外还有一种解耦的方法，即通过<code>Sidecar</code>代理容器</p>
+<p>简单说，单独写一个这么小的<code>Proxy</code>，用来处理对接外部的服务集群，它对外暴露出来只有一个<code>IP</code>地址就可以了。所以接下来，业务容器主要访问<code>Proxy</code>，然后由<code>Proxy</code>去连接这些服务集群，这里的关键在于<code>Pod</code>里面多个容器是通过<code>localhost</code>直接通信的，因为它们同属于一个<code>network Namespace</code>，网络视图都一样，所以它们俩通信<code>localhost</code>，并没有性能损耗</p>
+<p>所以说代理容器除了做了解耦之外，并不会降低性能，更重要的是，像这样一个代理容器的代码就又可以被全公司重用了</p>
+<p><strong>Sidecar：适配器容器</strong></p>
+<p><code>Sidecar</code>的第三个设计模式 —— 适配器容器<code>Adapter</code>，什么叫<code>Adapter</code>呢？</p>
+<p>现在业务暴露出来的<code>API</code>，比如说有个<code>API</code>的一个格式是<code>A</code>，但是现在有一个外部系统要去访问我的业务容器，它只知道的一种格式是<code>API B</code>，所以要做一个工作，就是把业务容器怎么想办法改掉，要去改业务代码。但实际上，你可以通过一个<code>Adapter</code>帮你来做这层转换</p>
+<p>现在有个例子：现在业务容器暴露出来的监控接口是<code>/metrics</code>，访问这个这个容器的<code>metrics</code>的这个<code>URL</code>就可以拿到了。可是现在，这个监控系统升级了，它访问的<code>URL</code>是<code>/health</code>，我只认得暴露出<code>health</code>健康检查的<code>URL</code>，才能去做监控，<code>metrics</code>不认识。那这个怎么办？那就需要改代码了，但可以不去改代码，而是额外写一个<code>Adapter</code>，用来把所有对<code>health</code>的这个请求转发给<code>metrics</code>就可以了，所以这个<code>Adapter</code>对外暴露的是<code>health</code>这样一个监控的<code>URL</code>，这就可以了，你的业务就又可以工作了</p>
+<p>这样的关键还在于<code>Pod</code>之中的容器是通过<code>localhost</code>直接通信的，所以没有性能损耗，并且这样一个<code>Adapter</code>容器可以被全公司重用起来，这些都是设计模式给我们带来的好处</p>
+<h2><span id="44-本节总结"> 4.4 本节总结</span></h2>
+<p><code>Pod</code>是<code>Kubernetes</code>项目里实现“容器设计模式”的核心机制<br>
+“容器设计模式”是<code>Google Borg</code>的大规模容器集群管理最佳实践之一，也是<code>Kubernetes</code>进行复杂应用编排的基础依赖之一<br>
+所有“设计模式”的本质都是：解耦和重用</p>
+<p><code>Pod</code>与容器设计模式是<code>Kubernetes</code>体系里面最重要的一个基础知识点，希望读者能够仔细揣摩和掌握。在这里，我建议你去重新审视一下之前自己公司或者团队里使用<code>Pod</code>方式，是不是或多或少采用了所谓“富容器”这种设计呢？这种设计，只是一种过渡形态，会培养出很多非常不好的运维习惯。我强烈建议你逐渐采用容器设计模式的思想对富容器进行解耦，将它们拆分成多个容器组成一个<code>Pod</code>。这也正是当前阿里巴巴“全面上云”战役中正在全力推进的一项重要的工作内容</p>
+<h1><span id="5-kubernetes-网络模型进阶"> 5 Kubernetes 网络模型进阶</span></h1>
+<h2><span id="51-service"> 5.1 Service</span></h2>
+<ol>
+<li>一组Pod组成一组功能后端</li>
+<li>定义一个稳定的虚IP作为访问前端，一般还附赠一个DNS域名，Client无需感知Pod的细节</li>
+<li>kube-proxy是实现核心，隐藏了大量复杂性，通过apiserver监控Pod/Service的变化，反馈到LB配置中</li>
+<li>LB的实现机制与目标解耦，可以是个用户态进程，也可以是一堆精心设计的Rules（iptables/ipvs）</li>
+</ol>
+<p><strong>如何实现一个LVS版Service</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一步，绑定VIP到本地（欺骗内核）</span></span><br><span class="line">ip route add to <span class="built_in">local</span> 192.168.166.166/32 dev lo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二步，为这个虚IP创建一个IPVS的virtual server</span></span><br><span class="line">ipvsadm -A -t 192.168.166.166:16666 -s rr -p 600</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三步，为这个IPVS service创建相应的real server</span></span><br><span class="line">ipvsadm -a -t 192.168.166.166:16666 -r 127.0.0.1:22 -m</span><br></pre></td></tr></table></figure>
+<h1><span id="6-参考"> 6 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://edu.aliyun.com/course/1651?spm=5176.10731542.0.0.785020be217oeD">k8s-阿里云公开课</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/10/28/TCP-IP%E8%AF%A6%E8%A7%A3-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="prev" title="TCP-IP详解-读书笔记">
+      <i class="fa fa-chevron-left"></i> TCP-IP详解-读书笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/23/Linux-Distribution-Customization/" rel="next" title="Linux-Distribution-Customization">
+      Linux-Distribution-Customization <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 云原生概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 云原生技术发展简史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 我们正处于时代的关键节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.3 2019年——云原生技术普及元年</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.4 云原生的技术范畴</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.5 云原生思想的两个理论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.6 基础设施向云演进的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.7 基础设施向云演进的意义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.8 云原生关键技术点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 容器基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 容器与镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.2 容器的生命周期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.3 容器项目架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.4 容器 VS VM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.5 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Kubernetes核心概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 什么是Kubernetes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 Kubernetes的几个核心的功能</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 3.2.1 调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 3.2.2 自动修复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 3.2.3 水平伸缩</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 Kubernetes的架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.4 Kubernetes的核心概念与它的API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 3.4.1 核心概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 3.4.1.1 第一个概念：Pod</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 3.4.1.2 第二个概念：Volume</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 3.4.1.3 第三个概念：Deployment</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 3.4.1.4 第四个概念：Service</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-text"> 3.4.1.5 第五个概念：Namespace</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 3.4.2 Kubernetes的API</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.5 本节总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 理解Pod和容器设计模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 为什么需要Pod</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.1.1 容器的基本概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.1.2 真实操作系统里的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.1.3 进程组概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.1.4 Pod &#x3D; “进程组”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.1.5 为什么Pod必须是原子调度单位？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.1.6 再次理解Pod</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 Pod的实现机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.2.1 Pod要解决的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.3 详解容器设计模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.3.1 容器设计模式：Sidecar</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.4 本节总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 Kubernetes 网络模型进阶</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 Service</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

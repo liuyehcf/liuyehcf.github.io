@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java-volatile的内存语义">
+<meta property="og:url" content="http://example.com/2017/07/08/Java-volatile%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Java-volatile/volatile%E5%86%99%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F%E7%8A%B6%E6%80%81.png">
+<meta property="og:image" content="http://example.com/images/Java-volatile/volatile%E8%AF%BB%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F%E7%8A%B6%E6%80%81.png">
+<meta property="article:published_time" content="2017-07-08T13:03:00.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.342Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Java-volatile/volatile%E5%86%99%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F%E7%8A%B6%E6%80%81.png">
+
+<link rel="canonical" href="http://example.com/2017/07/08/Java-volatile%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java-volatile的内存语义 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/08/Java-volatile%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java-volatile的内存语义
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-08 21:03:00" itemprop="dateCreated datePublished" datetime="2017-07-08T21:03:00+08:00">2017-07-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/" itemprop="url" rel="index"><span itemprop="name">Java Virtual Machine</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/Java-Memory-Model/" itemprop="url" rel="index"><span itemprop="name">Java Memory Model</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/08/Java-volatile%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89/" class="post-meta-item leancloud_visitors" data-flag-title="Java-volatile的内存语义" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/08/Java-volatile%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/08/Java-volatile%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-前言"> 1 前言</span></h1>
+<p>本篇博客将介绍volatile的内存语义以及volatile内存语义的实现</p>
+<h1><span id="2-基本概念"> 2 基本概念</span></h1>
+<p><strong>hapens-before</strong></p>
+<ul>
+<li>happens-before规则不是描述实际操作的先后顺序，它是用来描述可见性的一种规则</li>
+<li>A happens-before B：动作A发生在动作B之前，且动作A对于动作B来说可见(如果这两个动作之间不存在依赖而且重排序后不会影响执行结果，那么JVM可以对其进行重排序，也就是说真正的执行顺序并不一定，但是保证结果一致)</li>
+</ul>
+<p><strong>Memory Barrier</strong></p>
+<ul>
+<li>为了保证内存可见性，Java编译器在生成指令序列的适当位置会插入内存屏障指令来禁止特定类型的处理器重排序。JMM把内存屏障分为4类，如下表所示</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">屏障类型</th>
+<th style="text-align:left">指令示例</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">LoadLoad Barriers</td>
+<td style="text-align:left">Load1;LoadLoad;Load2</td>
+<td style="text-align:left">确保Load1数据的装载先于Load2及所有后续装载指令的装载</td>
+</tr>
+<tr>
+<td style="text-align:left">StoreStore Barriers</td>
+<td style="text-align:left">Store1;StoreStore;Store2</td>
+<td style="text-align:left">确保Store1数据对其他处理器可见(刷新到内存)先于Store2及所有后续存储指令的存储</td>
+</tr>
+<tr>
+<td style="text-align:left">LoadStore Barriers</td>
+<td style="text-align:left">Load1;LoadStore;Store2</td>
+<td style="text-align:left">确保Load1数据装载先于Store2及所有后续的存储指令刷新到内存</td>
+</tr>
+<tr>
+<td style="text-align:left">StoreLoad Barriers</td>
+<td style="text-align:left">Store1;StoreLoad;Load2</td>
+<td style="text-align:left">确保Store1数据对其他处理器变得可见(指刷新到内存)先于Load2及所有后续装载指令的装载。StoreLoad Barriers会使该屏障之前的所有内存访问指令(存储和装载指令)完成之后，才执行该屏障之后的内存访问指令</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>StoreLoad Barriers是一个全能型屏障，他同时具有其他3个屏障的效果。现代处理器大多数支持该屏障。执行该屏障开销会很昂贵，因为当前处理器通常要把写缓冲区中的数据全部刷新到内存中(Buffer Fully Flush)</li>
+</ul>
+<p>Memory Barrier的其他参考资料</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.wowotech.net/kernel_synchronization/Why-Memory-Barriers.html">Why Memory Barriers？</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.jobbole.com/40844/">CPU流水线的探秘之旅</a></li>
+</ul>
+<h1><span id="3-volatile的特性"> 3 volatile的特性</span></h1>
+<p>理解volatile特性的一个好方法是把<strong>对volatile变量的单个读/写，看成是使用同一个锁对这些单个读/写操作做了同步</strong>，下面以一个示例来说明</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">VolatileFeatureExample</span> &#123;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">long</span> <span class="variable">vl</span> <span class="operator">=</span> <span class="number">0L</span>;<span class="comment">//使用volatile声明64位的long型变量</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">set</span><span class="params">(<span class="type">long</span> l)</span> &#123;</span><br><span class="line">        vl = <span class="number">1</span>;<span class="comment">//单个volatile变量的写</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">getAndIncrement</span><span class="params">()</span> &#123;</span><br><span class="line">        vl++;<span class="comment">//复合(多个)volatile变量的读/写</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">get</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> vl;<span class="comment">//单个volatile变量的读</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>假设有多个线程分别调用上面程序的3个方法，这个程序在语义上和下面程序等价</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">VolatileFeatureExample</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">vl</span> <span class="operator">=</span> <span class="number">0L</span>;<span class="comment">//64位的long型普通变量</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">set</span><span class="params">(<span class="type">long</span> l)</span> &#123;<span class="comment">//对单个普通变量的写用一个锁同步</span></span><br><span class="line">        vl = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">getAndIncrement</span><span class="params">()</span> &#123;<span class="comment">//普通方法调用</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">temp</span> <span class="operator">=</span> get();<span class="comment">//调用已同步的读方法</span></span><br><span class="line">        temp += <span class="number">1L</span>;<span class="comment">//普通写操作</span></span><br><span class="line">        set(temp);<span class="comment">//调用已同步的写方法</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="type">long</span> <span class="title function_">get</span><span class="params">()</span> &#123;<span class="comment">//对单个普通变量的读用同一个锁同步</span></span><br><span class="line">        <span class="keyword">return</span> vl;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上面的示例程序所示，一个volatile变量的单个读/写操作，与一个普通变量的读/写操作都是使用同一个锁来同步，它们之间的执行效果相同</p>
+<ul>
+<li>锁的happens-before规则保证释放锁和获取锁的两个线程之间的内存可见性，这意味着对一个volatile变量的读，总是能看到(任意线程)对这个volatile变量的最后写入</li>
+<li>锁的语义决定了临界区代码的执行具有原子性。这意味着，即使是64位的long型和double型变量，只要它是volatile变量，对该变量的读/写就具有原子性。如果是<strong>多个volatile操作</strong>或<strong>类似于volatile++这种复合操作</strong>，这些操作整体上就不具有原子性
+<ul>
+<li>为什么多个volatile操作不具有原子性？答案很简单，这些volatile读写操作并不是连续着执行的，另一个线程可以看到中间状态：例如前n个volatile读写操作执行完毕，后m个volatile读写操作尚未执行时的状态</li>
+</ul>
+</li>
+</ul>
+<p>简而言之，volatile变量<strong>自身</strong>具有下列特性</p>
+<ul>
+<li>可见性：对一个volatile变量的读，总能看到(任意线程)对这个volatile变量最后的写入</li>
+<li>原子性：对任意单个volatile变量的读/写具有原子性，但是类似于volatile++这种复合操作不具有原子性</li>
+</ul>
+<h1><span id="4-volatile-写-读建立的happens-before关系"> 4 volatile 写-读建立的happens-before关系</span></h1>
+<p>上一小结结尾总结了volatile<strong>自身</strong>的特性，对程序员来说，volatile对线程的内存可见性的影响比volatile自身的特性更为重要，也更需要我们去关注</p>
+<p>从JSR-133开始(JDK 1.5开始)，volatile变量的写-读可以实现线程之间的通信</p>
+<p>从内存语义的角度来说，volatile的写-读与锁的释放-获取有相同的内存效果：</p>
+<ul>
+<li>volatile写和锁的释放有相同的内存语义</li>
+<li>volatile读与锁的获取有相同的内存语义</li>
+</ul>
+<p>请看下面的示例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">VolatileExample</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">boolean</span> <span class="variable">flag</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">writer</span><span class="params">()</span> &#123;</span><br><span class="line">        a = <span class="number">1</span>;           <span class="comment">//1</span></span><br><span class="line">        flag = <span class="literal">true</span>;     <span class="comment">//2</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">reader</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (flag) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> a;   <span class="comment">//3</span></span><br><span class="line">            ...          <span class="comment">//4</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>假设</strong>线程A执行writer()方法之后，线程B执行reader()方法。根据happens-before规则，这个过程建立的happens-before关系可以分为3类，时序图如下</li>
+</ul>
+<ol>
+<li>根据程序次序规则：1 happens-before 2；3 happens-before 4</li>
+<li>根据volatile规则：2 happens-before 3</li>
+<li>根据happens-before的传递性规则，1 happens-before 4</li>
+</ol>
+<img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXMtYXNjaWkiIHN0YW5kYWxvbmU9Im5vIj8+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBjb250ZW50U3R5bGVUeXBlPSJ0ZXh0L2NzcyIgaGVpZ2h0PSIyMzlweCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSIgc3R5bGU9IndpZHRoOjI2M3B4O2hlaWdodDoyMzlweDtiYWNrZ3JvdW5kOiNFRUVCREM7IiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAyNjMgMjM5IiB3aWR0aD0iMjYzcHgiIHpvb21BbmRQYW49Im1hZ25pZnkiPjxkZWZzLz48Zz48cmVjdCBmaWxsPSIjRUVFQkRDIiBoZWlnaHQ9IjIzOSIgc3R5bGU9InN0cm9rZTpub25lO3N0cm9rZS13aWR0aDoxLjA7IiB3aWR0aD0iMjYzIiB4PSIwIiB5PSIwIi8+PHBhdGggZD0iTTg2LDM5Ljc4OTEgTDg2LjI4MDIsMzkuNzg5MSBMODUuNDQ3Niw0OS44MjIzIEw4Ni4yNTc3LDU5Ljg1NTUgTDg2LjUzMjksNjkuODg4NyBMODUuMDQ4OCw3OS45MjE5IEw4NS44OTY0LDg5Ljk1NTEgTDg1LjQzMTMsOTkuOTg4MyBMODUuNDg4NywxMTAuMDIxNSBMODUuOTA5MSwxMjAuMDU0NyBMODUuMDc4MiwxMzAuMDg3OSBMODYuNzM4MiwxNDAuMTIxMSBMODUuMTU5NiwxNTAuMTU0MyBMODUuNzM2MywxNjAuMTg3NSBMODYuNTc1OSwxNzAuMjIwNyBMODUuODg1NiwxODAuMjUzOSBMODYuMDkxLDE5MC4yODcxIEw4NiwyMDAuMzIwMyAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2U6IzAwMDBGRjtzdHJva2Utd2lkdGg6MC41O3N0cm9rZS1kYXNoYXJyYXk6NS4wLDUuMDsiLz48cGF0aCBkPSJNMTU2LDM5Ljc4OTEgTDE1Ni4yODAyLDM5Ljc4OTEgTDE1NS40NDc2LDQ5LjgyMjMgTDE1Ni4yNTc3LDU5Ljg1NTUgTDE1Ni41MzI5LDY5Ljg4ODcgTDE1NS4wNDg4LDc5LjkyMTkgTDE1NS44OTY0LDg5Ljk1NTEgTDE1NS40MzEzLDk5Ljk4ODMgTDE1NS40ODg3LDExMC4wMjE1IEwxNTUuOTA5MSwxMjAuMDU0NyBMMTU1LjA3ODIsMTMwLjA4NzkgTDE1Ni43MzgyLDE0MC4xMjExIEwxNTUuMTU5NiwxNTAuMTU0MyBMMTU1LjczNjMsMTYwLjE4NzUgTDE1Ni41NzU5LDE3MC4yMjA3IEwxNTUuODg1NiwxODAuMjUzOSBMMTU2LjA5MSwxOTAuMjg3MSBMMTU2LDIwMC4zMjAzICIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZTojMDAwMEZGO3N0cm9rZS13aWR0aDowLjU7c3Ryb2tlLWRhc2hhcnJheTo1LjAsNS4wOyIvPjxwb2x5Z29uIGZpbGw9IiMxRTkwRkYiIHBvaW50cz0iNTguNSw1LDU4LjUsNS4yMTAyLDY3LjY2NjcsNC41ODU3LDc2LjgzMzMsNS4xOTMzLDg2LDUuMzk5Nyw5NS4xNjY3LDQuMjg2NiwxMDQuMzMzMyw0LjkyMjMsMTEzLjUsNSwxMTMuNDQ1Niw0Ljg2ODcsMTEzLjgwNDYsNS4wMjgzLDExNC4xOTg0LDUuMjcxOSwxMTQuNDcyNSw1LjIyNjQsMTE0Ljk4NDgsNS43NTYzLDExNS4yNjc4LDUuNzMyMiwxMTUuMDczNyw1LjY1MTgsMTE1LjM1MzMsNi4wNjA2LDExNS42OTM3LDYuNDk0NCwxMTUuNjgwNyw2Ljc4MiwxMTUuODc0Niw3LjE1NTIsMTE2LDcuNSwxMTUuOTg5NCw3LjUsMTE2LjA1OTUsMTMuMjU3OCwxMTYuMDc5NywxOS4wMTU2LDExNi4xOTUyLDI0Ljc3MzQsMTE2LjIyMzcsMzAuNTMxMywxMTYsMzYuMjg5MSwxMTYuMjA5MiwzNi4zNzU3LDExNS45MzIsMzYuNjc1MSwxMTUuODQ5OSwzNy4wNTUzLDExNS43NzY5LDM3LjQzOTMsMTE1LjE5MjEsMzcuNjExMywxMTUuMjY3OCwzOC4wNTY4LDExNS4zNTQzLDM4LjI2NTgsMTE0Ljg3NjQsMzguMTEyLDExNC42Mjg4LDM4LjUxNDEsMTE0LjE0NCwzOC4zNDM3LDExMy44NDQ4LDM4LjYyMTUsMTEzLjUsMzguNzg5MSwxMTMuNSwzOS41MzA3LDEwNC4zMzMzLDM4Ljc0MDMsOTUuMTY2NywzOC44OTQ0LDg2LDM5LjEyNzcsNzYuODMzMywzOS4yMDUzLDY3LjY2NjcsMzguNzg1Miw1OC41LDM4Ljc4OTEsNTguNTM2NiwzOC44Nzc1LDU4LjA3MzQsMzguNDY2Myw1Ny44MjkyLDM4LjU4MzcsNTcuNTA5MywzOC41MTg1LDU3LjE0MjUsMzguMzQwMiw1Ni43MzIyLDM4LjA1NjgsNTYuOTIxLDM4LjEzNSw1Ni40MzcsMzcuNjQxNyw1Ni4yMzg1LDM3LjI2NjUsNTYuMTAxNSwzNi45MTY5LDU2LjEyODMsMzYuNjM1MSw1NiwzNi4yODkxLDU1LjkzNDUsMzYuMjg5MSw1Ni4yMjcxLDMwLjUzMTMsNTUuOTQxOCwyNC43NzM0LDU1Ljg4NTYsMTkuMDE1Niw1Ni4wNzYxLDEzLjI1NzgsNTYsNy41LDU1Ljc5NDYsNy40MTQ5LDU1Ljk4NjYsNy4wODAyLDU2LjQ5MjcsNi44NzU3LDU2LjU3MzUsNi40OTQ5LDU2LjgxMiw2LjE3OTUsNTYuNzMyMiw1LjczMjIsNTYuNjkxMiw1LjYzMzEsNTcuMTI2NSw1LjY4NDEsNTcuNTE0Nyw1LjYyMTIsNTcuNzMyNiw1LjE0NzQsNTguMTM0Miw1LjExNjksNTguNSw1IiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjAuNTsiLz48dGV4dCBmaWxsPSIjQTlEQ0RGIiBmb250LWZhbWlseT0iSW1wYWN0IiBmb250LXNpemU9IjE3IiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjQ2IiB4PSI2MyIgeT0iMjcuNzc5OCI+JiMzMjQ0NzsmIzMxMjQzO0E8L3RleHQ+PHBvbHlnb24gZmlsbD0iIzFFOTBGRiIgcG9pbnRzPSI1OC41LDE5OS4zMjAzLDU4LjUsMTk5LjUzMDUsNjcuNjY2NywxOTguOTA2LDc2LjgzMzMsMTk5LjUxMzYsODYsMTk5LjcyLDk1LjE2NjcsMTk4LjYwNjksMTA0LjMzMzMsMTk5LjI0MjYsMTEzLjUsMTk5LjMyMDMsMTEzLjQ0NTYsMTk5LjE4OSwxMTMuODA0NiwxOTkuMzQ4NywxMTQuMTk4NCwxOTkuNTkyMiwxMTQuNDcyNSwxOTkuNTQ2NywxMTQuOTg0OCwyMDAuMDc2NiwxMTUuMjY3OCwyMDAuMDUyNSwxMTUuMDczNywxOTkuOTcyMSwxMTUuMzUzMywyMDAuMzgwOSwxMTUuNjkzNywyMDAuODE0OCwxMTUuNjgwNywyMDEuMTAyMywxMTUuODc0NiwyMDEuNDc1NSwxMTYsMjAxLjgyMDMsMTE1Ljk4OTQsMjAxLjgyMDMsMTE2LjA1OTUsMjA3LjU3ODEsMTE2LjA3OTcsMjEzLjMzNTksMTE2LjE5NTIsMjE5LjA5MzgsMTE2LjIyMzcsMjI0Ljg1MTYsMTE2LDIzMC42MDk0LDExNi4yMDkyLDIzMC42OTYsMTE1LjkzMiwyMzAuOTk1NCwxMTUuODQ5OSwyMzEuMzc1NiwxMTUuNzc2OSwyMzEuNzU5NiwxMTUuMTkyMSwyMzEuOTMxNiwxMTUuMjY3OCwyMzIuMzc3MSwxMTUuMzU0MywyMzIuNTg2MSwxMTQuODc2NCwyMzIuNDMyMywxMTQuNjI4OCwyMzIuODM0NCwxMTQuMTQ0LDIzMi42NjQsMTEzLjg0NDgsMjMyLjk0MTgsMTEzLjUsMjMzLjEwOTQsMTEzLjUsMjMzLjg1MSwxMDQuMzMzMywyMzMuMDYwNiw5NS4xNjY3LDIzMy4yMTQ3LDg2LDIzMy40NDgsNzYuODMzMywyMzMuNTI1Niw2Ny42NjY3LDIzMy4xMDU1LDU4LjUsMjMzLjEwOTQsNTguNTM2NiwyMzMuMTk3OCw1OC4wNzM0LDIzMi43ODY2LDU3LjgyOTIsMjMyLjkwNDEsNTcuNTA5MywyMzIuODM4OSw1Ny4xNDI1LDIzMi42NjA1LDU2LjczMjIsMjMyLjM3NzEsNTYuOTIxLDIzMi40NTUzLDU2LjQzNywyMzEuOTYyLDU2LjIzODUsMjMxLjU4NjgsNTYuMTAxNSwyMzEuMjM3Miw1Ni4xMjgzLDIzMC45NTU0LDU2LDIzMC42MDk0LDU1LjkzNDUsMjMwLjYwOTQsNTYuMjI3MSwyMjQuODUxNiw1NS45NDE4LDIxOS4wOTM4LDU1Ljg4NTYsMjEzLjMzNTksNTYuMDc2MSwyMDcuNTc4MSw1NiwyMDEuODIwMyw1NS43OTQ2LDIwMS43MzUyLDU1Ljk4NjYsMjAxLjQwMDUsNTYuNDkyNywyMDEuMTk2LDU2LjU3MzUsMjAwLjgxNTIsNTYuODEyLDIwMC40OTk4LDU2LjczMjIsMjAwLjA1MjUsNTYuNjkxMiwxOTkuOTUzNCw1Ny4xMjY1LDIwMC4wMDQ0LDU3LjUxNDcsMTk5Ljk0MTUsNTcuNzMyNiwxOTkuNDY3Nyw1OC4xMzQyLDE5OS40MzcyLDU4LjUsMTk5LjMyMDMiIHN0eWxlPSJzdHJva2U6IzAwQkZGRjtzdHJva2Utd2lkdGg6MC41OyIvPjx0ZXh0IGZpbGw9IiNBOURDREYiIGZvbnQtZmFtaWx5PSJJbXBhY3QiIGZvbnQtc2l6ZT0iMTciIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iNDYiIHg9IjYzIiB5PSIyMjIuMTAwMSI+JiMzMjQ0NzsmIzMxMjQzO0E8L3RleHQ+PHBvbHlnb24gZmlsbD0iIzFFOTBGRiIgcG9pbnRzPSIxMjguNSw1LDEyOC41LDUuMjEwMiwxMzcuNjY2Nyw0LjU4NTcsMTQ2LjgzMzMsNS4xOTMzLDE1Niw1LjM5OTcsMTY1LjE2NjcsNC4yODY2LDE3NC4zMzMzLDQuOTIyMywxODMuNSw1LDE4My40NDU2LDQuODY4NywxODMuODA0Niw1LjAyODMsMTg0LjE5ODQsNS4yNzE5LDE4NC40NzI1LDUuMjI2NCwxODQuOTg0OCw1Ljc1NjMsMTg1LjI2NzgsNS43MzIyLDE4NS4wNzM3LDUuNjUxOCwxODUuMzUzMyw2LjA2MDYsMTg1LjY5MzcsNi40OTQ0LDE4NS42ODA3LDYuNzgyLDE4NS44NzQ2LDcuMTU1MiwxODYsNy41LDE4NS45ODk0LDcuNSwxODYuMDU5NSwxMy4yNTc4LDE4Ni4wNzk3LDE5LjAxNTYsMTg2LjE5NTIsMjQuNzczNCwxODYuMjIzNywzMC41MzEzLDE4NiwzNi4yODkxLDE4Ni4yMDkyLDM2LjM3NTcsMTg1LjkzMiwzNi42NzUxLDE4NS44NDk5LDM3LjA1NTMsMTg1Ljc3NjksMzcuNDM5MywxODUuMTkyMSwzNy42MTEzLDE4NS4yNjc4LDM4LjA1NjgsMTg1LjM1NDMsMzguMjY1OCwxODQuODc2NCwzOC4xMTIsMTg0LjYyODgsMzguNTE0MSwxODQuMTQ0LDM4LjM0MzcsMTgzLjg0NDgsMzguNjIxNSwxODMuNSwzOC43ODkxLDE4My41LDM5LjUzMDcsMTc0LjMzMzMsMzguNzQwMywxNjUuMTY2NywzOC44OTQ0LDE1NiwzOS4xMjc3LDE0Ni44MzMzLDM5LjIwNTMsMTM3LjY2NjcsMzguNzg1MiwxMjguNSwzOC43ODkxLDEyOC41MzY2LDM4Ljg3NzUsMTI4LjA3MzQsMzguNDY2MywxMjcuODI5MiwzOC41ODM3LDEyNy41MDkzLDM4LjUxODUsMTI3LjE0MjUsMzguMzQwMiwxMjYuNzMyMiwzOC4wNTY4LDEyNi45MjEsMzguMTM1LDEyNi40MzcsMzcuNjQxNywxMjYuMjM4NSwzNy4yNjY1LDEyNi4xMDE1LDM2LjkxNjksMTI2LjEyODMsMzYuNjM1MSwxMjYsMzYuMjg5MSwxMjUuOTM0NSwzNi4yODkxLDEyNi4yMjcxLDMwLjUzMTMsMTI1Ljk0MTgsMjQuNzczNCwxMjUuODg1NiwxOS4wMTU2LDEyNi4wNzYxLDEzLjI1NzgsMTI2LDcuNSwxMjUuNzk0Niw3LjQxNDksMTI1Ljk4NjYsNy4wODAyLDEyNi40OTI3LDYuODc1NywxMjYuNTczNSw2LjQ5NDksMTI2LjgxMiw2LjE3OTUsMTI2LjczMjIsNS43MzIyLDEyNi42OTEyLDUuNjMzMSwxMjcuMTI2NSw1LjY4NDEsMTI3LjUxNDcsNS42MjEyLDEyNy43MzI2LDUuMTQ3NCwxMjguMTM0Miw1LjExNjksMTI4LjUsNSIgc3R5bGU9InN0cm9rZTojMDBCRkZGO3N0cm9rZS13aWR0aDowLjU7Ii8+PHRleHQgZmlsbD0iI0E5RENERiIgZm9udC1mYW1pbHk9IkltcGFjdCIgZm9udC1zaXplPSIxNyIgbGVuZ3RoQWRqdXN0PSJzcGFjaW5nIiB0ZXh0TGVuZ3RoPSI0NiIgeD0iMTMzIiB5PSIyNy43Nzk4Ij4mIzMyNDQ3OyYjMzEyNDM7QjwvdGV4dD48cG9seWdvbiBmaWxsPSIjMUU5MEZGIiBwb2ludHM9IjEyOC41LDE5OS4zMjAzLDEyOC41LDE5OS41MzA1LDEzNy42NjY3LDE5OC45MDYsMTQ2LjgzMzMsMTk5LjUxMzYsMTU2LDE5OS43MiwxNjUuMTY2NywxOTguNjA2OSwxNzQuMzMzMywxOTkuMjQyNiwxODMuNSwxOTkuMzIwMywxODMuNDQ1NiwxOTkuMTg5LDE4My44MDQ2LDE5OS4zNDg3LDE4NC4xOTg0LDE5OS41OTIyLDE4NC40NzI1LDE5OS41NDY3LDE4NC45ODQ4LDIwMC4wNzY2LDE4NS4yNjc4LDIwMC4wNTI1LDE4NS4wNzM3LDE5OS45NzIxLDE4NS4zNTMzLDIwMC4zODA5LDE4NS42OTM3LDIwMC44MTQ4LDE4NS42ODA3LDIwMS4xMDIzLDE4NS44NzQ2LDIwMS40NzU1LDE4NiwyMDEuODIwMywxODUuOTg5NCwyMDEuODIwMywxODYuMDU5NSwyMDcuNTc4MSwxODYuMDc5NywyMTMuMzM1OSwxODYuMTk1MiwyMTkuMDkzOCwxODYuMjIzNywyMjQuODUxNiwxODYsMjMwLjYwOTQsMTg2LjIwOTIsMjMwLjY5NiwxODUuOTMyLDIzMC45OTU0LDE4NS44NDk5LDIzMS4zNzU2LDE4NS43NzY5LDIzMS43NTk2LDE4NS4xOTIxLDIzMS45MzE2LDE4NS4yNjc4LDIzMi4zNzcxLDE4NS4zNTQzLDIzMi41ODYxLDE4NC44NzY0LDIzMi40MzIzLDE4NC42Mjg4LDIzMi44MzQ0LDE4NC4xNDQsMjMyLjY2NCwxODMuODQ0OCwyMzIuOTQxOCwxODMuNSwyMzMuMTA5NCwxODMuNSwyMzMuODUxLDE3NC4zMzMzLDIzMy4wNjA2LDE2NS4xNjY3LDIzMy4yMTQ3LDE1NiwyMzMuNDQ4LDE0Ni44MzMzLDIzMy41MjU2LDEzNy42NjY3LDIzMy4xMDU1LDEyOC41LDIzMy4xMDk0LDEyOC41MzY2LDIzMy4xOTc4LDEyOC4wNzM0LDIzMi43ODY2LDEyNy44MjkyLDIzMi45MDQxLDEyNy41MDkzLDIzMi44Mzg5LDEyNy4xNDI1LDIzMi42NjA1LDEyNi43MzIyLDIzMi4zNzcxLDEyNi45MjEsMjMyLjQ1NTMsMTI2LjQzNywyMzEuOTYyLDEyNi4yMzg1LDIzMS41ODY4LDEyNi4xMDE1LDIzMS4yMzcyLDEyNi4xMjgzLDIzMC45NTU0LDEyNiwyMzAuNjA5NCwxMjUuOTM0NSwyMzAuNjA5NCwxMjYuMjI3MSwyMjQuODUxNiwxMjUuOTQxOCwyMTkuMDkzOCwxMjUuODg1NiwyMTMuMzM1OSwxMjYuMDc2MSwyMDcuNTc4MSwxMjYsMjAxLjgyMDMsMTI1Ljc5NDYsMjAxLjczNTIsMTI1Ljk4NjYsMjAxLjQwMDUsMTI2LjQ5MjcsMjAxLjE5NiwxMjYuNTczNSwyMDAuODE1MiwxMjYuODEyLDIwMC40OTk4LDEyNi43MzIyLDIwMC4wNTI1LDEyNi42OTEyLDE5OS45NTM0LDEyNy4xMjY1LDIwMC4wMDQ0LDEyNy41MTQ3LDE5OS45NDE1LDEyNy43MzI2LDE5OS40Njc3LDEyOC4xMzQyLDE5OS40MzcyLDEyOC41LDE5OS4zMjAzIiBzdHlsZT0ic3Ryb2tlOiMwMEJGRkY7c3Ryb2tlLXdpZHRoOjAuNTsiLz48dGV4dCBmaWxsPSIjQTlEQ0RGIiBmb250LWZhbWlseT0iSW1wYWN0IiBmb250LXNpemU9IjE3IiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjQ2IiB4PSIxMzMiIHk9IjIyMi4xMDAxIj4mIzMyNDQ3OyYjMzEyNDM7QjwvdGV4dD48cGF0aCBkPSJNOCw1NC43ODkxIEw4LjE4NjgsNTQuNzg5MSBMNy42MzE3LDU5Ljc4OTEgTDguMTcxOCw2NC43ODkxIEw4LjM1NTMsNjkuNzg5MSBMNy4zNjU5LDc0Ljc4OTEgTDgsNzkuNzg5MSBMOCw3OS41ODE4IEwxNy42ODc1LDc4LjY1MTcgTDI3LjM3NSw3OC43NjY0IEwzNy4wNjI1LDc5LjYwNzMgTDQ2Ljc1LDc3Ljk0NTQgTDU2LjQzNzUsODEuMjY1NCBMNjYuMTI1LDc4LjEwODMgTDc1LjgxMjUsNzkuMjYxNyBMODUuNSw4MC45NDA5IEw5NS4xODc1LDc5LjU2MDMgTDEwNC44NzUsNzkuOTcxIEwxMTQuNTYyNSw3OS43MDM5IEwxMjQuMjUsODAuMjY1MSBMMTMzLjkzNzUsODAuNDI2OCBMMTQzLjYyNSw4MS4zNTA5IEwxNTMuMzEyNSw4MS41Nzg1IEwxNjMsNzkuNzg5MSBMMTYzLjYwMzgsNzkuNzg5MSBMMTYzLjIyNjMsNzYuNzg5MSBMMTYzLjQxMjEsNzMuNzg5MSBMMTYzLjYyNDIsNzAuNzg5MSBMMTYyLjM1ODksNjcuNzg5MSBMMTYzLDY0Ljc4OTEgTDE2My40MjY1LDY1LjIxNTUgTDE2MC44MTM2LDYyLjYwMjcgTDE1OS4zMzU1LDYxLjEyNDYgTDE1Ni42ODg5LDU4LjQ3NzkgTDE1NC45NTY5LDU2Ljc0NiBMMTUzLDU0Ljc4OTEgTDE1Myw1Ni43NjY3IEwxNDMuMzMzMyw1NC42NTkxIEwxMzMuNjY2Nyw1NS4wNjk5IEwxMjQsNTUuNjkyMSBMMTE0LjMzMzMsNTUuODk5IEwxMDQuNjY2Nyw1NC43Nzg2IEw5NSw1NS41NTUgTDg1LjMzMzMsNTMuMjYyNiBMNzUuNjY2Nyw1NS41NDc0IEw2Niw1Ni4yNTA5IEw1Ni4zMzMzLDU1Ljk3NDUgTDQ2LjY2NjcsNTYuNDIzOCBMMzcsNTMuNTAwOCBMMjcuMzMzMyw1My4wNDk5IEwxNy42NjY3LDUzLjEzMiBMOCw1NC43ODkxICIgZmlsbD0iI0ZFRkZERCIgc3R5bGU9InN0cm9rZTojMTgxODE4O3N0cm9rZS13aWR0aDowLjU7Ii8+PHBhdGggZD0iTTE1Myw1NC43ODkxIEwxNTIuOTQ3Nyw1NC43ODkxIEwxNTIuODI1Myw1Ni43ODkxIEwxNTMuNjA1Nyw1OC43ODkxIEwxNTIuODQ0Nyw2MC43ODkxIEwxNTIuNjk1MSw2Mi43ODkxIEwxNTMsNjQuNzg5MSBMMTUzLDY0Ljk5MiBMMTU1LDY0LjE5NjMgTDE1Nyw2NC4zMjc2IEwxNTksNjUuMzY1OSBMMTYxLDY1LjE3NjMgTDE2Myw2NC43ODkxIEwxNjMuNDYxNyw2NS4yNTA3IEwxNjAuNzk3Nyw2Mi41ODY4IEwxNTkuMjAwNiw2MC45ODk3IEwxNTcuMzcxMSw1OS4xNjAyIEwxNTQuNzAzMSw1Ni40OTIxIEwxNTMsNTQuNzg5MSAiIGZpbGw9IiNGRUZGREQiIHN0eWxlPSJzdHJva2U6IzE4MTgxODtzdHJva2Utd2lkdGg6MC41OyIvPjx0ZXh0IGZpbGw9IiMwMDAwMDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciIHRleHRMZW5ndGg9IjEzNCIgeD0iMTQiIHk9IjcxLjg1NiI+MSYjNjUzMDY7JiMzMjQ0NzsmIzMxMjQzO0EmIzIwNDYyOyYjMjU5MTM7JiMyMDg0OTsmIzIwMTM5OyYjMjE0NjQ7JiMzNzMyNzs8L3RleHQ+PHBhdGggZD0iTTUsODkuOTIxOSBMNS4xODY4LDg5LjkyMTkgTDQuNjMxNyw5NC45MjE5IEw1LjE3MTgsOTkuOTIxOSBMNS4zNTUzLDEwNC45MjE5IEw0LjM2NTksMTA5LjkyMTkgTDUsMTE0LjkyMTkgTDUsMTE0LjcxNDYgTDE1LjEyNSwxMTMuNzg0NiBMMjUuMjUsMTEzLjg5OTIgTDM1LjM3NSwxMTQuNzQwMSBMNDUuNSwxMTMuMDc4MiBMNTUuNjI1LDExNi4zOTgzIEw2NS43NSwxMTMuMjQxMSBMNzUuODc1LDExNC4zOTQ1IEw4NiwxMTYuMDczNyBMOTYuMTI1LDExNC42OTMxIEwxMDYuMjUsMTE1LjEwMzggTDExNi4zNzUsMTE0LjgzNjcgTDEyNi41LDExNS4zOTc5IEwxMzYuNjI1LDExNS41NTk2IEwxNDYuNzUsMTE2LjQ4MzcgTDE1Ni44NzUsMTE2LjcxMTQgTDE2NywxMTQuOTIxOSBMMTY3LjYwMzgsMTE0LjkyMTkgTDE2Ny4yMjYzLDExMS45MjE5IEwxNjcuNDEyMSwxMDguOTIxOSBMMTY3LjYyNDIsMTA1LjkyMTkgTDE2Ni4zNTg5LDEwMi45MjE5IEwxNjcsOTkuOTIxOSBMMTY3LjQyNjUsMTAwLjM0ODMgTDE2NC44MTM2LDk3LjczNTUgTDE2My4zMzU1LDk2LjI1NzQgTDE2MC42ODg5LDkzLjYxMDcgTDE1OC45NTY5LDkxLjg3ODggTDE1Nyw4OS45MjE5IEwxNTcsOTEuODk5NSBMMTQ2Ljg2NjcsODkuNzkxOSBMMTM2LjczMzMsOTAuMjAyNyBMMTI2LjYsOTAuODI0OSBMMTE2LjQ2NjcsOTEuMDMxOCBMMTA2LjMzMzMsODkuOTExNSBMOTYuMiw5MC42ODc4IEw4Ni4wNjY3LDg4LjM5NTQgTDc1LjkzMzMsOTAuNjgwMiBMNjUuOCw5MS4zODM3IEw1NS42NjY3LDkxLjEwNzMgTDQ1LjUzMzMsOTEuNTU2NiBMMzUuNCw4OC42MzM3IEwyNS4yNjY3LDg4LjE4MjcgTDE1LjEzMzMsODguMjY0OCBMNSw4OS45MjE5ICIgZmlsbD0iI0ZFRkZERCIgc3R5bGU9InN0cm9rZTojMTgxODE4O3N0cm9rZS13aWR0aDowLjU7Ii8+PHBhdGggZD0iTTE1Nyw4OS45MjE5IEwxNTYuOTQ3Nyw4OS45MjE5IEwxNTYuODI1Myw5MS45MjE5IEwxNTcuNjA1Nyw5My45MjE5IEwxNTYuODQ0Nyw5NS45MjE5IEwxNTYuNjk1MSw5Ny45MjE5IEwxNTcsOTkuOTIxOSBMMTU3LDEwMC4xMjQ4IEwxNTksOTkuMzI5MSBMMTYxLDk5LjQ2MDQgTDE2MywxMDAuNDk4NyBMMTY1LDEwMC4zMDkxIEwxNjcsOTkuOTIxOSBMMTY3LjQ2MTcsMTAwLjM4MzUgTDE2NC43OTc3LDk3LjcxOTYgTDE2My4yMDA2LDk2LjEyMjUgTDE2MS4zNzExLDk0LjI5MyBMMTU4LjcwMzEsOTEuNjI0OSBMMTU3LDg5LjkyMTkgIiBmaWxsPSIjRkVGRkREIiBzdHlsZT0ic3Ryb2tlOiMxODE4MTg7c3Ryb2tlLXdpZHRoOjAuNTsiLz48dGV4dCBmaWxsPSIjMDAwMDAwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgbGVuZ3RoQWRqdXN0PSJzcGFjaW5nIiB0ZXh0TGVuZ3RoPSIxNDEiIHg9IjExIiB5PSIxMDYuOTg4OCI+MiYjNjUzMDY7JiMzMjQ0NzsmIzMxMjQzO0EmIzIwODg5O3ZvbGF0aWxlJiMyMTQ2NDsmIzM3MzI3OzwvdGV4dD48cGF0aCBkPSJNNTYsMTI1LjA1NDcgTDU2LjE4NjgsMTI1LjA1NDcgTDU1LjYzMTcsMTMwLjA1NDcgTDU2LjE3MTgsMTM1LjA1NDcgTDU2LjM1NTMsMTQwLjA1NDcgTDU1LjM2NTksMTQ1LjA1NDcgTDU2LDE1MC4wNTQ3IEw1NiwxNDkuODQ3NSBMNjYsMTQ4LjkxNzQgTDc2LDE0OS4wMzIgTDg2LDE0OS44NzI5IEw5NiwxNDguMjExIEwxMDYsMTUxLjUzMTEgTDExNiwxNDguMzczOSBMMTI2LDE0OS41MjczIEwxMzYsMTUxLjIwNjUgTDE0NiwxNDkuODI1OSBMMTU2LDE1MC4yMzY3IEwxNjYsMTQ5Ljk2OTUgTDE3NiwxNTAuNTMwOCBMMTg2LDE1MC42OTI0IEwxOTYsMTUxLjYxNjUgTDIwNiwxNTEuODQ0MiBMMjE2LDE1MS44NjYgTDIyNiwxNTAuNzMzNyBMMjM2LDE1MS4yOTA5IEwyNDYsMTUxLjkyNzMgTDI1NiwxNTAuMDU0NyBMMjU1LjM1ODksMTUwLjA1NDcgTDI1Ni42MDMxLDE0Ny4wNTQ3IEwyNTUuNzM2NCwxNDQuMDU0NyBMMjU2LjQ3NDUsMTQxLjA1NDcgTDI1NS41NiwxMzguMDU0NyBMMjU2LDEzNS4wNTQ3IEwyNTUuOTU2OSwxMzUuMDExNiBMMjU0LjQ2NjEsMTMzLjUyMDggTDI1MS45Njk0LDEzMS4wMjQxIEwyNTAuMDY2MiwxMjkuMTIwOSBMMjQ4LjIxMjgsMTI3LjI2NzUgTDI0NiwxMjUuMDU0NyBMMjQ2LDEyNi4xNjQ2IEwyMzYsMTI1LjA0NDMgTDIyNiwxMjUuODIwNiBMMjE2LDEyMy41MjgyIEwyMDYsMTI1LjgxMzEgTDE5NiwxMjYuNTE2NSBMMTg2LDEyNi4yNDAxIEwxNzYsMTI2LjY4OTQgTDE2NiwxMjMuNzY2NSBMMTU2LDEyMy4zMTU1IEwxNDYsMTIzLjM5NzYgTDEzNiwxMjQuODk3NyBMMTI2LDEyNC41MzA2IEwxMTYsMTI2Ljg3MTggTDEwNiwxMjQuNTg4OSBMOTYsMTI0LjEzOTkgTDg2LDEyNS42NjM0IEw3NiwxMjMuMjc2NSBMNjYsMTIzLjY3MDQgTDU2LDEyNS4wNTQ3ICIgZmlsbD0iI0ZFRkZERCIgc3R5bGU9InN0cm9rZTojMTgxODE4O3N0cm9rZS13aWR0aDowLjU7Ii8+PHBhdGggZD0iTTI0NiwxMjUuMDU0NyBMMjQ2LjU3NjgsMTI1LjA1NDcgTDI0Ni4zODczLDEyNy4wNTQ3IEwyNDYuNjUyOSwxMjkuMDU0NyBMMjQ1LjcxNCwxMzEuMDU0NyBMMjQ2LjI4MzcsMTMzLjA1NDcgTDI0NiwxMzUuMDU0NyBMMjQ2LDEzNS41Nzk1IEwyNDgsMTM0LjYzNDggTDI1MCwxMzQuOTY5NSBMMjUyLDEzNS4xNjY3IEwyNTQsMTM1LjYzNCBMMjU2LDEzNS4wNTQ3IEwyNTUuOTk3NCwxMzUuMDUyMSBMMjU0LjI5MDcsMTMzLjM0NTQgTDI1MS42NTE5LDEzMC43MDY2IEwyNDkuNTc0MywxMjguNjI5IEwyNDguMzE2NSwxMjcuMzcxMiBMMjQ2LDEyNS4wNTQ3ICIgZmlsbD0iI0ZFRkZERCIgc3R5bGU9InN0cm9rZTojMTgxODE4O3N0cm9rZS13aWR0aDowLjU7Ii8+PHRleHQgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iMTc5IiB4PSI2MiIgeT0iMTQyLjEyMTYiPjMmIzY1MzA2OyYjMzI0NDc7JiMzMTI0MztCJiMzNTgzNTsmIzIxNTE2OyYjMTk5Njg7JiMyMDAxMDt2b2xhdGlsZSYjMjE0NjQ7JiMzNzMyNzs8L3RleHQ+PHBhdGggZD0iTTg1LDE2MC4xODc1IEw4NS4xODY4LDE2MC4xODc1IEw4NC42MzE3LDE2NS4xODc1IEw4NS4xNzE4LDE3MC4xODc1IEw4NS4zNTUzLDE3NS4xODc1IEw4NC4zNjU5LDE4MC4xODc1IEw4NSwxODUuMTg3NSBMODUsMTg0Ljk4MDMgTDk1LjA3MTQsMTg0LjA1MDIgTDEwNS4xNDI5LDE4NC4xNjQ4IEwxMTUuMjE0MywxODUuMDA1NyBMMTI1LjI4NTcsMTgzLjM0MzggTDEzNS4zNTcxLDE4Ni42NjM5IEwxNDUuNDI4NiwxODMuNTA2OCBMMTU1LjUsMTg0LjY2MDEgTDE2NS41NzE0LDE4Ni4zMzk0IEwxNzUuNjQyOSwxODQuOTU4OCBMMTg1LjcxNDMsMTg1LjM2OTUgTDE5NS43ODU3LDE4NS4xMDIzIEwyMDUuODU3MSwxODUuNjYzNiBMMjE1LjkyODYsMTg1LjgyNTIgTDIyNiwxODUuMTg3NSBMMjI2LjUyMDYsMTg1LjE4NzUgTDIyNi41OTY1LDE4Mi4xODc1IEwyMjYuNjAzOCwxNzkuMTg3NSBMMjI2LjIyNjMsMTc2LjE4NzUgTDIyNi40MTIxLDE3My4xODc1IEwyMjYsMTcwLjE4NzUgTDIyNi40NDE0LDE3MC42Mjg5IEwyMjMuNTQ2NywxNjcuNzM0MiBMMjIyLjQyNjUsMTY2LjYxNCBMMjE5LjgxMzYsMTY0LjAwMTEgTDIxOC4zMzU1LDE2Mi41MjMgTDIxNiwxNjAuMTg3NSBMMjE2LDE1OC44Njc0IEwyMDUuOTIzMSwxNjAuMDA0OCBMMTk1Ljg0NjIsMTYyLjE2NTEgTDE4NS43NjkyLDE2MC4wNTc1IEwxNzUuNjkyMywxNjAuNDY4MyBMMTY1LjYxNTQsMTYxLjA5MDUgTDE1NS41Mzg1LDE2MS4yOTc1IEwxNDUuNDYxNSwxNjAuMTc3MSBMMTM1LjM4NDYsMTYwLjk1MzQgTDEyNS4zMDc3LDE1OC42NjExIEwxMTUuMjMwOCwxNjAuOTQ1OSBMMTA1LjE1MzgsMTYxLjY0OTQgTDk1LjA3NjksMTYxLjM3MjkgTDg1LDE2MC4xODc1ICIgZmlsbD0iI0ZFRkZERCIgc3R5bGU9InN0cm9rZTojMTgxODE4O3N0cm9rZS13aWR0aDowLjU7Ii8+PHBhdGggZD0iTTIxNiwxNjAuMTg3NSBMMjE2LjU0NDksMTYwLjE4NzUgTDIxNS41NzA2LDE2Mi4xODc1IEwyMTUuNDIwMywxNjQuMTg3NSBMMjE1LjQ0NzYsMTY2LjE4NzUgTDIxNS45NDc3LDE2OC4xODc1IEwyMTYsMTcwLjE4NzUgTDIxNiwxNzAuMDEyOCBMMjE4LDE3MC43OTMyIEwyMjAsMTcwLjAzMjIgTDIyMiwxNjkuODgyNiBMMjI0LDE3MC4zOTA0IEwyMjYsMTcwLjE4NzUgTDIyNS41ODA5LDE2OS43Njg0IEwyMjMuNjczNywxNjcuODYxMiBMMjIyLjQwNzksMTY2LjU5NTQgTDIyMC4yNzM4LDE2NC40NjEzIEwyMTguNDYxNywxNjIuNjQ5MiBMMjE2LDE2MC4xODc1ICIgZmlsbD0iI0ZFRkZERCIgc3R5bGU9InN0cm9rZTojMTgxODE4O3N0cm9rZS13aWR0aDowLjU7Ii8+PHRleHQgZmlsbD0iIzAwMDAwMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGxlbmd0aEFkanVzdD0ic3BhY2luZyIgdGV4dExlbmd0aD0iMTIwIiB4PSI5MSIgeT0iMTc3LjI1NDQiPjQmIzY1MzA2OyYjMzI0NDc7JiMzMTI0MztCJiMzNTgzNTsmIzIwODQ5OyYjMjAxMzk7JiMyMTQ2NDsmIzM3MzI3OzwvdGV4dD48IS0tU1JDPVtYUDNESWlEMDU4Tk5jUVNPeTBjZ1dqWFRxZ0dXYjJCcTJRUjlqR3Y5UGpBUklVaUZXWGpyZUwwTkJqR2Q0MGtBa3JnNWxhbllUVUtoQUJRYS1NYm5EenBwZE5sRWRUM2I4YzM4VkRmY2pqajE2R2NkOVpzOVRDc29CQ0VpYUowYnpmYm0taVlMMGE0TEhhMG9NV1pUMjhHRHo5WGVFZ0JpcHZRTzA0N0JGSkl5TnJoSlJJTkhhRVcwQmI0UlYweVFONDBNUUVVTE9hRHpzd29QVFE4SFJQVVh1Wk9GYzUwaDB4OUNPUENmZEd2VzJRakJlUGhDMXhoWjF5bk05UXQ1WnUxTWphaHBLaHRQdk9MR3JldE9ONWdPb1gtTTJxZWRWeExxNWkwMUVJNURnTzNBN1kyVFpZVkpYcWt6TWxiLWx2LV91eWRKbnlyaFNsT0ladVY5dUZSaE9oMjROcl9tb1ZiVEp0ZkNTR3pNdTRQcjh5TURwLVV0dkZlZzdmdDZleVRfVlBqdk53UkozbTAwXS0tPjwvZz48L3N2Zz4=">
+<ul>
+<li>这里A线程写一个volatile变量后，B线程读同一个volatile变量。<strong>A线程在写volatile变量之前所有可见的共享变量，在B线程读同一个volatile变量后，将立即变得对B线程可见</strong>(这是下文中提到的volatile重排规则表为什么要禁止普通读写与volatile读写重排序的原因之一)</li>
+</ul>
+<h1><span id="5-volatile-写-读的内存语义"> 5 volatile 写-读的内存语义</span></h1>
+<h2><span id="51-volatile写的内存语义"> 5.1 volatile写的内存语义</span></h2>
+<p><strong>volatile写的内存语义：当写一个volatile变量时，JVM会把该线程对应的本地内存中的共享变量(不仅仅是该volatile变量，而是该线程缓存的所有共享变量)值刷新到主内存</strong></p>
+<ul>
+<li>因此，当别的线程从主内存中读取volatile变量时，一定保证是最新的，即最后一次写操作的值</li>
+</ul>
+<p>以上面的示例程序VolatileExample为例，假设线程A首先执行writer()方法，随后线程B执行reader()方法，初始时两个线程的本地内存中的flag和a都是初始状态，下图是线程A执行volatile写之后，共享变量的状态示意图</p>
+<p><img src="/images/Java-volatile/volatile%E5%86%99%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F%E7%8A%B6%E6%80%81.png" alt="共享变量状态示意图"></p>
+<ul>
+<li>线程A在写flag变量后，本地内存A中被线程A更新过的<strong>两个变量</strong>（<strong>volatile之后会插入StoreLoad内存屏障，这个屏障会将线程缓冲区内所有的变量刷新到主内存中去</strong>）的值被刷新到主内存中。此时，本地内存A和主内存中的共享变量的值是一致的</li>
+</ul>
+<h2><span id="52-volatile读的内存语义"> 5.2 volatile读的内存语义</span></h2>
+<p><strong>volatile读的内存语义：当读一个volatile变量时，JVM会把该线程对应的本地内存(不仅仅是该volatile对应的内存，而是该线程缓存的所有变量的内存)置为无效。线程接下来将从主内存中读取共享变量</strong></p>
+<ul>
+<li>因此，当从主内存中读取volatile变量时，读取到的一定是当前或其他线程最后一次写操作的值</li>
+</ul>
+<p>以上面的示例程序VolatileExample为例，假设线程A首先执行writer()方法，随后线程B执行reader()方法，初始时两个线程的本地内存中的flag和a都是初始状态，下图是线程B执行volatile读之后，共享变量的状态示意图</p>
+<p><img src="/images/Java-volatile/volatile%E8%AF%BB%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F%E7%8A%B6%E6%80%81.png" alt="共享变量状态示意图"></p>
+<ul>
+<li>在读flag变量后，本地内存和B包含的值已经被置为无效。此时，线程B必须从主内存中读取共享变量。线程B的读取操作将导致本地内存B和主内存中的共享变量的值变成一致</li>
+</ul>
+<h2><span id="53-小结"> 5.3 小结</span></h2>
+<p>如果我们把volatile写和volatile读两个步骤总和起来看，在读线程B读一个volatile变量之后，写线程A在写这个volatile变量之前所有可见的共享变量的值都将立即变得对线程B可见，下面对volatile写和volatile读的内存语义做个总结</p>
+<ul>
+<li>当线程写一个volatile变量时，实质上是该线程向接下来要读这个volatile变量的某个线程发出了(该线程对共享变量所作修改的)消息</li>
+<li>当线程读一个volatile变量时，实质上是该线程接收了之前某个线程发出的(某个线程在写这个volatile变量之前对共享变量所作修改的)消息</li>
+</ul>
+<h1><span id="6-volatile内存语义的实现"> 6 volatile内存语义的实现</span></h1>
+<p>下面来看看JMM如何实现volatile写/读的内存语义。重排序分为编译器和处理器重排序。为了实现volatile内存语义，JMM会分别限制这两种类型的重排序类型，下面是JMM针对编译器指定的<strong>volatile重排规则表</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">第一个操作/第二个操作</th>
+<th style="text-align:left">普通读/写</th>
+<th style="text-align:left">volatile读</th>
+<th style="text-align:left">volatile 写</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">普通读/写</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">volatile读</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">volatile 写</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>当第二个操作是volatile写时，不管第一个操作是什么，都不能重排序。这个规则确保volatile写之前的操作不会被编译器重排序到volatile写之后</li>
+<li>当第一个操作是volatile读时，不管第二个操作是什么，都不能重排序。这个规则确保volatile读之后的操作不会被编译器重排序到volatile读之前</li>
+<li>当第一个操作是volatile写，第二个操作是volatile读时，不能重排序</li>
+</ol>
+<p>为了实现volatile的内存语义，编译器在生成字节码时，会在指令序列中插入内存屏障(lock addl)来禁止特定类型的处理器重排序。对于编译器来说，<strong>发现一个最优布置来最小化插入屏障的总数几乎是不可能的</strong>。因此，JVM采取保守策略</p>
+<ul>
+<li>在每个volatile <strong>写</strong> 操作 <strong>前面</strong> 插入一个 <strong>StoreStore</strong> 屏障</li>
+<li>在每个volatile <strong>写</strong> 操作 <strong>后面</strong> 插入一个 <strong>StoreLoad</strong> 屏障</li>
+<li>在每个volatile <strong>读</strong> 操作 <strong>后面</strong> 插入一个 <strong>LoadLoad</strong> 屏障</li>
+<li>在每个volatile <strong>读</strong> 操作 <strong>后面</strong> 插入一个 <strong>LoadStore</strong> 屏障</li>
+</ul>
+<p>为了保证能正确实现volatile的内存语义，JMM采取了保守策略：在每个volatile写的后面，或者在每个volatile读的前面插入一个StoreLoad屏障。从整体执行效率的角度考虑，JMM最终选择了在每个volatile写的后面插入一个StoreLoad屏障。因为volatile写-读内存语义的常见使用模式是：一个写线程写volaitle变量，多个读线程读同一个volatile变量。当读线程的数量大大超过写线程时，选择在volatile写之后插入StoreLoad屏障将带来可观的执行效率提升</p>
+<h2><span id="61-volatile重排规则表为什么这样制定"> 6.1 volatile重排规则表为什么这样制定</span></h2>
+<p>关于编译器和处理器禁止对 <strong>volatile读</strong> 和 <strong>volatile写</strong> 之间的重排序，很好理解</p>
+<ul>
+<li>volatile读和volatile是原子操作，并且volatile读-写操作具有与锁的加锁-解锁相同的内存语义，所以volatile读写之间是不能重排的</li>
+</ul>
+<p>但是编译器为什么 <strong>选择性</strong> 地禁止 <strong>普通读写</strong> 和 <strong>volatile读写</strong> 之间的重排序?</p>
+<ol>
+<li>如果第一个操作是普通读写操作，第二个操作是volatile写操作，为什么<strong>要禁止</strong>重排</li>
+<li>如果第一个操作是volatile写操作，第二个操作是普通读写操作，为什么<strong>不禁止</strong>重排</li>
+<li>如果第一个操作是volatile读操作，第二个操作是普通读写操作，为什么<strong>要禁止</strong>重排</li>
+<li>如果第一个操作是普通读写操作，第二个操作是volatile读操作，为什么<strong>不禁止</strong>重排</li>
+</ol>
+<p>关于问题1和问题3，仍然以上文提到的示例程序VolatileExample进行讲解</p>
+<ul>
+<li>如果不禁止<code>a = 1;</code>与<code>flag = ture;</code>之间的重排序，假设重排序后先执行<code>flag = ture;</code>，后执行<code>a = 1;</code>，这样会导致a的修改可能对线程B并不可见；而重排之前共享变量a的修改必然对线程B可见(因为volatile写之后会插入StoreLoad内存屏障，刷新所有缓存中的共享变量到主内存中去)。解答了问题1</li>
+<li>如果不禁止<code>if (flag)</code>与<code>int i = a;</code>之间的重排序，假设重排序后先执行<code>int i = a;</code>(这里指的是读取共享变量a这部分操作，而i的赋值操作是不能先执行的，因为存在依赖，这里要注意)，后执行<code>if (flag)</code>(这里指的是读取共享变量flag这个操作，而if语句的操作是不能后执行的，因为存在依赖，这里要注意)，这样会导致线程B可能看到了一个尚未修改的共享变量a的值；而重排之前线程B必定能看到线程A对共享变量a的修改。解答了问题3</li>
+<li>存在<code>volatile写 happens-before volatile读</code>的规则，而volatile写会将线程缓冲区所有共享变量刷新到主存当中，因此重排序普通读写与volatile写会导致程序结果发生变化。volatile读会将线程缓冲区所有共享变量置为无效状态，因此重排序volatile读与普通读写会导致程序结果发生变化。侧面解答了问题1和3</li>
+</ul>
+<p>关于问题2和问题4，以如下示例程序进行讲解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">VolatileExample2</span> &#123;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="variable">flag</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">writer</span><span class="params">()</span> &#123;</span><br><span class="line">        a = <span class="number">1</span>;           <span class="comment">//1</span></span><br><span class="line">        flag = <span class="literal">true</span>;     <span class="comment">//2</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">reader</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (flag) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> a;   <span class="comment">//3</span></span><br><span class="line">            ...          <span class="comment">//4</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>reader()以非volatile的变量作为if条件，而普通变量不具备可见性的保证，因此这本身就是非线程安全的。再怎么重排都不影响结果，回答了问题2和4</li>
+</ul>
+<h1><span id="7-volatile内存语义的增强"> 7 volatile内存语义的增强</span></h1>
+<p>在JSR-133之前的旧Java内存模型中，虽然不允许volatile变量之间重排序，但旧的Java内存模型允许volatile变量与普通变量重排序</p>
+<p><strong>volatile内存语义的增强：选择性地禁止volatile变量与普通变量的重排序，目的是为了让volatile写-读具有与锁的释放-获取相同的内存语义</strong></p>
+<ul>
+<li>volatile写与锁的释放有相同的内存语义：<strong>当线程 <code>释放锁</code>/<code>写volatile变量</code> 时，JMM会把该线程对应的(所有)本地内存中的共享变量刷新到主内存中</strong></li>
+<li>volatile读与锁的获取有相同的内存语义：<strong>当线程 <code>获取锁</code>/<code>读volatile变量</code> 时，JMM会把该线程对应的(所有)本地内存置为无效，从而使得被监视器保护的临界区代码必须从主内存中读取共享变量</strong></li>
+</ul>
+<p>在旧的内存模型中，volatile的写-读没有锁的释放-获取所具有的内存语义。<strong>为了提供一种比锁更轻量级的线程之间的通信的机制</strong>，JSR-133专家组决定增强volatile的内存语义：严格限制编译器和处理器对volatile变量与普通变量的重排序，<strong>确保volatile的写-读和锁的释放-获取具有相同的内存语义</strong>。从编译器重排序规则和处理器内存屏障插入策略来看，只要volatile变量与普通变量之间的重排序可能会破坏volatile的内存语义，这种重排序就会被编译器重排序规则和处理器内存屏障插入策略禁止</p>
+<h1><span id="8-参考"> 8 参考</span></h1>
+<ul>
+<li>《Java并发编程的艺术》</li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/08/Java-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7/" rel="prev" title="Java-顺序一致性">
+      <i class="fa fa-chevron-left"></i> Java-顺序一致性
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/08/Java-%E9%94%81%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89/" rel="next" title="Java-锁的内存语义">
+      Java-锁的内存语义 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 基本概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 volatile的特性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 volatile 写-读建立的happens-before关系</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 volatile 写-读的内存语义</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 volatile写的内存语义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.2 volatile读的内存语义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.3 小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 volatile内存语义的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.1 volatile重排规则表为什么这样制定</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 volatile内存语义的增强</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

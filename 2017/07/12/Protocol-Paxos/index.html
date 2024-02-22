@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Protocol-Paxos">
+<meta property="og:url" content="http://example.com/2017/07/12/Protocol-Paxos/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-07-12T01:32:34.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.355Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/07/12/Protocol-Paxos/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Protocol-Paxos | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/12/Protocol-Paxos/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Protocol-Paxos
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-12 09:32:34" itemprop="dateCreated datePublished" datetime="2017-07-12T09:32:34+08:00">2017-07-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/" itemprop="url" rel="index"><span itemprop="name">Distributed</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/Protocol/" itemprop="url" rel="index"><span itemprop="name">Protocol</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/12/Protocol-Paxos/" class="post-meta-item leancloud_visitors" data-flag-title="Protocol-Paxos" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/12/Protocol-Paxos/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/12/Protocol-Paxos/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-前言"> 1 前言</span></h1>
+<p><code>Paxos</code>算法是莱斯利-兰伯特（英语：Leslie Lamport，LaTeX中的“La”）于1990年提出的一种基于消息传递且具有高度容错特性的一致性算法。<code>Paxos</code>算法作为<code>Zookeeper</code>中的<code>leader选举算法</code></p>
+<h1><span id="2-问题和假设"> 2 问题和假设</span></h1>
+<p>分布式系统中的节点通信存在两种模型：<strong>共享内存（Shared memory）和消息传递（Messages passing）</strong>。基于消息传递通信模型的分布式系统，不可避免的会发生以下错误：进程可能会慢、被杀死或者重启，消息可能会延迟、丢失、重复，在基础<code>Paxos</code>场景中，先不考虑可能出现消息篡改即拜占庭错误的情况。<code>Paxos</code>算法解决的问题是在一个可能发生上述异常的分布式系统中如何就某个值达成一致，保证不论发生以上任何异常，都不会破坏决议的一致性。一个典型的场景是，在一个分布式数据库系统中，如果各节点的初始状态一致，每个节点都执行相同的操作序列，那么他们最后能得到一个一致的状态。为保证每个节点执行相同的命令序列，需要在每一条指令上执行一个“一致性算法”以保证每个节点看到的指令一致。一个通用的一致性算法可以应用在许多场景中，是分布式计算中的重要问题。因此从20世纪80年代起对于一致性算法的研究就没有停止过</p>
+<p>为描述<code>Paxos</code>算法，Lamport虚拟了一个叫做<code>Paxos</code>的希腊城邦，这个岛按照议会民主制的政治模式制订法律，但是没有人愿意将自己的全部时间和精力放在这种事情上。所以无论是议员，议长或者传递纸条的服务员都不能承诺别人需要时一定会出现，也无法承诺批准决议或者传递消息的时间。但是这里假设没有拜占庭将军问题（Byzantine failure，即虽然有可能一个消息被传递了两次，但是绝对不会出现错误的消息）；只要等待足够的时间，消息就会被传到。另外，<code>Paxos</code>岛上的议员是不会反对其他议员提出的决议的<br>
+对应于分布式系统，议员对应于各个节点，制定的法律对应于系统的状态。各个节点需要进入一个一致的状态，例如在独立Cache的对称多处理器系统中，各个处理器读内存的某个字节时，必须读到同样的一个值，否则系统就违背了一致性的要求。一致性要求对应于法律条文只能有一个版本。议员和服务员的不确定性对应于节点和消息传递通道的不可靠性</p>
+<h1><span id="3-算法"> 3 算法</span></h1>
+<h2><span id="31-算法的提出与证明"> 3.1 算法的提出与证明</span></h2>
+<p>首先将议员的角色分为<code>proposers</code>，<code>acceptors</code>，和<code>learners</code>（允许身兼数职）</p>
+<ul>
+<li><strong><code>proposers</code></strong>：提出提案，提案信息包括提案编号和提议的<code>value</code></li>
+<li><strong><code>acceptor</code></strong>：收到提案后可以接受（<code>accept</code>）提案，若提案获得多数<code>acceptors</code>的接受，则称该提案被批准（<code>chosen</code>）</li>
+<li><strong><code>learners</code></strong>：只能“学习”被批准的提案</li>
+</ul>
+<p>划分角色后，就可以更精确的定义问题：</p>
+<ol>
+<li>决议（<code>value</code>）只有在被<code>proposers</code>提出后才能被批准（未经批准的决议称为“提案（<code>proposal</code>）”）</li>
+<li>在一次<code>Paxos</code>算法的执行实例中，只批准（<code>chosen</code>）一个<code>value</code></li>
+<li><code>learners</code>只能获得被批准（<code>chosen</code>）的<code>value</code></li>
+</ol>
+<p>另外还需要保证progress。这一点以后再讨论</p>
+<p>作者通过不断加强上述3个约束（主要是第二个）获得了<code>Paxos</code>算法</p>
+<p>批准<code>value</code>的过程中，首先<code>proposers</code>将<code>value</code>发送给<code>acceptors</code>，之后<code>acceptors</code>对<code>value</code>进行接受（<code>accept</code>）。为了满足只批准一个<code>value</code>的约束，要求经“多数派（<code>majority</code>）”接受的<code>value</code>成为正式的决议（称为“批准”决议）。这是因为无论是按照人数还是按照权重划分，两组“多数派”至少有一个公共的<code>acceptor</code>，如果每个<code>acceptor</code>只能接受一个<code>value</code>，约束2就能保证<br>
+于是产生了一个显而易见的新约束：</p>
+<blockquote>
+<p><code>P1</code>：一个<code>acceptor</code>必须接受（<code>accept</code>）第一次收到的提案</p>
+</blockquote>
+<p>注意<code>P1</code>是不完备的。如果恰好一半<code>acceptor</code>接受的提案具有<code>value A</code>，另一半接受的提案具有<code>value B</code>，那么就无法形成多数派，无法批准任何一个<code>value</code></p>
+<p>约束2并不要求只批准一个提案，暗示可能存在多个提案。只要提案的<code>value</code>是一样的，批准多个提案不违背约束2。于是可以产生约束<code>P2</code>：</p>
+<blockquote>
+<p><code>P2</code>：一旦一个具有<code>value v</code>的提案被批准（<code>chosen</code>），那么之后批准（<code>chosen</code>）的提案必须具有<code>value v</code></p>
+</blockquote>
+<p>注：通过某种方法可以为每个提案分配一个编号，在提案之间建立一个全序关系，所谓“之后”都是指所有编号更大的提案</p>
+<p>如果<code>P1</code>和<code>P2</code>都能够保证，那么约束2就能够保证</p>
+<p>批准一个<code>value</code>意味着多个<code>acceptor</code>接受（<code>accept</code>）了该value。因此，可以对<code>P2</code>进行加强：</p>
+<blockquote>
+<p><code>P2a</code>：一旦一个具有<code>value v</code>的提案被批准（<code>chosen</code>），那么之后任何<code>acceptor</code>再次接受（<code>accept</code>）的提案必须具有<code>value v</code></p>
+</blockquote>
+<p>由于通信是异步的，<code>P2a</code>和<code>P1</code>会发生冲突。如果一个<code>value</code>被批准后，一个<code>proposer</code>和一个<code>acceptor</code>从休眠中苏醒，前者提出一个具有新的<code>value</code>的提案。根据<code>P1</code>，后者应当接受，根据<code>P2a</code>，则不应当接受，这中场景下<code>P2a</code>和<code>P1</code>有矛盾。于是需要换个思路，转而对<code>proposer</code>的行为进行约束：</p>
+<blockquote>
+<p><code>P2b</code>：一旦一个具有<code>value v</code>的提案被批准（<code>chosen</code>），那么以后任何<code>proposer</code>提出的提案必须具有<code>value v</code></p>
+</blockquote>
+<p>由于<code>acceptor</code>能接受的提案都必须由<code>proposer</code>提出，所以<code>P2b</code>蕴涵了<code>P2a</code>，是一个更强的约束，但是根据<code>P2b</code>难以提出实现手段。因此需要进一步加强<code>P2b</code>：假设一个编号为<code>m</code>的<code>value v</code>已经获得批准（<code>chosen</code>），来看看在什么情况下对任何编号为<code>n（n&gt;m）</code>的提案都含有<code>value v</code>。因为<code>m</code>已经获得批准（<code>chosen</code>），显然存在一个<code>acceptors</code>的多数派<code>C</code>，他们都接受（<code>accept</code>）了<code>value v</code>。考虑到任何多数派都和<code>C</code>具有至少一个公共成员，可以找到一个蕴涵<code>P2b</code>的约束<code>P2c</code>：</p>
+<blockquote>
+<p><code>P2c</code>：如果一个编号为<code>n</code>的提案具有<code>value v</code>，那么存在一个多数派，要么他们中所有人都没有接受（<code>accept</code>）编号小于<code>n</code>的任何提案，要么他们已经接受（<code>accept</code>）的所有编号小于<code>n</code>的提案中编号最大的那个提案具有<code>value v</code></p>
+<p><code>P2c</code>有点绕，我们来看看满足上述约束条件的提案是一个怎样的提案</p>
+<ol>
+<li>根据<code>要么存在一个多数派，要么他们中所有人都没有接受（accept）编号小于n的任何提案</code>，这意味着之前没有任何提案被通过，因为任何两个多数派必然存在交集</li>
+<li>根据<code>要么他们已经接受（accept）的所有编号小于n的提案中编号最大的那个提案具有value v</code>，这意味着具有<code>value v</code>的提案必然是之前被批准过的，因此编号为<code>n</code>的提案带有了之前已批准过的具有<code>value v</code>的提案</li>
+</ol>
+</blockquote>
+<p>可以用数学归纳法证明<code>P2c</code>蕴涵<code>P2b</code>：</p>
+<ul>
+<li>假设具有<code>value v</code>的提案<code>m</code>获得批准，当<code>n = m+1</code>时，采用反证法，假如提案<code>n</code>不具有<code>value v</code>，而是具有<code>value w</code>，根据<code>P2c</code>，则存在一个多数派<code>S1</code>，要么他们中没有人接受过编号小于n的任何提案，要么他们已经接受的所有编号小于<code>n</code>的提案中编号最大的那个提案是<code>value w</code>。由于<code>S1</code>和通过提案<code>m</code>时的多数派<code>C</code>之间至少有一个公共的<code>acceptor</code>，所以以上两个条件都不成立，导出矛盾从而推翻假设，证明了提案<code>n</code>必须具有<code>value v</code></li>
+<li>若<code>（m+1）..（N-1）</code>所有提案都具有<code>value v</code>，采用反证法，假如新提案<code>N</code>不具有<code>value v</code>，而是具有<code>value w'</code>，根据<code>P2c</code>，则存在一个多数派<code>S2</code>，要么他们没有接受过<code>m..（N-1）</code>中的任何提案，要么他们已经接受的所有编号小于<code>N</code>的提案中编号最大的那个提案是<code>value w'</code>。由于<code>S2</code>和通过<code>m</code>的多数派<code>C</code>之间至少有一个公共的<code>acceptor</code>，所以至少有一个<code>acceptor</code>曾经接受了<code>m</code>，从而也可以推出<code>S2</code>中已接受的所有编号小于<code>n</code>的提案中编号最大的那个提案的编号范围在<code>m..（N-1）</code>之间，而根据初始假设，<code>m..（N-1）</code>之间的所有提案都具有<code>value v</code>，所以<code>S2</code>中已接受的所有编号小于n的提案中编号最大的那个提案肯定具有<code>value v</code>，导出矛盾从而推翻新提案<code>n</code>不具有<code>value v</code>的假设。根据数学归纳法，我们证明了若满足<code>P2c</code>，则<code>P2b</code>一定满足</li>
+</ul>
+<p><code>P2c</code>是可以通过消息传递模型实现的。另外，引入了<code>P2c</code>后，也解决了前文提到的<code>P1</code>不完备的问题</p>
+<h1><span id="4-算法内容"> 4 算法内容</span></h1>
+<p>要满足<code>P2c</code>的约束，<code>proposer</code>提出一个提案前，首先要和足以形成多数派的<code>acceptors</code>进行通信，获得他们进行的最近一次接受（<code>accept</code>）的提案（<code>prepare</code>过程），之后根据回收的信息决定这次提案的<code>value</code>，形成提案开始投票。当获得多数<code>acceptors</code>接受（<code>accept</code>）后，提案获得批准（<code>chosen</code>），由<code>proposer</code>将这个消息告知<code>learner</code>。这个简略的过程经过进一步细化后就形成了<code>Paxos</code>算法</p>
+<p>在一个<code>Paxos</code>实例中，每个提案需要有不同的编号，且编号间要存在全序关系。可以用多种方法实现这一点，例如将序数和<code>proposer</code>的名字拼接起来。如何做到这一点不在<code>Paxos</code>算法讨论的范围之内</p>
+<p>如果一个没有<code>chosen</code>过任何<code>proposer</code>提案的<code>acceptor</code>在<code>prepare</code>过程中回答了一个<code>proposer</code>针对提案<code>n</code>的问题，但是在开始对<code>n</code>进行投票前，又接受（<code>accept</code>）了编号小于<code>n</code>的另一个提案（例如<code>n-1</code>），如果<code>n-1</code>和<code>n</code>具有不同的<code>value</code>，这个投票就会违背<code>P2c</code>。因此在<code>prepare</code>过程中，<code>acceptor</code>进行的回答同时也应包含承诺：不会再接受（<code>accept</code>）编号小于<code>n</code>的提案。这是对<code>P1</code>的加强：</p>
+<blockquote>
+<p><code>P1a</code>：当且仅当<code>acceptor</code>没有回应过编号大于<code>n</code>的<code>prepare</code>请求时，<code>acceptor</code>接受（<code>accept</code>）编号为<code>n</code>的提案</p>
+</blockquote>
+<h2><span id="41-决议的提出与批准"> 4.1 决议的提出与批准</span></h2>
+<p>通过一个决议分为两个阶段：</p>
+<ul>
+<li><strong><code>prepare</code>阶段：</strong>
+<ul>
+<li><code>proposer</code>选择一个提案编号<code>n</code>并将<code>prepare</code>请求发送给<code>acceptors</code>中的一个多数派</li>
+<li><code>acceptor</code>收到<code>prepare</code>消息后，如果提案的编号大于它已经回复的所有<code>prepare</code>消息，则<code>acceptor</code>将自己上次接受的提案回复给<code>proposer</code>，并承诺不再回复小于<code>n</code>的提案</li>
+</ul>
+</li>
+<li><strong>批准阶段：</strong>
+<ul>
+<li>当一个<code>proposer</code>收到了多数<code>acceptors</code>对<code>prepare</code>的回复后，就进入批准阶段。它要向回复<code>prepare</code>请求的<code>acceptors</code>发送<code>accept</code>请求，包括编号<code>n</code>和根据<code>P2c</code>决定的<code>value</code>（如果根据<code>P2c</code>没有已经接受的<code>value</code>，那么它可以自由决定<code>value</code>）</li>
+<li>在不违背自己向其他<code>proposer</code>的承诺的前提下，<code>acceptor</code>收到<code>accept</code>请求后即接受这个请求</li>
+</ul>
+</li>
+</ul>
+<p><strong>这个过程在任何时候中断都可以保证正确性</strong>。例如如果一个<code>proposer</code>发现已经有其他<code>proposers</code>提出了编号更高的提案，则有必要中断这个过程。因此为了优化，在上述<code>prepare</code>过程中，如果一个<code>acceptor</code>发现存在一个更高编号的提案，则需要通知<code>proposer</code>，提醒其中断这次提案</p>
+<h1><span id="5-参考"> 5 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-cn/Paxos%E7%AE%97%E6%B3%95">wiki-paxos</a></li>
+</ul>
+<hr>
+<h1><span id="6-下面的论证转载自知乎"> 6 下面的论证转载自</span></h1>
+<p>首先我们简单介绍<code>Paxos</code>所保证的一致性的具体含义；达成一致的条件(何时达成一致）；基于的一个基本的数学原理；以及它需要满足的假设</p>
+<p>什么是一致性？实际上这个词在不同地方语义并不那么一致，<code>Paxos</code>面向的是一个理论的一致问题，这个问题的通俗描述是：</p>
+<blockquote>
+<p>有一个变量<code>v</code>，分布在N个进程中，每个进程都尝试修改自身<code>v</code>的值，它们的企图可能各不相同，例如进程A尝试令<code>v = a</code>，进程B尝试令<code>v = b</code>，但最终所有的进程会对<code>v</code>就某个值达成一致，即上述例子中如果<code>v = a</code>是<code>v</code>达成一致时的值，那么B上，最终<code>v</code>也会为<code>a</code>。<strong>需要注意的是某个时刻达成一致并不等价于该时刻所有进程的本地的v值都相同</strong>，有一个原因是进程可能挂掉，你不能要求挂掉的进程保证任何事。最终所有存活的进程本地v的值都会相同</p>
+</blockquote>
+<p>这个一致性需要满足三个要求：</p>
+<ol>
+<li><code>v</code>达成一致时的值是由某个进程提出的。这是为了防止像这样的作弊方式：无论如何，最终都令每个进程的v为同一个预先设置好的值，例如都令<code>v = 2</code>，那么这样的一致也太容易了，也没有任何实际意义</li>
+<li>一旦<code>v</code>就某个值达成了一致，那么<code>v</code>不能对另一个值再次达成一致。这个要求称为<strong>安全性</strong></li>
+<li>一致总是能够达成，即v总会被决定为某个值。这是因为不想无休止的等待，这个要求也称为<strong>活性</strong></li>
+</ol>
+<p>Paxos中变量<code>v</code>达成一致的条件：</p>
+<blockquote>
+<p>N个进程中大多数（超过一半）进程都认为<code>v</code>是同一个值，例如<code>c</code>，那么我们称<code>v</code>被决定为<code>c</code>。这样即使少数进程挂掉了，也不会使得一致无法达成。它保证的一致性如下：不存在这样的情形，某个时刻v被决定为c，而另一个时刻v又决定为另一个值d。由这个定义我们也看到，当v的值被决定后，<code>Paxos</code>保证了它就像是个单机的不可变变量，不再更改。也因此，<strong>对于一个客户端可以多次改写值的可读写变量在不同的节点上的一致性问题，<code>Paxos</code>不能直接用于解决该问题，它需要和状态机制结合。</strong></p>
+</blockquote>
+<p>Paxos基于的数学原理：</p>
+<blockquote>
+<p>我们称大多数进程组成的集合为法定集合，两个法定集合必然存在非空交集，即至少有一个公共进程，称为法定集合性质。例如A，B，C，D，F进程组成的全集，法定集合Q1包括进程A，B，C，Q2包括进程B，C，D，那么Q1和Q2的交集必然不在空，C就是Q1，Q2的公共进程。如果要说<code>Paxos</code>最根本的原理是什么，那么就是这个简单性质。同时，可以注意到，这个性质和达成一致的定义相呼应</p>
+</blockquote>
+<p>Paxos中进程之间是平等的，即不存在一个特殊的进程，这是由于如果协议依赖于某个特殊的进程，那么这个进程挂掉势必会影响协议；<strong>而对于分布式环境，无法保证单个进程必然存活，能够容忍一定数量的进程挂掉，是分布式协议的必然要求。这是推导过程所要遵循的一个原则，称为平等性原则</strong></p>
+<p>消息传递是进程间通信的唯一手段，对于分布式环境来说，这是显然的</p>
+<p><strong><code>Paxos</code>要求满足的前置假设只有一个：消息内容不会被篡改</strong>；更正式的说是无拜占庭将军问题</p>
+<p>假装的推导总是先从一些具体的场景开始，既然<code>Paxos</code>的假设仅仅只是消息不会被篡改，保证了这点任意场景下都能保证一致性，那么对于举例的场景它必然是能够保证一致性的；<strong>因此推导的目标总是先使得协议流程能在当前举例的场景下保证一致性，然后再举出另一个场景，当前的协议流程在这个场景下将不满足一致性，于是再丰富协议流程，满足该场景，如此往复，最终得到完整的<code>Paxos</code>，最后再不失一般性的论证：得到的协议对任意场景都能保证一致性</strong></p>
+<p>进程的平等性假设会带来如下的问题，考虑如下的场景1：三个进程的场景<code>P1</code>，<code>P2</code>，<code>P3</code>（n个进程的场景类似），<code>P1</code>尝试使得<code>v = a</code>，<code>P2</code>尝试使得<code>v = b</code>。假设它们都先改写了自身的<code>v</code>值，然后发送消息尝试改修<code>P3</code>的v值。显然如果P3收到两个消息后都满足了它们的企图，那么<code>v</code>就会两次被决定为不同的值，这破坏了之前的定义。因此<code>P3</code>必须得拒绝掉其中一个进程的请求，<strong>如何拒绝也是我们最先考虑的问题</strong>。一个最简单的拒绝策略是先来后到，<code>P3</code>只会接受收到的第一个消息中，拒绝之后的消息，即只会改写<code>v</code>一次。按照这个策略，如果<code>P1</code>发送的消息首先到达<code>P3</code>，那么<code>P3</code>接受该消息令<code>v = a</code>，拒绝掉后到的来自<code>P2</code>的消息。但是这个策略会引入一个另外的问题：在场景1的基础上考虑这样的场景1’，<code>P3</code>也尝试决定<code>v</code>的值，<code>P3</code>尝试使得<code>v = c</code>，那么<code>P1，P2，P3</code>都尝试修改<code>v</code>的值，首先<code>P1</code>令<code>v = a</code>，<code>P2</code>令<code>v = b</code>，<code>P3</code>令<code>v = c</code>(相当于自己给自己发消息），按照之前的策略，每个进程只会改写<code>v</code>的值一次，那么将永远不会出现两个进程的v值相等的情况，并且永远不存在一个多数派，即<code>v</code>永远无法被决定。<strong>更正式的说，这个协议不满足活性，活性要求协议总能达成一致</strong>。<strong>由此我们也得到第一个结论：进程必须能够多次改写v的值</strong>。<strong>同时我们也要意识到：当进程收到第一个消息时，进程是没有任何理由拒绝这个消息的请求</strong></p>
+<p>拒绝策略总是需要有一个依据，之前我们的依据是消息到达的先后，只接受第一个到达的消息，但这导致不满足活性。现在我们需要另一个拒绝策略，也就是需要另一个依据，这个依据至少能够区分两个消息。为此我们引入一个ID来描述这个消息，这样就可以根据ID的大小来作为拒绝或接受的依据；选择ID更大的消息接受和选择ID更小的消息接受是两种完全对称的策略，不妨选择前者。<strong>这个策略不会导致明显的活性问题，ID更大的消息总是能被接受，一个节点可以多次更改v的值</strong>。例如在场景1’中，只要<code>P1</code>的消息ID比<code>P3</code>发送给自己的消息ID更大，<code>P3</code>就会接受<code>P1</code>的消息，<code>令v = a</code>，从而令<code>v</code>的值被决定为<code>a</code>。再来考虑最初的场景1，不妨假设P1的消息ID大于P2的消息ID，根据P3收消息的先后可以分为两种情况：</p>
+<ol>
+<li><code>P3</code>先收到<code>P1</code>的消息，记做场景1-2，由于<code>P1</code>的消息是<code>P3</code>收到的第一个消息，<code>P3</code>接受该请求，令<code>v = a</code>；同时为了能对之后的收到的消息作出是否接受的判断，<code>P3</code>需要记录该消息的ID作为判断的依据。之后<code>P3</code>又收到<code>P2</code>的消息，该消息的ID小于<code>P3</code>记录的ID，即<code>P1</code>的消息ID，因此P3拒绝该消息，这样我们的目的就达到</li>
+<li><code>P3</code>先收到<code>P2</code>的消息，记作场景1-3，同样<code>P3</code>接受该消息，令<code>v = b</code>，记录该消息的ID。之后<code>P3</code>收到<code>P1</code>的消息，由于<code>P1</code>的消息ID大于<code>P3</code>记录的ID，因此<code>P3</code>无法拒绝该消息，之前的问题依旧存在</li>
+</ol>
+<p>尽管对于场景1-3，目前的策略依旧无法保证一致性，但是起码我们缩小协议无法保证安全性的场景的范围。先总结下我们目前的策略，并定义一些称谓以方便后面的论述。我们称呼进程<code>P</code>发送的尝试修改另一个进程中变量<code>v</code>的值的消息称之为提案，记作<code>Proposal</code>；提案的ID记作<code>proposal_id</code>；如果提案中附带的值被决定为是<code>v</code>的值，即大多数接受者接受了这个提案，那么称提案被通过。进程<code>P</code>记录的接受的提案ID为<code>a_proposal_id</code>。之前我们尚未清晰地定义<code>a_proposal_id</code>，实际上我们也就并未清晰地定义我们的拒绝策略，当<code>P</code>收到一个提案<code>Proposal-i</code>时，可能已经收到过多个提案，<code>Proposal-i.proposal_id</code>该和其中哪个提案的<code>proposal_id</code>比较，我们并未定义。<strong>我们定义为其中的最大者，这样实际上进程<code>P</code>只需维护一个<code>a_proposal_id</code>即可</strong>，当收到一个<code>Proposal</code>时，更新<code>a_proposal_id = max(Proposal.proposal_id，a_proposal_id）</code>。同时在之前的描述中我们应当注意到实际上一个进程存在两个功能：</p>
+<ol>
+<li>进程主动尝试修改并决定<code>v</code>的值，向进程集合广播提案</li>
+<li>进程被动收到来自其它进程的提案，判断是否要接受它</li>
+</ol>
+<p><strong>因此可以把一个进程分为两个角色，称负责功能1的角色是提议者，记作<code>Proposer</code>，负责功能2的角色是接受者，记作<code>Acceptor</code></strong>。由于两者完全没有耦合，所以并不一定需要在同个进程，但是为了方面描述，我们假定一个进程同时担任两种角色，而实际的工程实现也往往如此。接着我们尝试解决场景1-3，这看起来很难。<code>P3</code>作为接受者，收到<code>P2</code>的提案之前未收到任何消息，只能接受该提案，而由于<code>P1</code>的提案<code>proposal_id</code>大于P2的提案，我们的拒绝策略也无法让<code>P3</code>拒绝<code>P2</code>。让我们先不急着推导具体可行的策略，先考虑下解决1-3场景可能的角度，有如下三种角度可以入手：</p>
+<ol>
+<li><code>P3</code>能够拒绝掉<code>P2</code>的提案</li>
+<li><code>P3</code>能够拒绝掉<code>P1</code>的提案</li>
+<li>限制<code>P1</code>提出的提案，如果<code>P1</code>的提案尝试决定的v的值与<code>P2</code>的提案一致，那么接受<code>P1</code>也不会破坏一致性</li>
+</ol>
+<ul>
+<li>我的问题：既然<code>P1</code>的提案与<code>P2</code>的提案的<code>v</code>值相同，那<code>P1</code>为什么还要提案？这个提案有什么意义？</li>
+</ul>
+<p>接着我们分析三个角度的可行性：</p>
+<blockquote>
+<p>角度1需要<code>P3</code>有做出拒绝的依据，由于消息是进程间通信唯一手段，这要求<code>P3</code>在收到<code>P2</code>的提案之前必须先收到过其它消息。对于场景1-3，只有<code>P1</code>，P2是主动发送消息的进程，<code>P2</code>当然不可能额外还发送一个消息试图令<code>P3</code>拒绝自己随后的提案。<strong>那么唯一的可能是<code>P1</code>在正式发送提案前，还发送了一个消息给<code>P3</code>，这个消息先于<code>P2</code>的提案到达，给了<code>P3</code>拒绝<code>P2</code>提案的理由</strong>。如果沿用目前的拒绝策略，那么<code>P1</code>只需先发送随后提案的<code>proposal_id</code>给<code>P3</code>，<code>P3</code>更新<code>a_proposal_id</code>为该消息附带的<code>proposal_id</code>，这样<code>a_proposal_id</code>将大于<code>P2</code>的提案的<code>proposal_id</code>，而导致<code>P2</code>的提案被拒绝，似乎这是一个可行的角度</p>
+</blockquote>
+<blockquote>
+<p>对于角度2，我们目前的策略无法做到这一点，因此除了<code>proposal_id</code>外，我们还得给提案附加上额外的信息作为另外的拒绝策略的依据。提案由进程提出，也许我们可以附加进程的信息，但是就算<code>P3</code>得知<code>P1</code>的提案由<code>P1</code>提出，<code>P3</code>又凭什么歧视<code>P1</code>，这违反进程的平等性假设。似乎这个角度不是一个好角度</p>
+</blockquote>
+<blockquote>
+<p>最后我们分析一下角度3，角度3提供了与1，2截然不同的思路，它不再是考虑如何拒绝，而把注意力放在如何对提案的值做出恰当的限制上。对于场景1-3而言，从这个角度，由于<code>P3</code>无法拒绝<code>P1</code>和<code>P2</code>的提案中的任何一个，<strong>因此<code>P1</code>的提案的值就必须与P2的提案一致；这也意味着了<code>P1</code>在正式提出提案前，需要有途径能获悉<code>P2</code>的提案的值。如我们上面一直强调的，消息是唯一的通信手段，<code>P1</code>必须收到来自其它节点消息才有可能得知<code>P2</code>提出的提案的值</strong>。<code>P1</code>可以被动的等待收到消息，也可以主动地去询问其它节点等待回复。后者显然是更好的策略，没有收到想要的消息就一直等待未免也太消极了，这种等待也可能一直持续下去从而导致活性问题</p>
+</blockquote>
+<p>经过上面的分析，我们暂时排除了从角度2入手（实际上后面也不会再考虑，因为从1，3入手已经足以解决问题）。下面将沿着角度1，3进行更深入的分析，我们先尝试从角度1出发，毕竟考虑如何拒绝已经有了经验。先来总结下我们在分析角度1时引入的额外的流程:</p>
+<blockquote>
+<p><strong>进程P在发送提案前，先广播一轮消息，消息附带着接下来要发送的提案的<code>proposal_id</code>。由于该消息和接下来发送的提案相关，且在提案被提出之前发送，不妨称这个消息为预提案</strong>，记作<code>PreProposal</code>，预提案中附带着接下来的提案的<code>proposal_id</code>。当作为接受者的进程<code>Pj</code>收到预提案后，更新<code>Pj. a_proposal_id</code>。还记得我们之前的拒绝策略中<code>a_proposal_id</code>的更新策略嘛：<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，<code>a_proposal_id</code>是递增的。因此如果预提案的<code>proposal_id</code>小于<code>Pj.a_proposal_id</code>，Pj完全可以忽略这个预提案，因为这代表了该预提案对应的提案的<code>proposal_id</code>小于<code>Pj.a_proposal_id</code>，必然会被拒绝。我们沿用之前拒绝策略中<code>a_proposal_id</code>的更新策略。这样当收到预提案或者提案后，<code>a_proposal_id</code>的值均更新为<code>max(a_proposal_id,proposal_id)</code></p>
+</blockquote>
+<blockquote>
+<p><strong>一个小问题：每个进程如何确保提案编号的唯一性？似乎这也是一个分布式的问题</strong></p>
+</blockquote>
+<p>接着我们来看看引入了<strong>预提案后</strong>，能否真正解决场景1-3。根据P1和P2的预提案到达P3的先后也存在两种场景：</p>
+<ol>
+<li>场景1-3-1：<code>P1</code>的预提案先到达，P3更新<code>a_proposal_id</code>为该提案的<code>proposal_id</code>，这导致随后到达的P2的提案的<code>proposal_id</code>小于<code>a_proposal_id</code>，被拒绝。满足一致性</li>
+<li>场景1-3-2：<code>P2</code>的提案先到达，<code>P3</code>接受<code>P2</code>的提案，此时和原始的场景1-3存在同样的问题。归根结底，预提案阶段能否使得<code>P3</code>拒绝<code>P2</code>的提案的，也依赖消息到达的顺序，和提案阶段的拒绝策略存在相同的问题，但至少又缩小了不能保证安全性的场景范围</li>
+</ol>
+<p>幸好我们还有角度3可以着手考虑，所以仍有希望完全解决场景1-3。在深入角度3之前，先总结下协议目前为止的流程，现在协议的流程已经分为了两个阶段：<strong>预提案阶段和提案阶段</strong>。两种消息：<strong>预提案</strong>和<strong>提案</strong>。两种角色：<strong>接受者</strong>和<strong>提议者</strong>，流程如下：</p>
+<ol>
+<li><strong>阶段一：</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code>：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></strong></li>
+<li><strong>接受者<code>Acceptor</code>：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code></strong></li>
+</ul>
+</li>
+<li><strong>阶段二：</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code>：向接受者<code>Acceptor</code>广播提案，和之前的预提案共享同一个<code>proposal_id</code></strong></li>
+<li><strong>接受者<code>Acceptor</code>：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code></strong></li>
+</ul>
+</li>
+</ol>
+<p>为了更形象，之前的讨论是基于三个进程的场景，实际上对于N进程的场景也是一样的。N进程时，与之前场景1对应的场景是：N个进程，存在两个进程<code>Pi</code>，<code>Pj</code>，<code>Pi</code>尝试令<code>v = a</code>，<code>Pj</code>尝试令<code>v = b</code>，<code>Pi</code>提出的预提案记作<code>PreProposal-i</code>，提案记作<code>Proposal-i</code>；<code>Pj</code>的预提案<code>PreProsal-j</code>，提案<code>Proposal-j</code>。之拒绝策略的讨论都是基于一个关键的进程<code>P3</code>，只要<code>P3</code>最终能拒绝<code>Proposal-i</code>和<code>Proposal-j</code>中的一个，两个提案就不会都被通过，那么一致性不被破坏。<code>Pi</code>的提案被通过代表了存在一个法定集合<code>Q-i</code>，<code>Q-i</code>中的进程都接受了<code>Proposal-i</code>，<code>Pj</code>同理，存在一个<code>Q-j</code>，<code>Q-j</code>中的进程都接受了<code>Proposal-j</code>。<strong>由于法定集合的性质，两个多数集<code>Q-i</code>和<code>Q-j</code>中必然存在一个公共进程<code>Pk</code>。<code>Pk</code>即相当于场景1中的<code>P3</code>，只要<code>Pk</code>能够拒绝<code>Proposal-i</code>和<code>Proposal-j</code>中的一个，协议依旧是安全的</strong></p>
+<p><strong>为了不失一般性，下面我们都以N个进程的场景作为讨论的基础，称为场景2</strong>，由于场景1和场景2可以一一对应，所以接下来顺着限制提案的值的角度，我们直接针对场景2-3-2，<strong>对于其他的场景，场景和场景1一样，我们的拒绝策略已经足以应付</strong>。<code>v</code>的值被决定代表有一个提案，它被法定数目的集合接受，我们称这为提案被通过</p>
+<p>首先我们看下场景2-3-2，<code>Pi</code>对应场景1-3-2中的<code>P1</code>，<code>Pj</code>对应<code>P2</code>，<code>Pk</code>对应<code>P3</code>。<code>Pj</code>的提案<code>Proposal-j</code>最终会被法定集合<code>Q-j</code>接受，即<code>v</code>的值被决定为<code>b</code>，且<code>Proposal-i.proposal-id &gt; Proposal-j.proposal_id</code>。我们需要限制<code>Pi</code>的提案的值，不能让<code>Pi</code>自由的给<code>Proposal-i</code>中的<code>v</code>赋值。在2-3-2中，由于拒绝策略失效，所以只能令<code>Proposal-i.v = Proposal-j.v = b</code>。<strong>要做到这一点，正如前面的分析所言，<code>Pi</code>需要先主动询问进程集合，来得知<code>Proposal-j.v = b</code>这一事实。显然<code>Pi</code>是没有先验信息来得知<code>Proposal-j</code>由哪个进程提出，也不知道<code>Q-i</code>和<code>Q-j</code>的公共节点<code>Pk</code>具体是哪个进程，因此<code>Pi</code>只能广播它的查询</strong>。由于我们需要允许少数进程失败，<code>Pi</code>可能只能得到大多数进程的回复，而这之中可能不包括Pj。我们称这些进程的集合为<code>Q-i-2</code>，为了描述更简单，无妨假设<code>Q-i-2 = Q-i</code>。尽管<code>Pi</code>的查询可能得不到<code>Pj</code>的回复，好在<code>Proposal-j</code>将会被<code>Q-j</code>内所有进程接受，因此如果接受者在接受提案时，顺便记录该提案，那么<code>Q-j</code>内所有进程都将得知<code>Proposal-j.v = b</code>。由于<code>Pk</code>属于<code>Q-i</code>和<code>Q-j</code>的交集，所以<code>Pk</code>即收到了<code>Pi</code>的询问，又接受了提案<code>Proposal-j</code>。<strong>之前我们已经引入了预提案阶段，显然我们可以为预提案附带上查询的意义，<code>Pk</code>作为接受者收到<code>Pi</code>的预提案后，回复它记录的提案</strong>。有一个问题是<code>Pk</code>此时是否已经记录了<code>Proposal-j</code>呢？很巧的是在场景2-3-2中，<code>Pj</code>的提案<code>Proposal-j</code>是先于<code>Pi</code>的预提案<code>PreProposal-i</code>先到达，所以<code>Pk</code>已经记录了<code>Proposal-j.v = b</code>，<code>Pj</code>收到的来自Pk的回复中包含了提案<code>Proposal-j</code>，而2-3-2之外的场景，拒绝策略已经足以应付。这里依旧还有两个问题，先讨论第一个：</p>
+<blockquote>
+<p>实际上很可能并不是只有<code>Pi</code>和<code>Pj</code>分别提出了<code>Proposal-i</code>和<code>Proposal-j</code>，其它进程也会发起预提案和提案，所以收到<code>PreProposal-i</code>时<code>Pk</code>可能已经接受过多个提案，并非只有<code>Proposal-j</code>，那么<code>Pk</code>应该回复<code>PreProposal-i</code>其中哪个，或者都回复？<code>Pk</code>并不知道<code>Proposal-j</code>会被通过，它只知道自己接受了该提案。都回复是个效率很低但是可以保证<code>Pk</code>不会遗漏<code>Proposal-j</code>，<code>Pk</code>已经回复了它所能知道的全部，我们也无法要求更多。需要注意到的是进程是平等的，所以<code>Q-i</code>中所有进程都和<code>Pk</code>一样回复了它接受过的所有提案。当<code>Pi</code>收到所有来自<code>Q-i</code>的回复，随之而来的是第二个问题：</p>
+</blockquote>
+<blockquote>
+<p><code>Pi</code>收到了多个<code>Proposal</code>作为<code>Acceptor</code>对<code>PreProposal-i</code>的回复，<strong>记这些<code>Proposal</code>组成的集合为<code>K-i</code></strong>，那么它应当选择<code>K-i</code>中哪个一个提案的值作为它接下来的提案<code>Proposal-i</code>的<code>v</code>值？<strong>记选择的这个提案为<code>Proposal-m</code></strong>。在场景2-3-2中，我们第一直觉是希望选择的<code>Proposal-m</code>即是<code>Proposal-j</code>，但是实际上，我们只要保证<code>Proposal-m .v = Proposal-j.v</code>即可。从另一个角度，<code>K-i</code>中很可能存在这样的提案<code>Proposal-f</code>，<code>Proposal-f.v != Proposal-j.v</code>，我们要做的是避免选择到这类提案。我们可以根据一些依据瞎选碰碰运气，但是这并明智，所以先让我们来分析一下<code>Proposal-f</code>有什么特征。<strong>我们不妨假设存在这样的策略<code>cf</code>，<code>cf</code>使得选择出提案<code>Proposal-m</code>满足<code>Proposal-m.v = Proposal-j.v</code></strong>。<code>Proposal-f</code>能够被提出，代表存在一个多数集合<code>Q-f</code>，<code>Q-f</code>中每个进程都接受了<code>PreProposal-f</code>，同时假设是进程<code>P-f</code>提出了<code>PreProposal-f</code>和<code>Proposal-f</code>。<strong><code>Q-f</code>和<code>Q-j</code>必然存在一个公共节点，记做<code>Ps</code></strong>，<code>Ps</code>既接受了<code>PreProposal-f</code>又接受了<code>Proposal-j</code>。<code>Ps</code>收到<code>PreProposal-f</code>和<code>Proposal-j</code>的顺序只有两种可能：</p>
+</blockquote>
+<ol>
+<li><code>Ps</code>先收到<code>PreProposal-f</code></li>
+<li><code>Ps</code>先收到<code>Proposal-j</code></li>
+</ol>
+<p><code>PreProposal-f.proposa-id</code>和<code>Proposal-j. proposal_id</code>的大小也只有两种可能，不妨先假设<code>PreProposal-f.proposal_id &gt; Proposal-j.proposal_id</code></p>
+<ol>
+<li>对于情形1，<code>Ps</code>先收到<code>PreProposal-f</code>，接受它，更新<code>Ps.a_proposal_id = PreProposal-f.proposal_id &gt; Proposal-j.proposal_id</code>，同时之前的<code>a_proposal_id</code>的更新策略又使得<code>Ps.a_proposal_id</code>是递增的，于是导致<code>Proposal-j</code>由于<code>proposal_id &lt; Ps.a_proposal_id</code>被拒绝，与假设不符合，矛盾。该情况不成立</li>
+<li>对于情况2，<code>Ps</code>将把提案<code>Proposal-j</code>回复给<code>PreProposal-f</code>。由于我们假设了策略<code>cl</code>的存在，于是<code>Pf</code>在收到所有<code>Q-f</code>对<code>PreProposal-f</code>的回复后，将令<code>Proposal-f.v = Proposal-j.v</code>，<code>cl</code>就是干这个的。因此<code>Proposal-f.v != Proposal-j.v</code>矛盾。该情况不成立</li>
+</ol>
+<ul>
+<li>由于当假设<code>PreProposal-f.proposal_id &gt; Proposal-j.proposal_id</code>时，情形1，2我们都得出了矛盾，同时两者的<code>proposal_id</code>又不相等(最初的假设），所以必然<code>PreProposal-f.proposal_id &lt; Proposal-j.proposal_id</code>，即<code>Propsoal-f.proposal_id &lt; Proposal-j.proposal_id</code></li>
+</ul>
+<p>于是我们得到的结论是：如果策略<code>cl</code>存在，当提案<code>Proposal-j</code>最终会被通过，对于任意一个预提案<code>PreProposal-i</code>，<code>Preproposal-i.id &gt; Proposal-j.proposal-id</code>，得到的<code>Q-i</code>的回复<code>K-i</code>中任意的<code>Proposal-f</code>，满足<code>Proposal-f.v != Proposal-j.v</code>，那么<code>Proposal-f.proposal_id &lt; Proposal-j.proposal_id</code></p>
+<p>既然<code>K-i</code>中所有<code>v</code>值不等于<code>Proposal-j.v</code>的提案，<code>proposal_id</code>都更小，那代表所有<code>proposal_id</code>比<code>Proposal-j</code>更大的提案，<code>v</code>值都等于<code>Proposal-j.v</code>，因此选择<code>K-i</code>中<code>proprosal_id</code>最大的提案，就能保证<code>Proposal-i.v = Proposal-j.v</code>。于是我们得到了策略<code>cl</code>的具体形式</p>
+<p>我们得到了具体可行的策略<code>cl</code>是建立在策略<code>cl</code>存在这一前提之上，因此反过来，对于这个具体的选值策略<code>cl</code>，结合之前我们得到了协议流程，它是否能保证如下的性质<code>CP1</code>，依旧需要进一步的论证 ：</p>
+<blockquote>
+<p>如果一个提案<code>Proposal-j</code>最终会被通过，那么对于任意的一个提案<code>Proposal-i</code>，如果<code>Proposal-i.proposal_id &gt; Proposal-j.proposal_id</code>，那么<code>Proposal-i.v = Proposal-j.v</code></p>
+</blockquote>
+<p>我们先总结下目前得到的协议流程：</p>
+<ol>
+<li><strong>阶段一：预提案阶段</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code></strong>：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></li>
+<li><strong>接受者<code>Acceptor</code></strong>：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id</code>大于<code>a_proposal_id</code>，那么回复该预提案的提议者改接受者接受过的所有提案</li>
+</ul>
+</li>
+<li><strong>阶段二：提案阶段</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code></strong>：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组合成的集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。向接受者<code>Acceptor</code>广播提案，和之前的预提案共享同一个<code>proposal_id</code></li>
+<li><strong>接受者<code>Acceptor</code></strong>：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code></li>
+</ul>
+</li>
+</ol>
+<p>这些流程是为了解决举例的场景而不断丰富的，接着就让我们论证下协议流程是否可以确保CP1</p>
+<p>首先假设<code>Proposal-i.v != Proposal-j.v</code>，如果得出矛盾即可证明CP1。在尝试演绎出矛盾前，我们先做一些定义，以便后续的演绎</p>
+<p>记大多数接受者组成的法定集合为<code>Q</code>，<code>K</code>是提议者在提案阶段收到的所有<code>Q</code>回复的提案组成的集合，如果<code>K</code>不为空，记<code>K</code>中<code>proposal_id</code>最大的提案是<code>MaxProposal(K)</code>，本次提案的值即是<code>MaxProposal(K).v</code>；如果<code>K</code>是空集，那么<code>MaxProposal(K).v = null</code>。特别的，对于提案<code>Proposal-i</code>，回复它预提案接受者的集合为<code>Q-i</code>，回复的提案组成的集合为<code>K-i</code>，<code>Proposal-i.v = MaxProposal(K-i)</code>，<code>Proposal-i.v=null</code>代表可以随意赋值。为了描述方便，我们令<code>Proposal-i</code>的<code>proposal_id</code>为<code>i</code>，即<code>Proposal-i</code>代表了<code>proposal_id = i</code>的提案，<code>Proposal-j</code>意味着<code>Proposal-j.proposal_id = j</code></p>
+<p>论证过程如下：</p>
+<ol>
+<li><code>Proposal-i.v != Proposal-j.v</code>，即<code>MaxProposal(K-i).v！= Proposal-j.v</code>，即<code>MaxProposal(K)-i != Proposal-j</code></li>
+<li><code>Proposal-j</code>最终会被通过，代表最终会存在一个多数集合<code>Q-j</code>，<code>Q-j</code>中每个接受者都接受了<code>Proposal-j</code></li>
+<li>两个多数集必然存在公共成员，故<code>Q-j</code>和<code>Q-i</code>必然存在一个公共的进程<code>Pk</code>，<code>Pk</code>既收到了<code>PreProposal-i</code>又收到了<code>Proposal-j</code>，且都接受了它们；<code>Pk</code>收到消息的先后关系只存在如下两种可能：
+<ul>
+<li>1.<code>Pk</code>先收到了<code>PreProposal-i</code></li>
+<li>2.<code>Pk</code>先收到了<code>Proposal-j</code></li>
+</ul>
+</li>
+<li>情形1中<code>Pk</code>先收到了<code>PreProposal-i</code>，那么<code>Pk</code>收到<code>Proposal-j</code>时，<code>Pk.a_proposal &gt;= PreProposal-i.proposal_id ＞Proposal-j.proposal_id</code>，<code>Pk</code>会拒绝<code>Proposal-j</code>，与(3)矛盾，因此情况1不可能，<code>Pk</code>必然是先收到<code>Proposal-j</code></li>
+<li>情形2中<code>Pk</code>收到<code>PreProposal-i</code>时，已经接受了<code>Proposal-j</code>，因此<code>Pk</code>回复P<code>reProposal-i</code>的提案中包含了<code>Proposal-j</code>，因此<code>K-i</code>中必然包含了<code>Proposal-j</code></li>
+<li>由(1)已知<code>MaxProposal(K-i) != Proposal-j</code>，即存在另一个提案<code>Proposal-m = MaxProposal(K-i)</code>，而<code>Proposal-j</code>属于<code>K-i</code>，因此<code>Proposal-m.proposal_id &gt; Proposal-j.proposal_id</code>，且<code>Proposal-m.v ！= Proposal-j.v</code></li>
+<li>由预提案阶段，接受者回复预提案的条件可知：<code>Proposal-i.proposal_id</code>大于集合<code>K-i</code>中任意一个提案的<code>Proposal-id</code>，故<code>Proposal-i.proposal_id &gt; Proposal-m.proposal_id</code></li>
+<li>目前我们已经论证如下一点：</li>
+</ol>
+<blockquote>
+<p>在<code>Proposal-j</code>最终会被通过的前提下，如果存在一个提案<code>Proposal-i.v != Proposal-j.v</code>，且<code>Proposal-i.proposal_id &gt;Proposal-j.proposal_id</code>，我们一个数学符号来带表示这个情况，记<code>CF(j,i)</code>；那么 必然存在一个提案<code>Proposal-m</code>, <code>Proposal-m != Proposal-j.v</code>，且<code>Proposal-m.proposal_id &gt; Proposal-j.proposal_id</code>，同样的我们可以记做<code>CF(j,m)</code>。并且<code>Proposal-m.proposal_id &lt; Proposal-i.proposal_id</code>，<code>m &lt; i</code></p>
+</blockquote>
+<blockquote>
+<p>即如果<code>CF(i,j)</code>成立，那么必然<code>CF(m,j)</code>成立，且<code>i&gt;m</code>，即<code>CF(i,j) —&gt; CF(m,j)</code>。这个过程可以继续往下递归，但由于区间<code>[j,i]</code>范围是有限的，因此一定会递归到一个<code>CF(j,e)</code>，此时不可能存在一个提案，它的<code>proposal_id</code>在区间<code>(j,e)</code>内，无法往下递归，这与(8)矛盾。这也就意味着<code>CF(e,j)</code>不成立，而如果<code>CF(i,j)</code>成立，那么<code>CF(e,j)</code>成立，因此<code>CF(i,j)</code>不成立，故假设不成立，即<code>Proposal-i.v</code>必然等于<code>Proposal-j.v</code>，即证<code>CP1</code></p>
+</blockquote>
+<p>通过归约的方式得出矛盾的方式依旧有些抽象，我们可以通过更好的定义假设来更容易得到的矛盾：</p>
+<blockquote>
+<p>我们加强对<code>Proposal-i</code>的约束。先假设存在一个提案的非空集合<code>KD</code>，<code>KD</code>中的任意一个提案<code>Proposal-k</code>，<code>Proposal-k.v != Proposal-j.v</code>，且<code>Proposal-k.proposal_id &gt; Proposal-j.v</code>。再假设<code>Proposal-i</code>是<code>KD</code>中<code>proposal_id</code>最小的提案。由于<code>KD</code>是非空集合，故<code>Proposal-i</code>必然存在</p>
+</blockquote>
+<p>我们依旧可以从<code>Proposal-i</code>出发，(1)~(7)与上面相同，同理得到：存在一个提案<code>Proposal-m</code>，<code>Proposal-m ！= Proposal-v</code>，且<code>Proposal-m.proposal_id &gt; Proposal-j.proposal_id</code>，且<code>Proposal-m.proposal_id &lt; Proposal-i.proposal_id</code></p>
+<p>显然<code>Proposal-m</code>满足集合<code>KD</code>对提案的要求，故<code>Proposal-m</code>属于<code>KD</code>，又<code>Proposal-m.proposal_id &lt; Proposal-i.proposal_id</code>，这和<code>Proposal-i</code>是<code>KD</code>中<code>proposal_id</code>最小的提案的定义矛盾。因此不存在这样的非空集合<code>KD</code>，即不存在一个提案<code>Proposal-k,Proposal-k.v != Proposal-j.v</code>且<code>Proposal-k.proposal_id&gt;Proposal-j.proposal_id</code>。即如果一个提案<code>Proposal-j</code>最终会被通过，对于任意的一个提案<code>Proposal-i</code>，如果<code>Proposal-i.proposal_id &gt; Proposal-j.proposal_id</code>，那么必定<code>Proposal-i.v = Proposal-j.v</code>，即<code>CP1</code></p>
+<p><code>CP1</code>约束了<code>proposal_id</code>大于<code>Proposal-j</code>的提案的值，保证了如果一个提案<code>Proposal-j</code>最终会被通过，不会存在另一个<code>proposal-id</code>更大且值不同的提案被通过，因为这些提案的值都和<code>Proposal-j</code>相同。那么对于<code>proposal_id</code>更小的提案呢？我们假设存在一个提案<code>Proposal-o</code>，<code>Proposal-o.proposal_id &lt; Proposal-j.proposal_id</code>，且<code>Proposal-o.v != Proposal-j.v</code>，<code>Proposal-o</code>最终会被通过，将CP1应用于<code>Proposal-o</code>，则可知<code>Proposal-j</code>不存在，这矛盾，故<code>Proposal-o</code>不存在。<strong>故由CP1我们可知：如果一个提案<code>Proposal-j</code>最终会被通过，那么不存在另一个值与<code>Proposal-j</code>不同的提案被通过</strong>。由此协议必然是安全的。虽然我们得到了一个安全的一致性协议，基本上它就是<code>Paxos</code>，但是真正的<code>Paxos</code>要比我们假装推导出的协议更简单一点</p>
+<p>回过头来看下我们的阶段1中接受者<code>Acceptor</code>的行为，它要回复所有的它接受过的提案，从实践的角度，不论是在本地保存所有它接受过的提案还是通过网络将它们传输给提议者，开销都太大且不可控。再看下阶段二中，提议者的选值策略，它只是选择了收到的多数集接受者回复的提案中<code>proposal_id</code>最大的那一个，因此接受者实际上只需要回复它接受过的<code>proposal_id</code>最大的提案即可，因为其它提案根本不可能会被选值策略选中。因此最终的协议如下，它就是Paxos</p>
+<ol>
+<li><strong>阶段一：预提案阶段</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code></strong>：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></li>
+<li><strong>接受者<code>Acceptor</code></strong>：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id &gt; a_proposal_id</code>，<code>Acceptor</code>回复记录的接受过的<code>proposal_id</code>最大的提案</li>
+</ul>
+</li>
+<li><strong>阶段二：提案阶段</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code></strong>：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组成的法定数目的提案集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。然后把该提案广播给接受者们，提案和预提案共享同一个<code>proposal_id</code></li>
+<li><strong>接受者<code>Acceptor</code></strong>：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，更新记录的提案</li>
+</ul>
+</li>
+</ol>
+<h1><span id="7-总结"> 7 总结</span></h1>
+<p>需要解决的问题，或者换句话说，需要达成的一致性</p>
+<ol>
+<li><code>v</code>达成一致时的值是由某个进程提出的。这是为了防止像这样的作弊方式：无论如何，最终都令每个进程的v为同一个预先设置好的值，例如都令<code>v = 2</code>，那么这样的一致也太容易了，也没有任何实际意义</li>
+<li>一旦<code>v</code>就某个值达成了一致，那么<code>v</code>不能对另一个值再次达成一致。这个要求称为<strong>安全性</strong></li>
+<li>一致总是能够达成，即v总会被决定为某个值。这是因为不想无休止的等待，这个要求也称为<strong>活性</strong></li>
+</ol>
+<ul>
+<li>另外，learners只能获得被批准（chosen）的<code>v</code></li>
+</ul>
+<p>下面总结一下上述推导过程</p>
+<p><strong><code>协议v1</code>：</strong></p>
+<blockquote>
+<p><strong>只允许<code>Acceptor</code>通过第一个收到的提案，如果存在一个多数派通过某个提案，那么对该提案具有的<code>v</code>达成一致</strong></p>
+</blockquote>
+<p>在<code>协议v1</code>下，会出现这样的场景（记为<code>场景v1</code>）：<code>P1</code>、<code>P2</code>、<code>P3</code>三个进程各自提出一个提案，三个提案具有不同的值。显然，每个进程总是能优先收到自己提出的提案，根据<code>协议v1</code>，每个进程将通过自己提出的提案，于是永远无法达成一个多数派，无法就某个<code>v</code>值达成一致，<strong>因此这个<code>协议v1</code>不满足活性</strong></p>
+<p>那么我们该如何优化<code>协议v1</code>？我们可以为每个<code>Proposal</code>加上一个<code>proposal_id</code>，这个<code>proposal_id</code>满足<strong>全序关系</strong>，我们假定存在一种方式能够为每个<code>Proposal</code>加上一个满足全序关系且递增的<code>proposal_id</code>(如何实现这个<code>proposal_id</code>实际上也是一个分布式的问题，但是不在本文的讨论范围内，我们只需要假定这种方式存在即可)，那么优化后的协议如下</p>
+<p><strong><code>协议v2</code>：</strong></p>
+<blockquote>
+<p><strong>只允许<code>Acceptor</code>通过<code>proposal_id</code>更大的提案(更大指的是该提案的<code>proposal_id</code>比当前进程收到过的所有提案的<code>proposal_id</code>都要大)，如果存在一个多数派通过某个提案，那么对该提案具有的<code>v</code>达成一致</strong></p>
+</blockquote>
+<p>在<code>协议v2</code>下，上述不满足活性的<code>场景v1</code>就能够得到有效的解决。但是此时又出现了另一种场景(记为<code>场景v2</code>)：假定<code>P1.proposal_id &gt; P2.proposal_id</code>，且<code>P2</code>的<code>Proposal-2</code>先被<code>P3</code>收到。根据<code>协议v2</code>，<code>P3</code>将通过这个<code>Proposal-2</code>，此时<code>P2</code>和<code>P3</code>形成一个多数派，就<code>Proposal-2</code>的<code>v</code>值达成一致。随后<code>P3</code>又收到了来自<code>P1</code>的<code>Proposal-1</code>，那么根据<code>协议v2</code>，<code>P3</code>应该接受<code>P1</code>的<code>Proposal-1</code>，于是<code>P1</code>和<code>P3</code>形成一个多数派，就该<code>Proposal-1</code>的<code>v</code>值达成一致。由于<code>v</code>值被两次达成一致，<strong>因此<code>协议v2</code>不满足安全性</strong></p>
+<p>那么我们该如何优化<code>协议v2</code>？似乎<code>P3</code>必须拒绝掉<code>P1</code>或者<code>P2</code>之中的一个<code>Proposal</code>，存在以下两个角度</p>
+<ol>
+<li>让<code>P3</code>拒绝掉<code>P2</code>，这样<code>P3</code>接受<code>proposal_id</code>更大的<code>Proposal-1</code>就不会存在问题。那么如何让<code>P3</code>拒绝掉一个优先收到的<code>Proposal</code>呢？似乎在收到<code>Proposal-2</code>之前，我们能够获取到某种信息，这种信息能够帮助<code>P3</code>拒绝掉<code>Proposal-2</code></li>
+<li><code>P3</code>不拒绝掉<code>P2</code>，而是限制<code>Proposal-1</code>的<code>v</code>值，使得<code>Proposal-1</code>具有与<code>Proposal-2</code>有相同的<code>v</code>值，那么这样的<code>Proposal-1</code>的<code>v</code>值即使被达成一致也不会破坏安全性</li>
+</ol>
+<p>我们先通过第一种角度对<code>协议v2</code>进行优化，优化后的协议如下</p>
+<p><strong><code>协议v3</code></strong></p>
+<ol>
+<li><strong>阶段一：</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code>：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></strong></li>
+<li><strong>接受者<code>Acceptor</code>：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code></strong></li>
+</ul>
+</li>
+<li><strong>阶段二：</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code>：向接受者<code>Acceptor</code>广播提案，和之前的预提案共享同一个<code>proposal_id</code></strong></li>
+<li><strong>接受者<code>Acceptor</code>：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code></strong></li>
+</ul>
+</li>
+</ol>
+<p>在<code>协议v3</code>中，如果<code>PreProposal-1</code>先于<code>Proposal-2</code>被<code>P3</code>接收，那么依据<code>协议v3</code>，<code>Proposal-2</code>将被<code>P3</code>拒绝，这种情况下将满足一致性。但是存在另一种场景(称为<code>场景v3</code>)：假定<code>P1.proposal_id &gt; P2.proposal_id</code>，并且<code>Proposal-2</code>先于<code>PreProposal-1</code>到达<code>P3</code>。那么依然存在<code>场景v2</code>中的问题，只不过我们缩小了场景。<strong>这种协议仍然不满足安全性</strong></p>
+<p>我们该如何优化<code>协议v3</code>？我们通过第二种角度进行优化，我们在预提案阶段增加一个查询操作，所有通过预提案的<code>Acceptor</code>将回复该<code>Acceptor</code>所有通过的提案中具有最大<code>proposal_id</code>的提案以及该提案的<code>v</code>值。随后在提案阶段选择一个具有最大<code>proposal_id</code>的v值</p>
+<p><strong><code>协议v4</code></strong></p>
+<ol>
+<li><strong>阶段一：预提案阶段</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code>：向接受者<code>Acceptor</code>广播预提案，附带接下来提案<code>Proposal</code>的<code>proposal_id</code></strong></li>
+<li><strong>接受者<code>Acceptor</code>：收到预提案后更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，如果预提案的<code>proposal_id &gt; a_proposal_id</code>，<code>Acceptor</code>回复记录的接受过的<code>proposal_id</code>最大的提案</strong></li>
+</ul>
+</li>
+<li><strong>阶段二：提案阶段</strong>
+<ul>
+<li><strong>提议者<code>Proposer</code>：等待直到收到大多数接受者对预提案的回复，从所有回复的提案组成的法定数目的提案集合<code>K</code>中挑选<code>proposal_id</code>最大的提案，以该提案的值作为本次提案的值。如果<code>K</code>是空集，那么可以给提案任意赋值。然后把该提案广播给接受者们，提案和预提案共享同一个<code>proposal_id</code></strong></li>
+<li><strong>接受者<code>Acceptor</code>：如果收到的提案的<code>proposal_id &gt;= a.proposal_id</code>，那么接受这个提案，更新<code>a_proposal_id = max(proposal_id,a_proposal_id)</code>，更新记录的提案</strong></li>
+</ul>
+</li>
+</ol>
+<p>上述<code>协议v4</code>就是最终的<code>Paxos</code>协议</p>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/10/JVM-Options/" rel="prev" title="JVM-Options">
+      <i class="fa fa-chevron-left"></i> JVM-Options
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/13/SourceAnalysis-ReentrantReadWriteLock/" rel="next" title="SourceAnalysis-ReentrantReadWriteLock">
+      SourceAnalysis-ReentrantReadWriteLock <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 问题和假设</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 算法的提出与证明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 算法内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 决议的提出与批准</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 参考</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 下面的论证转载自</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

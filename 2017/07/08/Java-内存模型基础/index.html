@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java-内存模型基础">
+<meta property="og:url" content="http://example.com/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%8A%BD%E8%B1%A1%E7%BB%93%E6%9E%84%E7%A4%BA%E6%84%8F%E5%9B%BE.png">
+<meta property="og:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E7%BA%BF%E7%A8%8B%E4%B9%8B%E9%97%B4%E9%80%9A%E4%BF%A1%E7%A4%BA%E6%84%8F%E5%9B%BE.png">
+<meta property="og:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E9%87%8D%E6%8E%92%E5%BA%8F%E7%A4%BA%E6%84%8F%E5%9B%BE.png">
+<meta property="og:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E5%A4%84%E7%90%86%E5%99%A8%E5%92%8C%E5%86%85%E5%AD%98%E4%BA%A4%E4%BA%92.png">
+<meta property="og:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/happens-before%E5%92%8CJMM%E7%9A%84%E5%85%B3%E7%B3%BB.png">
+<meta property="article:published_time" content="2017-07-08T13:00:00.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.342Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%8A%BD%E8%B1%A1%E7%BB%93%E6%9E%84%E7%A4%BA%E6%84%8F%E5%9B%BE.png">
+
+<link rel="canonical" href="http://example.com/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java-内存模型基础 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java-内存模型基础
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-08 21:00:00" itemprop="dateCreated datePublished" datetime="2017-07-08T21:00:00+08:00">2017-07-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/" itemprop="url" rel="index"><span itemprop="name">Java Virtual Machine</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/Java-Memory-Model/" itemprop="url" rel="index"><span itemprop="name">Java Memory Model</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/" class="post-meta-item leancloud_visitors" data-flag-title="Java-内存模型基础" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-前言"> 1 前言</span></h1>
+<p>主要介绍内存模型的基本概念</p>
+<h1><span id="2-并发编程模型的两个关键问题"> 2 并发编程模型的两个关键问题</span></h1>
+<p>在并发编程中，需要处理两个关键问题：线程之间如何通信以及线程之间如何同步(这里的线程是指并发执行的活动实体)。<strong>通信是指线程之间以何种机制来交换信息</strong></p>
+<p>在命令式编程中，线程之间的通信机制有两种</p>
+<ol>
+<li>共享内存</li>
+<li>消息传递</li>
+</ol>
+<p>在共享内存的并发模型里，线程之间共享程序的公共状态，通过写-读内存中的公共状态进行<strong>隐式通信</strong>；在消息队列的并发模型里，线程之间没有公共状态，线程之间必须通过发送消息来显式通信</p>
+<p><strong>同步是指程序中用于控制不同线程间操作发生的相对顺序的机制</strong></p>
+<ul>
+<li>在共享内存并发模型里，<strong>同步是显式进行的</strong>，程序员必须显式指定某个方法或者某段代码需要在线程之间互斥执行</li>
+<li>在消息传递的并发模型里，由于消息的发送必须在消息的接收之前，因此<strong>同步是隐式进行的</strong></li>
+</ul>
+<p>Java的并发采用的是共享内存模型，Java线程之间的通信总是隐式进行，整个通信的过程对于程序员完全透明。如果编写多线程程序的Java程序员不理解隐式进行的线程之间的通信的工作机制，很可能会遇到各种奇怪的内存可见性的问题</p>
+<h1><span id="3-java内存模型的抽象结构"> 3 Java内存模型的抽象结构</span></h1>
+<p>在Java中，所有实例域、静态域和数组元素都存储在堆内存中，堆内存在线程之间共享。局部变量(Local Variables)，方法定义参数(Java语言规范称之为Formal Method Parameters)和异常处理器参数(Exception Handler Parameters)不会在线程之间共享，它们不会有内存可见性的问题，也不受内存模型的影响</p>
+<p>Java线程之间的通信由Java内存模型控制</p>
+<ul>
+<li><strong>JMM决定一个线程对共享变量的写入何时对另一个线程可见</strong></li>
+<li><strong>从抽象的角度来看，JMM定义了线程和主内存之间的抽象关系：线程之间的共享变量存储在主内存(Main memory)中，每个线程都有一个私有的本地内存(Local memory)，本地内存中存储了该线程以读/写共享变量的副本</strong></li>
+<li><strong>本地内存是JMM的一个抽象概念，并不真实存在。它涵盖了缓存、写缓冲区、寄存器以及其他的硬件和编译器优化</strong></li>
+</ul>
+<p>Java内存模型抽象示意图如下</p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%8A%BD%E8%B1%A1%E7%BB%93%E6%9E%84%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="Java内存模型抽象示意图"></p>
+<p>从上图来看，如果线程A与线程B之间要通信的话，必须经历下面两个步骤，见如下示意图</p>
+<ol>
+<li>线程A把本地内存A中更新过的共享变量刷新到主内存中去</li>
+<li>线程B到主内存中去读取线程A之前已经更新过的共享变量</li>
+</ol>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E7%BA%BF%E7%A8%8B%E4%B9%8B%E9%97%B4%E9%80%9A%E4%BF%A1%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="Java内存模型抽象示意图"></p>
+<ul>
+<li>本地内存A和本地内存B由主内存中共享变量x的副本。假设初始时，这3个内存中的值都为0</li>
+<li>线程A在执行时，把更新后的x值(假设值为1)临时存放在自己的本地内存A中。当线程A和线程B需要通信时，线程A首先会把自己本地内存中修改后的x值刷新到主内存中，此时主内存中的x值变为了1。随后线程B到主内存中去读取线程A更新后的值，此时线程B的本地内存的x值也变为了1</li>
+<li>从整体上来看，这两个步骤实质上是线程A在向线程B发送消息，而且这个通信过程必须要经过主内存。JMM通过控制主内存与每个线程的本地内存之间的交互，来为Java程序员提供可见性保证</li>
+</ul>
+<h1><span id="4-从源代码到指令序列的重排序"> 4 从源代码到指令序列的重排序</span></h1>
+<p>在执行程序时，为了提高性能，编译器和处理器常常会对指令做重排序。重排序分为3种类型</p>
+<ol>
+<li><strong>编译器优化的重排序</strong>。编译器在不改变单线程程序语义的前提下，可以重新安排语句的执行顺序</li>
+<li><strong>指令集并行的重排序</strong>。现代处理器采用了指令集并行技术(Instruction-Level Parallelism，ILP)来将多条指令重叠执行。如果不存在数据依赖性，处理器可以改变语句对应机器指令的执行顺序</li>
+<li><strong>内存系统的重排序</strong>。由于处理器使用缓存和读/写缓冲区，这使得加载和存储操作看上去可能是在乱序执行</li>
+</ol>
+<p>从Java源代码到最终实际的指令序列，会分别经历下面3种重排序</p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E9%87%8D%E6%8E%92%E5%BA%8F%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="重排序示意图"></p>
+<ul>
+<li>上述1属于编译器重排序，2和3属于处理器重排序。这些重排序可能导致多线程程序出现内存可见性问题</li>
+<li>对于编译器，JMM的编译器重排序规则会禁止特定类型的编译器重排序(不是所有的编译器重排序都要禁止)</li>
+<li>对于处理器重排序，JMM的处理器重排序规则会要求Java编译器在生成指令序列时，插入特定类型的内存屏障(Memory Barriers，Intel称之为Memory Fance)指令，通过内存屏障指令来禁止特定类型的处理器重排序</li>
+</ul>
+<p>JMM属于语言级的内存模型，它确保在不同的编译器和不同的处理器平台之上，通过禁止特定类型的编译器重排序和处理器重排序，为程序员提供一致的内存可见性保证</p>
+<h1><span id="5-并发编程模型的分类"> 5 并发编程模型的分类</span></h1>
+<p>现代的处理器使用写缓冲区临时保存向内存写入的数据。写缓冲区可以保证指令流水线持续运行，它可以避免由于处理器停顿下来等待向内存写入数据而产生的延迟。同时，通过以批处理的方式刷新写缓冲区，以及合并写缓冲区对同一内存地址的多次写，减少对内存总线的占用</p>
+<p>虽然写缓冲区有这么多好处，但是处理器上的写缓冲区，仅仅对它所在的处理器可见。这个特性会对内存操作的执行顺序产生重要的影响：处理器对内存的读/写操作的执行顺序，不一定与内存实际发生的读/写操作顺序一致。下面以一个示例程序进行说明</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">processA</span><span class="params">()</span>&#123;</span><br><span class="line">    a = <span class="number">1</span>;<span class="comment">//A1</span></span><br><span class="line">    x = b;<span class="comment">//A2</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">processB</span><span class="params">()</span>&#123;</span><br><span class="line">    b = <span class="number">2</span>;<span class="comment">//B1</span></span><br><span class="line">    y = a;<span class="comment">//B2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>假设处理器A和处理器B按程序的顺序并执行内存访问，最终可能得到<code>x = y = 0</code>的结果</li>
+</ul>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/%E5%A4%84%E7%90%86%E5%99%A8%E5%92%8C%E5%86%85%E5%AD%98%E4%BA%A4%E4%BA%92.png" alt="重排序示意图"></p>
+<ul>
+<li>处理器A和处理器B可以同时把共享变量写入自己的缓冲区(A1,B1)，然后从内存中读取另一个共享变量(A2,B2)，最后才把自己写缓存区中保存的脏数据刷新到内存中(A3,B3)。当以这种时序执行时，程序就可以得到x = y = 0的结果</li>
+<li>从内存操作实际发生的顺序来看，直到处理器A执行A3来刷新自己的缓存区，写操作A1才算真正执行了。虽然处理器A执行内存操作的顺序为A1–&gt;A2，但内存操作实际发生的顺序确是A2–&gt;A1。此时，处理器A的内存操作顺序被重排序了(处理器B的情况和处理器A一样，不再赘述)</li>
+<li>这里的关键是：<strong>由于写缓冲区仅对自己的处理器可见，它会导致处理器执行内存操作的顺序可能会与实际的操作执行顺序不一致。由于现代的处理器都会使用写缓冲区，因此现代的处理器都会允许写-读操作进行重排序</strong></li>
+</ul>
+<p>为了保证内存可见性，Java编译器在生成指令序列的适当位置会插入内存屏障指令来禁止特定类型的处理器重排序。JMM把内存屏障分为4类，如下表所示</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">屏障类型</th>
+<th style="text-align:left">指令示例</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">LoadLoad Barriers</td>
+<td style="text-align:left">Load1;LoadLoad;Load2</td>
+<td style="text-align:left">确保Load1数据的装载先于Load2及所有后续装载指令的装载</td>
+</tr>
+<tr>
+<td style="text-align:left">StoreStore Barriers</td>
+<td style="text-align:left">Store1;StoreStore;Store2</td>
+<td style="text-align:left">确保Store1数据对其他处理器可见(刷新到内存)先于Store2及所有后续存储指令的存储</td>
+</tr>
+<tr>
+<td style="text-align:left">LoadStore Barriers</td>
+<td style="text-align:left">Load1;LoadStore;Store2</td>
+<td style="text-align:left">确保Load1数据装载先于Store2及所有后续的存储指令刷新到内存</td>
+</tr>
+<tr>
+<td style="text-align:left">StoreLoad Barriers</td>
+<td style="text-align:left">Store1;StoreLoad;Load2</td>
+<td style="text-align:left">确保Store1数据对其他处理器变得可见(指刷新到内存)先于Load2及所有后续装载指令的装载。StoreLoad Barriers会使该屏障之前的所有内存访问指令(存储和装载指令)完成之后，才执行该屏障之后的内存访问指令</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>StoreLoad Barriers是一个全能型屏障，他同时具有其他3个屏障的效果。现代处理器大多数支持该屏障。执行该屏障开销会很昂贵，因为当前处理器通常要把写缓冲区中的数据全部刷新到内存中(Buffer Fully Flush)</li>
+</ul>
+<p>为什么说StoreLoad Barriers是一个全能型屏障，如何得出这个结论</p>
+<ol>
+<li>存在一个隐式的顺序关系?：<code>Load1 &lt; Store1</code></li>
+<li>因此<code>Store1 &lt; Load2 &lt;==&gt; Load1 &lt; Store1 &lt; Load2 &lt; Store2</code>
+<ul>
+<li>可以得到<code>Load1 &lt; Load2</code>，即LoadLoad内存屏障</li>
+<li>可以得到<code>Store1 &lt; Store2</code>，即StoreStore内存屏障</li>
+<li>可以得到<code>Load1 &lt; Store2</code>，即LoadStore内存屏障</li>
+</ul>
+</li>
+</ol>
+<h1><span id="6-happens-before简介"> 6 happens-before简介</span></h1>
+<p>从JDK开始，Java使用新的JSR-133内存模型</p>
+<ul>
+<li><strong>JSR-133使用happens-before的概念来阐述操作之间的内存可见性</strong></li>
+<li><strong>在JMM中，如果一个操作执行的结果需要对另一个操作可见，那么这两个操作之间必须要存在happens-before关系(这里提到的两个操作既可以在一个线程之内，也可以是在不同线程之间)</strong></li>
+</ul>
+<p>与程序员密切相关的happens-before规则如下</p>
+<ul>
+<li><strong>程序顺序规则</strong>：一个线程中的每个操作，happens-before于该线程中的任意后续操作</li>
+<li><strong>监视器锁规则</strong>：对一个锁的解锁，happens-before于随后对这个锁的加锁</li>
+<li><strong>volaitle变量规则</strong>：对于一个volatile域的写，happens-before于任意后续对这个volatile域的读</li>
+<li><strong>传递性</strong>：如果A happens-before B，且B happens-before C，那么A happens-before C</li>
+</ul>
+<p><strong>注意：两个操作之间具有happens-before关系，并不意味着前一个操作必须要在后一个操作之前执行，happens-before仅要求前一个操作(执行的结果)对后一个操作可见，且前一个操作按顺序排在第二个操作之前</strong></p>
+<p>下图是happens-before与JMM的关系示意图</p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80/happens-before%E5%92%8CJMM%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt="重排序示意图"></p>
+<ul>
+<li><strong>一个happens-before规则对应于一个或多个编译器和处理器重排序规则</strong></li>
+<li>对于Java程序员来说，happens-before规则简单易懂，它避免Java程序员为了理解JMM提供的内存可见性保证而去学习复杂的重排序规则以及这些规则的具体实现方法</li>
+</ul>
+<h1><span id="7-参考"> 7 参考</span></h1>
+<ul>
+<li>《Java并发编程的艺术》</li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/05/Java-Interview-Summary/" rel="prev" title="Java-Interview-Summary">
+      <i class="fa fa-chevron-left"></i> Java-Interview-Summary
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/08/Java-%E9%87%8D%E6%8E%92%E5%BA%8F/" rel="next" title="Java-重排序">
+      Java-重排序 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 并发编程模型的两个关键问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Java内存模型的抽象结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 从源代码到指令序列的重排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 并发编程模型的分类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 happens-before简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

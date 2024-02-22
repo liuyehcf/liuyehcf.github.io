@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java-内存模型综述">
+<meta property="og:url" content="http://example.com/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/JMM%E6%8F%92%E5%85%A5%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E7%A4%BA%E6%84%8F%E5%9B%BE.png">
+<meta property="og:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/%E5%90%84%E7%A7%8DCPU%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%BC%BA%E5%BC%B1%E5%AF%B9%E6%AF%94%E7%A4%BA%E6%84%8F%E5%9B%BE.png">
+<meta property="og:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/JMM%E4%B8%8E%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E6%A8%A1%E5%9E%8B%E5%AF%B9%E6%AF%94%E7%A4%BA%E6%84%8F%E5%9B%BE.png">
+<meta property="article:published_time" content="2017-07-08T13:08:00.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.343Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/JMM%E6%8F%92%E5%85%A5%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E7%A4%BA%E6%84%8F%E5%9B%BE.png">
+
+<link rel="canonical" href="http://example.com/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java-内存模型综述 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java-内存模型综述
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-08 21:08:00" itemprop="dateCreated datePublished" datetime="2017-07-08T21:08:00+08:00">2017-07-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/" itemprop="url" rel="index"><span itemprop="name">Java Virtual Machine</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Virtual-Machine/Java-Memory-Model/" itemprop="url" rel="index"><span itemprop="name">Java Memory Model</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Java-内存模型综述" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/08/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-前言"> 1 前言</span></h1>
+<p>前几篇博客对Java内存模型的基础知识和内存模型的具体实现进行了说明，本篇博文对Java内存模型的相关知识做一个总结</p>
+<h1><span id="2-处理器的内存模型"> 2 处理器的内存模型</span></h1>
+<p>顺序一致性内存模型是一个理论参考模型，JMM和处理器内存模型在设计时通常会以顺序一致性模型作为参照。在设计时，JMM和处理器内存模型会对顺序一致性模型做一些放松，因为如果完全按照顺序一致性模型来实现处理器和编译器，那么很多的处理器和编译器优化都要禁止，这对执行性能将会有很大影响</p>
+<p>根据对不同类型的读/写操作组合的执行顺序的放松，可以把常见处理器的内存模型划分为如下几种类型</p>
+<ul>
+<li>放松程序中写-读操作的顺序，由此产生了Total Store Ordering内存模型(简称为TSO)</li>
+<li>在上面的基础上，继续放松程序中写-写操作的顺序，由此产生了Partial Store Order内存模型(简称为PSO)</li>
+<li>在前面两条的基础上，继续放松程序中读-写和读-读操作的顺序，由此产生了Relaxed Memory Order内存模型(简称RMO)和PowerPC内存模型</li>
+<li>注意，这里的处理器对读/写操作的放松，是以两个操作之间不存在数据依赖性为前提的(因为处理器要遵守as-if-serial语义，处理器不会对存在数据依赖性的两个内存操作做重排序)</li>
+</ul>
+<p>下表展示了常见处理器内存模型的细节特征</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">内存模型名称</th>
+<th style="text-align:left">对应的处理器</th>
+<th style="text-align:center">Store-Load重排序</th>
+<th style="text-align:center">Store-Store重排序</th>
+<th style="text-align:center">Load-Laod和Load-Store重排序</th>
+<th style="text-align:center">可以更早读取到其他处理器的写</th>
+<th style="text-align:center">可以更早读取到当前处理器的写</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">TSO</td>
+<td style="text-align:left">sparc-TSO X64</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">N</td>
+<td style="text-align:center">N</td>
+<td style="text-align:center">N</td>
+<td style="text-align:center">Y</td>
+</tr>
+<tr>
+<td style="text-align:left">PSO</td>
+<td style="text-align:left">sparc-PSO</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">N</td>
+<td style="text-align:center">N</td>
+<td style="text-align:center">Y</td>
+</tr>
+<tr>
+<td style="text-align:left">RMO</td>
+<td style="text-align:left">ia64</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">N</td>
+<td style="text-align:center">Y</td>
+</tr>
+<tr>
+<td style="text-align:left">PowerPc</td>
+<td style="text-align:left">PowerPC</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+<td style="text-align:center">Y</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>所有处理器内存模型都允许写-读重排序，因为它们都使用了写缓存区，写缓存区可能导致写-读重排</li>
+<li>所有处理器内存模型都允许更早读到当前处理器的写，原因同样是因为写缓存区，由于写缓存区仅对当前处理器可见，这个特性导致当前处理器可以比其他处理器先看到临时保存在自己写缓存区中的写</li>
+<li>由上到下，模型由强变弱，越是追求性能的处理器，内存模型设计会越弱。因为这些处理器希望内存模型对它们的束缚越少越好，这样它们就能做尽可能多的优化来提高性能</li>
+<li><strong>由于常见的处理器内存模型比JMM若，Java编译器产生字节码时，会在执行指令序列的适当位置插入内存屏障来限制处理器的重排序</strong>。同时，由于各种处理器内存模型的强弱不同，为了在不同的处理器平台向程序员展示一个一致的内存模型，JMM在不同的处理器中需要插入的内存屏障和数量也不相同，下图展示了JMM在不同处理器内存模型中需要插入的内存屏障示意图</li>
+</ul>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/JMM%E6%8F%92%E5%85%A5%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="JMM插入内存屏障示意图"></p>
+<p><strong>JMM屏蔽了不同处理器内存模型的差异，它在不同处理器平台之上为Java程序员呈现了一个一致的内存模型</strong></p>
+<h1><span id="3-各种内存模型之间的关系"> 3 各种内存模型之间的关系</span></h1>
+<p>JMM是一个语言级的内存模型，处理器内存模型是硬件级的内存模型，顺序一致性内存模型是一个理论参考模型，下图是语言内存模型、处理器内存模型和顺序一致性内存模型的强弱对比示意图</p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/%E5%90%84%E7%A7%8DCPU%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%BC%BA%E5%BC%B1%E5%AF%B9%E6%AF%94%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="JMM插入内存屏障示意图"></p>
+<ul>
+<li>常见的4种处理器内存模型比常用的3种语言内存模型要弱</li>
+<li>处理器内存模型和语言内存模型都比顺序一致性内存模型要弱</li>
+<li>同处理器内存模型一样，越是追求执行性能的语言，内存模型设计得会越弱</li>
+</ul>
+<h1><span id="4-jmm的内存可见性保证"> 4 JMM的内存可见性保证</span></h1>
+<p>按程序类型，Java程序的内存可见性保证可以分为下列3类</p>
+<ol>
+<li><strong>单线程程序</strong>：单线程程序不会出现内存可见性问题。编译器、runtime和处理器会共同确保单线程程序的执行结果与该程序在顺序一致性模型中的执行结果相同</li>
+<li><strong>正确同步的多线程程序</strong>：正确同步的多线程程序的执行将具有顺序一致性(程序的执行结果与该程序在顺序一致性内存模型中的执行结果相同)。<strong>这是JMM关注的重点</strong>，JMM通过限制编译器和处理器的重排序来为程序员提供内存可见性保证</li>
+<li><strong>未同步/未正确同步的多线程程序</strong>：JMM为它们提供了最小安全性保障：线程执行时读取到的值，要么是之前某个线程写入的值，要么是默认值(0、null、false)</li>
+</ol>
+<p>注意，最小安全性保障与64位数据的非原子性写并不矛盾。它们是两个不同的概念，它们&quot;发生&quot;的时间点也不同</p>
+<ul>
+<li>最小安全性保证对象默认初始化之后(设置成员域为0、null或false)，才会被任意线程使用。最小安全性&quot;发生&quot;在对象被任意线程使用之前</li>
+<li>64位数据的非原子性写入&quot;发生&quot;在对象被多个线程使用的过程中(写共享变量)。当发生问题时(处理器B看到仅仅被处理器A&quot;写了一半&quot;的无效值)，这里虽然处理器B读到了一个被写了一半的无效值，但这个值仍然是处理器A写入的，只不过处理器A还没有写完而已</li>
+<li><strong>最小安全性保证线程读到的值，要么是之前某个线程写入的值，要么是默认值(0、null、false)。但最小安全性并不保证线程读到的值，一定是某个线程写完后的值。最小安全性保证线程读取到的值不会无中生有的冒出来，但并不保证线程读取到的值一定是正确的</strong></li>
+</ul>
+<p>下图展示了这3类程序在JMM中与在顺序一致性内存模型中的执行结果的异同</p>
+<p><img src="/images/Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0/JMM%E4%B8%8E%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E6%A8%A1%E5%9E%8B%E5%AF%B9%E6%AF%94%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="JMM插入内存屏障示意图"></p>
+<ul>
+<li>只要多线程程序是正确同步的，JMM保证该程序在任意的处理器平台上的执行结果，与该程序在顺序一致性内存模型中的执行结果一致</li>
+</ul>
+<h1><span id="5-jsr-133对旧内存模型的修补"> 5 JSR-133对旧内存模型的修补</span></h1>
+<p>JSR-133对JDK5之前的旧内存模型的修补主要有两个</p>
+<ol>
+<li>增强volatile的语义。旧内存模型允许volatile变量与普通变量重排序。JSR-133严格限制volaitle变量与普通变量的重排序，使volatile的写-读和锁的释放-获取具有相同的内存语义</li>
+<li>增强final的内存语义。在旧的内存模型中，多次读取同一个final变量的值可能会不相同。为此JSR-133为final增加了两个重排序规则。在保证final引用不会从构造函数内逸出的情况下，final具有初始化安全性
+<ul>
+<li>在构造函数内对一个final域的写入，与随后把这个被构造对象的引用赋值给一个引用变量，这两个操作之间不能重排序</li>
+<li>初次读一个包含final域的对象的引用，与随后初次读这个final域，这两个操作之间不能重排序</li>
+</ul>
+</li>
+</ol>
+<h1><span id="6-参考"> 6 参考</span></h1>
+<ul>
+<li>《Java并发编程的艺术》</li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/08/Java-%E5%8D%95%E4%BE%8B%E5%8F%8C%E9%87%8D%E6%A3%80%E6%B5%8B%E6%AD%A3%E7%A1%AE%E6%80%A7%E5%88%86%E6%9E%90/" rel="prev" title="Java-单例双重检测正确性分析">
+      <i class="fa fa-chevron-left"></i> Java-单例双重检测正确性分析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/09/Java-synchronized%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E5%BA%94%E7%94%A8/" rel="next" title="Java-synchronized的实现原理与应用">
+      Java-synchronized的实现原理与应用 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 处理器的内存模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 各种内存模型之间的关系</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 JMM的内存可见性保证</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 JSR-133对旧内存模型的修补</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译原理-词法分析">
+<meta property="og:url" content="http://example.com/2017/10/15/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig1.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig2.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig3.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig4.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig5.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig6.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig7.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig8.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig9.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig10.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig11.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig12.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig13.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig14.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig15.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig16.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig17.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig18.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig19.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig20.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig21.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig22.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig23.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig24.jpg">
+<meta property="article:published_time" content="2017-10-15T02:28:52.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.369Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/10/15/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>编译原理-词法分析 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/10/15/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          编译原理-词法分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-10-15 10:28:52" itemprop="dateCreated datePublished" datetime="2017-10-15T10:28:52+08:00">2017-10-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Compile-Principle/" itemprop="url" rel="index"><span itemprop="name">Compile Principle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/10/15/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/" class="post-meta-item leancloud_visitors" data-flag-title="编译原理-词法分析" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/10/15/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/10/15/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-正则表达式"> 1 正则表达式</span></h1>
+<p><strong>正则表达式(Regular Expression, RE)<strong>是一种用来描述</strong>正则语言</strong>的更紧凑的表示方法</p>
+<p>正则表达式可以由较小的正则表达式按照特定规则<strong>递归</strong>地构建。每个正则表达式$r$定义（表示）一个语言，记为$L(r)$。这个语言也是根据r的<strong>子表达式所表示的语言递归定义</strong>的</p>
+<h2><span id="11-正则表达式的定义"> 1.1 正则表达式的定义</span></h2>
+<ol>
+<li>
+$\varepsilon$是一个RE，$L(\varepsilon) = \{\varepsilon\}$
+</li>
+<li>如果$a \in \sum$，则$a$是一个RE，$L(a) = \{a\}$</li>
+<li>假设$r$和$s$都是RE，表示的语言分别是$L(r)$和$L(s)$，则
+<ul>
+<li>
+$r|s$是一个RE，$L(r|s) = L(r) \cup L(s)$
+</li>
+<li>
+$rs$是一个RE，$L(rs) = L(r) L(s)$
+</li>
+<li>
+$r^*$是一个RE，$L(r^*) = (L(r))^*$
+</li>
+<li>
+$(r)$是一个RE，$L((r)) = L(r)$
+</li>
+<li><strong>运算优先级：<code>() &gt; * &gt; 连接 &gt; |</code></strong></li>
+</ul>
+</li>
+</ol>
+<h2><span id="12-正则语言"> 1.2 正则语言</span></h2>
+<p>可以用RE定义的语言叫做<strong>正则语言(regular language)<strong>或</strong>正则集合(regular set)</strong></p>
+<p>RE的代数定理</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig1.jpg" alt="fig1"></p>
+<h2><span id="13-正则文法与正则表达式等价"> 1.3 正则文法与正则表达式等价</span></h2>
+<p>对于任何正则文法$G$，存在定义同一语言的正则表达式$r$</p>
+<p>对于任何正则表达式$r$，存在生成同一语言的正则文法$G$</p>
+<h1><span id="2-正则定义"> 2 正则定义</span></h1>
+<p><strong>正则定义</strong>是具有如下形式的<strong>定义序列</strong>：</p>
+$$\begin{split}d_1 &\to r_1 \\
+d_2 &\to r_2 \\
+&... \\
+d_n &\to r_n \\
+\end{split}$$
+<ul>
+<li>每个$d_i$都是一个<strong>新符号</strong>，它们都不在字母表$\sum$中，而且<strong>各不相同</strong></li>
+<li>每个$r_i$是字母表$\sum \cup \{ d_1, d_2, ..., d_{i-1} \}$上的<strong>正则表达式</strong></li>
+</ul>
+<h1><span id="3-有穷自动机"> 3 有穷自动机</span></h1>
+<p>有穷自动机(Finite Automata, FA)是由两位神经物理学家MeCuloch和Pitts于1948年首先提出，是对<strong>一类处理系统</strong>所建立的<strong>数学模型</strong></p>
+<ul>
+<li>这类系统具有一系列<strong>离散的输入输出信息</strong>和<strong>有穷数目的内部状态</strong>（状态：概括了对过去输入信息处理的情况）</li>
+<li>系统只需要根据<strong>当前所处的状态</strong>和<strong>当前面临的输入信息</strong>就可以决定系统的<strong>后继行为</strong>。每当系统处理了当前的输入后，系统内部的<strong>状态也将发生改变</strong></li>
+</ul>
+<h2><span id="31-fa模型"> 3.1 FA模型</span></h2>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig2.jpg" alt="fig2"></p>
+<p>FA模型由三部分组成</p>
+<ol>
+<li><strong>输入带(input tape)</strong>：用来存放输入符号串</li>
+<li><strong>读头(head)</strong>：从左向右逐个读取输入符号，不能修改（只读）、不能往返移动</li>
+<li><strong>有穷控制器(finite control)</strong>：具有有穷个状态数，根据<strong>当前的状态</strong>和<strong>当前输入符号</strong>控制转入<strong>下一状态</strong></li>
+</ol>
+<h2><span id="32-fa的表示"> 3.2 FA的表示</span></h2>
+<p><strong>转换图(Transition Graph)可以用来表示FA</strong>，其结构如下</p>
+<ol>
+<li><strong>结点</strong>：FA的状态
+<ul>
+<li>初始状态（开始状态）：只有一个，由<strong><em>start</em>箭头</strong>指向</li>
+<li>终止状态（接收状态）：可能有多个，用双圈表示</li>
+</ul>
+</li>
+<li><strong>带有标记的有向边</strong>
+<ul>
+<li>如果对于<strong>输入a</strong>，存在一个从状态p到状态q的转换，就在p、q之间画一条有向边，并标记上a，如下</li>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig3.jpg" alt="fig3"></li>
+</ul>
+</li>
+</ol>
+<h2><span id="33-fa定义接收的语言"> 3.3 FA定义（接收）的语言</span></h2>
+<p>给定输入串$x$，如果存在一个对应于串$x$的从<strong>初始状态</strong>到<strong>某个终止状态</strong>的转换序列，则称串$x$被该FA接收</p>
+<p>由一个有穷自动机$M$(Machine)接收的所有串构成的集合称为是该FA定义（接收）的语言，记为$L(M)$</p>
+<h2><span id="34-最长子串匹配原则"> 3.4 最长子串匹配原则</span></h2>
+<p>当输入串的<strong>多个前缀</strong>与一个或多个模式匹配时，总是选择<strong>最长的前缀</strong>进行匹配</p>
+<ul>
+<li>在到达某个终态之后，只要输入带上还有符号，DFA就继续前进，以便寻找尽可能长的匹配</li>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig4.jpg" alt="fig4"></li>
+</ul>
+<h1><span id="4-有穷自动机的分类"> 4 有穷自动机的分类</span></h1>
+<p>FA的分类</p>
+<ol>
+<li><strong>确定的FA(Deterministic finite automata, DFA)</strong></li>
+<li><strong>非确定的FA(Nondeterministic finite automata, NFA)</strong></li>
+</ol>
+<h2><span id="41-确定的有穷自动机dfa"> 4.1 确定的有穷自动机(DFA)</span></h2>
+$$M = ( S, \sum, \delta, s_0, F )$$
+<ol>
+<li><strong>$S$：有穷状态集</strong></li>
+<li><strong>$\sum$：输入字母表</strong>，即输入符号集合。假设$\varepsilon$不是$\sum$中的元素</li>
+<li><strong>$\delta$：将$S\;\times\;\sum$映射到$S$的转换函数</strong>。$\forall s \in S, a \in \sum, \delta(s,a)$表示从状态$s$出发，沿着标记为$a$的边所能到达的状态</li>
+<li><strong>$s_0$：开始状态</strong>（或初始状态），$s_0 \in S$</li>
+<li><strong>$F$：接收状态（或终止状态）集合</strong>，$F \subseteq S$</li>
+</ol>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig5.jpg" alt="fig5"></p>
+<h2><span id="42-非确定的有穷自动机nfa"> 4.2 非确定的有穷自动机(NFA)</span></h2>
+$$M = ( S, \sum, \delta, s_0, F )$$
+<ol>
+<li>
+$S$：有穷状态集
+</li>
+<li>
+$\sum$：输入字母表，即输入符号集合。假设$\varepsilon$不是$\sum$中的元素
+</li>
+<li>
+$\delta$：将$S\;\times\;\sum$映射到$\textbf{2}^\textbf{S}$的转换函数。$\forall s \in S, a \in \sum, \delta(s,a)$表示从状态$s$出发，沿着标记为$a$的边所能到达的状态集合
+</li>
+<li>
+$s_0$：开始状态（或初始状态），$s_0 \in S$
+</li>
+<li>
+$F$：接收状态（或终止状态）集合，$F \subseteq S$
+</li>
+</ol>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig6.jpg" alt="fig6"></p>
+<p>非确定的有穷自动机与确定的有穷自动机的<strong>唯一区别</strong>：</p>
+<ul>
+<li>确定有穷自动机由<strong>当前状态</strong>和<strong>当前输入符号</strong>可以唯一确定下一个状态</li>
+<li>非确定有穷自动机由<strong>当前状态</strong>和<strong>当前输入符号</strong>不能唯一确定下一个状态，只能得到一个<strong>状态集合</strong></li>
+</ul>
+<h2><span id="43-dfa和nfa的等价性"> 4.3 DFA和NFA的等价性</span></h2>
+<p>对任何非确定的有穷自动机N，存在定义同一语言的确定的有穷自动机D</p>
+<p>对任何确定的有穷自动机D，存在定义同一语言的非确定的有穷自动机N</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig7.jpg" alt="fig7"></p>
+<h2><span id="44-带有varepsilon-边的nfa"> 4.4 带有$\varepsilon -$边的NFA</span></h2>
+$$M = ( S, \sum, \delta, s_0, F )$$
+<ol>
+<li>
+$S$：有穷状态集
+</li>
+<li>
+$\sum$：输入字母表，即输入符号集合。假设$\varepsilon$不是$\sum$中的元素
+</li>
+<li>
+$\delta$：将$S\;\times\;(\sum \cup \{ \varepsilon \})$映射到$\textbf{2}^\textbf{S}$的转换函数。$\forall s \in S, a \in (\sum \cup \{ \varepsilon \}), \delta(s,a)$表示从状态$s$出发，沿着标记为$a$的边所能到达的状态集合
+</li>
+<li>
+$s_0$：开始状态（或初始状态），$s_0 \in S$
+</li>
+<li>
+$F$：接收状态（或终止状态）集合，$F \subseteq S$
+</li>
+</ol>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig8.jpg" alt="fig8"></p>
+<h2><span id="45-带有和不带有varepsilon-边nfa等价"> 4.5 带有和不带有$\varepsilon -$边NFA等价</span></h2>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig9.jpg" alt="fig9"></p>
+<h2><span id="46-dfa算法的实现"> 4.6 DFA算法的实现</span></h2>
+<p><strong>输入</strong>：以文件结束符eof结尾的字符串$x$。DFA $D$的开始状态$s_0$，接收状态集$F$，转换函数$move$<br>
+<strong>输出</strong>：如果$D$接收$x$，则回答“yes”，否则回答“no”<br>
+<strong>方法</strong>：将下述算法应用于输入串$x$</p>
+<ul>
+<li>函数<code>nextChar()</code>返回输入串$x$的下一个符号</li>
+<li>函数<code>move(s, c)</code>返回从状态$s$出发，沿着标记为$c$的边所能到达的状态</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">s = s0;</span><br><span class="line">c = nextChar();</span><br><span class="line"><span class="keyword">while</span>(c != eof) &#123;</span><br><span class="line">    s = move(s, c);</span><br><span class="line">    c = nextChar();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(s in F) <span class="keyword">return</span> <span class="string">&quot;yes&quot;</span>;</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">return</span> <span class="string">&quot;no&quot;</span>;</span><br></pre></td></tr></table></figure>
+<h1><span id="5-从正则表达式到有穷自动机"> 5 从正则表达式到有穷自动机</span></h1>
+<p>从正则表达式转换到DFA比较困难，但是从正则表达式转换到带有$\varepsilon -$边的NFA是比较容易的</p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig10.jpg" alt="fig10"></p>
+<h2><span id="51-根据re构造nfa"> 5.1 根据RE构造NFA</span></h2>
+<ol>
+<li>
+$\varepsilon$对应的NFA
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig11.jpg" alt="fig11"></li>
+</ul>
+</li>
+<li>字母表$\sum$中符号$a$对应的NFA
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig12.jpg" alt="fig12"></li>
+</ul>
+</li>
+<li>
+$r = r_1r_2$对应的NFA
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig13.jpg" alt="fig13"></li>
+</ul>
+</li>
+<li>
+$r = r_1 | r_2$对应的NFA
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig14.jpg" alt="fig14"></li>
+</ul>
+</li>
+<li>
+$r = r1^*$对应的NFA
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig15.jpg" alt="fig15"></li>
+</ul>
+</li>
+</ol>
+<p><strong>下面以一个例子进行说明</strong>，$RE = (a|b)^*abb$</p>
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig16.jpg" alt="fig16"></li>
+<li><strong>转化的过程，就是将复合表达式进行拆分的过程</strong></li>
+</ul>
+<h1><span id="6-从nfa到dfa的转换"> 6 从NFA到DFA的转换</span></h1>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig17.jpg" alt="fig17"></p>
+<p><strong>以上图中的例子进行说明</strong></p>
+<ul>
+<li>起始状态$A$，在接收到字符$a$后，下一个<strong>状态集合</strong>是$\{A、B\}$</li>
+<li>我们将<strong>状态集合</strong>$\{A、B\}$单独作为DFA中的一个状态。状态$\{B、C\}$、$\{C、D\}$同理</li>
+<li>在NFA中，状态$A$接收字符$a$后，转换到<strong>状态集合</strong>$\{A、B\}$，因此，在DFA中，<strong>状态</strong>$\{A、B\}$接收字符$a$后，转换到<strong>状态</strong>$\{A、B\}$</li>
+<li>在NFA中，状态$B$接收字符$b$后，转换到<strong>状态集合</strong>$\{B、C\}$，因此，在DFA中，<strong>状态</strong>$\{A、B\}$接收字符$b$后，转换到<strong>状态</strong>$\{B、C\}$</li>
+<li>其他同理，不再赘述</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig18.jpg" alt="fig18"></p>
+<h2><span id="61-子集构造法subset-construction"> 6.1 子集构造法(subset construction)</span></h2>
+<p><strong>输入</strong>：NFA N<br>
+<strong>输出</strong>：接收同样语言的DFA D<br>
+<strong>方法</strong>：一开始，$\varepsilon -closure( s_0 )$是Dstates中的唯一状态，且它未加标记</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(在Dstates中有一个未标记状态T)｛</span><br><span class="line">    给T加上标记;</span><br><span class="line">    <span class="keyword">for</span>(每个输入符号a)｛</span><br><span class="line">        <span class="comment">//首先，move(T, a)函数返回的是一个集合</span></span><br><span class="line">        <span class="comment">//然后，通过ε-closure(T)计算出包含ε-边的集合</span></span><br><span class="line">        <span class="comment">//注意到，这里的U在NFA中是一个状态集合，但是对于DFA而言仅是一个状态，理解这一点很重要</span></span><br><span class="line">        U = ε-closure(move(T, a));</span><br><span class="line"></span><br><span class="line">        <span class="comment">//如果状态U是一个新状态，那么将其加入Dstates中</span></span><br><span class="line">        <span class="keyword">if</span>(U不在Dstates中) &#123;</span><br><span class="line">            将U加入到Dstates中，且不加标记;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//在DFA D中，状态T在输入a时转移到状态U，即画一条边</span></span><br><span class="line">        Dtran[T, a]=U;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">操作</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">$\varepsilon -closure( s )$</td>
+<td style="text-align:left">能够从NFA的状态$s$开始只通过$\varepsilon$转换到达的NFA状态集合</td>
+</tr>
+<tr>
+<td style="text-align:left">$\varepsilon -closure( T )$</td>
+<td style="text-align:left">能够从$T$中的某个NFA状态$s$开始只通过$\varepsilon$转换到达的NFA状态集合，即$U_{s \in T}\; \varepsilon -closure( s )$</td>
+</tr>
+<tr>
+<td style="text-align:left">$move(T, a)$</td>
+<td style="text-align:left">能够从$T$中的某个状态$s$出发通过标号为$a$的转换到达的NFA状态的集合</td>
+</tr>
+</tbody>
+</table>
+<p><strong>计算</strong>$\varepsilon -closure( T )$的算法，<strong>该过程类似于BFS算法</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">将T的所有状态压入<span class="built_in">stack</span>中;</span><br><span class="line">将ε-closure(T)初始化为T;</span><br><span class="line"><span class="keyword">while</span>(<span class="built_in">stack</span>非空)｛</span><br><span class="line">    将栈顶元素t弹出;</span><br><span class="line">    <span class="keyword">for</span>(每个满足如下条件的u:从t出发有一个标号为ε的转换到达状态u) &#123;</span><br><span class="line">        <span class="keyword">if</span>(u不在ε-closure(T)中) &#123;</span><br><span class="line">            将u加入到ε-closure(T)中</span><br><span class="line">            将u压入栈中;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1><span id="7-识别单词的dfa"> 7 识别单词的DFA</span></h1>
+<h2><span id="71-识别标识符的dfa"> 7.1 识别标识符的DFA</span></h2>
+<p><strong>标识符的正则定义如下</strong></p>
+$$\begin{split}
+digit &\to 0|1|2|...|9 \\
+letter\_ &\to A|B|...|Z|a|b|...|z|\_ \\
+id &\to letter\_( letter\_|digit )^*
+\end{split}$$
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig19.jpg" alt="fig19"></p>
+<h2><span id="72-识别无符号数的dfa"> 7.2 识别无符号数的DFA</span></h2>
+<p><strong>无符号数的正则定义如下</strong></p>
+$$\begin{split}
+digit &\to 0|1|2|...|9 \\
+digits &\to digit\;\;digit^* \\
+optionalFraction &\to .digits|\varepsilon \\
+optionalExponent &\to ( E( +|-|\varepsilon ) digits ) | \varepsilon \\
+number &\to digits\;\;optionalFraction\;\;optionalExponent
+\end{split}$$
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig20.jpg" alt="fig20"></p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig21.jpg" alt="fig21"></p>
+<h2><span id="73-识别各进制无符号整数的dfa"> 7.3 识别各进制无符号整数的DFA</span></h2>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig22.jpg" alt="fig22"></p>
+<h2><span id="74-识别注释的dfa"> 7.4 识别注释的DFA</span></h2>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig23.jpg" alt="fig23"></p>
+<h2><span id="75-识别token的dfa"> 7.5 识别Token的DFA</span></h2>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90/fig24.jpg" alt="fig24"></p>
+<h2><span id="76-词法分析阶段的错误处理"> 7.6 词法分析阶段的错误处理</span></h2>
+<p><strong>词法分析阶段可检测的错误类型</strong></p>
+<ol>
+<li>单词拼写错误</li>
+<li>非法字符</li>
+</ol>
+<p><strong>语法错误检测</strong>：如果当前状态与当前输入符号在转换表对应项中的信息为空，而当前状态又不是终止状态，则调用错误处理程序</p>
+<p><strong>错误处理</strong>：查找已扫描字符串中最后一个对应于某终态的字符</p>
+<ul>
+<li>如果<strong>找到了</strong>，将该字符与其前面的字符识别成一个单词。然后将输入指针退回到该字符，扫描器重新回到初始状态，继续识别下一个单词</li>
+<li>如果<strong>没找到</strong>，则确定出错，采用错误恢复策略</li>
+</ul>
+<p><strong>错误恢复策略</strong>：</p>
+<ul>
+<li>最简单的错误恢复策略“恐慌模式(panic mode)”恢复，即从剩余的输入中不断删除字符，直到词法分析器能够在剩余输入的开头发现一个正确的字符为止</li>
+</ul>
+<h1><span id="8-参考"> 8 参考</span></h1>
+<ul>
+<li>《MOOC-编译原理-陈鄞》</li>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/zbdzzg/archive/2015/05.html">实现一个 DFA 正则表达式引擎</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/21666685">能不能用高级语言的正则表达式匹配来写一个词法分析器呢？</a></li>
+<li><a target="_blank" rel="noopener" href="https://regexper.com/">正则表达式图形化引擎</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/10/14/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E8%AF%AD%E8%A8%80%E5%8F%8A%E5%85%B6%E6%96%87%E6%B3%95/" rel="prev" title="编译原理-程序设计语言及其文法">
+      <i class="fa fa-chevron-left"></i> 编译原理-程序设计语言及其文法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/10/16/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%AF%AD%E6%B3%95%E5%88%86%E6%9E%901/" rel="next" title="编译原理-语法分析1">
+      编译原理-语法分析1 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 正则表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 正则表达式的定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 正则语言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.3 正则文法与正则表达式等价</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 正则定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 有穷自动机</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 FA模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 FA的表示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 FA定义（接收）的语言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.4 最长子串匹配原则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 有穷自动机的分类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 确定的有穷自动机(DFA)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 非确定的有穷自动机(NFA)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.3 DFA和NFA的等价性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.4 带有$\varepsilon -$边的NFA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.5 带有和不带有$\varepsilon -$边NFA等价</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.6 DFA算法的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 从正则表达式到有穷自动机</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 根据RE构造NFA</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 从NFA到DFA的转换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.1 子集构造法(subset construction)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 识别单词的DFA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.1 识别标识符的DFA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.2 识别无符号数的DFA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.3 识别各进制无符号整数的DFA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.4 识别注释的DFA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.5 识别Token的DFA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.6 词法分析阶段的错误处理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

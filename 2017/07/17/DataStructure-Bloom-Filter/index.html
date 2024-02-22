@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DataStructure-Bloom-Filter">
+<meta property="og:url" content="http://example.com/2017/07/17/DataStructure-Bloom-Filter/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/DataStructure-Bloom-Filter/fig1.jpg">
+<meta property="article:published_time" content="2017-07-17T12:33:03.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.338Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/DataStructure-Bloom-Filter/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/07/17/DataStructure-Bloom-Filter/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>DataStructure-Bloom-Filter | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/17/DataStructure-Bloom-Filter/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DataStructure-Bloom-Filter
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-17 20:33:03" itemprop="dateCreated datePublished" datetime="2017-07-17T20:33:03+08:00">2017-07-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/" itemprop="url" rel="index"><span itemprop="name">Distributed</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Distributed/Algorithm/" itemprop="url" rel="index"><span itemprop="name">Algorithm</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/17/DataStructure-Bloom-Filter/" class="post-meta-item leancloud_visitors" data-flag-title="DataStructure-Bloom-Filter" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/17/DataStructure-Bloom-Filter/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/17/DataStructure-Bloom-Filter/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-前言"> 1 前言</span></h1>
+<p><code>Bloom Filter</code>是由<code>Bloom</code>在1970年提出的一种多哈希函数映射的快速查找算法。通常应用在一些需要快速判断某个元素是否属于集合，但是并不严格要求100%正确的场合</p>
+<h1><span id="2-问题引入"> 2 问题引入</span></h1>
+<p>假设要你写一个网络蜘蛛（<code>web crawler</code>）。由于网络间的链接错综复杂，蜘蛛在网络间爬行很可能会形成环。为了避免形成环，就需要知道蜘蛛已经访问过那些<code>URL</code>。给一个<code>URL</code>，怎样知道蜘蛛是否已经访问过呢？稍微想想，就会有如下几种方案：</p>
+<ol>
+<li>将访问过的<code>URL</code>保存到数据库</li>
+<li>用<code>HashSet</code>将访问过的<code>URL</code>保存起来。那只需接近<code>O(1)</code>的代价就可以查到一个URL是否被访问过了</li>
+<li><code>URL</code>经过<code>MD5</code>或<code>SHA-1</code>等单向哈希后再保存到<code>HashSet</code>或数据库</li>
+<li><code>Bit-Map</code>方法。建立一个<code>BitSet</code>，将每个<code>URL</code>经过一个哈希函数映射到某一位</li>
+</ol>
+<ul>
+<li>方法<code>1~3</code>都是将访问过的<code>URL</code>完整保存，方法<code>4</code>则只标记<code>URL</code>的一个映射位</li>
+</ul>
+<p><strong>以上方法在数据量较小的情况下都能完美解决问题，但是当数据量变得非常庞大时问题就来了。</strong></p>
+<ul>
+<li>方法1的缺点：数据量变得非常庞大后关系型数据库查询的效率会变得很低。而且每来一个<code>URL</code>就启动一次数据库查询是不是太小题大做了？</li>
+<li>方法2的缺点：太消耗内存。随着<code>URL</code>的增多，占用的内存会越来越多。就算只有1亿个<code>URL</code>，每个<code>URL</code>只算<code>50</code>个字符，就需要<code>5GB</code>内存</li>
+<li>方法3：由于字符串经过<code>MD5</code>处理后的信息摘要长度只有<code>128Bit</code>，<code>SHA-1</code>处理后也只有<code>160Bit</code>，因此方法3比方法2节省了好几倍的内存</li>
+<li>方法4：该方法消耗内存是相对较少的，但缺点是单一哈希函数发生冲突的概率太高。还记得数据结构课上学过的<code>Hash</code>表冲突的各种解决方法么？若要降低冲突发生的概率到1%，就要将<code>BitSet</code>的长度设置为<code>URL</code>个数的100倍</li>
+</ul>
+<p><strong>实质上上面的算法都忽略了一个重要的隐含条件：允许小概率的出错，不一定要100%准确！也就是说少量url实际上没有没网络蜘蛛访问，而将它们错判为已访问的代价是很小的——大不了少抓几个网页呗。</strong></p>
+<blockquote>
+<p>其实还有一种方法也可行。我们可以将这海量的<code>URL</code>分成若干份，每份的数量相对较小，单个机器足以处理。那么问题是如何进行分发呢？如果采用随机分发的方式，那么相同的<code>URL</code>可能会被分到不同的机器中，最后整合时还需要在做一次去重操作。另一种方式就是在分发的时候先进行一次聚合操作，所有相同的<code>URL</code>必定被分发到同一个机器上，这样一来，每台机器就可以单独工作，最后进行一次汇总即可。那么如何在分发时进行聚合呢？利用<code>hash</code>函数即可，例如构造一个可以产生<code>m</code>位整数的<code>hash</code>函数，那么<code>m</code>位整数总共有<code>2^m</code>个可能的数值，对每一个<code>URL</code>进行一次<code>hash</code>计算，映射到这其中的一个整数，就分发给对应的机器进行处理</p>
+</blockquote>
+<h1><span id="3-bloom-filter的算法"> 3 Bloom Filter的算法</span></h1>
+<p>废话说到这里，下面引入本篇的主角——<code>Bloom Filter</code>。其实上面方法4的思想已经很接近<code>Bloom Filter了</code>。方法四的致命缺点是冲突概率高，为了降低冲突的概念，<code>Bloom Filter</code>使用了多个哈希函数，而不是一个</p>
+<p><code>Bloom Filter</code>算法如下：</p>
+<blockquote>
+<p>创建一个<code>m</code>位<code>BitSet</code>，先将所有位初始化为<code>0</code>，然后选择<code>k</code>个不同的哈希函数。第<code>i</code>个哈希函数对字符串<code>str</code>哈希的结果记为<code>h(i，str)</code>，且<code>h(i，str)</code>的范围是<code>0</code>到<code>m-1</code></p>
+</blockquote>
+<h2><span id="31-加入字符串的过程"> 3.1 加入字符串的过程</span></h2>
+<p>下面是每个字符串处理的过程，首先是将字符串<code>str</code>记录到<code>BitSet</code>中的过程：</p>
+<p>对于字符串<code>str</code>，分别计算<code>h(1, str), h(2, str), ..., h(k, str)</code>。然后将<code>BitSet</code>的第<code>h(1, str), h(2, str), ..., h(k, str)</code>位设为<code>1</code></p>
+<p><img src="/images/DataStructure-Bloom-Filter/fig1.jpg" alt="fig1"></p>
+<h2><span id="32-检查字符串是否存在的过程"> 3.2 检查字符串是否存在的过程</span></h2>
+<p>下面是检查字符串<code>str</code>是否被<code>BitSet</code>记录过的过程：</p>
+<blockquote>
+<p>对于字符串<code>str</code>，分别计算<code>h(1, str), h(2, str), ..., h(k, str)</code>。然后检查<code>BitSet</code>的第<code>h(1, str), h(2, str), ..., h(k, str)</code>位是否为<code>1</code>，若其中任何一位不为<code>1</code>则可以判定<code>str</code>一定没有被记录过。若全部位都是<code>1</code>，则认为字符串<code>str</code>存在</p>
+</blockquote>
+<p>若一个字符串对应的<code>Bit</code>不全为<code>1</code>，则可以肯定该字符串一定没有被<code>Bloom Filter</code>记录过。（这是显然的，因为字符串被记录过，其对应的二进制位肯定全部被设为<code>1</code>了）</p>
+<p>但是若一个字符串对应的<code>Bit</code>全为<code>1</code>，实际上是不能<code>100%</code>的肯定该字符串被<code>Bloom Filter</code>记录过的。（因为有可能该字符串的所有位都刚好是被其他字符串所对应）这种将该字符串划分错的情况，称为<code>false positive</code></p>
+<h2><span id="33-删除字符串过程"> 3.3 删除字符串过程</span></h2>
+<p>字符串加入了就被不能删除了，因为删除会影响到其他字符串。实在需要删除字符串的可以使用<code>Counting bloomfilter(CBF)</code>，这是一种基本<code>Bloom Filter</code>的变体，<code>CBF</code>将基本<code>Bloom Filter</code>每一个<code>Bit</code>改为一个计数器，这样就可以实现删除字符串的功能了</p>
+<p><code>Bloom Filter</code>跟单哈希函数<code>Bit-Map</code>不同之处在于：<code>Bloom Filter</code>使用了<code>k</code>个哈希函数，每个字符串跟<code>k</code>个<code>bit</code>对应。从而降低了冲突的概率</p>
+<h1><span id="4-bloom-filter参数选择"> 4 Bloom Filter参数选择</span></h1>
+<p><strong>哈希函数选择</strong>：哈希函数的选择对性能的影响应该是很大的，一个好的哈希函数要能近似等概率的将字符串映射到各个<code>Bit</code>。选择<code>k</code>个不同的哈希函数比较麻烦，一种简单的方法是选择一个哈希函数，然后送入<code>k</code>个不同的参数</p>
+<p><strong><code>Bit</code>数组大小选择</strong>：哈希函数个数<code>k</code>、位数组大小<code>m</code>、加入的字符串数量<code>n</code>的关系可以参考<a target="_blank" rel="noopener" href="http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html">Bloom Filters - the math</a>。该文献证明了对于给定的<code>m</code>、<code>n</code>，当<code>k = ln(2)* m/n</code>时出错的概率是最小的</p>
+<ul>
+<li>同时该文献还给出特定的<code>k</code>，<code>m</code>，<code>n</code>的出错概率。例如：根据参考文献1，哈希函数个数<code>k</code>取<code>10</code>，位数组大小<code>m</code>设为字符串个数<code>n</code>的<code>20</code>倍时，<code>false positive</code>发生的概率是<code>0.0000889</code>，这个概率基本能满足网络爬虫的需求了</li>
+</ul>
+<h1><span id="5-bloom-filter的优化"> 5 Bloom Filter的优化</span></h1>
+<p>上面提到的<code>Bloom Filter</code>中的<code>k</code>个<code>hash</code>函数共享同一个<code>BitSet</code>，且他们之间并没有先后次序的关系<code>hash(1, str) = 1, hash(2, str) = 2</code>与<code>hash(1, str) = 2,hash(2, str) = 1</code>的结果是相同的)，这样做实际上会增加重复的概率，因为不同的<code>hash</code>函数可能会让同一个<code>bit</code>置位。因此我们以牺牲空间复杂度为代价，将一个<code>BitSet</code>扩充为<code>k</code>个<code>BitSet</code>，每一个<code>hash</code>独占一个<code>BitSet</code>，这样可以大大降低误判的概率</p>
+<p><strong>举个简单的例子，假设<code>BitSet</code>共有<code>4</code>位，有<code>2</code>个<code>hash</code>函数</strong></p>
+<blockquote>
+<p>我们以两个<code>URL</code>进行分析：对于<code>URL1</code>，<code>hash1(URL1) = 1，hash2(URL1) = 2</code>；对于<code>URL2</code>，<code>hash1(URL2) = 2，hash2(URL2) = 1</code></p>
+</blockquote>
+<blockquote>
+<p><strong>若<code>2</code>个<code>hash</code>共享同一个<code>BitSet</code></strong>，初始化的时候<code>BitSet = 0000</code>，存入URL1后，<code>BitSet = 0110</code>。此时对于URL2而言，经过两个hash函数映射到第2位和第1位，发现此时BitSet中这两位全是1，因此判定为重复。究其原因，就是因为<code>URL1</code>在存入<code>bit</code>位的时候丢失了部分信息(该位是由哪个<code>hash</code>函数产生的)</p>
+</blockquote>
+<blockquote>
+<p><strong>若<code>2</code>个<code>hash</code>分别独占一个<code>BitSet</code></strong>，初始化的时候<code>BitSet1 = 0000, BitSet2 = 0000</code>，存入URL1后，<code>BitSet1 = 0100, BitSet2 = 0010</code>。此时对于<code>URL2</code>而言，发现<code>BitSet1</code>的第<code>2</code>位与<code>BitSet2</code>的第<code>1</code>位是<code>0</code>，因此判定没有重复</p>
+</blockquote>
+<h1><span id="6-示例代码"> 6 示例代码</span></h1>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;bitset&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">BloomFilter</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    std::bitset&lt;100&gt; bitArray;</span><br><span class="line">    std::hash&lt;std::string&gt; hashFunc;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">add</span><span class="params">(<span class="type">const</span> std::string&amp; item)</span> </span>&#123;</span><br><span class="line">        <span class="type">size_t</span> hash = <span class="built_in">hashFunc</span>(item);</span><br><span class="line">        <span class="type">size_t</span> index = hash % bitArray.<span class="built_in">size</span>();</span><br><span class="line">        bitArray[index] = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">contains</span><span class="params">(<span class="type">const</span> std::string&amp; item)</span> </span>&#123;</span><br><span class="line">        <span class="type">size_t</span> hash = <span class="built_in">hashFunc</span>(item);</span><br><span class="line">        <span class="type">size_t</span> index = hash % bitArray.<span class="built_in">size</span>();</span><br><span class="line">        <span class="keyword">return</span> bitArray[index];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    BloomFilter bf;</span><br><span class="line">    bf.<span class="built_in">add</span>(<span class="string">&quot;apple&quot;</span>);</span><br><span class="line">    bf.<span class="built_in">add</span>(<span class="string">&quot;banana&quot;</span>);</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; bf.<span class="built_in">contains</span>(<span class="string">&quot;apple&quot;</span>) &lt;&lt; std::endl;  <span class="comment">// Output: 1 (true)</span></span><br><span class="line">    std::cout &lt;&lt; bf.<span class="built_in">contains</span>(<span class="string">&quot;banana&quot;</span>) &lt;&lt; std::endl; <span class="comment">// Output: 1 (true)</span></span><br><span class="line">    std::cout &lt;&lt; bf.<span class="built_in">contains</span>(<span class="string">&quot;orange&quot;</span>) &lt;&lt; std::endl; <span class="comment">// Output: 0 (false)</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1><span id="7-参考"> 7 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/heaad/archive/2011/01/02/1924195.html">BloomFilter——大规模数据处理利器</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/17/DBMS-MySQL-Engine/" rel="prev" title="DBMS-MySQL-Engine">
+      <i class="fa fa-chevron-left"></i> DBMS-MySQL-Engine
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/17/Consistency-Hash/" rel="next" title="Consistency-Hash">
+      Consistency-Hash <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 问题引入</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Bloom Filter的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 加入字符串的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 检查字符串是否存在的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 删除字符串过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 Bloom Filter参数选择</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 Bloom Filter的优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 示例代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

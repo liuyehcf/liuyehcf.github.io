@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TensorFlow-卷积神经网络">
+<meta property="og:url" content="http://example.com/2018/05/13/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig1.png">
+<meta property="og:image" content="http://example.com/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig2.png">
+<meta property="og:image" content="http://example.com/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig3.png">
+<meta property="og:image" content="http://example.com/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig4.png">
+<meta property="article:published_time" content="2018-05-13T02:29:35.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.364Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig1.png">
+
+<link rel="canonical" href="http://example.com/2018/05/13/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>TensorFlow-卷积神经网络 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/05/13/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TensorFlow-卷积神经网络
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-13 10:29:35" itemprop="dateCreated datePublished" datetime="2018-05-13T10:29:35+08:00">2018-05-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/05/13/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="post-meta-item leancloud_visitors" data-flag-title="TensorFlow-卷积神经网络" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/05/13/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/05/13/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-卷积"> 1 卷积</span></h1>
+<p>全连接NN：每个神经元与前后相邻层的每一个神经元都有连接关系，输入是特征，输出为预测的结果</p>
+<p><strong>待优化的参数过多，容易导致模型过拟合</strong>。为避免这种现象，实际应用中一般不会将原始图片直接喂入全连接网络</p>
+<p>在实际应用中，会先对原始图像进行特征提取，把提取到的特征喂给全连接网络，再让全连接网络计算出分类评估值</p>
+<p><img src="/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig1.png" alt="fig1"></p>
+<p><strong>卷积是一种有效提取图片特征的方法</strong>。一般用一个正方形<strong>卷积核</strong>，遍历图片上的每一个像素点。图片与卷积核重合区域内相对应的每一个像素值乘卷积核内相对应点的权重，然后求和，再加上偏置后，最后得到输出图片中的一个像素值</p>
+<p><img src="/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig2.png" alt="fig2"></p>
+<p>有时会在输入图片周围进行<strong>全零填充</strong>，这样可以保证输出图片的尺寸和输入图片一致</p>
+<p><img src="/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig3.png" alt="fig3"></p>
+<p>在TensorFlow中，计算卷积的方式如下</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">tf.nn.conv2d(</span><br><span class="line">    输入描述，eg. [batch, <span class="number">5</span>, <span class="number">5</span>, <span class="number">1</span>] <span class="comment"># [喂入几组数据，行分辨率，列分辨率，通道数]</span></span><br><span class="line">    卷积核描述，eg. [<span class="number">3</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">16</span>] <span class="comment"># [卷积核行分辨率，卷积核列分辨率，通道数，核数量]</span></span><br><span class="line">    核滑动步长，eg. [<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>] <span class="comment"># [固定1，行步长，列步长，固定1]</span></span><br><span class="line">    padding=<span class="string">&#x27;VALID&#x27;</span> <span class="comment"># &#x27;VALID&#x27;不填充，&#x27;SAME&#x27;全零填充</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><strong>参数解释</strong></p>
+<ol>
+<li>输入描述：用<code>batch</code>给出一次喂入多少张图片，每张图片的分辨率大小，比如<code>5</code>行<code>5</code>列，以及这些图片包含几个通道的信息，如果是灰度图则为单通道，参数写<code>1</code>，如果是彩色图则为红绿蓝三通道，参数写<code>3</code></li>
+<li>卷积核描述：要给出卷积核的行分辨率和列分辨率、通道数以及用 了几个卷积核。比如上图描述，表示卷积核行列分辨率分别为<code>3</code>行和 <code>3</code>列，且是<code>1</code>通道的，一共有<code>16</code>个这样的卷积核，卷积核的通道数是由输入图片的通道数决定的，卷积核的通道数等于输入图片的通道数，所以卷积核的通道数也是1。<strong>一共有<code>16</code>个这样的卷积核，说明卷积操作后输出图片的深度是<code>16</code>，也就是输出为<code>16</code>通道</strong></li>
+<li>核滑动步长：上图第二个参数表示<strong>横向滑动步长</strong>，第三个参数表示<strong>纵向滑动步长</strong>，这句表示横向纵向都以<code>1</code>为步长。<strong>第一个<code>1</code>和最后一个<code>1</code>这里固定的</strong></li>
+<li>是否使用padding：'SAME’表示填充，'VALID’表示不填充</li>
+</ol>
+<h1><span id="2-池化"> 2 池化</span></h1>
+<p>TensorFlow给出了计算池化的函数。最大池化用<code>tf.nn.max_pool</code>函数，平均池化用<code>tf.nn.avg_pool</code>函数</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pool = tf.nn.max_pool(</span><br><span class="line">    输入描述，eg. [batch, <span class="number">28</span>, <span class="number">28</span>, <span class="number">6</span>] <span class="comment"># [喂入几组数据，行分辨率，列分辨率，通道数]</span></span><br><span class="line">    池化核描述（仅大小），eg. [<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">1</span>] <span class="comment"># [固定1，行分辨率，列分辨率，固定1]</span></span><br><span class="line">    池化核滑动步长，eg. [<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">1</span>] <span class="comment"># [固定1，行步长，列步长，固定1]</span></span><br><span class="line">    padding = <span class="string">&#x27;SAME&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><strong>参数解释</strong></p>
+<ol>
+<li><strong>输入描述</strong>：给出一次输入<code>batch</code>张图片、行列分辨率、输入通道的个数</li>
+<li><strong>池化核描述</strong>：只描述行分辨率和列分辨率，<strong>第一个和最后一个参数固定是<code>1</code></strong></li>
+<li>对池化核滑动步长的描述：只描述横向滑动步长和纵向滑动步长，<strong>第一个和最后一个参数固定是<code>1</code></strong></li>
+<li><strong>是否使用padding</strong>：<code>padding</code>可以是使用零填充<code>SAME</code>或者不使用零填充<code>VALID</code></li>
+</ol>
+<h1><span id="3-舍弃"> 3 舍弃</span></h1>
+<p>在神经网络训练过程中，为了减少过多参数常使用<code>dropout</code>的方法，<strong>将一部分神经元按照一定概率从神经网络中舍弃</strong>。这种舍弃是<strong>临时性</strong>的，仅在训练时舍弃一些神经元；在使用神经网络时，会把所有的神经元恢复到神经网络中。Dropout可以有效减少过拟合</p>
+<p><img src="/images/TensorFlow-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/fig4.png" alt="fig4"></p>
+<p>在实际应用中，常常在前向传播构建神经网络时使用<code>dropout</code>来减小过拟合加快模型的训练速度</p>
+<p><code>dropout</code>一般会放到全连接网络中。如果在训练参数的过程中，<code>输出 =tf.nn.dropout(上层输出，暂时舍弃神经元的概率)</code>，这样就有指定概率的神经元被随机置零，置零的神经元不参加当前轮的参数优化</p>
+<h2><span id="31-卷积"> 3.1 卷积</span></h2>
+<p><strong>卷积神经网络可以认为由两部分组成，一部分是对输入图片进行特征提取，另一部分就是全连接网络</strong>，只不过喂入全连接网络的不再是原始图片，而是经过若干次卷积、激活和池化后的<strong>特征信息</strong></p>
+<p>卷积神经网络从诞生到现在，已经出现了许多经典网络结构，比如 <code>Lenet-5</code>、<code>Alenet</code>、<code>VGGNet</code>、<code>GoogleNet</code>和<code>ResNet</code>等。每一种网络结构都是以<strong>卷积、激活、池化、全连</strong>接这四种操作为基础进行扩展</p>
+<p><code>Lenet-5</code>是最早出现的卷积神经网络，由Lecun团队首先提出，<code>Lenet-5</code>有效解决了手写数字的识别问题</p>
+<h1><span id="4-代码"> 4 代码</span></h1>
+<h2><span id="41-mnist_lenet5_forwardpy"> 4.1 mnist_lenet5_forward.py</span></h2>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line">IMAGE_SIZE = <span class="number">28</span></span><br><span class="line">NUM_CHANNELS = <span class="number">1</span></span><br><span class="line">CONV1_SIZE = <span class="number">5</span></span><br><span class="line">CONV1_KERNEL_NUM = <span class="number">32</span></span><br><span class="line">CONV2_SIZE = <span class="number">5</span></span><br><span class="line">CONV2_KERNEL_NUM = <span class="number">64</span></span><br><span class="line">FC_SIZE = <span class="number">512</span></span><br><span class="line">OUTPUT_NODE = <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_weight</span>(<span class="params">shape, regularizer</span>):</span><br><span class="line">    w = tf.Variable(tf.truncated_normal(shape, stddev=<span class="number">0.1</span>))</span><br><span class="line">    <span class="keyword">if</span> regularizer <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        tf.add_to_collection(<span class="string">&#x27;losses&#x27;</span>, tf.contrib.layers.l2_regularizer(regularizer)(w))</span><br><span class="line">    <span class="keyword">return</span> w</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_bias</span>(<span class="params">shape</span>):</span><br><span class="line">    b = tf.Variable(tf.zeros(shape))</span><br><span class="line">    <span class="keyword">return</span> b</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">conv2d</span>(<span class="params">x, w</span>):</span><br><span class="line">    <span class="keyword">return</span> tf.nn.conv2d(x, w, strides=[<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>], padding=<span class="string">&#x27;SAME&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">max_pool_2x2</span>(<span class="params">x</span>):</span><br><span class="line">    <span class="keyword">return</span> tf.nn.max_pool(x, ksize=[<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">1</span>], strides=[<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">1</span>], padding=<span class="string">&#x27;SAME&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">x, train, regularizer</span>):</span><br><span class="line">    conv1_w = get_weight(shape=[CONV1_SIZE, CONV1_SIZE, NUM_CHANNELS, CONV1_KERNEL_NUM], regularizer=regularizer)</span><br><span class="line">    conv1_b = get_bias([CONV1_KERNEL_NUM])</span><br><span class="line">    conv1 = conv2d(x, conv1_w)</span><br><span class="line">    relu1 = tf.nn.relu(tf.nn.bias_add(conv1, conv1_b))</span><br><span class="line">    pool1 = max_pool_2x2(relu1)</span><br><span class="line"></span><br><span class="line">    conv2_w = get_weight(shape=[CONV2_SIZE, CONV2_SIZE, CONV1_KERNEL_NUM, CONV2_KERNEL_NUM], regularizer=regularizer)</span><br><span class="line">    conv2_b = get_bias([CONV2_KERNEL_NUM])</span><br><span class="line">    conv2 = conv2d(pool1, conv2_w)</span><br><span class="line">    relu2 = tf.nn.relu(tf.nn.bias_add(conv2, conv2_b))</span><br><span class="line">    pool2 = max_pool_2x2(relu2)</span><br><span class="line"></span><br><span class="line">    pool_shape = pool2.get_shape().as_list()</span><br><span class="line">    nodes = pool_shape[<span class="number">1</span>] * pool_shape[<span class="number">2</span>] * pool_shape[<span class="number">3</span>]</span><br><span class="line">    reshaped = tf.reshape(pool2, [pool_shape[<span class="number">0</span>], nodes])</span><br><span class="line"></span><br><span class="line">    fc1_w = get_weight([nodes, FC_SIZE], regularizer)</span><br><span class="line">    fc1_b = get_bias([FC_SIZE])</span><br><span class="line">    fc1 = tf.nn.relu(tf.matmul(reshaped, fc1_w) + fc1_b)</span><br><span class="line">    <span class="keyword">if</span> train:</span><br><span class="line">        fc1 = tf.nn.dropout(fc1, <span class="number">0.5</span>)</span><br><span class="line"></span><br><span class="line">    fc2_w = get_weight([FC_SIZE, OUTPUT_NODE], regularizer)</span><br><span class="line">    fc2_b = get_bias([OUTPUT_NODE])</span><br><span class="line">    y = tf.matmul(fc1, fc2_w) + fc2_b</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> y</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2><span id="42-mnist_lenet5_backwardpy"> 4.2 mnist_lenet5_backward.py</span></h2>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">from</span> tensorflow.examples.tutorials.mnist <span class="keyword">import</span> input_data</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> chapter7.mnist_lenet5_forward <span class="keyword">as</span> mnist_lenet5_forward</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">BATCH_SIZE = <span class="number">100</span></span><br><span class="line">LEARNING_RATE_BASE = <span class="number">0.005</span></span><br><span class="line">LEARNING_RATE_DECAY = <span class="number">0.99</span></span><br><span class="line">REGULARIZER = <span class="number">0.0001</span></span><br><span class="line">STEPS = <span class="number">50000</span></span><br><span class="line">MOVING_AVERAGE_DECAY = <span class="number">0.99</span></span><br><span class="line">MODEL_SAVE_PATH = <span class="string">&quot;./model/&quot;</span></span><br><span class="line">MODEL_NAME = <span class="string">&quot;mnist_model&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">backward</span>(<span class="params">mnist</span>):</span><br><span class="line">    x = tf.placeholder(tf.float32, [</span><br><span class="line">        BATCH_SIZE,</span><br><span class="line">        mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">        mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">        mnist_lenet5_forward.NUM_CHANNELS])</span><br><span class="line"></span><br><span class="line">    y_ = tf.placeholder(tf.float32, [<span class="literal">None</span>, mnist_lenet5_forward.OUTPUT_NODE])</span><br><span class="line">    y = mnist_lenet5_forward.forward(x, <span class="literal">True</span>, REGULARIZER)</span><br><span class="line">    global_step = tf.Variable(<span class="number">0</span>, trainable=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">    ce = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y, labels=tf.argmax(y_, <span class="number">1</span>))</span><br><span class="line">    cem = tf.reduce_mean(ce)</span><br><span class="line">    loss = cem + tf.add_n(tf.get_collection(<span class="string">&#x27;losses&#x27;</span>))</span><br><span class="line"></span><br><span class="line">    learning_rate = tf.train.exponential_decay(</span><br><span class="line">        LEARNING_RATE_BASE,</span><br><span class="line">        global_step,</span><br><span class="line">        mnist.train.num_examples / BATCH_SIZE,</span><br><span class="line">        LEARNING_RATE_DECAY,</span><br><span class="line">        staircase=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=global_step)</span><br><span class="line"></span><br><span class="line">    ema = tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY, global_step)</span><br><span class="line">    ema_op = ema.apply(tf.trainable_variables())</span><br><span class="line">    <span class="keyword">with</span> tf.control_dependencies([train_step, ema_op]):</span><br><span class="line">        train_op = tf.no_op(name=<span class="string">&#x27;train&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    saver = tf.train.Saver()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">        init_op = tf.global_variables_initializer()</span><br><span class="line">        sess.run(init_op)</span><br><span class="line"></span><br><span class="line">        ckpt = tf.train.get_checkpoint_state(MODEL_SAVE_PATH)</span><br><span class="line">        <span class="keyword">if</span> ckpt <span class="keyword">and</span> ckpt.model_checkpoint_path:</span><br><span class="line">            saver.restore(sess, ckpt.model_checkpoint_path)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(STEPS):</span><br><span class="line">            xs, ys = mnist.train.next_batch(BATCH_SIZE)</span><br><span class="line">            reshaped_xs = np.reshape(xs, (</span><br><span class="line">                BATCH_SIZE,</span><br><span class="line">                mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">                mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">                mnist_lenet5_forward.NUM_CHANNELS))</span><br><span class="line">            _, loss_value, step = sess.run([train_op, loss, global_step], feed_dict=&#123;x: reshaped_xs, y_: ys&#125;)</span><br><span class="line">            <span class="keyword">if</span> i % <span class="number">100</span> == <span class="number">0</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;After %d training step(s), loss on training batch is %g.&quot;</span> % (step, loss_value))</span><br><span class="line">                saver.save(sess, os.path.join(MODEL_SAVE_PATH, MODEL_NAME), global_step=global_step)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    mnist = input_data.read_data_sets(<span class="string">&#x27;./data/&#x27;</span>, one_hot=<span class="literal">True</span>)</span><br><span class="line">    backward(mnist)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2><span id="43-mnist_lenet5_testpy"> 4.3 mnist_lenet5_test.py</span></h2>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">from</span> tensorflow.examples.tutorials.mnist <span class="keyword">import</span> input_data</span><br><span class="line"><span class="keyword">import</span> chapter7.mnist_lenet5_forward <span class="keyword">as</span> mnist_lenet5_forward</span><br><span class="line"><span class="keyword">import</span> chapter7.mnist_lenet5_backward <span class="keyword">as</span> mnist_lenet5_backward</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">TEST_INTERVAL_SECS = <span class="number">5</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>(<span class="params">mnist</span>):</span><br><span class="line">    <span class="keyword">with</span> tf.Graph().as_default() <span class="keyword">as</span> g:</span><br><span class="line">        x = tf.placeholder(tf.float32, [</span><br><span class="line">            mnist.test.num_examples,</span><br><span class="line">            mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">            mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">            mnist_lenet5_forward.NUM_CHANNELS])</span><br><span class="line">        y_ = tf.placeholder(tf.float32, [<span class="literal">None</span>, mnist_lenet5_forward.OUTPUT_NODE])</span><br><span class="line">        y = mnist_lenet5_forward.forward(x, <span class="literal">False</span>, <span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">        ema = tf.train.ExponentialMovingAverage(mnist_lenet5_backward.MOVING_AVERAGE_DECAY)</span><br><span class="line">        ema_restore = ema.variables_to_restore()</span><br><span class="line">        saver = tf.train.Saver(ema_restore)</span><br><span class="line"></span><br><span class="line">        correct_prediction = tf.equal(tf.argmax(y, <span class="number">1</span>), tf.argmax(y_, <span class="number">1</span>))</span><br><span class="line">        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">            <span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">                ckpt = tf.train.get_checkpoint_state(mnist_lenet5_backward.MODEL_SAVE_PATH)</span><br><span class="line">                <span class="keyword">if</span> ckpt <span class="keyword">and</span> ckpt.model_checkpoint_path:</span><br><span class="line">                    saver.restore(sess, ckpt.model_checkpoint_path)</span><br><span class="line"></span><br><span class="line">                    global_step = ckpt.model_checkpoint_path.split(<span class="string">&#x27;/&#x27;</span>)[-<span class="number">1</span>].split(<span class="string">&#x27;-&#x27;</span>)[-<span class="number">1</span>]</span><br><span class="line">                    reshaped_x = np.reshape(mnist.test.images, (</span><br><span class="line">                        mnist.test.num_examples,</span><br><span class="line">                        mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">                        mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">                        mnist_lenet5_forward.NUM_CHANNELS))</span><br><span class="line">                    accuracy_score = sess.run(accuracy, feed_dict=&#123;x: reshaped_x, y_: mnist.test.labels&#125;)</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;After %s training step(s), test accuracy = %g&quot;</span> % (global_step, accuracy_score))</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&#x27;No checkpoint file found&#x27;</span>)</span><br><span class="line">                    <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">            time.sleep(TEST_INTERVAL_SECS)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    mnist = input_data.read_data_sets(<span class="string">&quot;./data/&quot;</span>, one_hot=<span class="literal">True</span>)</span><br><span class="line">    test(mnist)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2><span id="44-mnist_lenet5_apppy"> 4.4 mnist_lenet5_app.py</span></h2>
+<p>在相对路径下创建文件夹image，放入名字为<code>0.png</code>、<code>1.png</code>、…<code>9.png</code>的十张手写数字图片</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">from</span> PIL <span class="keyword">import</span> Image</span><br><span class="line"><span class="keyword">import</span> chapter7.mnist_lenet5_forward <span class="keyword">as</span> mnist_lenet5_forward</span><br><span class="line"><span class="keyword">import</span> chapter7.mnist_lenet5_backward <span class="keyword">as</span> mnist_lenet5_backward</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">restore_model</span>(<span class="params">test_pic_arr</span>):</span><br><span class="line">    <span class="keyword">with</span> tf.Graph().as_default() <span class="keyword">as</span> tg:</span><br><span class="line">        x = tf.placeholder(tf.float32, [</span><br><span class="line">            <span class="number">1</span>,</span><br><span class="line">            mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">            mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">            mnist_lenet5_forward.NUM_CHANNELS])</span><br><span class="line">        y = mnist_lenet5_forward.forward(x, <span class="literal">False</span>, <span class="literal">None</span>)</span><br><span class="line">        pre_value = tf.argmax(y, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">        variable_averages = tf.train.ExponentialMovingAverage(mnist_lenet5_backward.MOVING_AVERAGE_DECAY)</span><br><span class="line">        variables_to_restore = variable_averages.variables_to_restore()</span><br><span class="line">        saver = tf.train.Saver(variables_to_restore)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">with</span> tf.Session() <span class="keyword">as</span> sess:</span><br><span class="line">            ckpt = tf.train.get_checkpoint_state(mnist_lenet5_backward.MODEL_SAVE_PATH)</span><br><span class="line">            <span class="keyword">if</span> ckpt <span class="keyword">and</span> ckpt.model_checkpoint_path:</span><br><span class="line">                saver.restore(sess, ckpt.model_checkpoint_path)</span><br><span class="line"></span><br><span class="line">                pre_value = sess.run(pre_value, feed_dict=&#123;x: test_pic_arr&#125;)</span><br><span class="line">                <span class="keyword">return</span> pre_value</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;No checkpoint file found&quot;</span>)</span><br><span class="line">                <span class="keyword">return</span> -<span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pre_pic</span>(<span class="params">pic_name</span>):</span><br><span class="line">    img = Image.<span class="built_in">open</span>(pic_name)</span><br><span class="line">    re_im = img.resize((<span class="number">28</span>, <span class="number">28</span>), Image.ANTIALIAS)</span><br><span class="line">    im_arr = np.array(re_im.convert(<span class="string">&#x27;L&#x27;</span>))</span><br><span class="line">    threshold = <span class="number">50</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">28</span>):</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">28</span>):</span><br><span class="line">            im_arr[i][j] = <span class="number">255</span> - im_arr[i][j]</span><br><span class="line">            <span class="keyword">if</span> im_arr[i][j] &lt; threshold:</span><br><span class="line">                im_arr[i][j] = <span class="number">0</span></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                im_arr[i][j] = <span class="number">255</span></span><br><span class="line"></span><br><span class="line">    nm_arr = im_arr.reshape([</span><br><span class="line">        <span class="number">1</span>,</span><br><span class="line">        mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">        mnist_lenet5_forward.IMAGE_SIZE,</span><br><span class="line">        mnist_lenet5_forward.NUM_CHANNELS])</span><br><span class="line">    nm_arr = nm_arr.astype(np.float32)</span><br><span class="line">    img_ready = np.multiply(nm_arr, <span class="number">1.0</span> / <span class="number">255.0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> img_ready</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">application</span>():</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="number">10</span>):</span><br><span class="line">        file_name = <span class="string">&quot;./image/&quot;</span> + <span class="built_in">str</span>(i) + <span class="string">&quot;.png&quot;</span></span><br><span class="line">        test_pic_arr = pre_pic(file_name)</span><br><span class="line">        pre_value = restore_model(test_pic_arr)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;%s : The prediction number is %d:&quot;</span> % (file_name, pre_value))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    application()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1><span id="5-参考"> 5 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.icourse163.org/course/PKU-1002536002">人工智能实践：TensorFlow笔记-曹健</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/57770020">人工智能、机器学习和深度学习的区别?</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/05/07/TensorFlow-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/" rel="prev" title="TensorFlow-神经网络优化">
+      <i class="fa fa-chevron-left"></i> TensorFlow-神经网络优化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/05/20/Linux-Shell/" rel="next" title="Linux-Shell">
+      Linux-Shell <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 卷积</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 池化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 舍弃</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 卷积</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 代码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 mnist_lenet5_forward.py</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 mnist_lenet5_backward.py</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.3 mnist_lenet5_test.py</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.4 mnist_lenet5_app.py</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

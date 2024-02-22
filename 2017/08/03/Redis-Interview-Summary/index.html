@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis-Interview-Summary">
+<meta property="og:url" content="http://example.com/2017/08/03/Redis-Interview-Summary/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-08-03T06:13:22.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.356Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/08/03/Redis-Interview-Summary/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Redis-Interview-Summary | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/08/03/Redis-Interview-Summary/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis-Interview-Summary
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-08-03 14:13:22" itemprop="dateCreated datePublished" datetime="2017-08-03T14:13:22+08:00">2017-08-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/" itemprop="url" rel="index"><span itemprop="name">Database</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/NoSQL/" itemprop="url" rel="index"><span itemprop="name">NoSQL</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/08/03/Redis-Interview-Summary/" class="post-meta-item leancloud_visitors" data-flag-title="Redis-Interview-Summary" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/08/03/Redis-Interview-Summary/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/08/03/Redis-Interview-Summary/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-使用redis有哪些好处"> 1 使用redis有哪些好处</span></h1>
+<ol>
+<li><strong>速度快</strong>：因为数据存在内存中，类似于HashMap，HashMap的优势就是查找和删除的时间复杂度都是O(1)</li>
+<li><strong>支持丰富数据类型</strong>：支持string，list，set，sorted set，hash</li>
+<li><strong>支持事务</strong>：操作都是原子性的，所谓的原子性就是对数据的更改要么全部执行，要么全部不执行</li>
+<li><strong>丰富的特性</strong>：可用于缓存，消息，按key设置过期时间，过期后将会自动删除</li>
+</ol>
+<h1><span id="2-memcache与redis的区别都有哪些"> 2 Memcache与Redis的区别都有哪些</span></h1>
+<ol>
+<li><strong>存储方式</strong>
+<ul>
+<li>Memecache把数据全部存在内存之中，断电后会挂掉，数据不能超过内存大小</li>
+<li>Redis有部份存在硬盘上，这样能保证数据的持久性</li>
+</ul>
+</li>
+<li><strong>数据支持类型</strong>
+<ul>
+<li>Memcache对数据类型支持相对简单</li>
+<li>Redis有复杂的数据类型</li>
+</ul>
+</li>
+<li><strong>使用底层模型不同</strong>
+<ul>
+<li>它们之间底层实现方式以及与客户端之间通信的应用协议不一样</li>
+<li>Redis直接自己构建了VM机制，因为一般的系统调用系统函数的话，会浪费一定的时间去移动和请求</li>
+</ul>
+</li>
+</ol>
+<h1><span id="3-redis常见性能问题和解决方案"> 3 redis常见性能问题和解决方案</span></h1>
+<ol>
+<li>Master最好不要做任何持久化工作，如RDB内存快照和AOF日志文件</li>
+<li>如果数据比较重要，某个Slave开启AOF备份数据，策略设置为每秒同步一次</li>
+<li>为了主从复制的速度和连接的稳定性，Master和Slave最好在同一个局域网内</li>
+<li>尽量避免在压力很大的主库上增加从库</li>
+<li>主从复制不要用图状结构，用单向链表结构更为稳定，即：<code>Master &lt;- Slave1 &lt;- Slave2 &lt;- Slave3...</code>。这样的结构方便解决单点故障问题，实现Slave对Master的替换。如果Master挂了，可以立刻启用Slave1做Master，其他不变</li>
+</ol>
+<h1><span id="4-redis的并发竞争问题如何解决"> 4 redis的并发竞争问题如何解决</span></h1>
+<p><strong>Redis为单进程单线程模式</strong>，采用队列模式将并发访问变为串行访问。<strong>Redis本身没有锁的概念，Redis对于多个客户端连接并不存在竞争</strong>，但是在Jedis客户端对Redis进行并发访问时会发生连接超时、数据转换错误、阻塞、客户端关闭连接等问题，<strong>这些问题均是由于客户端连接混乱造成</strong>。对此有2种解决方法：</p>
+<ol>
+<li>客户端角度，为保证每个客户端间正常有序与Redis进行通信，对连接进行池化，同时对客户端读写Redis操作采用内部锁synchronized</li>
+<li>服务器角度，利用setnx实现锁</li>
+</ol>
+<ul>
+<li>对于第一种，需要应用程序自己处理资源的同步，可以使用的方法比较通俗，可以使用synchronized也可以使用lock；第二种需要用到Redis的setnx命令，但是需要注意一些问题</li>
+</ul>
+<h1><span id="5-redis事务的了解cas"> 5 redis事务的了解CAS</span></h1>
+<p>和众多其它数据库一样，Redis作为NoSQL数据库也同样提供了事务机制。在Redis中，<code>MULTI/EXEC/DISCARD/WATCH</code>这四个命令是我们实现事务的基石。相信对有关系型数据库开发经验的开发者而言这一概念并不陌生，即便如此，我们还是会简要的列出Redis中事务的实现特征：</p>
+<ol>
+<li>在事务中的所有命令都将会被串行化的顺序执行，事务执行期间，Redis不会再为其它客户端的请求提供任何服务，从而保证了事务中的所有命令被原子的执行</li>
+<li>和关系型数据库中的事务相比，在Redis事务中如果有某一条命令执行失败，其后的命令仍然会被继续执行</li>
+<li>我们可以通过<code>MULTI</code>命令开启一个事务，有关系型数据库开发经验的人可以将其理解为<code>BEGIN TRANSACTION</code>语句。在该语句之后执行的命令都将被视为事务之内的操作，最后我们可以通过执行<code>EXEC/DISCARD</code>命令来提交/回滚该事务内的所有操作。这两个Redis命令可被视为等同于关系型数据库中的<code>COMMIT/ROLLBACK</code>语句</li>
+<li>在事务开启之前，如果客户端与服务器之间出现通讯故障并导致网络断开，其后所有待执行的语句都将不会被服务器执行。然而如果网络中断事件是发生在客户端执行EXEC命令之后，那么该事务中的所有命令都会被服务器执行</li>
+<li>当使用Append-Only模式时，Redis会通过调用系统函数write将该事务内的所有写操作在本次调用中全部写入磁盘。然而如果在写入的过程中出现系统崩溃，如电源故障导致的宕机，那么此时也许只有部分数据被写入到磁盘，而另外一部分数据却已经丢失。Redis服务器会在重新启动时执行一系列必要的一致性检测，一旦发现类似问题，就会立即退出并给出相应的错误提示。此时，我们就要充分利用Redis工具包中提供的redis-check-aof工具，该工具可以帮助我们定位到数据不一致的错误，并将已经写入的部分数据进行回滚。修复之后我们就可以再次重新启动Redis服务器了</li>
+</ol>
+<h1><span id="6-watch命令和基于cas的乐观锁"> 6 WATCH命令和基于CAS的乐观锁</span></h1>
+<p>在Redis的事务中，WATCH命令可用于提供CAS(Compare And Swap)功能。假设我们通过WATCH命令在事务执行之前监控了多个Keys，倘若在WATCH之后有任何Key的值发生了变化，EXEC命令执行的事务都将被放弃，同时返回Null multi-bulk应答以通知调用者事务执行失败。例如，我们再次假设Redis中并未提供incr命令来完成键值的原子性递增，如果要实现该功能，我们只能自行编写相应的代码。其伪码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">val = GET mykey</span><br><span class="line">val = val + 1</span><br><span class="line">SET mykey $val</span><br></pre></td></tr></table></figure>
+<p>以上代码只有在单连接的情况下才可以保证执行结果是正确的，因为如果在同一时刻有多个客户端在同时执行该段代码，那么就会出现多线程程序中经常出现的一种错误场景–竞态争用(race condition)。比如，客户端A和B都在同一时刻读取了mykey的原有值，假设该值为10，此后两个客户端又均将该值加一后set回Redis服务器，这样就会导致mykey的结果为11，而不是我们认为的12。为了解决类似的问题，我们需要借助WATCH命令的帮助，见如下代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">WATCH mykey</span><br><span class="line">val = GET mykey</span><br><span class="line">val = val + 1</span><br><span class="line">MULTI</span><br><span class="line">SET mykey $val</span><br><span class="line">EXEC</span><br></pre></td></tr></table></figure>
+<p>和此前代码不同的是，新代码在获取mykey的值之前先通过WATCH命令监控了该键，此后又将set命令包围在事务中，这样就可以有效的保证每个连接在执行EXEC之前，如果当前连接获取的mykey的值被其它连接的客户端修改，那么当前连接的EXEC命令将执行失败。这样调用者在判断返回值后就可以获悉val是否被重新设置成功</p>
+<h1><span id="7-redis持久化的几种方式"> 7 redis持久化的几种方式</span></h1>
+<h2><span id="71-快照snapshots"> 7.1 快照（snapshots）</span></h2>
+<p>缺省情况情况下，Redis把数据快照存放在磁盘上的二进制文件中，文件名为dump.rdb。你可以配置Redis的持久化策略，例如数据集中每N秒钟有超过M次更新，就将数据写入磁盘；或者你可以手工调用命令<code>SAVE</code>或<code>BGSAVE</code></p>
+<p>工作原理</p>
+<ul>
+<li>Redis forks</li>
+<li>子进程开始将数据写到临时RDB文件中</li>
+<li>当子进程完成写RDB文件，用新文件替换老文件</li>
+<li>这种方式可以使Redis使用copy-on-write技术</li>
+</ul>
+<p>copy-on-write参考<a target="_blank" rel="noopener" href="http://www.cnblogs.com/biyeymyhjob/archive/2012/07/20/2601655.html">Linux写时拷贝技术(copy-on-write)</a></p>
+<h2><span id="72-aof"> 7.2 AOF</span></h2>
+<p>快照模式并不十分健壮，当系统停止，或者无意中Redis被kill掉，最后写入Redis的数据就会丢失。这对某些应用也许不是大问题，但对于要求高可靠性的应用来说，Redis就不是一个合适的选择</p>
+<p>Append-only文件模式是另一种选择，你可以在配置文件中打开AOF模式</p>
+<h2><span id="73-虚拟内存方式"> 7.3 虚拟内存方式</span></h2>
+<h2><span id="74-diskstore方式"> 7.4 diskstore方式</span></h2>
+<h1><span id="8-redis的缓存失效策略和主键失效机制"> 8 redis的缓存失效策略和主键失效机制</span></h1>
+<p>作为缓存系统都要定期清理无效数据，就需要一个主键失效和淘汰策略。在Redis当中，有生存期的key被称为volatile。在创建缓存时，要为给定的key设置生存期，当key过期的时候（生存期为0），它可能会被删除</p>
+<h2><span id="81-影响生存时间的一些操作"> 8.1 影响生存时间的一些操作</span></h2>
+<p>生存时间可以通过使用<code>DEL</code>命令来删除整个<code>key</code>来移除，或者被<code>SET</code>和<code>GETSET</code>命令覆盖原来的数据，也就是说，修改<code>key</code>对应的<code>value</code>和使用另外相同的<code>key</code>和<code>value</code>来覆盖以后，当前数据的生存时间不同<br>
+　　<br>
+比如说，对一个<code>key</code>执行<code>INCR</code>命令，对一个列表进行<code>LPUSH</code>命令，或者对一个哈希表执行<code>HSET</code>命令，这类操作都不会修改<code>key</code>本身的生存时间。另一方面，如果使用<code>RENAME</code>对一个<code>key</code>进行改名，那么改名后的<code>key</code>的生存时间和改名前一样</p>
+<p><code>RENAME</code>命令的另一种可能是，尝试将一个带生存时间的<code>key</code>改名成另一个带生存时间的<code>another_key</code>，这时旧的<code>another_key</code>(以及它的生存时间)会被删除，然后旧的<code>key</code>会改名为<code>another_key</code>，因此，新的<code>another_key</code>的生存时间也和原本的<code>key</code>一样。使用<code>PERSIST</code>命令可以在不删除<code>key</code>的情况下，移除<code>key</code>的生存时间，让<code>key</code>重新成为一个<code>persistent key</code></p>
+<h2><span id="82-如何更新生存时间"> 8.2 如何更新生存时间</span></h2>
+<p>可以对一个已经带有生存时间的key执行EXPIRE命令，新指定的生存时间会取代旧的生存时间。过期时间的精度已经被控制在1ms之内，主键失效的时间复杂度是O(1)</p>
+<p>EXPIRE和TTL命令搭配使用，TTL可以查看key的当前生存时间。设置成功返回1；当key不存在或者不能为key设置生存时间时，返回0</p>
+<h3><span id="821-最大缓存配置"> 8.2.1 最大缓存配置</span></h3>
+<p>在redis中，允许用户设置最大使用内存大小。即设置<code>server.maxmemory</code>参数值</p>
+<ul>
+<li>默认为0，没有指定最大缓存，如果有新的数据添加，超过最大内存，则会使redis崩溃，所以一定要设置。redis内存数据集大小上升到一定大小的时候，就会实行数据淘汰策略</li>
+</ul>
+<p>redis提供6种数据淘汰策略：</p>
+<ol>
+<li>volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰</li>
+<li>volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰</li>
+<li>volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰</li>
+<li>allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰</li>
+<li>allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰</li>
+<li>no-enviction（驱逐）：禁止驱逐数据</li>
+</ol>
+<p>注意这里的6种机制，volatile和allkeys规定了是对已设置过期时间的数据集淘汰数据还是从全部数据集淘汰数据，后面的lru(Least Recently Used)、ttl(Time-To-Live)以及random是三种不同的淘汰策略，再加上一种no-enviction永不回收的策略</p>
+<h3><span id="822-使用策略规则"> 8.2.2 使用策略规则</span></h3>
+<ol>
+<li>如果数据呈现幂律分布，也就是一部分数据访问频率高，一部分数据访问频率低，则使用allkeys-lru</li>
+<li>如果数据呈现平等分布，也就是所有的数据访问频率都相同，则使用allkeys-random</li>
+</ol>
+<h3><span id="823-三种数据淘汰策略"> 8.2.3 三种数据淘汰策略</span></h3>
+<p>ttl和random比较容易理解，实现也会比较简单。主要是lru最近最少使用淘汰策略，设计上会对key按失效时间排序，然后取最先失效的key进行淘汰</p>
+<h1><span id="9-缓存穿透-并发和失效的解决方案"> 9 缓存穿透、并发和失效的解决方案</span></h1>
+<p>我们在用缓存的时候，不管是Redis或者Memcached，基本上会通用遇到以下三个问题：</p>
+<ol>
+<li>缓存穿透</li>
+<li>缓存并发</li>
+<li>缓存失效</li>
+</ol>
+<h2><span id="91-缓存穿透"> 9.1 缓存穿透</span></h2>
+<p>我们在项目中使用缓存通常都是先检查缓存中是否存在，如果存在直接返回缓存内容，如果不存在就直接查询数据库然后再缓存查询结果返回。<strong>这个时候如果我们查询的某一个数据在缓存中一直不存在，就会造成每一次请求都查询DB，这样缓存就失去了意义</strong>，在流量大时，可能DB就挂掉了</p>
+<p>处理方法：</p>
+<ol>
+<li><strong>方法1</strong>：在封装的缓存SET和GET部分增加个步骤，如果查询一个KEY不存在，就已这个KEY为前缀设定一个标识KEY；以后再查询该KEY的时候，先查询标识KEY，如果标识KEY存在，就返回一个协定好的非false或者NULL值，然后APP做相应的处理，这样缓存层就不会被穿透。当然这个验证KEY的失效时间不能太长</li>
+<li><strong>方法2</strong>：如果一个查询返回的数据为空（不管是数据不存在，还是系统故障），我们仍然把这个空结果进行缓存，但它的过期时间会很短，一般只有几分钟</li>
+<li><strong>方法3</strong>：采用布隆过滤器，将所有可能存在的数据哈希到一个足够大的bitmap中，一个一定不存在的数据会被这个bitmap拦截掉(未必，但是可以挡掉一些)，从而避免了对底层存储系统的查询压力</li>
+</ol>
+<h2><span id="92-缓存并发"> 9.2 缓存并发</span></h2>
+<p>有时候如果网站并发访问高，一个缓存如果失效，可能出现多个进程同时查询DB，同时设置缓存的情况，如果并发确实很大，这也可能造成DB压力过大，还有缓存频繁更新的问题</p>
+<p>我现在的想法是对缓存查询加锁，如果KEY不存在，就加锁，然后查DB入缓存，然后解锁；其他进程如果发现有锁就等待，然后等解锁后返回数据或者进入DB查询</p>
+<p>这种情况和刚才说的预先设定值问题有些类似，只不过利用锁的方式，会造成部分请求等待</p>
+<h2><span id="93-缓存失效"> 9.3 缓存失效</span></h2>
+<p>这个问题主要出现在高并发的场景下，平时我们设定一个缓存的过期时间时，可能有一些会设置1分钟啊，5分钟这些，并发很高时可能会出在某一个时间同时生成了很多的缓存，并且过期时间都一样，这个时候就可能引发一当过期时间到后，这些缓存同时失效，请求全部转发到DB，DB可能会压力过重</p>
+<p>那如何解决这些问题呢？</p>
+<p>其中的一个简单方案就是将缓存失效时间分散开，比如我们可以在原有的失效时间基础上增加一个随机值，比如1-5分钟随机，这样每一个缓存的过期时间的重复率就会降低，就很难引发集体失效的事件</p>
+<p>缓存失效时产生的雪崩效应，将所有请求全部放在数据库上，这样很容易就达到数据库的瓶颈，导致服务无法正常提供。尽量避免这种场景的发生</p>
+<h1><span id="10-参考"> 10 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_c8bffac20102wq04.html">面试中常见的redis问题有哪些？</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/08/01/SourceAnalysis-Unsafe/" rel="prev" title="SourceAnalysis-Unsafe">
+      <i class="fa fa-chevron-left"></i> SourceAnalysis-Unsafe
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/08/03/Redis-Persistence-Mechanism/" rel="next" title="Redis-Persistence-Mechanism">
+      Redis-Persistence-Mechanism <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 使用redis有哪些好处</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 Memcache与Redis的区别都有哪些</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 redis常见性能问题和解决方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 redis的并发竞争问题如何解决</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 redis事务的了解CAS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 WATCH命令和基于CAS的乐观锁</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 redis持久化的几种方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.1 快照（snapshots）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.2 AOF</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.3 虚拟内存方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 7.4 diskstore方式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 redis的缓存失效策略和主键失效机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 8.1 影响生存时间的一些操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 8.2 如何更新生存时间</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 8.2.1 最大缓存配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 8.2.2 使用策略规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 8.2.3 三种数据淘汰策略</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 9 缓存穿透、并发和失效的解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 9.1 缓存穿透</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 9.2 缓存并发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 9.3 缓存失效</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 10 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

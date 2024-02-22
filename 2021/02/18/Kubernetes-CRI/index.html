@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes-CRI">
+<meta property="og:url" content="http://example.com/2021/02/18/Kubernetes-CRI/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Kubernetes-CRI/container_timeline.jpeg">
+<meta property="og:image" content="http://example.com/images/Kubernetes-CRI/relationship.png">
+<meta property="article:published_time" content="2021-02-18T09:07:27.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.346Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Kubernetes-CRI/container_timeline.jpeg">
+
+<link rel="canonical" href="http://example.com/2021/02/18/Kubernetes-CRI/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Kubernetes-CRI | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/18/Kubernetes-CRI/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kubernetes-CRI
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-18 17:07:27" itemprop="dateCreated datePublished" datetime="2021-02-18T17:07:27+08:00">2021-02-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/02/18/Kubernetes-CRI/" class="post-meta-item leancloud_visitors" data-flag-title="Kubernetes-CRI" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/02/18/Kubernetes-CRI/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/02/18/Kubernetes-CRI/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-容器"> 1 容器</span></h1>
+<h2><span id="11-容器发展史"> 1.1 容器发展史</span></h2>
+<p><img src="/images/Kubernetes-CRI/container_timeline.jpeg" alt="container_timeline"></p>
+<h2><span id="12-docker组件介绍"> 1.2 docker组件介绍</span></h2>
+<p><strong>docker（<code>/usr/bin/docker</code>）</strong>：在早期版本中（<code>1.11.x</code>之前），docker的所有功能都用这一个二进制完成，同时充当<code>docker-cli</code>以及<code>docker-daemon</code>。<code>1.11.x</code>版本之后，docker只充当<code>docker-cli</code>这一角色</p>
+<p><strong>dockerd（<code>/usr/bin/dockerd</code>）</strong>：以<code>Docker Engine API</code>对外提供服务，可以通过三类socket进行API调用，分别是：<code>unix</code>、<code>tcp</code>、<code>fd</code>（默认用的是<code>unix</code>。实际上，<code>dockerd</code>只是一个中间层，容器、镜像的生命周期管理动作，实际上是由<code>containerd</code>完成的，<code>dockerd</code>与<code>containerd</code>之间通过<code>grpc</code>通信</p>
+<p><strong>containerd（<code>/usr/bin/docker-containerd</code>）</strong>：<code>containerd</code>是<code>1.11.x</code>引入的组件，是<code>OCI</code>规范的标准实现。功能大致包括</p>
+<ol>
+<li>镜像管理</li>
+<li>容器管理（实际上利用<code>RunC</code>）</li>
+<li>存储管理</li>
+<li>网络管理</li>
+<li>命名空间管理</li>
+<li>…</li>
+</ol>
+<p><strong>RunC（<code>/usr/bin/docker-runc</code>）</strong>：与其他组件不同，<code>RunC</code>是个可执行程序（提供创建和运行容器的cli工具），而并非一个常驻进程。它的主要职责就是运行容器。<code>RunC</code>直接与容器所依赖的<code>cgroup/namespace</code>等进行交互，负责为容器配置<code>cgroup/namespace</code>等启动容器所需的环境，创建启动容器的相关进程</p>
+<p><strong>containerd-ctr（<code>/usr/bin/docker-containerd-ctr</code>）</strong>：可以直接与<code>containerd</code>交互的客户端，类似于<code>docker-cli</code>和<code>dockerd</code>之间的关系</p>
+<p><strong>containerd-shim（<code>/usr/bin/docker-containerd-shim</code>）</strong>：<code>containerd</code>并不直接操作容器，而是通过<code>containerd-shim</code>来间接地操作容器或与容器通信。从进程关系上讲，<code>containerd-shim</code>进程由<code>containerd</code>进程拉起，容器进程由<code>containerd-shim</code>进程拉起（每个容器进程都会对应一个独立的<code>containerd-shim</code>进程）。<code>containerd-shim</code>主要起到以下作用：</p>
+<ol>
+<li>由于<code>containerd-shim</code>与容器是父子进程关系，因此可以拿到容器的<code>stdout</code>、<code>stderr</code>，可以将容器的<code>stdin</code>、<code>stdout</code>转存到日志文件中（<code>/var/lib/docker/containers/&lt;容器id&gt;/&lt;容器id&gt;-json.log</code>）。与此对应的功能是<code>docker logs &lt;container&gt;</code>或<code>kubectl logs &lt;pod&gt; -c &lt;container&gt;</code></li>
+<li>由于<code>containerd-shim</code>与容器是父子进程关系，因此可以拿到容器的<code>stdin</code>、<code>stdout</code>、<code>stderr</code>，通过socket将容器的<code>stdin</code>、<code>stdout</code>、<code>stderr</code>暴露给外界，以提供流式传输的功能。与此对应的功能是<code>docker exec -it &lt;container&gt;</code>或<code>kubectl exec -it &lt;pod&gt;</code></li>
+<li>用于追踪容器的<code>exit code</code>。在<code>detached</code>模式下，<code>RunC</code>在启动完容器后便退出了，此时容器进程的父子进程关系将会调整。如果没有<code>containerd-shim</code>，那么容器的父进程将会变成<code>containerd</code>，如果<code>containerd</code>重启了或意外退出了，那么容器的父进程又会进一步变成<code>pid = 1</code>的进程，于是容器的状态信息将会全部丢失；引入<code>containerd-shim</code>后，容器的父进程就变成了<code>containerd-shim</code>，而<code>containerd-shim</code>会等待容器运行直至退出，从而能够捕获到容器的<code>exit code</code></li>
+</ol>
+<h2><span id="13-oci"> 1.3 OCI</span></h2>
+<p>以下是<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Open_Container_Initiative">维基百科</a>对于<code>OCI</code>的定义：</p>
+<blockquote>
+<p>The Open Container Initiative (OCI) is a Linux Foundation project to design open standards for operating-system-level virtualization, most importantly Linux containers. There are currently two specifications in development and in use: Runtime Specification (runtime-spec) and the Image Specification (image-spec).</p>
+</blockquote>
+<blockquote>
+<p>OCI develops runc, a container runtime that implements their specification and serves as a basis for other higher-level tools. runC was first released in July 2015 as version 0.0.1</p>
+</blockquote>
+<p>翻译过来就是：</p>
+<blockquote>
+<p><code>OCI</code>是Linux基础项目，旨在为操作系统层级的虚拟化技术（最主要的就是Linux容器）设计开放标准。当前有两个规范正在开发和使用中：运行时规范（<code>runtime-spec</code>）和映像规范（<code>image-spec</code>）</p>
+</blockquote>
+<blockquote>
+<p><code>OCI</code>开发了<code>Runc</code>，它一个容器运行时，该运行时实现了<code>OCI</code>规范，并作为其他高级工具的基础。<code>Runc</code>于2015年7月首次发布，版本为0.0.1。</p>
+</blockquote>
+<h1><span id="2-cri"> 2 CRI</span></h1>
+<p><code>CRI</code>在<code>Kubernetes 1.5</code>中引入，在此之前，<code>Kubernetes</code>与<code>docker</code>强耦合（在代码中直接硬编码调用<code>docker-api</code>）。虽然<code>docker</code>是容器领域中最受瞩目的项目，但它并不是容器领域中的唯一选择，不同的容器实现方案都有其各自的优势，<code>Kubernetes</code>为了在容器运行时的选择上更具灵活性，因此需要与<code>docker</code>进行解耦，而软件如何解耦？那就加一层接口咯，这层接口就叫做<code>CRI</code>。如此一来，<code>docker</code>就是满足<code>CRI</code>的一个实现，只要各个容器方案都实现了<code>CRI</code>接口，<code>Kubernetes</code>就能完成容器运行时的自由切换</p>
+<p><strong>整体架构大致如下（图中仅包含部分CRI实现，以及部分OCI实现）</strong></p>
+<p><img src="/images/Kubernetes-CRI/relationship.png" alt="relationship"></p>
+<p><strong>其中</strong></p>
+<ul>
+<li><code>cri-o</code>是由<code>Kubernetes</code>孵化的项目，天然支持<code>CRI</code></li>
+<li><code>cri-containerd</code>是为了在不改造<code>containerd</code>的前提下，让<code>containerd</code>支持<code>CRI</code>规范</li>
+<li><code>docker-shim</code>是为了在不改造<code>docker</code>的前提下，让<code>docker</code>支持<code>CRI</code>规范</li>
+</ul>
+<p><code>Kubernetes</code>对于<code>CRI</code>的定义，可以参考<a target="_blank" rel="noopener" href="https://github.com/kubernetes/cri-api">kubernetes/cri-api</a>，主要包含两部分<code>RuntimeService</code>以及<code>ImageService</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Runtime service defines the public APIs for remote container runtimes</span></span><br><span class="line">service RuntimeService &#123;</span><br><span class="line">    <span class="comment">// Version returns the runtime name, runtime version, and runtime API version.</span></span><br><span class="line">    rpc Version(VersionRequest) returns (VersionResponse) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// RunPodSandbox creates and starts a pod-level sandbox. Runtimes must ensure</span></span><br><span class="line">    <span class="comment">// the sandbox is in the ready state on success.</span></span><br><span class="line">    rpc RunPodSandbox(RunPodSandboxRequest) returns (RunPodSandboxResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// StopPodSandbox stops any running process that is part of the sandbox and</span></span><br><span class="line">    <span class="comment">// reclaims network resources (e.g., IP addresses) allocated to the sandbox.</span></span><br><span class="line">    <span class="comment">// If there are any running containers in the sandbox, they must be forcibly</span></span><br><span class="line">    <span class="comment">// terminated.</span></span><br><span class="line">    <span class="comment">// This call is idempotent, and must not return an error if all relevant</span></span><br><span class="line">    <span class="comment">// resources have already been reclaimed. kubelet will call StopPodSandbox</span></span><br><span class="line">    <span class="comment">// at least once before calling RemovePodSandbox. It will also attempt to</span></span><br><span class="line">    <span class="comment">// reclaim resources eagerly, as soon as a sandbox is not needed. Hence,</span></span><br><span class="line">    <span class="comment">// multiple StopPodSandbox calls are expected.</span></span><br><span class="line">    rpc StopPodSandbox(StopPodSandboxRequest) returns (StopPodSandboxResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// RemovePodSandbox removes the sandbox. If there are any running containers</span></span><br><span class="line">    <span class="comment">// in the sandbox, they must be forcibly terminated and removed.</span></span><br><span class="line">    <span class="comment">// This call is idempotent, and must not return an error if the sandbox has</span></span><br><span class="line">    <span class="comment">// already been removed.</span></span><br><span class="line">    rpc RemovePodSandbox(RemovePodSandboxRequest) returns (RemovePodSandboxResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// PodSandboxStatus returns the status of the PodSandbox. If the PodSandbox is not</span></span><br><span class="line">    <span class="comment">// present, returns an error.</span></span><br><span class="line">    rpc PodSandboxStatus(PodSandboxStatusRequest) returns (PodSandboxStatusResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// ListPodSandbox returns a list of PodSandboxes.</span></span><br><span class="line">    rpc ListPodSandbox(ListPodSandboxRequest) returns (ListPodSandboxResponse) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// CreateContainer creates a new container in specified PodSandbox</span></span><br><span class="line">    rpc CreateContainer(CreateContainerRequest) returns (CreateContainerResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// StartContainer starts the container.</span></span><br><span class="line">    rpc StartContainer(StartContainerRequest) returns (StartContainerResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// StopContainer stops a running container with a grace period (i.e., timeout).</span></span><br><span class="line">    <span class="comment">// This call is idempotent, and must not return an error if the container has</span></span><br><span class="line">    <span class="comment">// already been stopped.</span></span><br><span class="line">    <span class="comment">// The runtime must forcibly kill the container after the grace period is</span></span><br><span class="line">    <span class="comment">// reached.</span></span><br><span class="line">    rpc StopContainer(StopContainerRequest) returns (StopContainerResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// RemoveContainer removes the container. If the container is running, the</span></span><br><span class="line">    <span class="comment">// container must be forcibly removed.</span></span><br><span class="line">    <span class="comment">// This call is idempotent, and must not return an error if the container has</span></span><br><span class="line">    <span class="comment">// already been removed.</span></span><br><span class="line">    rpc RemoveContainer(RemoveContainerRequest) returns (RemoveContainerResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// ListContainers lists all containers by filters.</span></span><br><span class="line">    rpc ListContainers(ListContainersRequest) returns (ListContainersResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// ContainerStatus returns status of the container. If the container is not</span></span><br><span class="line">    <span class="comment">// present, returns an error.</span></span><br><span class="line">    rpc ContainerStatus(ContainerStatusRequest) returns (ContainerStatusResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// UpdateContainerResources updates ContainerConfig of the container.</span></span><br><span class="line">    rpc UpdateContainerResources(UpdateContainerResourcesRequest) returns (UpdateContainerResourcesResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// ReopenContainerLog asks runtime to reopen the stdout/stderr log file</span></span><br><span class="line">    <span class="comment">// for the container. This is often called after the log file has been</span></span><br><span class="line">    <span class="comment">// rotated. If the container is not running, container runtime can choose</span></span><br><span class="line">    <span class="comment">// to either create a new log file and return nil, or return an error.</span></span><br><span class="line">    <span class="comment">// Once it returns error, new container log file MUST NOT be created.</span></span><br><span class="line">    rpc ReopenContainerLog(ReopenContainerLogRequest) returns (ReopenContainerLogResponse) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ExecSync runs a command in a container synchronously.</span></span><br><span class="line">    rpc ExecSync(ExecSyncRequest) returns (ExecSyncResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// Exec prepares a streaming endpoint to execute a command in the container.</span></span><br><span class="line">    rpc Exec(ExecRequest) returns (ExecResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// Attach prepares a streaming endpoint to attach to a running container.</span></span><br><span class="line">    rpc Attach(AttachRequest) returns (AttachResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// PortForward prepares a streaming endpoint to forward ports from a PodSandbox.</span></span><br><span class="line">    rpc PortForward(PortForwardRequest) returns (PortForwardResponse) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ContainerStats returns stats of the container. If the container does not</span></span><br><span class="line">    <span class="comment">// exist, the call returns an error.</span></span><br><span class="line">    rpc ContainerStats(ContainerStatsRequest) returns (ContainerStatsResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// ListContainerStats returns stats of all running containers.</span></span><br><span class="line">    rpc ListContainerStats(ListContainerStatsRequest) returns (ListContainerStatsResponse) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// UpdateRuntimeConfig updates the runtime configuration based on the given request.</span></span><br><span class="line">    rpc UpdateRuntimeConfig(UpdateRuntimeConfigRequest) returns (UpdateRuntimeConfigResponse) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Status returns the status of the runtime.</span></span><br><span class="line">    rpc Status(StatusRequest) returns (StatusResponse) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ImageService defines the public APIs for managing images.</span></span><br><span class="line">service ImageService &#123;</span><br><span class="line">    <span class="comment">// ListImages lists existing images.</span></span><br><span class="line">    rpc ListImages(ListImagesRequest) returns (ListImagesResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// ImageStatus returns the status of the image. If the image is not</span></span><br><span class="line">    <span class="comment">// present, returns a response with ImageStatusResponse.Image set to</span></span><br><span class="line">    <span class="comment">// nil.</span></span><br><span class="line">    rpc ImageStatus(ImageStatusRequest) returns (ImageStatusResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// PullImage pulls an image with authentication config.</span></span><br><span class="line">    rpc PullImage(PullImageRequest) returns (PullImageResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// RemoveImage removes the image.</span></span><br><span class="line">    <span class="comment">// This call is idempotent, and must not return an error if the image has</span></span><br><span class="line">    <span class="comment">// already been removed.</span></span><br><span class="line">    rpc RemoveImage(RemoveImageRequest) returns (RemoveImageResponse) &#123;&#125;</span><br><span class="line">    <span class="comment">// ImageFSInfo returns information of the filesystem that is used to store images.</span></span><br><span class="line">    rpc ImageFsInfo(ImageFsInfoRequest) returns (ImageFsInfoResponse) &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1><span id="3-参考"> 3 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/4c9ff1619e96">Docker的历史与发展</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/73728920">Kubernetes 容器运行时演进</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/324124344">如何为Kubernetes选择合适的容器运行时？</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/ss6sitklgolexqp4umr5">40 年回顾，一文读懂容器发展史</a></li>
+<li><a target="_blank" rel="noopener" href="http://k8s.cn/index.php/2018/05/21/799/">Runtime 技术概览</a></li>
+<li><a target="_blank" rel="noopener" href="https://kubesphere.io/blogs/dockershim-out-of-kubernetes/">Dockershim Deprecation: Is Docker Truly out of Game?</a></li>
+<li><a target="_blank" rel="noopener" href="https://containerd.io/">containerd-doc</a></li>
+<li><a target="_blank" rel="noopener" href="https://kubernetes.io/blog/">kubernetes-blog</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.dockerone.com/article/2533">揭秘开放容器标准（OCI）规范</a></li>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000011294361">docker进程模型，架构分析</a></li>
+<li><a target="_blank" rel="noopener" href="https://iximiuz.com/en/posts/implementing-container-runtime-shim/">Implementing Container Runtime Shim: runc</a></li>
+<li><a target="_blank" rel="noopener" href="http://alexander.holbreich.org/docker-components-explained/">Docker components explained</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/c7748893ab00">OCI,CRI到kubernetes runtime</a></li>
+<li><a target="_blank" rel="noopener" href="https://opencontainers.org/about/overview/">About the Open Container Initiative</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_40864891/article/details/86655846">OCI,CRI,CRI-O,Containerd 名词解释</a></li>
+<li><a target="_blank" rel="noopener" href="https://kubernetes.io/blog/2016/12/container-runtime-interface-cri-in-kubernetes/">Introducing Container Runtime Interface (CRI) in Kubernetes</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/332603285">关于Kubernetes废弃内置docker CRI功能的说明</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/102897620">K8s、CRI与container</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kubernetes/community/blob/master/contributors/devel/sig-node/container-runtime-interface.md">CRI: the Container Runtime Interface</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kubernetes/cri-api">kubernetes/cri-api</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/09/vscode/" rel="prev" title="vscode">
+      <i class="fa fa-chevron-left"></i> vscode
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/19/Kubernetes-CNI/" rel="next" title="Kubernetes-CNI">
+      Kubernetes-CNI <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 容器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 容器发展史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 docker组件介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.3 OCI</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 CRI</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

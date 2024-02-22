@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty-Implement-Http">
+<meta property="og:url" content="http://example.com/2018/01/12/Netty-Implement-Http/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-01-12T13:23:48.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.353Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/01/12/Netty-Implement-Http/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Netty-Implement-Http | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/01/12/Netty-Implement-Http/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Netty-Implement-Http
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-12 21:23:48" itemprop="dateCreated datePublished" datetime="2018-01-12T21:23:48+08:00">2018-01-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/" itemprop="url" rel="index"><span itemprop="name">Framework</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/HTTP/" itemprop="url" rel="index"><span itemprop="name">HTTP</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/01/12/Netty-Implement-Http/" class="post-meta-item leancloud_visitors" data-flag-title="Netty-Implement-Http" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/01/12/Netty-Implement-Http/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/01/12/Netty-Implement-Http/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-前言"> 1 前言</span></h1>
+<p>HTTP协议本质上是<strong>文本协议</strong>，其内容表示形式为<strong>人类可读格式</strong>。通常就是ASCII码或者UTF-8编码所得</p>
+<p>在Java中，HTTP客户端种类繁多，包括HttpURLConnection、Netty、OkHttp等等</p>
+<p><strong>本篇博客旨在使用原生的Java IO API来实现一个简单的HttpClient，借此体验一下HTTP协议的运作方式</strong></p>
+<h1><span id="2-http请求概述"> 2 HTTP请求概述</span></h1>
+<p>一个HTTP请求大致上可以拆分成如下几个步骤</p>
+<ol>
+<li>建立TCP连接</li>
+<li>组装HTTP Request，其本质上就是一段String</li>
+<li>通过TCP连接，将HTTP Request发送过去</li>
+</ol>
+<h1><span id="3-raw-http-demo"> 3 Raw-HTTP-Demo</span></h1>
+<h2><span id="31-httprequestbuilder"> 3.1 HttpRequestBuilder</span></h2>
+<p>首先构建一个Builder模式的辅助类，用于创建一个HttpRequest，包含如下几个关键字段。最后创建出来的就是一个String</p>
+<ol>
+<li><code>headers</code>：请求头</li>
+<li><code>method</code>：请求方法，GET/POST/DELETE/PUT等</li>
+<li><code>url</code>：URL</li>
+<li><code>version</code>：HTTP协议版本</li>
+<li><code>body</code>：请求包体</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.http.raw;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by HCF on 2017/12/16.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HttpRequestBuilder</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">SPACE</span> <span class="operator">=</span> <span class="string">&quot; &quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">ENTER</span> <span class="operator">=</span> <span class="string">&quot;\r&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">LINE_FEED</span> <span class="operator">=</span> <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">CONTENT_LENGTH</span> <span class="operator">=</span> <span class="string">&quot;content-length&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">COLON</span> <span class="operator">=</span> <span class="string">&quot;:&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;String, String&gt; headers;</span><br><span class="line">    <span class="keyword">private</span> String method;</span><br><span class="line">    <span class="keyword">private</span> String url;</span><br><span class="line">    <span class="keyword">private</span> String version;</span><br><span class="line">    <span class="keyword">private</span> String body;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 构造方法，填充默认值</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="title function_">HttpRequestBuilder</span><span class="params">()</span> &#123;</span><br><span class="line">        headers = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        method = <span class="string">&quot;GET&quot;</span>;</span><br><span class="line">        url = <span class="literal">null</span>;</span><br><span class="line">        version = <span class="string">&quot;HTTP/1.1&quot;</span>;</span><br><span class="line">        body = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> HttpRequestBuilder <span class="title function_">builder</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">HttpRequestBuilder</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> HttpRequestBuilder <span class="title function_">method</span><span class="params">(String method)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.method = method;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> HttpRequestBuilder <span class="title function_">url</span><span class="params">(String url)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.url = url;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> HttpRequestBuilder <span class="title function_">version</span><span class="params">(String version)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.version = version;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> HttpRequestBuilder <span class="title function_">addHeader</span><span class="params">(String key, String value)</span> &#123;</span><br><span class="line">        headers.put(key.toLowerCase(), value.toLowerCase());</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> HttpRequestBuilder <span class="title function_">body</span><span class="params">(String body)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.body = body;</span><br><span class="line">        addHeader(CONTENT_LENGTH, Integer.toString(body.getBytes().length));</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">build</span><span class="params">()</span> &#123;</span><br><span class="line">        check();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> method + SPACE + url + SPACE + version + ENTER + LINE_FEED</span><br><span class="line">                + headers()</span><br><span class="line">                + LINE_FEED</span><br><span class="line">                + (body == <span class="literal">null</span> ? <span class="string">&quot;&quot;</span> : body);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">check</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (url == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;url尚未初始化&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (body != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">bodyLength</span> <span class="operator">=</span> body.getBytes().length;</span><br><span class="line">            <span class="keyword">if</span> (!headers.containsKey(CONTENT_LENGTH)) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;设置了请求Body，单位设置长度参数&lt;content-length&gt;&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="type">String</span> <span class="variable">key</span> <span class="operator">=</span> headers.get(CONTENT_LENGTH);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (Integer.parseInt(key) != bodyLength) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;Body长度参数&lt;content-length&gt;设置错误&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            String key;</span><br><span class="line">            <span class="keyword">if</span> (headers.containsKey(CONTENT_LENGTH)</span><br><span class="line">                    &amp;&amp; (key = headers.get(CONTENT_LENGTH)) != <span class="literal">null</span></span><br><span class="line">                    &amp;&amp; Integer.parseInt(key) != <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;Body为空，但是Body长度参数&lt;content-length&gt;不为0&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String <span class="title function_">headers</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">        <span class="keyword">for</span> (Map.Entry&lt;String, String&gt; header : headers.entrySet()) &#123;</span><br><span class="line">            sb.append(header.getKey())</span><br><span class="line">                    .append(COLON)</span><br><span class="line">                    .append(header.getValue())</span><br><span class="line">                    .append(ENTER)</span><br><span class="line">                    .append(LINE_FEED);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2><span id="32-server"> 3.2 Server</span></h2>
+<p>用于本地测试的服务端代码详见<a href="/2017/11/24/Spring-Boot-Demo/" title="Spring-Boot-Demo">Spring-Boot-Demo</a>，这里不再赘述</p>
+<h2><span id="33-javanioclient"> 3.3 JavaNioClient</span></h2>
+<p>下面写了一个测试上述三个API的测试用例，由于Java Socket相关的操作可以固化，因此利用模板方法模式，提供了一个模板类RawHttpRequestTemplate，三个API的测试用例分别对应于HomeHttpRequest、ComputeHttpRequest、LoginHttpRequest</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.http.raw.nio;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.liuyehcf.http.raw.HttpRequestBuilder;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.nio.ByteBuffer;</span><br><span class="line"><span class="keyword">import</span> java.nio.channels.SocketChannel;</span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by HCF on 2017/12/16.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JavaNioClient</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">byte</span>[] toByteArray(List&lt;Byte&gt; bytes) &#123;</span><br><span class="line">        <span class="type">byte</span>[] byteArray = <span class="keyword">new</span> <span class="title class_">byte</span>[bytes.size()];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; bytes.size(); i++) &#123;</span><br><span class="line">            byteArray[i] = bytes.get(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> byteArray;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">HomeHttpRequest</span>().doRequest();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">LoginHttpRequest</span>(<span class="string">&quot;张三&quot;</span>).doRequest();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ComputeHttpRequest</span>(<span class="string">&quot;1.2&quot;</span>, <span class="string">&quot;2.4&quot;</span>, <span class="string">&quot;+&quot;</span>).doRequest();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">RawHttpRequestTemplate</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">doRequest</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="type">SocketChannel</span> <span class="variable">socketChannel</span> <span class="operator">=</span> SocketChannel.open();</span><br><span class="line"></span><br><span class="line">                <span class="comment">// 需要启动String Boot模块中的web应用作为服务端</span></span><br><span class="line">                socketChannel.connect(<span class="keyword">new</span> <span class="title class_">InetSocketAddress</span>(<span class="string">&quot;localhost&quot;</span>, <span class="number">8080</span>));</span><br><span class="line"></span><br><span class="line">                <span class="type">String</span> <span class="variable">requestContent</span> <span class="operator">=</span> buildRequest();</span><br><span class="line">                printRequest(requestContent);</span><br><span class="line"></span><br><span class="line">                <span class="type">ByteBuffer</span> <span class="variable">requestByteBuffer</span> <span class="operator">=</span> ByteBuffer.wrap(requestContent.getBytes());</span><br><span class="line">                socketChannel.write(requestByteBuffer);</span><br><span class="line"></span><br><span class="line">                <span class="type">ByteBuffer</span> <span class="variable">responseByteBuffer</span> <span class="operator">=</span> ByteBuffer.allocate(<span class="number">16</span>);</span><br><span class="line">                List&lt;Byte&gt; bytes = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">while</span> ((socketChannel.read(responseByteBuffer)) != -<span class="number">1</span>) &#123;</span><br><span class="line">                    responseByteBuffer.flip();</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">while</span> (responseByteBuffer.hasRemaining()) &#123;</span><br><span class="line">                        bytes.add(responseByteBuffer.get());</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    responseByteBuffer.clear();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                printResponse(<span class="keyword">new</span> <span class="title class_">String</span>(toByteArray(bytes)));</span><br><span class="line"></span><br><span class="line">                System.out.println(<span class="string">&quot;-------------------------------------------&quot;</span>);</span><br><span class="line"></span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                e.printStackTrace(System.out);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">protected</span> <span class="keyword">abstract</span> String <span class="title function_">buildRequest</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">printRequest</span><span class="params">(String request)</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;HTTP REQUEST:&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;[&quot;</span>);</span><br><span class="line">            System.out.println(request);</span><br><span class="line">            System.out.println(<span class="string">&quot;]&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">printResponse</span><span class="params">(String response)</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;,&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;HTTP RESPONSE:&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;[&quot;</span>);</span><br><span class="line">            System.out.println(response);</span><br><span class="line">            System.out.println(<span class="string">&quot;]&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">HomeHttpRequest</span> <span class="keyword">extends</span> <span class="title class_">RawHttpRequestTemplate</span> &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">protected</span> String <span class="title function_">buildRequest</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> HttpRequestBuilder.builder()</span><br><span class="line">                    .method(<span class="string">&quot;GET&quot;</span>)</span><br><span class="line">                    .url(<span class="string">&quot;http://127.0.0.1:8080/home&quot;</span>)</span><br><span class="line">                    .addHeader(<span class="string">&quot;Host&quot;</span>, <span class="string">&quot;8080&quot;</span>)</span><br><span class="line">                    .addHeader(<span class="string">&quot;Connection&quot;</span>, <span class="string">&quot;close&quot;</span>)  <span class="comment">// 避免read阻塞</span></span><br><span class="line">                    .build();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ComputeHttpRequest</span> <span class="keyword">extends</span> <span class="title class_">RawHttpRequestTemplate</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> String value1;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String value2;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String operator;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="title function_">ComputeHttpRequest</span><span class="params">(String value1, String value2, String operator)</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.value1 = value1;</span><br><span class="line">            <span class="built_in">this</span>.value2 = value2;</span><br><span class="line">            <span class="built_in">this</span>.operator = operator;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">protected</span> String <span class="title function_">buildRequest</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> HttpRequestBuilder.builder()</span><br><span class="line">                    .method(<span class="string">&quot;GET&quot;</span>)</span><br><span class="line">                    .url(<span class="string">&quot;http://127.0.0.1:8080/compute?value1=&quot;</span> + value1 + <span class="string">&quot;&amp;value2=&quot;</span> + value2)</span><br><span class="line">                    .addHeader(<span class="string">&quot;Host&quot;</span>, <span class="string">&quot;8080&quot;</span>)</span><br><span class="line">                    .addHeader(<span class="string">&quot;Connection&quot;</span>, <span class="string">&quot;close&quot;</span>)  <span class="comment">// 避免read阻塞</span></span><br><span class="line">                    .addHeader(<span class="string">&quot;operator&quot;</span>, operator)</span><br><span class="line">                    .build();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">LoginHttpRequest</span> <span class="keyword">extends</span> <span class="title class_">RawHttpRequestTemplate</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="title function_">LoginHttpRequest</span><span class="params">(String name)</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.name = name;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">protected</span> String <span class="title function_">buildRequest</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> HttpRequestBuilder.builder()</span><br><span class="line">                    .method(<span class="string">&quot;POST&quot;</span>)</span><br><span class="line">                    .url(<span class="string">&quot;http://127.0.0.1:8080/login&quot;</span>)</span><br><span class="line">                    .addHeader(<span class="string">&quot;Host&quot;</span>, <span class="string">&quot;8080&quot;</span>)</span><br><span class="line">                    .addHeader(<span class="string">&quot;Connection&quot;</span>, <span class="string">&quot;close&quot;</span>)  <span class="comment">// 避免read阻塞</span></span><br><span class="line">                    .addHeader(<span class="string">&quot;Content-Type&quot;</span>, <span class="string">&quot;application/json&quot;</span>)</span><br><span class="line">                    .body(<span class="string">&quot;&#123;\&quot;name\&quot;:\&quot;&quot;</span> + <span class="built_in">this</span>.name + <span class="string">&quot;\&quot;&#125;&quot;</span>) <span class="comment">// JSON格式的请求包体</span></span><br><span class="line">                    .build();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">HTTP REQUEST:</span><br><span class="line">[</span><br><span class="line">GET http://127.0.0.1:8080/home HTTP/1.1</span><br><span class="line">host:8080</span><br><span class="line">connection:close</span><br><span class="line"></span><br><span class="line">]</span><br><span class="line">,</span><br><span class="line">HTTP RESPONSE:</span><br><span class="line">[</span><br><span class="line">HTTP/1.1 200 </span><br><span class="line">Content-Type: text/plain;charset=UTF-8</span><br><span class="line">Content-Length: 12</span><br><span class="line">Date: Wed, 14 Feb 2018 15:17:43 GMT</span><br><span class="line">Connection: close</span><br><span class="line"></span><br><span class="line">Hello world!</span><br><span class="line">]</span><br><span class="line">-------------------------------------------</span><br><span class="line">HTTP REQUEST:</span><br><span class="line">[</span><br><span class="line">POST http://127.0.0.1:8080/login HTTP/1.1</span><br><span class="line">content-length:17</span><br><span class="line">host:8080</span><br><span class="line">connection:close</span><br><span class="line">content-type:application/json</span><br><span class="line"></span><br><span class="line">&#123;&quot;name&quot;:&quot;张三&quot;&#125;</span><br><span class="line">]</span><br><span class="line">,</span><br><span class="line">HTTP RESPONSE:</span><br><span class="line">[</span><br><span class="line">HTTP/1.1 200 </span><br><span class="line">Content-Type: application/json;charset=UTF-8</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line">Date: Wed, 14 Feb 2018 15:17:43 GMT</span><br><span class="line">Connection: close</span><br><span class="line"></span><br><span class="line">2d</span><br><span class="line">&#123;&quot;state&quot;:&quot;OK&quot;,&quot;message&quot;:&quot;欢迎登陆张三&quot;&#125;</span><br><span class="line">0</span><br><span class="line"></span><br><span class="line">]</span><br><span class="line">-------------------------------------------</span><br><span class="line">HTTP REQUEST:</span><br><span class="line">[</span><br><span class="line">GET http://127.0.0.1:8080/compute?value1=1.2&amp;value2=2.4 HTTP/1.1</span><br><span class="line">host:8080</span><br><span class="line">connection:close</span><br><span class="line">operator:+</span><br><span class="line"></span><br><span class="line">]</span><br><span class="line">,</span><br><span class="line">HTTP RESPONSE:</span><br><span class="line">[</span><br><span class="line">HTTP/1.1 200 </span><br><span class="line">Content-Type: text/plain;charset=UTF-8</span><br><span class="line">Content-Length: 9</span><br><span class="line">Date: Wed, 14 Feb 2018 15:17:43 GMT</span><br><span class="line">Connection: close</span><br><span class="line"></span><br><span class="line">3.6000001</span><br><span class="line">]</span><br><span class="line">-------------------------------------------</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2><span id="34-nettyhttpclient"> 3.4 NettyHttpClient</span></h2>
+<p>利用Netty提供的HTTP工具<code>HttpClientCodec</code>来实现Http客户端</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.http.raw.netty;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.netty.bootstrap.Bootstrap;</span><br><span class="line"><span class="keyword">import</span> io.netty.buffer.ByteBuf;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.*;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.nio.NioEventLoopGroup;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.socket.SocketChannel;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.socket.nio.NioSocketChannel;</span><br><span class="line"><span class="keyword">import</span> io.netty.handler.codec.http.*;</span><br><span class="line"><span class="keyword">import</span> io.netty.util.CharsetUtil;</span><br><span class="line"><span class="keyword">import</span> io.netty.util.ReferenceCountUtil;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.URI;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NettyHttpClient</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">NioEventLoopGroup</span> <span class="variable">workerGroup</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NioEventLoopGroup</span>();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Bootstrap</span> <span class="variable">bootstrap</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Bootstrap</span>();</span><br><span class="line">            bootstrap.group(workerGroup)</span><br><span class="line">                    .channel(NioSocketChannel.class)</span><br><span class="line">                    .handler(<span class="keyword">new</span> <span class="title class_">ChannelInitializer</span>&lt;SocketChannel&gt;() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">initChannel</span><span class="params">(SocketChannel socketChannel)</span> &#123;</span><br><span class="line">                            socketChannel.pipeline().addLast(<span class="keyword">new</span> <span class="title class_">HttpClientCodec</span>());</span><br><span class="line">                            socketChannel.pipeline().addLast(<span class="keyword">new</span> <span class="title class_">ClientHandler</span>());</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 需要启动String Boot模块中的web应用作为服务端</span></span><br><span class="line">            <span class="type">ChannelFuture</span> <span class="variable">channelFuture</span> <span class="operator">=</span> bootstrap.connect(<span class="string">&quot;localhost&quot;</span>, <span class="number">8080</span>).sync();</span><br><span class="line"></span><br><span class="line">            <span class="type">Channel</span> <span class="variable">channel</span> <span class="operator">=</span> channelFuture.channel();</span><br><span class="line"></span><br><span class="line">            <span class="type">URI</span> <span class="variable">uri</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">URI</span>(<span class="string">&quot;http://127.0.0.1:8080/home&quot;</span>);</span><br><span class="line">            <span class="type">DefaultFullHttpRequest</span> <span class="variable">request</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DefaultFullHttpRequest</span>(HttpVersion.HTTP_1_1, HttpMethod.GET, uri.toASCIIString());</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 构建http请求</span></span><br><span class="line">            request.headers().set(HttpHeaderNames.HOST, <span class="number">8080</span>);</span><br><span class="line">            request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);</span><br><span class="line">            request.headers().set(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());</span><br><span class="line"></span><br><span class="line">            channel.writeAndFlush(request);</span><br><span class="line"></span><br><span class="line">            channelFuture.channel().closeFuture().sync();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            workerGroup.shutdownGracefully();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ClientHandler</span> <span class="keyword">extends</span> <span class="title class_">ChannelInboundHandlerAdapter</span> &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">channelRead</span><span class="params">(ChannelHandlerContext ctx, Object msg)</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> HttpResponse) &#123;</span><br><span class="line">                    <span class="type">HttpResponse</span> <span class="variable">response</span> <span class="operator">=</span> (HttpResponse) msg;</span><br><span class="line">                    System.out.println(<span class="string">&quot;CONTENT_TYPE:&quot;</span> + response.headers().get(HttpHeaderNames.CONTENT_TYPE));</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> HttpContent) &#123;</span><br><span class="line">                    <span class="type">HttpContent</span> <span class="variable">content</span> <span class="operator">=</span> (HttpContent) msg;</span><br><span class="line">                    <span class="type">ByteBuf</span> <span class="variable">buf</span> <span class="operator">=</span> content.content();</span><br><span class="line">                    System.out.println(buf.toString(CharsetUtil.UTF_8));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                ReferenceCountUtil.release(msg);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2><span id="35-nettyrawclient"> 3.5 NettyRawClient</span></h2>
+<p>纯字节方式的Http客户端</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.http.raw.netty;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.netty.bootstrap.Bootstrap;</span><br><span class="line"><span class="keyword">import</span> io.netty.buffer.ByteBuf;</span><br><span class="line"><span class="keyword">import</span> io.netty.buffer.Unpooled;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.*;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.nio.NioEventLoopGroup;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.socket.SocketChannel;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.socket.nio.NioSocketChannel;</span><br><span class="line"><span class="keyword">import</span> io.netty.util.ReferenceCountUtil;</span><br><span class="line"><span class="keyword">import</span> org.liuyehcf.http.raw.HttpRequestBuilder;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.nio.charset.Charset;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NettyRawClient</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">NioEventLoopGroup</span> <span class="variable">workerGroup</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NioEventLoopGroup</span>();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Bootstrap</span> <span class="variable">bootstrap</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Bootstrap</span>();</span><br><span class="line">            bootstrap.group(workerGroup)</span><br><span class="line">                    .channel(NioSocketChannel.class)</span><br><span class="line">                    .handler(<span class="keyword">new</span> <span class="title class_">ChannelInitializer</span>&lt;SocketChannel&gt;() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">initChannel</span><span class="params">(SocketChannel socketChannel)</span> &#123;</span><br><span class="line">                            socketChannel.pipeline().addLast(<span class="keyword">new</span> <span class="title class_">ClientHandler</span>());</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 需要启动String Boot模块中的web应用作为服务端</span></span><br><span class="line">            <span class="type">ChannelFuture</span> <span class="variable">channelFuture</span> <span class="operator">=</span> bootstrap.connect(<span class="string">&quot;localhost&quot;</span>, <span class="number">8080</span>).sync();</span><br><span class="line"></span><br><span class="line">            <span class="type">Channel</span> <span class="variable">channel</span> <span class="operator">=</span> channelFuture.channel();</span><br><span class="line"></span><br><span class="line">            <span class="type">String</span> <span class="variable">requestContent</span> <span class="operator">=</span> buildRequest();</span><br><span class="line"></span><br><span class="line">            System.out.print(<span class="string">&quot;\n\n&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;HTTP REQUEST&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;\n\n&quot;</span>);</span><br><span class="line">            System.out.println(requestContent);</span><br><span class="line"></span><br><span class="line">            channel.writeAndFlush(Unpooled.wrappedBuffer(requestContent.getBytes()));</span><br><span class="line"></span><br><span class="line">            channelFuture.channel().closeFuture().sync();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            workerGroup.shutdownGracefully();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> String <span class="title function_">buildRequest</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> HttpRequestBuilder.builder()</span><br><span class="line">                .method(<span class="string">&quot;GET&quot;</span>)</span><br><span class="line">                .url(<span class="string">&quot;http://127.0.0.1:8080/home&quot;</span>)</span><br><span class="line">                .addHeader(<span class="string">&quot;Host&quot;</span>, <span class="string">&quot;8080&quot;</span>)</span><br><span class="line">                .addHeader(<span class="string">&quot;Connection&quot;</span>, <span class="string">&quot;close&quot;</span>)</span><br><span class="line">                .build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ClientHandler</span> <span class="keyword">extends</span> <span class="title class_">ChannelInboundHandlerAdapter</span> &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">channelRead</span><span class="params">(ChannelHandlerContext ctx, Object msg)</span> &#123;</span><br><span class="line">            <span class="type">ByteBuf</span> <span class="variable">byteBuf</span> <span class="operator">=</span> (ByteBuf) msg;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">readableBytes</span> <span class="operator">=</span> byteBuf.readableBytes();</span><br><span class="line">                <span class="type">byte</span>[] bytes = <span class="keyword">new</span> <span class="title class_">byte</span>[readableBytes];</span><br><span class="line">                byteBuf.readBytes(bytes);</span><br><span class="line">                System.out.println(<span class="keyword">new</span> <span class="title class_">String</span>(bytes, Charset.defaultCharset()));</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                ReferenceCountUtil.release(msg);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1><span id="4-参考"> 4 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/35425">http协议客户端向服务器端请求时一般需要发送的内容</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/11814875d793">Netty4使用http体验</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/2645009/binary-protocols-v-text-protocols">binary protocols v. text protocols</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Text-based_protocol">Text-based protocol</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/01/12/Mac/" rel="prev" title="Mac">
+      <i class="fa fa-chevron-left"></i> Mac
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/01/13/Java-JNI-Demo/" rel="next" title="Java-JNI-Demo">
+      Java-JNI-Demo <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 HTTP请求概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Raw-HTTP-Demo</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 HttpRequestBuilder</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 Server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 JavaNioClient</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.4 NettyHttpClient</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.5 NettyRawClient</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

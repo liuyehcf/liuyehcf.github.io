@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统原理-进程线程模型">
+<meta property="og:url" content="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig1.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig2.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig3.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig4.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig5.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig6.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig7.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig8.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig9.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig10.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig11.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig12.jpg">
+<meta property="og:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig13.jpg">
+<meta property="article:published_time" content="2017-09-25T07:23:02.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.367Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>操作系统原理-进程线程模型 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          操作系统原理-进程线程模型
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-25 15:23:02" itemprop="dateCreated datePublished" datetime="2017-09-25T15:23:02+08:00">2017-09-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/" itemprop="url" rel="index"><span itemprop="name">Operating System</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/Principle/" itemprop="url" rel="index"><span itemprop="name">Principle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/" class="post-meta-item leancloud_visitors" data-flag-title="操作系统原理-进程线程模型" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-进程基本概念"> 1 进程基本概念</span></h1>
+<h2><span id="11-为什么引入进程"> 1.1 为什么引入进程</span></h2>
+<p><strong>多道程序设计</strong>：允许多个程序同时进入内存并运行，其目的是为了提高系统效率</p>
+<p><strong>并发环境</strong>：一段时间间隔内，单处理器上有两个或两个以上的程序同时处于开始运行但尚未结束的状态，并且次序不是事先确定的</p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig1.jpg" alt="fig1"></p>
+<h2><span id="12-进程的定义"> 1.2 进程的定义</span></h2>
+<p>进程是具有独立功能的程序关于某个数据集合上的一次运行活动，是系统<strong>进行资源分配和调度</strong>的独立单位</p>
+<ul>
+<li>程序的一次执行过程</li>
+<li>是正在运行程序的抽象</li>
+<li>将一个<code>CPU</code>变幻成多个虚拟的<code>CPU</code></li>
+<li>系统资源以进程为单位分配，如内存、文件、每个具有独立的地址空间…</li>
+<li>操作系统将<code>CPU</code>调度给需要的进程</li>
+</ul>
+<h2><span id="13-进程控制块pcb"> 1.3 进程控制块PCB</span></h2>
+<p>PCB：Process Control Block</p>
+<ul>
+<li>又称进程描述符、进程属性</li>
+<li>操作系统用于管理控制进程的一个专门数据结构</li>
+<li>记录进程的各种属性，描述进程的动态变化过程</li>
+</ul>
+<p><strong>PCB是系统感知进程存在的唯一标志</strong></p>
+<ul>
+<li>进程与PCB是一一对应的</li>
+</ul>
+<p><strong>进程表：所有进程的PCB集合</strong></p>
+<p><strong>PCB大致上包含以下四类信息</strong></p>
+<ol>
+<li><strong>进程描述信息</strong>
+<ul>
+<li>进程标识符(process ID)，唯一，通常是一个整数</li>
+<li>进程名，通常基于可执行文件名，不唯一</li>
+<li>用户标识符(user ID)</li>
+<li>进程组关系</li>
+</ul>
+</li>
+<li><strong>进程控制信息</strong>
+<ul>
+<li>当前状态</li>
+<li>优先级(priority)</li>
+<li>代码执行入口地址</li>
+<li>程序的磁盘地址</li>
+<li>运行统计信息(执行时间、页面调度)</li>
+<li>进程间同步和通信</li>
+<li>进程的队列指针</li>
+<li>进程的消息队列指针</li>
+</ul>
+</li>
+<li><strong>所拥有的资源控制情况</strong>
+<ul>
+<li>虚拟地址空间的状况</li>
+<li>打开文件列表</li>
+</ul>
+</li>
+<li><strong>CPU现场</strong>
+<ul>
+<li>寄存器值(通用寄存器、程序计数器PC、程序状态字PSW、栈指针)</li>
+<li>指向该进程页表的指针</li>
+</ul>
+</li>
+</ol>
+<h1><span id="2-进程状态及状态转换"> 2 进程状态及状态转换</span></h1>
+<h2><span id="21-进程的三种基本状态"> 2.1 进程的三种基本状态</span></h2>
+<p>进程的三种基本状态：</p>
+<ul>
+<li><strong>运行态（Running）</strong>：占有CPU，并在CPU上运行</li>
+<li><strong>就绪态（Ready）</strong>：已经具备运行条件，但由于没有空闲CPU，而暂时不能运行</li>
+<li><strong>等待态（Waiting/Blocked）</strong>：因等待某一事件而暂时不能运行</li>
+</ul>
+<p><strong>三状态进程模型</strong>的进程状态转移图如下</p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig2.jpg" alt="fig2"></p>
+<h2><span id="22-进程的其他状态"> 2.2 进程的其他状态</span></h2>
+<p>进程的三种其他状态：</p>
+<ul>
+<li><strong>创建态（New）</strong>：
+<ul>
+<li>已完成创建一进程所必要的工作，例如创建PID、PCB</li>
+<li>但尚未同意执行该进程，因为资源有限</li>
+</ul>
+</li>
+<li><strong>终止态（Terminate）</strong>：
+<ul>
+<li>终止执行后，进程进入该状态</li>
+<li>可完成一些数据统计工作</li>
+<li>资源回收</li>
+</ul>
+</li>
+<li><strong>挂起态（Suspend）</strong>：
+<ul>
+<li>用于调节负载</li>
+<li>进程不占用内存空间，其进程映像交换到磁盘上</li>
+</ul>
+</li>
+</ul>
+<p><strong>五状态进程模型</strong>的进程状态转移图如下</p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig3.jpg" alt="fig3"></p>
+<p><strong>七状态进程模型</strong>的进程状态转移图如下</p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig4.jpg" alt="fig4"></p>
+<h2><span id="23-进程队列"> 2.3 进程队列</span></h2>
+<p>操作系统为每一类进程建立一个或多个队列</p>
+<ul>
+<li>队列元素为PCB</li>
+<li>伴随进程状态的改变，其PCB从一个队列进入另一个队列</li>
+</ul>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig5.jpg" alt="fig5"></p>
+<p><strong>五状态进程模型</strong>的队列模型如下</p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig6.jpg" alt="fig6"></p>
+<h1><span id="3-进程控制"> 3 进程控制</span></h1>
+<p>进程控制操作完成进程各状态之间的转换，由具有特定功能的<strong>原语</strong>完成</p>
+<ul>
+<li>进程创建原语</li>
+<li>进程撤消原语</li>
+<li>阻塞原语</li>
+<li>唤醒原语</li>
+<li>挂起原语</li>
+<li>激活原语</li>
+<li>改变进程优先级</li>
+</ul>
+<p><strong>什么是原语：完成某种特定功能的一段程序，具有不可分割性或不可中断性。即原语的执行必须是连续的，在执行过程中不允许被中断。也就是满足原子性</strong></p>
+<h2><span id="31-进程的创建"> 3.1 进程的创建</span></h2>
+<p>进程创建包含如下操作</p>
+<ul>
+<li>给新进程分配一个唯一标识以及进程控制块</li>
+<li>为进程分配地址空间</li>
+<li>初始化进程控制块。设置默认值 (如: 状态为 New，…)</li>
+<li>设置相应的队列指针。如：把新进程加到就绪队列链表中</li>
+</ul>
+<p>UNIX：fork/exec<br>
+WINDOWS：CreateProcess</p>
+<h2><span id="32-进程的撤销"> 3.2 进程的撤销</span></h2>
+<p>结束进程包含如下操作</p>
+<ul>
+<li>收回进程所占有的资源</li>
+<li>关闭打开的文件、断开网络连接、回收分配的内存…</li>
+<li>撤消该进程的PCB</li>
+</ul>
+<p>UNIX：exit<br>
+WINDOWS：TerminateProcess</p>
+<h2><span id="33-进程阻塞"> 3.3 进程阻塞</span></h2>
+<p>处于运行状态的进程，在其运行过程中期待某一事件发生，如等待键盘输入、等待磁盘数据传输完成、等待其它进程发送消息，当被等待的事件未发生时，由进程自己执行阻塞原语，使自己由运行态变为阻塞态</p>
+<p>UNIX：wait<br>
+WINDOWS：WaitForSingleObject</p>
+<h2><span id="34-unix的几个进程控制操作"> 3.4 Unix的几个进程控制操作</span></h2>
+<p>fork()：通过复制调用进程来建立新的进程，是最基本的进程建立过程<br>
+exec()：包括一系列系统调用，它们都是通过用一段新的程序代码覆盖原来的地址空间，实现进程执行代码的转换<br>
+wait()：提供初级进程同步操作，能使一个进程等待另外一个进程的结束<br>
+exit()：用来终止一个进程的运行</p>
+<p>Unix的fork()的实现</p>
+<ul>
+<li>为子进程分配一个空闲的进程描述符（proc结构）</li>
+<li>分配给子进程唯一标识pid</li>
+<li>以一次一页的方式复制父进程地址空间</li>
+<li>从父进程处继承共享资源，如打开的文件和当前工作目录等</li>
+<li>将子进程的状态设为就绪，插入到就绪队列</li>
+<li>对子进程返回标识符0</li>
+<li>向父进程返回子进程的pid</li>
+</ul>
+<h1><span id="4-深入理解进程概念"> 4 深入理解进程概念</span></h1>
+<h2><span id="41-进程分类"> 4.1 进程分类</span></h2>
+<p>进程可以有如下几种分类</p>
+<ul>
+<li>系统进程与用户进程</li>
+<li>前台进程与后台进程</li>
+<li>CPU密集型进程与I/O密集型进程</li>
+</ul>
+<h2><span id="42-进程与程序的区别"> 4.2 进程与程序的区别</span></h2>
+<ul>
+<li>进程更能准确刻画并发，而程序不能</li>
+<li>程序是静态的，进程是动态的</li>
+<li>进程有生命周期的，有诞生有消亡，是短暂的；而程序是相对长久的</li>
+<li>一个程序可对应多个进程</li>
+<li>进程具有创建其他进程的功能</li>
+</ul>
+<h2><span id="43-进程地址空间"> 4.3 进程地址空间</span></h2>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig7.jpg" alt="fig7"></p>
+<h2><span id="44-进程映像image"> 4.4 进程映像（IMAGE）</span></h2>
+<p><strong>进程映像是对进程执行活动全过程的静态描述（又可称为进程执行的上下文环境），由进程地址空间内容、硬件寄存器内容及与该进程相关的内核数据结构、内核栈组成</strong></p>
+<ul>
+<li>用户相关：进程地址空间（包括代码段、数据段、堆和栈、共享库）</li>
+<li>寄存器相关：程序计数器、指令寄存器、程序状态寄存器、栈指针、通用寄存器等的值</li>
+<li>内核相关：
+<ul>
+<li>静态部分：PCB及各种资源数据结构</li>
+<li>动态部分：内核栈（不同进程在进入内核后使用不同的内核栈）</li>
+</ul>
+</li>
+</ul>
+<p><strong>概括起来就是：进程映像 = 程序 + 数据 + 栈(用户栈、内核栈) + PCB</strong></p>
+<h2><span id="45-上下文切换"> 4.5 上下文切换</span></h2>
+<p><strong>将CPU硬件状态从一个进程换到另一个进程的过程称为上下文切换</strong></p>
+<p>进程运行时，其硬件状态保存在CPU上的寄存器中，这些寄存器包括：程序计数器、程序状态寄存器、栈指针、通用寄存器、其他控制寄存器的值</p>
+<p><strong>进程不运行时，这些寄存器的值保存在进程控制块PCB中</strong>；当操作系统要运行一个新的进程时，将PCB中的相关值送到对应的寄存器中</p>
+<h1><span id="5-线程"> 5 线程</span></h1>
+<h2><span id="51-为什么要引入线程"> 5.1 为什么要引入线程</span></h2>
+<ol>
+<li>应用的需要</li>
+<li>开销的考虑</li>
+<li>性能的考虑</li>
+</ol>
+<h3><span id="511-应用的需要"> 5.1.1 应用的需要</span></h3>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig8.jpg" alt="fig8"></p>
+<p>典型的应用：Web服务器，其工作方式如下</p>
+<ul>
+<li>从客户端接收网页请求（http协议）</li>
+<li>从磁盘上检索相关网页，读入内存</li>
+<li>将网页返回给对应的客户端</li>
+<li>如何提高服务器工作效率？网页缓存（Web page Cache）</li>
+</ul>
+<p>一个多线程的Web服务器如下</p>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig9.jpg" alt="fig9"></p>
+<h3><span id="512-开销的考虑"> 5.1.2 开销的考虑</span></h3>
+<p>回顾进程的几个基本操作</p>
+<ol>
+<li>创建进程</li>
+<li>撤消进程</li>
+<li>进程通信</li>
+<li>进程切换</li>
+</ol>
+<ul>
+<li>这些操作时间/空间开销大，限制了并发度的提高</li>
+</ul>
+<p><strong>对比进程，线程具有如下优势</strong></p>
+<ul>
+<li>线程的开销小</li>
+<li>创建一个新线程花费时间少（撤销亦如此）</li>
+<li>两个线程切换花费时间少</li>
+<li>线程之间相互通信无须调用内核（同一进程内的线程共享内存和文件）</li>
+</ul>
+<h3><span id="513-性能的考虑"> 5.1.3 性能的考虑</span></h3>
+<p>多线程能够充分利用多核CPU的计算能力</p>
+<h2><span id="52-线程的基本概念"> 5.2 线程的基本概念</span></h2>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig10.jpg" alt="fig10"></p>
+<p>线程的属性</p>
+<ul>
+<li>有标示符ID</li>
+<li>有状态及状态转换 → 需要提供一些操作</li>
+<li>不运行时需要保存的上下文
+<ul>
+<li>线程的下文环境：程序计数器等寄存器</li>
+</ul>
+</li>
+<li>有自己的栈和栈指针</li>
+<li>共享所在进程的地址空间和其他资源</li>
+<li>可以创建、撤消另一个线程
+<ul>
+<li>程序开始是以一个单线程进程方式运行的</li>
+</ul>
+</li>
+</ul>
+<h1><span id="6-线程机制的实现"> 6 线程机制的实现</span></h1>
+<p>线程的实现有三种方式</p>
+<ol>
+<li>用户级线程</li>
+<li>核心级线程</li>
+<li>混合—两者结合方法</li>
+</ol>
+<h2><span id="61-用户级线程"> 6.1 用户级线程</span></h2>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig11.jpg" alt="fig11"></p>
+<p>用户级线程有以下特点</p>
+<ul>
+<li>在用户空间建立线程库：提供一组管理线程的过程</li>
+<li>运行时系统：完成线程的管理工作（操作、线程表）</li>
+<li><strong>内核管理的还是进程，不知道线程的存在</strong></li>
+<li>线程切换不需要内核态特权</li>
+<li>例子：UNIX</li>
+</ul>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>线程切换快</li>
+<li>调度算法是应用程序特定的</li>
+<li>用户级线程可运行在任何操作系统上（只需要实现线程库）</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>内核只将处理器分配给进程，同一进程中的两个线程不能同时运行于两个处理器上</li>
+<li>大多数系统调用是阻塞的，因此，由于内核阻塞进程，故进程中所有线程也被阻塞</li>
+</ul>
+<h2><span id="62-核心级线程"> 6.2 核心级线程</span></h2>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig12.jpg" alt="fig12"></p>
+<p>核心级线程有以下特点</p>
+<ul>
+<li>内核管理所有线程管理，并向应用程序提供API接口</li>
+<li>内核维护进程和线程的上下文</li>
+<li>线程的切换需要内核支持</li>
+<li>以线程为基础进行调度</li>
+<li>例子：Windows</li>
+</ul>
+<h2><span id="63-混合模型"> 6.3 混合模型</span></h2>
+<p><img src="/images/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/fig13.jpg" alt="fig13"></p>
+<p>混合模型有以下特点</p>
+<ul>
+<li>线程创建在用户空间完成</li>
+<li>线程调度等在核心态完成</li>
+<li><strong>多个用户级线程多路复用多个内核级线程</strong></li>
+<li>例子：Solaris</li>
+</ul>
+<h1><span id="7-参考"> 7 参考</span></h1>
+<ul>
+<li>《MOOC-操作系统原理-陈向群》</li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/" rel="prev" title="操作系统原理-操作系统运行环境与运行机制">
+      <i class="fa fa-chevron-left"></i> 操作系统原理-操作系统运行环境与运行机制
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/09/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86-%E5%A4%84%E7%90%86%E5%99%A8%E8%B0%83%E5%BA%A6/" rel="next" title="操作系统原理-处理器调度">
+      操作系统原理-处理器调度 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 进程基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 为什么引入进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 进程的定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.3 进程控制块PCB</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 进程状态及状态转换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 进程的三种基本状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.2 进程的其他状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.3 进程队列</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 进程控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 进程的创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 进程的撤销</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 进程阻塞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.4 Unix的几个进程控制操作</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 深入理解进程概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 进程分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 进程与程序的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.3 进程地址空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.4 进程映像（IMAGE）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.5 上下文切换</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 线程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 为什么要引入线程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.1.1 应用的需要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.1.2 开销的考虑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.1.3 性能的考虑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.2 线程的基本概念</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 线程机制的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.1 用户级线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.2 核心级线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.3 混合模型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

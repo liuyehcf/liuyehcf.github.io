@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SourceAnalysis-AQS-ConditionObject">
+<meta property="og:url" content="http://example.com/2017/07/02/SourceAnalysis-AQS-ConditionObject/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-07-02T14:51:51.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.356Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/07/02/SourceAnalysis-AQS-ConditionObject/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SourceAnalysis-AQS-ConditionObject | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/07/02/SourceAnalysis-AQS-ConditionObject/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SourceAnalysis-AQS-ConditionObject
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-02 22:51:51" itemprop="dateCreated datePublished" datetime="2017-07-02T22:51:51+08:00">2017-07-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Concurrent/" itemprop="url" rel="index"><span itemprop="name">Java Concurrent</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Java-Concurrent/Source-Code-Analysis/" itemprop="url" rel="index"><span itemprop="name">Source Code Analysis</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/07/02/SourceAnalysis-AQS-ConditionObject/" class="post-meta-item leancloud_visitors" data-flag-title="SourceAnalysis-AQS-ConditionObject" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/07/02/SourceAnalysis-AQS-ConditionObject/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/07/02/SourceAnalysis-AQS-ConditionObject/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-前言"> 1 前言</span></h1>
+<p>Java语言本身提供了基于Object的wait/notify机制，任何Java Object都可以进行加锁/解锁，并且可以作为一个Monitor进行wait/notify操作，AQS框架也提供类机制，通过AQS内部类ConditionObject来实现<br>
+本篇博文针对ConditionObject的源码进行分析，有关AQS的源码分析请参考另一篇博客 <a href="/2017/07/02/SourceAnalysis-AQS/" title="SourceAnalysis-AQS">SourceAnalysis-AQS</a><br>
+所有的分析仅基于个人的理解，若有不正之处，请谅解和批评指正，不胜感激！！！</p>
+<h1><span id="2-condition接口"> 2 Condition接口</span></h1>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Condition</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//在条件变量上等待，直至signal或者被interrupt</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//在条件变量上等待，直至signal，并且无视interrupt，这一点就比基于Object的wait更灵活</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">awaitUninterruptibly</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//在条件变量上等待，直至signal或者被interrupt或者直至超时</span></span><br><span class="line">    <span class="type">long</span> <span class="title function_">awaitNanos</span><span class="params">(<span class="type">long</span> nanosTimeout)</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//在条件变量上等待，直至signal或者被interrupt或直至超时</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">await</span><span class="params">(<span class="type">long</span> time, TimeUnit unit)</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//在条件变量上等待，直至signal或者被interrupt或直至超时</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">awaitUntil</span><span class="params">(Date deadline)</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//唤醒某个在条件变量上阻塞的线程，类似于notify</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">signal</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//唤醒某个在条件变量上阻塞的线程，类似于notifyAll</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">signalAll</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Condition接口定义了一系列monitor methods，正如AQS作为synchronized的替代者，一个Condition对象作为Object monitor的替代者<br>
+我们不妨先思考一下，实现一个Condition大致上需要哪些结构</p>
+<ul>
+<li>首先，Condition对象必须提供一个阻塞队列，用于放置那些阻塞与当前Condition对象上的线程</li>
+<li>其次，Condition对象还需要提供一个同步队列，用于放置那些收到signal的线程，这些线程将会竞争锁(或者资源)</li>
+</ul>
+<p>在AQS框架中，ConditionObject的实现确实需要这两个队列，阻塞队列(我称之为condition queue)是ConditionObject自身维护的，而同步队列直接依赖于AQS的sync queue，因此ConditionObject作为内部类存在于AQS中，以便于ConditionObject可以直接利用AQS实现的sync queue<br>
+<strong>强调一点：AQS的独占模式才支持ConditionObject</strong></p>
+<h1><span id="3-源码分析"> 3 源码分析</span></h1>
+<h2><span id="31-字段"> 3.1 字段</span></h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** First node of condition queue. */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">transient</span> Node firstWaiter;</span><br><span class="line"><span class="comment">/** Last node of condition queue. */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">transient</span> Node lastWaiter;</span><br></pre></td></tr></table></figure>
+<p>ConditionObject就两个字段，一个是condition queue头结点，另一个则是condition queue尾节点<br>
+ConditionObject利用了AQS中的Node静态内部类用于封装节点。<strong>指的注意的是，对于位于condition queue中的节点而言，这些节点的Node#prev以及Node#next字段是无用的，也就是null，condition queue是利用Node#nextWaiter来连接整个conditoin queue的</strong></p>
+<h2><span id="32-await"> 3.2 await</span></h2>
+<p>该方法类似于Object#wait方法，让当前线程在该ConditionObject上阻塞，直至被signal(类似于Object的notify/notifyAll)或者被中断，必须在持有锁的状态下才能调用该方法，否则会引发异常</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Implements interruptible condition wait.</span></span><br><span class="line"><span class="comment"> * &lt;ol&gt;</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If current thread is interrupted, throw InterruptedException.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Save lock state returned by &#123;<span class="doctag">@link</span> #getState&#125;.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Invoke &#123;<span class="doctag">@link</span> #release&#125; with saved state as argument,</span></span><br><span class="line"><span class="comment"> *      throwing IllegalMonitorStateException if it fails.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Block until signalled or interrupted.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Reacquire by invoking specialized version of</span></span><br><span class="line"><span class="comment"> *      &#123;<span class="doctag">@link</span> #acquire&#125; with saved state as argument.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If interrupted while blocked in step 4, throw InterruptedException.</span></span><br><span class="line"><span class="comment"> * &lt;/ol&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InterruptedException</span>();</span><br><span class="line">    <span class="comment">//将节点添加到当前Condition对象的condition queue中</span></span><br><span class="line">    <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> addConditionWaiter();</span><br><span class="line">    <span class="comment">//释放当前线程持有的资源，因此await方法时，必须处于持有锁的状态，与wait类似(wait/notify必须位于synchronize块内部)</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">savedState</span> <span class="operator">=</span> fullyRelease(node);</span><br><span class="line">    <span class="comment">//用于记录中断模式</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">interruptMode</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//循环，直至位于sync queue中或者被中断</span></span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        LockSupport.park(<span class="built_in">this</span>);</span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//下面进行一些后续处理</span></span><br><span class="line">    <span class="comment">//可以看出，当前线程通过acquireQueued来获取锁状态直至成功，该方法返回值指示该过程是否被中断</span></span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="comment">//这里为什么有可能不是null? signal方法会将节点的nextWaiter字段赋值为null，但是如果因为中断而退出wihle循环，则此字段没有置空</span></span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="literal">null</span>) <span class="comment">//clean up if cancelled</span></span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="comment">//根据中断模式，进行相应的中断处理，抛出异常或者回复中断现场等</span></span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来，逐个分析上述方法中调用的子方法。首先是addConditionWaiter()方法，源码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Adds a new waiter to wait queue.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> its new wait node</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> Node <span class="title function_">addConditionWaiter</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">Node</span> <span class="variable">t</span> <span class="operator">=</span> lastWaiter;</span><br><span class="line">    <span class="comment">//If lastWaiter is cancelled, clean out.</span></span><br><span class="line">    <span class="comment">//如果condition queue尾节点不是CONDITION，那么该节点状态必然是CANCEL，因为在condition queue中节点只有这两种状态</span></span><br><span class="line">    <span class="keyword">if</span> (t != <span class="literal">null</span> &amp;&amp; t.waitStatus != Node.CONDITION) &#123;</span><br><span class="line">        <span class="comment">//从后向前清除那些已经CANCEL的节点</span></span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">        t = lastWaiter;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//将当前线程封装成Node节点</span></span><br><span class="line">    <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(Thread.currentThread(), Node.CONDITION);</span><br><span class="line">    <span class="comment">//condition queue为空，进行初始化即可</span></span><br><span class="line">    <span class="keyword">if</span> (t == <span class="literal">null</span>)</span><br><span class="line">        firstWaiter = node;</span><br><span class="line">    <span class="comment">//将当前节点连接到condition queue最后即可</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        t.nextWaiter = node;</span><br><span class="line">    lastWaiter = node;</span><br><span class="line">    <span class="keyword">return</span> node;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出该方法中的所有赋值操作均不需要加锁，也不需要CAS操作，因为处于独占模式下，当前线程持有锁，那么只有该线程能够执行这些赋值操作，因此是线程安全的。因此await方法必须在持有锁的状态下才能进行调用，另外仅支持AQS独占模式</p>
+<p>然后是fullyRelease方法，该方法并非ConditionObject的方法，而是AQS的方法，该方法调用独占模式下的release来释放资源</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Invokes release with current state value; returns saved state.</span></span><br><span class="line"><span class="comment"> * Cancels node and throws exception on failure.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> node the condition node for this wait</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> previous sync state</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">final</span> <span class="type">int</span> <span class="title function_">fullyRelease</span><span class="params">(Node node)</span> &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">failed</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//当前线程持有的资源</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">savedState</span> <span class="operator">=</span> getState();</span><br><span class="line">        <span class="comment">//释放当前线程持有的资源，如果不释放，那么其他线程是无法获取锁的</span></span><br><span class="line">        <span class="keyword">if</span> (release(savedState)) &#123;</span><br><span class="line">            failed = <span class="literal">false</span>;</span><br><span class="line">            <span class="keyword">return</span> savedState;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//如果当前线程不处于锁定状态，那么release将会失败，抛出IllegalMonitorStateException异常</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalMonitorStateException</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (failed)</span><br><span class="line">            node.waitStatus = Node.CANCELLED;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>isOnSyncQueue方法用于判断节点是否位于sync queue，该方法也是AQS的方法而非ConditionObject方法。如果发现节点位于sync queue，说明另一个线程执行了signal/signalAll，节点从condition queue移动到sync queue，此时再次排队竞争锁，如果位于condition queue，那么说明条件还未成立，需要继续阻塞自己</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns true if a node, always one that was initially placed on</span></span><br><span class="line"><span class="comment"> * a condition queue, is now waiting to reacquire on sync queue.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> node the node</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> true if is reacquiring</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">final</span> <span class="type">boolean</span> <span class="title function_">isOnSyncQueue</span><span class="params">(Node node)</span> &#123;</span><br><span class="line">    <span class="comment">//如果节点的状态是CONDITION，那么意味着节点位于condition queue中</span></span><br><span class="line">    <span class="comment">//如果节点的prev为null，那么节点位于condition queue中</span></span><br><span class="line">    <span class="comment">//sync queue头结点的prev字段也是null(setHead方法会将该字段设为null)，但是这种特殊情况在这里是不会出现的，在调用acquireQueued方法之前，节点是不可能获取锁状态的，因此不可能成为头结点</span></span><br><span class="line">    <span class="keyword">if</span> (node.waitStatus == Node.CONDITION || node.prev == <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">//如果节点的next字段不为null，说明节点一定位于sync queue中</span></span><br><span class="line">    <span class="comment">//节点的next字段为null，则并不一定说明该节点没有后继，因为Node#next字段是非可靠的。该节点可能通过addWaiter加入到sync queue中(添加操作是通过执行signal方法的线程来完成的)，当前线程在节点的next字段正确赋值之前对其进行了访问</span></span><br><span class="line">    <span class="keyword">if</span> (node.next != <span class="literal">null</span>) <span class="comment">//If has successor, it must be on queue</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//节点prev字段不为空，并不一定代表节点位于sync queue中，因为prev字段的赋值操作在CAS操作之前，只有CAS成功之后，节点才会成功入队</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * node.prev can be non-null, but not yet on queue because</span></span><br><span class="line"><span class="comment">     * the CAS to place it on queue can fail. So we have to</span></span><br><span class="line"><span class="comment">     * traverse from tail to make sure it actually made it.  It</span></span><br><span class="line"><span class="comment">     * will always be near the tail in calls to this method, and</span></span><br><span class="line"><span class="comment">     * unless the CAS failed (which is unlikely), it will be</span></span><br><span class="line"><span class="comment">     * there, so we hardly ever traverse much.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//从后往前遍历sync queue，查找node节点是否位于sync queue，这种方式是比较慢的，因此在上述判断均不能确定的情况下才会使用</span></span><br><span class="line">    <span class="keyword">return</span> findNodeFromTail(node);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在while循环中等待时，需要检查当前线程是被unpark正常唤醒还是被interrupt唤醒</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Checks for interrupt, returning THROW_IE if interrupted</span></span><br><span class="line"><span class="comment"> * before signalled, REINTERRUPT if after signalled, or</span></span><br><span class="line"><span class="comment"> * 0 if not interrupted.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span> <span class="title function_">checkInterruptWhileWaiting</span><span class="params">(Node node)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> Thread.interrupted() ?</span><br><span class="line">        (transferAfterCancelledWait(node) ? THROW_IE : REINTERRUPT) :</span><br><span class="line">        <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>transferAfterCancelledWait方法在发生中断时，将节点从condition queue中转移到sync queue中去。该方法是AQS的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Transfers node, if necessary, to sync queue after a cancelled wait.</span></span><br><span class="line"><span class="comment"> * Returns true if thread was cancelled before being signalled.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> node the node</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> true if cancelled before the node was signalled</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">final</span> <span class="type">boolean</span> <span class="title function_">transferAfterCancelledWait</span><span class="params">(Node node)</span> &#123;</span><br><span class="line">    <span class="comment">//将节点状态改为0后入队，必须由一个线程来完成</span></span><br><span class="line">    <span class="comment">//为什么可能存在竞争？当前线程被中断，于是进入该方法，此时另一个线程恰好执行signal，会进入另一个方法transferForSignal，这两个方法均会执行CAS操作将节点状态从CONDITION改为0</span></span><br><span class="line">    <span class="comment">//或者节点的状态是CANCELLED</span></span><br><span class="line">    <span class="keyword">if</span> (compareAndSetWaitStatus(node, Node.CONDITION, <span class="number">0</span>)) &#123;</span><br><span class="line">        enq(node);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * If we lost out to a signal(), then we can&#x27;t proceed</span></span><br><span class="line"><span class="comment">     * until it finishes its enq().  Cancelling during an</span></span><br><span class="line"><span class="comment">     * incomplete transfer is both rare and transient, so just</span></span><br><span class="line"><span class="comment">     * spin.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//可能出现上述竞争场景，于是等待另一个线程入队操作完毕，这个等待不会很久</span></span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node))</span><br><span class="line">        Thread.<span class="keyword">yield</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出，执行transferAfterCancelledWait方法的线程CAS成功时返回true，中断模式为THROW_IN；失败时返回false，中断模式为REINTERRUPT<br>
+注意，因为interrupt而被已送至sync queue的节点，仍然位于condition queue中(其状态不为CONDITION)，其nextWaiter字段不为空，在await方法中会执行unlinkCancelledWaiters方法，来除去这些异常节点</p>
+<h2><span id="33-signal"> 3.3 signal</span></h2>
+<p>signal方法类似于Object#notify方法，将一个节点(线程)从条件变量的阻塞队列(condition queue)中移动到同步队列中(sync queue)，让该节点重新尝试获取资源</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Moves the longest-waiting thread, if one exists, from the</span></span><br><span class="line"><span class="comment"> * wait queue for this condition to the wait queue for the</span></span><br><span class="line"><span class="comment"> * owning lock.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> IllegalMonitorStateException if &#123;<span class="doctag">@link</span> #isHeldExclusively&#125;</span></span><br><span class="line"><span class="comment"> *         returns &#123;<span class="doctag">@code</span> false&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">signal</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">//同理，执行signal方法的线程必须持有独占锁，否则抛出IllegalMonitorStateException异常</span></span><br><span class="line">    <span class="keyword">if</span> (!isHeldExclusively())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalMonitorStateException</span>();</span><br><span class="line">    <span class="comment">//唤醒condition queue中第一个节点</span></span><br><span class="line">    <span class="type">Node</span> <span class="variable">first</span> <span class="operator">=</span> firstWaiter;</span><br><span class="line">    <span class="keyword">if</span> (first != <span class="literal">null</span>)</span><br><span class="line">        doSignal(first);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面是doSignal方法源码。该方法调整阻塞队列头结点，并且执行transferForSignal方法将节点移送至sync queue，让其重新入队尝试获取锁</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Removes and transfers nodes until hit non-cancelled one or</span></span><br><span class="line"><span class="comment"> * null. Split out from signal in part to encourage compilers</span></span><br><span class="line"><span class="comment"> * to inline the case of no waiters.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> first (non-null) the first node on condition queue</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">doSignal</span><span class="params">(Node first)</span> &#123;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="comment">//这里更新头结点</span></span><br><span class="line">        <span class="keyword">if</span> ( (firstWaiter = first.nextWaiter) == <span class="literal">null</span>)</span><br><span class="line">            lastWaiter = <span class="literal">null</span>;</span><br><span class="line">        first.nextWaiter = <span class="literal">null</span>;</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="comment">//直至transferForSignal成功一次，或者队列为空</span></span><br><span class="line">    <span class="keyword">while</span> (!transferForSignal(first) &amp;&amp;</span><br><span class="line">             (first = firstWaiter) != <span class="literal">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以下是transferForSignal方法，该方法是AQS的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Transfers a node from a condition queue onto sync queue.</span></span><br><span class="line"><span class="comment"> * Returns true if successful.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> node the node</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> true if successfully transferred (else the node was</span></span><br><span class="line"><span class="comment"> * cancelled before signal)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">final</span> <span class="type">boolean</span> <span class="title function_">transferForSignal</span><span class="params">(Node node)</span> &#123;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * If cannot change waitStatus, the node has been cancelled.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//可能存在竞争：另一个线程在执行await时，被中断，然后执行transferAfterCancelledWait方法；当前线程执行signal，然后执行次方法。这两个方法都会通过CAS操作将节的状态从CONDITION改为0</span></span><br><span class="line">    <span class="comment">//或者节点的状态已经是CANCELLED</span></span><br><span class="line">    <span class="keyword">if</span> (!compareAndSetWaitStatus(node, Node.CONDITION, <span class="number">0</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Splice onto queue and try to set waitStatus of predecessor to</span></span><br><span class="line"><span class="comment">     * indicate that thread is (probably) waiting. If cancelled or</span></span><br><span class="line"><span class="comment">     * attempt to set waitStatus fails, wake up to resync (in which</span></span><br><span class="line"><span class="comment">     * case the waitStatus can be transiently and harmlessly wrong).</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//通过enq入队(sync queue)，该方法返回node节点的前继节点</span></span><br><span class="line">    <span class="type">Node</span> <span class="variable">p</span> <span class="operator">=</span> enq(node);</span><br><span class="line">    <span class="type">int</span> <span class="variable">ws</span> <span class="operator">=</span> p.waitStatus;</span><br><span class="line">    <span class="comment">//若前继节点状态为CANCELLED，或者将前继节点置为SIGNAL失败，那么需要找到前继节点，并将其设为SIGNAL状态后才能安心阻塞，因此唤醒一下，让节点关联的线程去自行处理</span></span><br><span class="line">    <span class="comment">//这里唤醒节点，醒来的地方可能是await方法中的while循环内，紧接着会执行acquireQueued方法</span></span><br><span class="line">    <span class="keyword">if</span> (ws &gt; <span class="number">0</span> || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))</span><br><span class="line">        LockSupport.unpark(node.thread);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2><span id="34-signalall"> 3.4 signalAll</span></h2>
+<p>signalAll方法类似于Object的notifyAll方法，该方法唤醒所有阻塞在condition queue中的节点，并将其全部移送至sync queue中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Moves all threads from the wait queue for this condition to</span></span><br><span class="line"><span class="comment"> * the wait queue for the owning lock.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> IllegalMonitorStateException if &#123;<span class="doctag">@link</span> #isHeldExclusively&#125;</span></span><br><span class="line"><span class="comment"> *         returns &#123;<span class="doctag">@code</span> false&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">signalAll</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">//必须处于独占模式下，并且必须持有锁，否则抛出IllegalMonitorStateException异常</span></span><br><span class="line">    <span class="keyword">if</span> (!isHeldExclusively())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalMonitorStateException</span>();</span><br><span class="line">    <span class="type">Node</span> <span class="variable">first</span> <span class="operator">=</span> firstWaiter;</span><br><span class="line">    <span class="keyword">if</span> (first != <span class="literal">null</span>)</span><br><span class="line">        doSignalAll(first);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以下是doSignalAll源码。该方法将所有位于condition queue中的节点全部移送至sync queue中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Removes and transfers all nodes.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> first (non-null) the first node on condition queue</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">doSignalAll</span><span class="params">(Node first)</span> &#123;</span><br><span class="line">    <span class="comment">//清空阻塞队列</span></span><br><span class="line">    lastWaiter = firstWaiter = <span class="literal">null</span>;</span><br><span class="line">    <span class="comment">//循环将condition queue中每个节点按次序移送至sync queue中</span></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="type">Node</span> <span class="variable">next</span> <span class="operator">=</span> first.nextWaiter;</span><br><span class="line">        first.nextWaiter = <span class="literal">null</span>;</span><br><span class="line">        transferForSignal(first);</span><br><span class="line">        first = next;</span><br><span class="line">    &#125; <span class="keyword">while</span> (first != <span class="literal">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2><span id="35-其他形式的await"> 3.5 其他形式的await</span></h2>
+<p>首先是awaitNanos(long nanosTimeout)，该方法等待指定时间，超时后便直接转移到sync queue中。方法返回剩余纳秒数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Implements timed condition wait.</span></span><br><span class="line"><span class="comment"> * &lt;ol&gt;</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If current thread is interrupted, throw InterruptedException.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Save lock state returned by &#123;<span class="doctag">@link</span> #getState&#125;.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Invoke &#123;<span class="doctag">@link</span> #release&#125; with saved state as argument,</span></span><br><span class="line"><span class="comment"> *      throwing IllegalMonitorStateException if it fails.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Block until signalled, interrupted, or timed out.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Reacquire by invoking specialized version of</span></span><br><span class="line"><span class="comment"> *      &#123;<span class="doctag">@link</span> #acquire&#125; with saved state as argument.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If interrupted while blocked in step 4, throw InterruptedException.</span></span><br><span class="line"><span class="comment"> * &lt;/ol&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">long</span> <span class="title function_">awaitNanos</span><span class="params">(<span class="type">long</span> nanosTimeout)</span></span><br><span class="line">        <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InterruptedException</span>();</span><br><span class="line">    <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> addConditionWaiter();</span><br><span class="line">    <span class="type">int</span> <span class="variable">savedState</span> <span class="operator">=</span> fullyRelease(node);</span><br><span class="line">    <span class="comment">//设置deadline时刻</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">long</span> <span class="variable">deadline</span> <span class="operator">=</span> System.nanoTime() + nanosTimeout;</span><br><span class="line">    <span class="type">int</span> <span class="variable">interruptMode</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        <span class="comment">//从这里开始与await方法略有不同</span></span><br><span class="line">        <span class="comment">//如果已超时，与中断处理方式相同，将节点转移到sync queue中</span></span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">            transferAfterCancelledWait(node);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//如果剩余等待时间大于自旋threshold，那么阻塞自己一定时间。否则自旋等待即可，这段时间非常短，自旋的收益要大于阻塞/唤醒</span></span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &gt;= spinForTimeoutThreshold)</span><br><span class="line">            LockSupport.parkNanos(<span class="built_in">this</span>, nanosTimeout);</span><br><span class="line">        <span class="comment">//检查中断</span></span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="comment">//更新剩余等待时间</span></span><br><span class="line">        nanosTimeout = deadline - System.nanoTime();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="literal">null</span>)</span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">    <span class="keyword">return</span> deadline - System.nanoTime();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其次是await(long time, TimeUnit unit)，该方法与awaitNanos(long nanosTimeout)基本一致，返回是否超时</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Implements timed condition wait.</span></span><br><span class="line"><span class="comment"> * &lt;ol&gt;</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If current thread is interrupted, throw InterruptedException.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Save lock state returned by &#123;<span class="doctag">@link</span> #getState&#125;.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Invoke &#123;<span class="doctag">@link</span> #release&#125; with saved state as argument,</span></span><br><span class="line"><span class="comment"> *      throwing IllegalMonitorStateException if it fails.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Block until signalled, interrupted, or timed out.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Reacquire by invoking specialized version of</span></span><br><span class="line"><span class="comment"> *      &#123;<span class="doctag">@link</span> #acquire&#125; with saved state as argument.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If interrupted while blocked in step 4, throw InterruptedException.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If timed out while blocked in step 4, return false, else true.</span></span><br><span class="line"><span class="comment"> * &lt;/ol&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">boolean</span> <span class="title function_">await</span><span class="params">(<span class="type">long</span> time, TimeUnit unit)</span></span><br><span class="line">        <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">    <span class="comment">//将时间信息转为纳秒</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">nanosTimeout</span> <span class="operator">=</span> unit.toNanos(time);</span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InterruptedException</span>();</span><br><span class="line">    <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> addConditionWaiter();</span><br><span class="line">    <span class="type">int</span> <span class="variable">savedState</span> <span class="operator">=</span> fullyRelease(node);</span><br><span class="line">    <span class="keyword">final</span> <span class="type">long</span> <span class="variable">deadline</span> <span class="operator">=</span> System.nanoTime() + nanosTimeout;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">timedout</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="type">int</span> <span class="variable">interruptMode</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">            timedout = transferAfterCancelledWait(node);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &gt;= spinForTimeoutThreshold)</span><br><span class="line">            LockSupport.parkNanos(<span class="built_in">this</span>, nanosTimeout);</span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        nanosTimeout = deadline - System.nanoTime();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="literal">null</span>)</span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">    <span class="keyword">return</span> !timedout;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后是awaitUntil(Date deadline)，该方法指定超时时刻，逻辑与上述两种方法基本一致。返回是否超时</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Implements absolute timed condition wait.</span></span><br><span class="line"><span class="comment"> * &lt;ol&gt;</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If current thread is interrupted, throw InterruptedException.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Save lock state returned by &#123;<span class="doctag">@link</span> #getState&#125;.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Invoke &#123;<span class="doctag">@link</span> #release&#125; with saved state as argument,</span></span><br><span class="line"><span class="comment"> *      throwing IllegalMonitorStateException if it fails.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Block until signalled, interrupted, or timed out.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; Reacquire by invoking specialized version of</span></span><br><span class="line"><span class="comment"> *      &#123;<span class="doctag">@link</span> #acquire&#125; with saved state as argument.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If interrupted while blocked in step 4, throw InterruptedException.</span></span><br><span class="line"><span class="comment"> * &lt;li&gt; If timed out while blocked in step 4, return false, else true.</span></span><br><span class="line"><span class="comment"> * &lt;/ol&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">boolean</span> <span class="title function_">awaitUntil</span><span class="params">(Date deadline)</span></span><br><span class="line">        <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">    <span class="comment">//获取具体时刻，对应前面几种方法的deadline</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">abstime</span> <span class="operator">=</span> deadline.getTime();</span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InterruptedException</span>();</span><br><span class="line">    <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> addConditionWaiter();</span><br><span class="line">    <span class="type">int</span> <span class="variable">savedState</span> <span class="operator">=</span> fullyRelease(node);</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">timedout</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="type">int</span> <span class="variable">interruptMode</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (System.currentTimeMillis() &gt; abstime) &#123;</span><br><span class="line">            timedout = transferAfterCancelledWait(node);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        LockSupport.parkUntil(<span class="built_in">this</span>, abstime);</span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="literal">null</span>)</span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">    <span class="keyword">return</span> !timedout;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>至此ConditionObject源码大致上分析完毕</p>
+<p>回顾一下AQS中独占模式下nextWaiter字段是null，而节点从condition queue中转移到sync queue中，由于一定是独占模式，因此只需要将nextWaiter设置为null即可<br>
+但是那些由于await被中断而进入sync queue的节点，这些节点的nextWaiter可能一直是非null的状态，但是没有关系，并不影响AQS的模式判断(只要nextWaiter不是SHARED就是独占模式)</p>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/07/02/SourceAnalysis-AQS/" rel="prev" title="SourceAnalysis-AQS">
+      <i class="fa fa-chevron-left"></i> SourceAnalysis-AQS
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/07/02/SourceAnalysis-ReentrantLock/" rel="next" title="SourceAnalysis-ReentrantLock">
+      SourceAnalysis-ReentrantLock <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 Condition接口</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 字段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.2 await</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.3 signal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.4 signalAll</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.5 其他形式的await</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

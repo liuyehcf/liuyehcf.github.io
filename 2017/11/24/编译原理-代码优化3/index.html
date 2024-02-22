@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译原理-代码优化3">
+<meta property="og:url" content="http://example.com/2017/11/24/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig1.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig2.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig3.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig4.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig5.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig6.jpg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig7.jpg">
+<meta property="article:published_time" content="2017-11-24T05:28:24.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.368Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig1.jpg">
+
+<link rel="canonical" href="http://example.com/2017/11/24/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>编译原理-代码优化3 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/11/24/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          编译原理-代码优化3
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-11-24 13:28:24" itemprop="dateCreated datePublished" datetime="2017-11-24T13:28:24+08:00">2017-11-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Compile-Principle/" itemprop="url" rel="index"><span itemprop="name">Compile Principle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/11/24/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/" class="post-meta-item leancloud_visitors" data-flag-title="编译原理-代码优化3" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/11/24/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/11/24/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-活跃变量分析"> 1 活跃变量分析</span></h1>
+<p><strong>活跃变量</strong></p>
+<ul>
+<li>对于变量$x$和程序点$p$，如果在流图中沿着从$p$开始的<strong>某条</strong>路径会引用变量$x$在$p$点的值，则称变量$x$在点$p$是<strong>活跃</strong>（<strong>live</strong>）的，否则称变量$x$在点$p$是<strong>不活跃</strong>（<strong>dead</strong>）的</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig1.jpg" alt="fig1"></p>
+<h2><span id="11-活跃变量信息的主要用途"> 1.1 活跃变量信息的主要用途</span></h2>
+<p><strong>删除无用赋值</strong></p>
+<ul>
+<li><strong>无用赋值</strong>：如果$x$在点$p$的定值在基本块内所有后继点都<strong>不被引用</strong>，且$x$在基本块出口之后又是<strong>不活跃的</strong>，那么$x$在点$p$的定值就是无用的</li>
+</ul>
+<p><strong>为基本块分配寄存器</strong></p>
+<ul>
+<li>如果<strong>所有寄存器都被占用</strong>，并且还需要申请一个寄存器，则应该考虑使用已经存放了死亡值的寄存器，因为这个值不需要保存到内存</li>
+<li>如果一个值在<strong>基本块结尾处是死的</strong>就<strong>不必在结尾处保存这个值</strong></li>
+</ul>
+<h2><span id="12-活跃变量的传递函数"> 1.2 活跃变量的传递函数</span></h2>
+<p>活跃变量是一个典型的逆向数据流问题</p>
+$$IN[B] = f_B(OUT[B]$$
+<p>其中，$f_B(x) = use_B \cup (x-def_B)$</p>
+<ul>
+<li>
+$def_B$：在基本块B中定值，但是定值前在B中没有被引用的变量的集合
+</li>
+<li>
+$use_B$：在基本块B中引用，但是引用前在B中没有被定值的变量集合
+</li>
+</ul>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig2.jpg" alt="fig2"></p>
+<h2><span id="13-活跃变量数据流方程"> 1.3 活跃变量数据流方程</span></h2>
+<p><strong>符号及其说明</strong></p>
+<ol>
+<li>
+$IN[B]$：在基本块B的入口处的活跃变量集合
+</li>
+<li>
+$OUT[B]$：在基本块B的出口处的活跃变量集合
+</li>
+</ol>
+<p><strong>方程</strong></p>
+<ul>
+<li>
+$IN[EXIT] = \Phi$
+</li>
+<li>
+$IN[B] = f_B(OUT[B]） ( B \ne EXIT )$
+</li>
+<li>
+$f_B(x) = use_B \cup (x-def_B)$
+</li>
+<li>
+$OUT[B]= \cup_{S是B的一个后继}\;\;\;\;\;\;\;\;IN[S], ( B \ne EXIT )$
+</li>
+</ul>
+<h2><span id="14-计算活跃变量的迭代算法"> 1.4 计算活跃变量的迭代算法</span></h2>
+<p>输入：流图G，其中每个基本块B的$use_B$和$def_B$都已计算出来</p>
+<p>输出：$IN[B]$和$OUT[B]$</p>
+<p>方法：</p>
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig3.jpg" alt="fig3"></li>
+</ul>
+<p><strong>例子</strong></p>
+<p><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig4.jpg" alt="fig4"></p>
+<h2><span id="15-定值-引用链definition-use-chains"> 1.5 定值-引用链(Definition-Use Chains)</span></h2>
+<p>定值-引用链：设变量$x$有一个定值$d$，该定值所有能够到达的引用$u$的集合称为$x$在$d$处的<strong>定值-引用链</strong>，简称$du$链</p>
+<p>如果在求解<strong>活跃变量</strong>数据流方程中的$OUT[B]$时，将$OUT[B]$表示成<strong>从B的末尾处能够到达的引用的集合</strong>，那么，可以直接利用这些信息计算基本块B中每个变量$x$在其定值处的$du$链</p>
+<ul>
+<li>如果B中$x$的定值$d$之后有$x$的第一个定值$d^{\prime}$，则$d$和$d^{\prime}$之间$x$的所有引用构成$d$的$du$链</li>
+<li>如果B中$x$的定值$d$之后没有$x$的新的定值，则B中$d$之后$x$的所有引用以及$OUT[B]$中$x$的所有引用构成$d$的$du$链</li>
+</ul>
+<h1><span id="2-可用表达式分析"> 2 可用表达式分析</span></h1>
+<p><strong>可用表达式</strong></p>
+<ul>
+<li>如果从流图的<strong>首节点</strong>到达程序点$p$的<strong>每条路径</strong>都对表达式$x\;op\;y$进行计算，并且从最后一个这样的计算到点$p$之间<strong>没有再次对$x$或$y$定值</strong>，那么表达式$x\;op\;y$在点$p$是可用的(available)</li>
+</ul>
+<p><strong>表达式可用的直观意义</strong></p>
+<ul>
+<li>在点p上，x op y已经在<strong>之前被计算过</strong>，不需要重新计算</li>
+</ul>
+<h2><span id="21-可用表达式信息的主要用途"> 2.1 可用表达式信息的主要用途</span></h2>
+<ol>
+<li>消除全局公共子表达式</li>
+<li>进行复制传播
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig5.jpg" alt="fig5"></li>
+<li>在$x$的引用点$u$可以用$y$代替$x$的条件：从流图的<strong>首节点</strong>到达u的<strong>每条路径</strong>都存在复制语句$x = y$，并且从最后一条复制语句$x = y$到点$u$之间<strong>没有再次对$x$或$y$定值</strong>（就是可用表达式的定义）</li>
+</ul>
+</li>
+</ol>
+<h2><span id="22-可用表达式的传递函数"> 2.2 可用表达式的传递函数</span></h2>
+<p>对于可用表达式数据流模式而言，如果基本块B对$x$或者$y$进行了(或可能进行)定值，且以后<strong>没有重新计算</strong>$x\;op\;y$，则称B<strong>杀死表达式</strong>$x\;op\;y$。如果基本块B对$x\;op\;y$进行计算，并且之后<strong>没有重新定值</strong>$x$或$y$，则称B<strong>生成表达式</strong>$x\;op\;y$</p>
+<p>传递函数定义如下：</p>
+<ul>
+<li>
+$f_B(x)= e\_gen_B ∪(x- e\_kill_B)$
+</li>
+<li>
+$e\_gen_B$ ：基本块B所生成的可用表达式的集合
+</li>
+<li>
+$e\_kill_B$ ：基本块B所杀死的U中的可用表达式的集合
+</li>
+<li>
+$U$：所有出现在程序中一个或多个语句的右部的表达式的全集
+</li>
+</ul>
+<h2><span id="23-e_gen_b的计算"> 2.3 $e\_gen_B$的计算</span></h2>
+<p>初始化：$e\_gen_B = \Phi$</p>
+<p>顺序扫描基本块的每个语句：$z = x\;op\;y$</p>
+<ol>
+<li>把$x\;op\;y$加入$e\_gen_B$</li>
+<li>从$e\_gen_B$中删除和$z$相关的表达式</li>
+</ol>
+<ul>
+<li>上述两个操作顺序不能颠倒</li>
+</ul>
+<h2><span id="24-e_kill_b的计算"> 2.4 $e\_kill_B$的计算</span></h2>
+<p>初始化：$e\_kill_B = \Phi$</p>
+<p>顺序扫描基本块的每个语句：$z = x\;op\;y$</p>
+<ol>
+<li>从$e\_kill_B$中删除表达式$x\;op\;y$</li>
+<li>把所有和$z$相关的表达式加入到$e\_kill_B$中</li>
+</ol>
+<h2><span id="25-可用表达式的数据流方程"> 2.5 可用表达式的数据流方程</span></h2>
+<p><strong>符号及其说明</strong></p>
+<ol>
+<li>
+$IN[B]$：在B的入口处可用的$U$中的表达式集合
+</li>
+<li>
+$OUT[B]$：在B的出口处可用的$U$中的表达式集合
+</li>
+</ol>
+<p><strong>方程</strong></p>
+<ul>
+<li>
+$OUT[ENTRY]= \Phi$
+</li>
+<li>
+$OUT[B]=f_B(IN[B]), ( B \ne ENTRY )$
+<ul>
+<li>
+$f_B(x)= e\_gen_B \cup (x- e\_kill_B)$
+</li>
+</ul>
+</li>
+<li>
+$IN[B]= \cap_{P是B的一个前驱}\;\;\;\;\;\;\;OUT[P], ( B \ne ENTRY )$
+</li>
+</ul>
+<h2><span id="26-计算可用表达式的迭代算法"> 2.6 计算可用表达式的迭代算法</span></h2>
+<p>输入：流图G，其中每个基本块B的$e\_gen_B$和$e\_kill_B$都已计算出来</p>
+<p>输出：$IN[B]$和$OUT[B]$</p>
+<p>方法:</p>
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig6.jpg" alt="fig6"></li>
+</ul>
+<h3><span id="261-为什么将outb集合初始化为u"> 2.6.1 为什么将$OUT[B]$集合初始化为$U$</span></h3>
+<p>将OUT集合初始化为$\Phi$局限性太大</p>
+<ul>
+<li><img src="/images/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%963/fig7.jpg" alt="fig7"></li>
+</ul>
+<p>如果$OUT[B_2]^0 = \Phi$</p>
+<ul>
+<li>那么$IN[B_2]^1= OUT[B_1]^1 \cap OUT[B_2]^0 = \Phi$</li>
+</ul>
+<p>如果$OUT[B_2]^0 = U$</p>
+<ul>
+<li>那么$IN[B_2]^1= OUT[B_1]^1 \cap OUT[B_2]^0 = OUT[B_1]$</li>
+</ul>
+<h1><span id="3-参考"> 3 参考</span></h1>
+<ul>
+<li>《MOOC-编译原理-陈鄞》</li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/24/Spring-Boot-Demo/" rel="prev" title="Spring-Boot-Demo">
+      <i class="fa fa-chevron-left"></i> Spring-Boot-Demo
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/11/25/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%964/" rel="next" title="编译原理-代码优化4">
+      编译原理-代码优化4 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 活跃变量分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 活跃变量信息的主要用途</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 活跃变量的传递函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.3 活跃变量数据流方程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.4 计算活跃变量的迭代算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.5 定值-引用链(Definition-Use Chains)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 可用表达式分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 可用表达式信息的主要用途</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.2 可用表达式的传递函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.3 $e\_gen_B$的计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.4 $e\_kill_B$的计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.5 可用表达式的数据流方程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.6 计算可用表达式的迭代算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 2.6.1 为什么将$OUT[B]$集合初始化为$U$</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

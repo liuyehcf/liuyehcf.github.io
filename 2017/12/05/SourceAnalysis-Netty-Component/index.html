@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SourceAnalysis-Netty-Component">
+<meta property="og:url" content="http://example.com/2017/12/05/SourceAnalysis-Netty-Component/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/SourceAnalysis-Netty-Component/ServerBootstrap.png">
+<meta property="og:image" content="http://example.com/images/SourceAnalysis-Netty-Component/ServerBootstrapConfig.png">
+<meta property="og:image" content="http://example.com/images/SourceAnalysis-Netty-Component/NioEventLoopGroup.png">
+<meta property="og:image" content="http://example.com/images/SourceAnalysis-Netty-Component/NioEventLoop.png">
+<meta property="og:image" content="http://example.com/images/SourceAnalysis-Netty-Component/ChannelInitializer.png">
+<meta property="og:image" content="http://example.com/images/SourceAnalysis-Netty-Component/DefaultChannelPipeline.png">
+<meta property="og:image" content="http://example.com/images/SourceAnalysis-Netty-Component/NioServerSocketChannel.png">
+<meta property="og:image" content="http://example.com/images/SourceAnalysis-Netty-Component/DefaultChannelPromise.png">
+<meta property="article:published_time" content="2017-12-05T02:55:31.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.359Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/SourceAnalysis-Netty-Component/ServerBootstrap.png">
+
+<link rel="canonical" href="http://example.com/2017/12/05/SourceAnalysis-Netty-Component/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SourceAnalysis-Netty-Component | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/12/05/SourceAnalysis-Netty-Component/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SourceAnalysis-Netty-Component
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-05 10:55:31" itemprop="dateCreated datePublished" datetime="2017-12-05T10:55:31+08:00">2017-12-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/" itemprop="url" rel="index"><span itemprop="name">Framework</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/Framework/Netty/" itemprop="url" rel="index"><span itemprop="name">Netty</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2017/12/05/SourceAnalysis-Netty-Component/" class="post-meta-item leancloud_visitors" data-flag-title="SourceAnalysis-Netty-Component" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/12/05/SourceAnalysis-Netty-Component/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/12/05/SourceAnalysis-Netty-Component/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-源码maven坐标"> 1 源码Maven坐标</span></h1>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.netty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>netty-all<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.1.17.Final<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h1><span id="2-echo-server示例"> 2 Echo Server示例</span></h1>
+<p><strong>Handler代码清单如下</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.protocol.echo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelHandlerContext;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelInboundHandlerAdapter;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by HCF on 2017/12/2.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">EchoServerHandler</span> <span class="keyword">extends</span> <span class="title class_">ChannelInboundHandlerAdapter</span> &#123; <span class="comment">//(1)</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">channelRead</span><span class="params">(ChannelHandlerContext ctx, Object msg)</span> &#123; <span class="comment">//(2)</span></span><br><span class="line">        ctx.write(msg); <span class="comment">//(1)</span></span><br><span class="line">        ctx.flush(); <span class="comment">//(2)</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">exceptionCaught</span><span class="params">(ChannelHandlerContext ctx, Throwable cause)</span> &#123; <span class="comment">//(4)</span></span><br><span class="line">        <span class="comment">//Close the connection when an exception is raised.</span></span><br><span class="line">        cause.printStackTrace();</span><br><span class="line">        ctx.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Server代码清单如下</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.liuyehcf.protocol.echo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.netty.bootstrap.ServerBootstrap;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelFuture;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelInitializer;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelOption;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.EventLoopGroup;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.nio.NioEventLoopGroup;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.socket.SocketChannel;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.socket.nio.NioServerSocketChannel;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by HCF on 2017/12/2.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">EchoServer</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> port;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">EchoServer</span><span class="params">(<span class="type">int</span> port)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.port = port;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="type">EventLoopGroup</span> <span class="variable">bossGroup</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NioEventLoopGroup</span>(); <span class="comment">//(1)</span></span><br><span class="line">        <span class="type">EventLoopGroup</span> <span class="variable">workerGroup</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NioEventLoopGroup</span>();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">ServerBootstrap</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ServerBootstrap</span>(); <span class="comment">//(2)</span></span><br><span class="line">            b.group(bossGroup, workerGroup)</span><br><span class="line">                    .channel(NioServerSocketChannel.class) <span class="comment">//(3)</span></span><br><span class="line">                    .childHandler(<span class="keyword">new</span> <span class="title class_">ChannelInitializer</span>&lt;SocketChannel&gt;() &#123; <span class="comment">//(4)</span></span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">initChannel</span><span class="params">(SocketChannel ch)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">                            ch.pipeline().addLast(<span class="keyword">new</span> <span class="title class_">EchoServerHandler</span>());</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;)</span><br><span class="line">                    .option(ChannelOption.SO_BACKLOG, <span class="number">128</span>)          <span class="comment">//(5)</span></span><br><span class="line">                    .childOption(ChannelOption.SO_KEEPALIVE, <span class="literal">true</span>); <span class="comment">//(6)</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">//Bind and start to accept incoming connections.</span></span><br><span class="line">            <span class="type">ChannelFuture</span> <span class="variable">f</span> <span class="operator">=</span> b.bind(port).sync(); <span class="comment">//(7)</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">//Wait until the server socket is closed.</span></span><br><span class="line">            <span class="comment">//In this example, this does not happen, but you can do that to gracefully</span></span><br><span class="line">            <span class="comment">//shut down your server.</span></span><br><span class="line">            f.channel().closeFuture().sync();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            workerGroup.shutdownGracefully();</span><br><span class="line">            bossGroup.shutdownGracefully();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="type">int</span> port;</span><br><span class="line">        <span class="keyword">if</span> (args.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            port = Integer.parseInt(args[<span class="number">0</span>]);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            port = <span class="number">8080</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">EchoServer</span>(port).run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从示例代码中，我们找出几个核心的类型</p>
+<ol>
+<li><code>ServerBootstrap</code></li>
+<li><code>NioEventLoopGroup</code></li>
+<li><code>NioServerSocketChannel</code></li>
+<li><code>ChannelInitializer</code></li>
+</ol>
+<h1><span id="3-serverbootstrap"> 3 ServerBootstrap</span></h1>
+<p>由于Netty启动涉及到很多复杂的步骤，因此提供了一个辅助类<code>ServerBootstrap</code>来帮助用户启动Netty，由于可配置参数种类繁多，为了保持较好的可伸缩性以及可扩展性，ServerBootstrap采用了建造者模式</p>
+<p>ServerBootstrap的继承关系如下</p>
+<p><img src="/images/SourceAnalysis-Netty-Component/ServerBootstrap.png" alt="ServerBootstrap"></p>
+<p>其中ServerBootstrap包含如下字段</p>
+<ol>
+<li><code>Map&lt;ChannelOption&lt;?&gt;, Object&gt; childOptions</code>：一个Map</li>
+<li><code>Map&lt;AttributeKey&lt;?&gt;, Object&gt; childAttrs</code>：一个Map</li>
+<li><code>ServerBootstrapConfig config</code>：该字段用于获取ServerBootstrap的各项参数</li>
+<li><code>EventLoopGroup childGroup</code>：</li>
+<li><code>ChannelHandler childHandler</code>：</li>
+</ol>
+<p>这里涉及到两个概念，<code>parent</code>以及<code>child</code></p>
+<ul>
+<li>parent：用于accept连接的那些组件</li>
+<li>child：用于客户端连接的那些组件</li>
+</ul>
+<h2><span id="31-serverbootstrapconfig"> 3.1 ServerBootstrapConfig</span></h2>
+<p>ServerBootstrapConfig用于获取ServerBootstrap的各项参数，即使ServerBootstrap的功能趋于单一</p>
+<p>ServerBootstrapConfig的继承结构图如下</p>
+<p><img src="/images/SourceAnalysis-Netty-Component/ServerBootstrapConfig.png" alt="ServerBootstrapConfig"></p>
+<ul>
+<li><code>AbstractBootstrapConfig</code>
+<ul>
+<li>用于返回AbstractBootstrap的各项参数</li>
+</ul>
+</li>
+<li><code>ServerBootstrapConfig</code>
+<ul>
+<li>用于返回ServerBootstrap相比于AbstractBootstrap所额外提供的参数（child相关的参数）</li>
+</ul>
+</li>
+</ul>
+<h1><span id="4-nioeventloopgroup"> 4 NioEventLoopGroup</span></h1>
+<p>NioEventLoopGroup管理了一组线程池，而其本身又可以被抽象成一个线程池，对NioEventLoopGroup执行的操作会通过相应策略，从其管理的线程池组中选择一个线程池进行执行</p>
+<p>NioEventLoopGroup的继承结构图如下</p>
+<p><img src="/images/SourceAnalysis-Netty-Component/NioEventLoopGroup.png" alt="NioEventLoopGroup"></p>
+<ul>
+<li><code>EventExecutorGroup</code>
+<ul>
+<li>管理了一组Executor（一个Executor可以理解为一个线程池）</li>
+<li>另一方面，由于<code>EventExecutorGroup</code>接口间接继承自<code>ExecutorService</code>接口，因此<code>EventExecutorGroup</code>也可以看成是一个Executor，这是比较奇特的一个地方</li>
+<li>提供了一个重要的方法next</li>
+</ul>
+</li>
+<li><code>EventLoopGroup</code>
+<ul>
+<li>在<code>EventExecutorGroup</code>基础之上，提供了<strong>异步的</strong><code>register</code>方法</li>
+</ul>
+</li>
+<li><code>AbstractEventExecutorGroup</code>
+<ul>
+<li>为那些从JDK接口中继承而来的方法提供基础实现，就是调用next()方法然后调用对应的方法</li>
+<li>next()方法依据不同策略从管理的所有Executor中选出下一个</li>
+</ul>
+</li>
+<li><code>MultithreadEventExecutorGroup</code>
+<ul>
+<li>该类主要作用就是进行一些关键的初始化动作</li>
+<li>该类定义了关键字段children（EventExecutor数组）以及chooser（依据children的大小选择不同的next的策略）</li>
+</ul>
+</li>
+<li><code>MultithreadEventLoopGroup</code>
+<ul>
+<li>为<code>EventLoopGroup</code>接口提供的方法提供基础实现</li>
+</ul>
+</li>
+</ul>
+<h2><span id="41-nioeventloop"> 4.1 NioEventLoop</span></h2>
+<p>NioEventLoop本质上就是一个线程池，被NioEventLoopGroup管理</p>
+<p>NioEventLoop的继承结构图如下</p>
+<p><img src="/images/SourceAnalysis-Netty-Component/NioEventLoop.png" alt="NioEventLoop"></p>
+<ul>
+<li><code>EventExecutor</code>
+<ul>
+<li>增加了几个新的方法，包括<code>parent</code>、<code>inEventLoop</code>、以及创建Future和Promise的方法</li>
+</ul>
+</li>
+<li><code>AbstractEventExecutor</code>
+<ul>
+<li>为<code>EventExecutor</code>接口以及<code>EventLoopGroup</code>接口提供的方法提供基础实现</li>
+</ul>
+</li>
+<li><code>AbstractScheduledEventExecutor</code>
+<ul>
+<li>为<code>ScheduledExecutorService</code>接口提供的方法提供基础实现</li>
+</ul>
+</li>
+<li><code>OrderedEventExecutor</code>
+<ul>
+<li>空接口</li>
+</ul>
+</li>
+<li><code>EventLoop</code>
+<ul>
+<li>修改parent方法的返回值</li>
+</ul>
+</li>
+<li><code>SingleThreadEventExecutor</code>
+<ul>
+<li>实现了线程池的主要逻辑</li>
+</ul>
+</li>
+<li><code>SingleThreadEventLoop</code>
+<ul>
+<li>综合两条继承链路</li>
+<li>为<code>EventLoopGroup</code>接口提供的方法提供基础实现</li>
+</ul>
+</li>
+</ul>
+<h1><span id="5-channelinitializer"> 5 ChannelInitializer</span></h1>
+<p>ChannelInitializer的继承结构图如下</p>
+<p><img src="/images/SourceAnalysis-Netty-Component/ChannelInitializer.png" alt="ChannelInitializer"></p>
+<ul>
+<li><code>ChannelHandler</code>
+<ul>
+<li>提供了添加和移除Handler的方法</li>
+</ul>
+</li>
+<li><code>ChannelHandlerAdapter</code>
+<ul>
+<li>为<code>ChannelHandler</code>接口提供基本的“骨架”实现</li>
+</ul>
+</li>
+<li><code>ChannelInboundHandler</code>
+<ul>
+<li>在channel状态改变时插入相应的hook method，用于回调</li>
+</ul>
+</li>
+<li><code>ChannelInboundHandlerAdapter</code>
+<ul>
+<li>为<code>ChannelInboundHandler</code>接口提供的方法提供基础实现，以便让用户自行选择是否覆盖某个hook method</li>
+</ul>
+</li>
+</ul>
+<h1><span id="6-defaultchannelpipeline"> 6 DefaultChannelPipeline</span></h1>
+<p>DefaultChannelPipeline继承结构图如下</p>
+<p><img src="/images/SourceAnalysis-Netty-Component/DefaultChannelPipeline.png" alt="DefaultChannelPipeline"></p>
+<ul>
+<li><code>ChannelInboundInvoker</code>
+<ul>
+<li>将接收数据这一个过程抽象出多个生命周期，用于用户自定义处理逻辑</li>
+</ul>
+</li>
+<li><code>ChannelOutboundInvoker</code>
+<ul>
+<li>将发送数据这一个过程抽象出多个生命周期，用于用户自定义处理逻辑</li>
+</ul>
+</li>
+<li><code>ChannelPipeline</code>
+<ul>
+<li>将<code>ChannelInboundInvoker</code>与<code>ChannelOutboundInvoker</code>进行合并</li>
+<li>添加了一系列add以及remove方法用于添加handler</li>
+</ul>
+</li>
+</ul>
+<p>那么这些生命周期由谁触发呢？大部分IO的底层操作由<code>AbstractChannel</code>完成，因此这些生命周期会在这些底层操作之中显式触发。这些触发的操作大致由<code>AbstractChannelHandlerContext</code>、<code>DefaultChannelPipeline</code>以及<code>AbstractChannel</code>协作完成，在此先不深究细节</p>
+<h1><span id="7-nioserversocketchannel"> 7 NioServerSocketChannel</span></h1>
+<p>NioServerSocketChannel继承结构图如下</p>
+<p><img src="/images/SourceAnalysis-Netty-Component/NioServerSocketChannel.png" alt="NioServerSocketChannel"></p>
+<ul>
+<li><code>AttributeMap</code>
+<ul>
+<li>用于存放属性值的Map</li>
+</ul>
+</li>
+<li><code>DefaultAttributeMap</code>
+<ul>
+<li>为<code>AttributeMap</code>接口提供基础实现</li>
+</ul>
+</li>
+<li><code>Channel</code>
+<ul>
+<li>定义Netty中Channel的一系列方法</li>
+<li>此外，还定义了Unsafe接口（不是sun实现中的Unsafe）</li>
+</ul>
+</li>
+<li><code>AbstractChannel</code>
+<ul>
+<li>为<code>Channel</code>接口提供基础实现</li>
+<li>基本上所有底层的IO操作都在这个类中实现</li>
+</ul>
+</li>
+<li><code>AbstractNioChannel</code>
+<ul>
+<li>Netty中底层的NIO操作，都在这个类中实现，包括Selector等</li>
+</ul>
+</li>
+<li><code>AbstractNioMessageChannel</code>
+<ul>
+<li>相比于<code>AbstractNioChannel</code>，<code>AbstractNioMessageChannel</code>提供更高一层的抽象，提供可以处理<code>Message</code>的抽象方法</li>
+</ul>
+</li>
+<li><code>ServerChannel</code>
+<ul>
+<li>空接口，仅用于标记</li>
+</ul>
+</li>
+<li><code>ServerSocketChannel</code>
+<ul>
+<li>定义用于监听连接的ServerChannel</li>
+</ul>
+</li>
+</ul>
+<h1><span id="8-defaultchannelpromise"> 8 DefaultChannelPromise</span></h1>
+<p>DefaultChannelPromise继承结构图如下</p>
+<p><img src="/images/SourceAnalysis-Netty-Component/DefaultChannelPromise.png" alt="DefaultChannelPromise"></p>
+<ul>
+<li><code>Future</code>
+<ul>
+<li>该Future继承自JUC中的同名Future接口</li>
+<li>增加了添加和删除监听器的方法，以及sync方法和await方法等</li>
+</ul>
+</li>
+<li><code>AbstractFuture</code>
+<ul>
+<li>为JUC中的Future接口的get方法提供基础实现</li>
+</ul>
+</li>
+<li><code>Promise</code>
+<ul>
+<li>增加了<code>setSuccess/setFailure</code>、<code>trySuccess/tryFailure</code>等方法</li>
+</ul>
+</li>
+<li><code>ChannelFuture</code>
+<ul>
+<li>增加了返回Channel的方法，以及判断是否为Void型的channel的方法</li>
+</ul>
+</li>
+<li><code>ChannelPromise</code>
+<ul>
+<li>结合了<code>ChannelFuture</code>以及<code>Promise</code>接口</li>
+</ul>
+</li>
+<li><code>DefaultPromise</code>
+<ul>
+<li>为<code>Promise</code>以及<code>Future</code>接口提供了基础实现</li>
+</ul>
+</li>
+<li><code>DefaultChannelPromise</code>
+<ul>
+<li>为<code>ChannelPromise</code>接口提供默认实现</li>
+</ul>
+</li>
+</ul>
+<h1><span id="9-socketutils"> 9 SocketUtils</span></h1>
+<p>该类封装了一系列底层Java NIO API的基本操作</p>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/12/04/%E4%B9%A6%E7%B1%8D%E6%B8%85%E5%8D%95/" rel="prev" title="书籍清单">
+      <i class="fa fa-chevron-left"></i> 书籍清单
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/12/05/SourceAnalysis-Netty-NioEventLoop/" rel="next" title="SourceAnalysis-Netty-NioEventLoop">
+      SourceAnalysis-Netty-NioEventLoop <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 源码Maven坐标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 Echo Server示例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 ServerBootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 ServerBootstrapConfig</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 NioEventLoopGroup</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 NioEventLoop</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 ChannelInitializer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 DefaultChannelPipeline</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 NioServerSocketChannel</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 8 DefaultChannelPromise</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 9 SocketUtils</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

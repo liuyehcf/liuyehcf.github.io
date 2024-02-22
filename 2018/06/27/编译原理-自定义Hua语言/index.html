@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译原理-自定义Hua语言">
+<meta property="og:url" content="http://example.com/2018/06/27/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%87%AA%E5%AE%9A%E4%B9%89Hua%E8%AF%AD%E8%A8%80/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-06-27T08:07:13.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.369Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/06/27/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%87%AA%E5%AE%9A%E4%B9%89Hua%E8%AF%AD%E8%A8%80/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>编译原理-自定义Hua语言 | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/06/27/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%87%AA%E5%AE%9A%E4%B9%89Hua%E8%AF%AD%E8%A8%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          编译原理-自定义Hua语言
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-06-27 16:07:13" itemprop="dateCreated datePublished" datetime="2018-06-27T16:07:13+08:00">2018-06-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Compile-Principle/" itemprop="url" rel="index"><span itemprop="name">Compile Principle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2018/06/27/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%87%AA%E5%AE%9A%E4%B9%89Hua%E8%AF%AD%E8%A8%80/" class="post-meta-item leancloud_visitors" data-flag-title="编译原理-自定义Hua语言" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/06/27/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%87%AA%E5%AE%9A%E4%B9%89Hua%E8%AF%AD%E8%A8%80/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/06/27/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-%E8%87%AA%E5%AE%9A%E4%B9%89Hua%E8%AF%AD%E8%A8%80/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-基本概念"> 1 基本概念</span></h1>
+<h2><span id="11-文法符号"> 1.1 文法符号</span></h2>
+<p>在文法定义中会有两种类型的符号：一种称为<strong>终结符</strong>，另一种称为<strong>非终结符</strong></p>
+<p>所谓终结符就是<strong>不可再分</strong>的符号，是<strong>原子</strong>的，是<strong>具体的语法成分</strong>。例如，在英文文法中，每个字母就是终结符，标点符号就是终结符。又例如，在Java文法中，所有关键字（int、boolean、void、abstract、public、return等等），分号，逗号、括号都属于终结符</p>
+<p>所谓非终结符就是<strong>可以再分</strong>的符号，是<strong>非原子</strong>的，是<strong>抽象的语法成分</strong>。例如，在英文文法中，单词，祈使句、宾语从句、状语从句就是非终结符。又例如，在Java文法中，if语句、while语句，方法定义、类定义、赋值语句等等都属于非终结符</p>
+<p><strong>为了方便描述，我们有如下约定</strong></p>
+<ol>
+<li>排在前面的大写字母表示非终结符，例如$A$、$B$、$C$、$D$、$E$、$F$、$G$</li>
+<li>
+$S$表示文法开始符号
+</li>
+<li>排在前面的小写字母表示终结符，例如$a$、$b$、$c$</li>
+<li>
+$w$表示终结符号串
+</li>
+<li>排在后面的大写字母表示文法符号，例如$X$、$Y$、$Z$</li>
+<li>
+$α$、$β$等希腊字母表示文法符号串
+</li>
+</ol>
+<h2><span id="12-文法符号串"> 1.2 文法符号串</span></h2>
+<p>文法符号串由文法符号组合而成，文法符号包括终结符和非终结符。当然单个的文法符号也属于文法符号串</p>
+<h2><span id="13-产生式"> 1.3 产生式</span></h2>
+<p>产生式描述了不同文法符号串之间的<strong>转换关系</strong>，这种关系是单向的。例如</p>
+$$\alpha \to \beta$$
+<h2><span id="14-文法"> 1.4 文法</span></h2>
+<p>文法由一系列产生式构成，根据产生式形式的不同，我们将文法分为四种类型</p>
+<ul>
+<li>0-型文法，又称为无限制文法$$\alpha \to \beta$$</li>
+<li>1-型文法，又称为上下文有关文法$$\alpha_1A\alpha_2 \to \alpha_1\beta\alpha_2,|\alpha|≤|\beta|$$</li>
+<li>2-型文法，又称为上下文无关文法$$A \to \beta$$</li>
+<li>3-型文法，又称为正则文法$$A \to wB\;\;\;or\;\;\;A \to w$$ or $$A \to Bw\;\;\;or\;\;\;A \to w$$</li>
+</ul>
+<p><strong>一般的编程语言都是2-型文法，即上下文无关文法</strong></p>
+<h2><span id="15-分析法概述"> 1.5 分析法概述</span></h2>
+<p>这里，我们只讨论上下文无关文法（3-型文法)</p>
+<p>一般而言，分析法有$LL(n)$和$LR(n)$分析两种，其中</p>
+<ol>
+<li>
+$LL(n)$：第一个$L$表示从左到右扫描输入串，第二个$L$表示最左推导，$n$表示向后看几个输入符号，通常只有1才有实践意义
+</li>
+<li>
+$LR(n)$：第一个$L$表示从左到右扫描输入串，第二个$R$表示最右规约，$n$表示向后看几个输入符号，通常取0和1才有实践意义
+</li>
+</ol>
+<p>对于$LL(n)$分析法，语法分析过程可以概括为以下几个步骤</p>
+<ol>
+<li>计算first集合</li>
+<li>计算follow集合</li>
+<li>计算select集合</li>
+<li>生成预测分析表</li>
+</ol>
+<p>对于$LR(n)$分析法，预发分析过程可以概括为以下几个步骤</p>
+<ol>
+<li>计算first集合</li>
+<li>计算follow集合</li>
+<li>生成LR自动机</li>
+<li>生成预测分析表</li>
+</ol>
+<h3><span id="151-first集"> 1.5.1 first集</span></h3>
+$First(X)$定义为可以由文法符号$X$推导出的所有终结符集合
+<ul>
+<li>显然如果$X$是终结符，那么$First(X)=\{X\}$</li>
+</ul>
+<h3><span id="152-follow集"> 1.5.2 follow集</span></h3>
+$First(A)$定义为可以紧跟在非终结符$A$之后的所有终结符集合，不包括$\epsilon$
+<h1><span id="2-正则表达式实践篇"> 2 正则表达式实践篇</span></h1>
+<p><strong>正则表达式引擎</strong></p>
+<ul>
+<li>base package: <code>org.liuyehcf.grammar.rg</code></li>
+<li>包括nfa自动机以及dfa自动机</li>
+<li>支持以下正则表达式通配符: <code>.</code>、<code>?</code>、<code>*</code>、<code>+</code>、<code>|</code></li>
+<li>支持量词<code>&#123;&#125;</code></li>
+<li>支持部分转义，包括<code>\d</code>、<code>\D</code>、<code>\w</code>、<code>\W</code>、<code>\s</code>、<code>\S</code></li>
+<li>支持<code>[]</code></li>
+<li>nfa自动机支持捕获组（nfa转dfa时，捕获组信息会丢失，因此dfa自动机尚不支持捕获组。目前还没有很好的解决方法）</li>
+</ul>
+<h1><span id="3-编译引擎介绍"> 3 编译引擎介绍</span></h1>
+<p>我们来回顾一下编译过程</p>
+<ol>
+<li>词法分析</li>
+<li>语法分析</li>
+<li>语义分析</li>
+<li>中间代码生成</li>
+<li>代码优化</li>
+<li>存储管理</li>
+</ol>
+<p>由于词法分析、语法分析过程对于任何语言来说都是相同的，而语义分析是针对特定语言的，是无法泛化的。因此，我设计的编译引擎将<code>词法分析</code>、<code>语法分析</code>与<code>语义分析</code>及后续进行了解耦，语法分析的过程交给编译引擎来完成。在设计Hua语言时，只需要关注语义分析即可</p>
+<h1><span id="4-hua语言实践篇"> 4 Hua语言实践篇</span></h1>
+<h2><span id="41-文法定义"> 4.1 文法定义</span></h2>
+<p>Hua文法的定义参考了Java的文法定义，且大部分保持一致。包含如下主要的语法成分</p>
+<ol>
+<li>支持方法定义、方法重载、方法调用</li>
+<li>支持变量定义</li>
+<li>支持基本类型int和boolean</li>
+<li>支持数组类型、多维数组</li>
+<li>支持基本的控制流语句，包括
+<ul>
+<li>if then</li>
+<li>if then else</li>
+<li>while</li>
+<li>do while</li>
+<li>for</li>
+<li>condition expression</li>
+</ul>
+</li>
+<li>支持二元运算符
+<ul>
+<li><code>*</code></li>
+<li><code>/</code></li>
+<li><code>%</code></li>
+<li><code>+</code></li>
+<li><code>-</code></li>
+<li><code>&lt;&lt;</code></li>
+<li><code>&gt;&gt;</code></li>
+<li><code>&gt;&gt;&gt;</code></li>
+<li><code>&amp;</code></li>
+<li><code>^</code></li>
+<li><code>|</code></li>
+<li><code>||</code></li>
+<li><code>&amp;&amp;</code></li>
+</ul>
+</li>
+<li>支持一些系统函数，目前仅包含
+<ul>
+<li>print(int)</li>
+<li>print(boolean)</li>
+<li>nextInt(int,int)</li>
+<li>nextInt()</li>
+<li>nextBoolean()</li>
+</ul>
+</li>
+</ol>
+<p>以下就是HUA语言的文法定义</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line">&lt;additive expression&gt; → &lt;additive expression&gt; + &lt;multiplicative expression&gt; | &lt;additive expression&gt; - &lt;multiplicative expression&gt; | &lt;multiplicative expression&gt;</span><br><span class="line">&lt;and expression&gt; → &lt;and expression&gt; &amp; &lt;equality expression&gt; | &lt;equality expression&gt;</span><br><span class="line">&lt;argument list&gt; → &lt;argument list&gt; , &lt;expression&gt; | &lt;expression&gt;</span><br><span class="line">&lt;array access&gt; → &lt;expression name&gt; &lt;mark 286_1_1&gt; [ &lt;expression&gt; ] | &lt;primary no new array&gt; [ &lt;expression&gt; ]</span><br><span class="line">&lt;array creation expression&gt; → new &lt;primitive type&gt; &lt;dim exprs&gt; &lt;epsilon or dims&gt;</span><br><span class="line">&lt;array type&gt; → &lt;type&gt; [ ]</span><br><span class="line">&lt;assignment expression&gt; → &lt;assignment&gt; | &lt;conditional expression&gt;</span><br><span class="line">&lt;assignment operator&gt; → %= | &amp;= | *= | += | -= | /= | &lt;&lt;= | = | &gt;&gt;= | &gt;&gt;&gt;= | ^= | |=</span><br><span class="line">&lt;assignment&gt; → &lt;left hand side&gt; &lt;assignment operator&gt; &lt;mark 222_1_1&gt; &lt;assignment expression&gt;</span><br><span class="line">&lt;block statement&gt; → &lt;local variable declaration statement&gt; | &lt;statement&gt;</span><br><span class="line">&lt;block statements&gt; → &lt;block statement&gt; | &lt;block statements&gt; &lt;block statement&gt;</span><br><span class="line">&lt;block&gt; → &#123; &lt;mark 139_1_1&gt; &lt;epsilon or block statements&gt; &#125;</span><br><span class="line">&lt;boolean literal&gt; → false | true</span><br><span class="line">&lt;cast expression&gt; → ( &lt;primitive type&gt; ) &lt;unary expression&gt; | ( &lt;reference type&gt; ) &lt;unary expression not plus minus&gt;</span><br><span class="line">&lt;conditional and expression&gt; → &lt;conditional and expression&gt; &amp;&amp; &lt;mark 232_2_1&gt; &lt;inclusive or expression&gt; | &lt;inclusive or expression&gt;</span><br><span class="line">&lt;conditional expression&gt; → &lt;conditional or expression&gt; | &lt;conditional or expression&gt; ? &lt;mark true block&gt; &lt;expression&gt; : &lt;mark false block&gt; &lt;conditional expression&gt;</span><br><span class="line">&lt;conditional or expression&gt; → &lt;conditional and expression&gt; | &lt;conditional or expression&gt; || &lt;mark 230_2_1&gt; &lt;conditional and expression&gt;</span><br><span class="line">&lt;decimal integer literal&gt; → &lt;decimal numeral&gt;</span><br><span class="line">&lt;decimal numeral&gt; → 0 | &lt;non zero digit&gt; &lt;epsilon or digits&gt;</span><br><span class="line">&lt;digit&gt; → 0 | &lt;non zero digit&gt;</span><br><span class="line">&lt;digits&gt; → &lt;digit&gt; | &lt;digits&gt; &lt;digit&gt;</span><br><span class="line">&lt;dim expr&gt; → [ &lt;expression&gt; ]</span><br><span class="line">&lt;dim exprs&gt; → &lt;dim expr&gt; | &lt;dim exprs&gt; &lt;dim expr&gt;</span><br><span class="line">&lt;dims&gt; → [ ] | &lt;dims&gt; [ ]</span><br><span class="line">&lt;do statement&gt; → do &lt;mark loop offset&gt; &lt;statement&gt; while ( &lt;expression&gt; ) ;</span><br><span class="line">&lt;empty statement&gt; → ;</span><br><span class="line">&lt;epsilon or argument list&gt; → __ε__ | &lt;argument list&gt;</span><br><span class="line">&lt;epsilon or block statements&gt; → __ε__ | &lt;block statements&gt;</span><br><span class="line">&lt;epsilon or digits&gt; → __ε__ | &lt;digits&gt;</span><br><span class="line">&lt;epsilon or dims&gt; → __ε__ | &lt;dims&gt;</span><br><span class="line">&lt;epsilon or expression&gt; → __ε__ | &lt;expression&gt;</span><br><span class="line">&lt;epsilon or for init&gt; → __ε__ | &lt;for init&gt;</span><br><span class="line">&lt;epsilon or for update&gt; → __ε__ | &lt;for update&gt;</span><br><span class="line">&lt;epsilon or formal parameter list&gt; → __ε__ | &lt;formal parameter list&gt;</span><br><span class="line">&lt;equality expression&gt; → &lt;equality expression&gt; != &lt;relational expression&gt; | &lt;equality expression&gt; == &lt;relational expression&gt; | &lt;relational expression&gt;</span><br><span class="line">&lt;exclusive or expression&gt; → &lt;and expression&gt; | &lt;exclusive or expression&gt; ^ &lt;and expression&gt;</span><br><span class="line">&lt;expression name&gt; → @identifier</span><br><span class="line">&lt;expression statement&gt; → &lt;statement expression&gt; ;</span><br><span class="line">&lt;expression&gt; → &lt;assignment expression&gt;</span><br><span class="line">&lt;floating-point type&gt; → float</span><br><span class="line">&lt;for init&gt; → &lt;local variable declaration&gt; | &lt;statement expression list&gt;</span><br><span class="line">&lt;for statement no short if&gt; → for ( &lt;mark before init&gt; &lt;epsilon or for init&gt; ; &lt;mark loop offset&gt; &lt;epsilon or expression&gt; ; &lt;mark before update&gt; &lt;epsilon or for update&gt; ) &lt;mark after update&gt; &lt;statement no short if&gt;</span><br><span class="line">&lt;for statement&gt; → for ( &lt;mark before init&gt; &lt;epsilon or for init&gt; ; &lt;mark loop offset&gt; &lt;epsilon or expression&gt; ; &lt;mark before update&gt; &lt;epsilon or for update&gt; ) &lt;mark after update&gt; &lt;statement&gt;</span><br><span class="line">&lt;for update&gt; → &lt;statement expression list&gt;</span><br><span class="line">&lt;formal parameter list&gt; → &lt;formal parameter list&gt; , &lt;formal parameter&gt; | &lt;formal parameter&gt;</span><br><span class="line">&lt;formal parameter&gt; → &lt;type&gt; &lt;mark 50_1_1&gt; &lt;variable declarator id&gt;</span><br><span class="line">&lt;if then else statement no short if&gt; → if ( &lt;expression&gt; ) &lt;mark true block&gt; &lt;statement no short if&gt; else &lt;mark false block&gt; &lt;statement no short if&gt;</span><br><span class="line">&lt;if then else statement&gt; → if ( &lt;expression&gt; ) &lt;mark true block&gt; &lt;statement no short if&gt; else &lt;mark false block&gt; &lt;statement&gt;</span><br><span class="line">&lt;if then statement&gt; → if ( &lt;expression&gt; ) &lt;mark true block&gt; &lt;statement&gt;</span><br><span class="line">&lt;inclusive or expression&gt; → &lt;exclusive or expression&gt; | &lt;inclusive or expression&gt; | &lt;exclusive or expression&gt;</span><br><span class="line">&lt;integer literal&gt; → &lt;decimal integer literal&gt;</span><br><span class="line">&lt;integral type&gt; → int</span><br><span class="line">&lt;left hand side&gt; → &lt;array access&gt; | &lt;expression name&gt;</span><br><span class="line">&lt;literal&gt; → &lt;boolean literal&gt; | &lt;integer literal&gt;</span><br><span class="line">&lt;local variable declaration statement&gt; → &lt;local variable declaration&gt; ;</span><br><span class="line">&lt;local variable declaration&gt; → &lt;type&gt; &lt;mark 146_1_1&gt; &lt;variable declarators&gt;</span><br><span class="line">&lt;mark 139_1_1&gt; → __ε__</span><br><span class="line">&lt;mark 146_1_1&gt; → __ε__</span><br><span class="line">&lt;mark 222_1_1&gt; → __ε__</span><br><span class="line">&lt;mark 230_2_1&gt; → __ε__</span><br><span class="line">&lt;mark 232_2_1&gt; → __ε__</span><br><span class="line">&lt;mark 286_1_1&gt; → __ε__</span><br><span class="line">&lt;mark 50_1_1&gt; → __ε__</span><br><span class="line">&lt;mark 66_2_1&gt; → __ε__</span><br><span class="line">&lt;mark 74_1_1&gt; → __ε__</span><br><span class="line">&lt;mark 74_1_2&gt; → __ε__</span><br><span class="line">&lt;mark after update&gt; → __ε__</span><br><span class="line">&lt;mark before init&gt; → __ε__</span><br><span class="line">&lt;mark before update&gt; → __ε__</span><br><span class="line">&lt;mark false block&gt; → __ε__</span><br><span class="line">&lt;mark loop offset&gt; → __ε__</span><br><span class="line">&lt;mark prefix expression&gt; → __ε__</span><br><span class="line">&lt;mark true block&gt; → __ε__</span><br><span class="line">&lt;method body&gt; → ; | &lt;block&gt;</span><br><span class="line">&lt;method declaration&gt; → &lt;mark 74_1_1&gt; &lt;method header&gt; &lt;mark 74_1_2&gt; &lt;method body&gt;</span><br><span class="line">&lt;method declarations&gt; → &lt;method declaration&gt; | &lt;method declarations&gt; &lt;method declaration&gt;</span><br><span class="line">&lt;method declarator&gt; → @identifier ( &lt;epsilon or formal parameter list&gt; )</span><br><span class="line">&lt;method header&gt; → &lt;result type&gt; &lt;method declarator&gt;</span><br><span class="line">&lt;method invocation&gt; → &lt;method name&gt; ( &lt;epsilon or argument list&gt; )</span><br><span class="line">&lt;method name&gt; → @identifier</span><br><span class="line">&lt;multiplicative expression&gt; → &lt;multiplicative expression&gt; % &lt;unary expression&gt; | &lt;multiplicative expression&gt; * &lt;unary expression&gt; | &lt;multiplicative expression&gt; / &lt;unary expression&gt; | &lt;unary expression&gt;</span><br><span class="line">&lt;non zero digit&gt; → @nonZeroDigit</span><br><span class="line">&lt;numeric type&gt; → &lt;floating-point type&gt; | &lt;integral type&gt;</span><br><span class="line">&lt;postdecrement expression&gt; → &lt;postfix expression&gt; --</span><br><span class="line">&lt;postfix expression&gt; → &lt;expression name&gt; | &lt;postdecrement expression&gt; | &lt;postincrement expression&gt; | &lt;primary&gt;</span><br><span class="line">&lt;postincrement expression&gt; → &lt;postfix expression&gt; ++</span><br><span class="line">&lt;predecrement expression&gt; → -- &lt;mark prefix expression&gt; &lt;unary expression&gt;</span><br><span class="line">&lt;preincrement expression&gt; → ++ &lt;mark prefix expression&gt; &lt;unary expression&gt;</span><br><span class="line">&lt;primary no new array&gt; → ( &lt;expression&gt; ) | &lt;array access&gt; | &lt;literal&gt; | &lt;method invocation&gt;</span><br><span class="line">&lt;primary&gt; → &lt;array creation expression&gt; | &lt;primary no new array&gt;</span><br><span class="line">&lt;primitive type&gt; → boolean | &lt;numeric type&gt;</span><br><span class="line">&lt;programs&gt; → &lt;method declarations&gt;</span><br><span class="line">&lt;reference type&gt; → &lt;array type&gt;</span><br><span class="line">&lt;relational expression&gt; → &lt;relational expression&gt; &lt; &lt;shift expression&gt; | &lt;relational expression&gt; &lt;= &lt;shift expression&gt; | &lt;relational expression&gt; &gt; &lt;shift expression&gt; | &lt;relational expression&gt; &gt;= &lt;shift expression&gt; | &lt;shift expression&gt;</span><br><span class="line">&lt;result type&gt; → void | &lt;type&gt;</span><br><span class="line">&lt;return statement&gt; → return &lt;epsilon or expression&gt; ;</span><br><span class="line">&lt;shift expression&gt; → &lt;additive expression&gt; | &lt;shift expression&gt; &lt;&lt; &lt;additive expression&gt; | &lt;shift expression&gt; &gt;&gt; &lt;additive expression&gt; | &lt;shift expression&gt; &gt;&gt;&gt; &lt;additive expression&gt;</span><br><span class="line">&lt;statement expression list&gt; → &lt;statement expression list&gt; , &lt;statement expression&gt; | &lt;statement expression&gt;</span><br><span class="line">&lt;statement expression&gt; → &lt;assignment&gt; | &lt;method invocation&gt; | &lt;postdecrement expression&gt; | &lt;postincrement expression&gt; | &lt;predecrement expression&gt; | &lt;preincrement expression&gt;</span><br><span class="line">&lt;statement no short if&gt; → &lt;for statement no short if&gt; | &lt;if then else statement no short if&gt; | &lt;statement without trailing substatement&gt; | &lt;while statement no short if&gt;</span><br><span class="line">&lt;statement without trailing substatement&gt; → &lt;block&gt; | &lt;do statement&gt; | &lt;empty statement&gt; | &lt;expression statement&gt; | &lt;return statement&gt;</span><br><span class="line">&lt;statement&gt; → &lt;for statement&gt; | &lt;if then else statement&gt; | &lt;if then statement&gt; | &lt;statement without trailing substatement&gt; | &lt;while statement&gt;</span><br><span class="line">&lt;type&gt; → &lt;primitive type&gt; | &lt;reference type&gt;</span><br><span class="line">&lt;unary expression not plus minus&gt; → ! &lt;unary expression&gt; | ~ &lt;unary expression&gt; | &lt;cast expression&gt; | &lt;postfix expression&gt;</span><br><span class="line">&lt;unary expression&gt; → + &lt;unary expression&gt; | - &lt;unary expression&gt; | &lt;predecrement expression&gt; | &lt;preincrement expression&gt; | &lt;unary expression not plus minus&gt;</span><br><span class="line">&lt;variable declarator id&gt; → @identifier | &lt;variable declarator id&gt; [ ]</span><br><span class="line">&lt;variable declarator&gt; → &lt;variable declarator id&gt; | &lt;variable declarator id&gt; = &lt;variable initializer&gt;</span><br><span class="line">&lt;variable declarators&gt; → &lt;variable declarator&gt; | &lt;variable declarators&gt; , &lt;mark 66_2_1&gt; &lt;variable declarator&gt;</span><br><span class="line">&lt;variable initializer&gt; → &lt;expression&gt;</span><br><span class="line">&lt;while statement no short if&gt; → while ( &lt;mark loop offset&gt; &lt;expression&gt; ) &lt;mark true block&gt; &lt;statement no short if&gt;</span><br><span class="line">&lt;while statement&gt; → while ( &lt;mark loop offset&gt; &lt;expression&gt; ) &lt;mark true block&gt; &lt;statement&gt;</span><br></pre></td></tr></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/25/Spring-Validate-Demo/" rel="prev" title="Spring-Validate-Demo">
+      <i class="fa fa-chevron-left"></i> Spring-Validate-Demo
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/07/10/%E5%B7%A6%E8%80%B3%E5%90%AC%E9%A3%8E-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="next" title="左耳听风-读书笔记">
+      左耳听风-读书笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 文法符号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.2 文法符号串</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.3 产生式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.4 文法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.5 分析法概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 1.5.1 first集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 1.5.2 follow集</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 正则表达式实践篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 编译引擎介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 Hua语言实践篇</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 文法定义</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

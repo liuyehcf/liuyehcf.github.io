@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Assembly-Language">
+<meta property="og:url" content="http://example.com/2021/10/15/Assembly-Language/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Assembly-Language/simd.png">
+<meta property="article:published_time" content="2021-10-15T08:17:52.000Z">
+<meta property="article:modified_time" content="2024-02-22T06:12:04.332Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Assembly-Language/simd.png">
+
+<link rel="canonical" href="http://example.com/2021/10/15/Assembly-Language/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Assembly-Language | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/10/15/Assembly-Language/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Assembly-Language
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-15 16:17:52" itemprop="dateCreated datePublished" datetime="2021-10-15T16:17:52+08:00">2021-10-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-02-22 14:12:04" itemprop="dateModified" datetime="2024-02-22T14:12:04+08:00">2024-02-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Assembly/" itemprop="url" rel="index"><span itemprop="name">Assembly</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/10/15/Assembly-Language/" class="post-meta-item leancloud_visitors" data-flag-title="Assembly-Language" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/10/15/Assembly-Language/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/10/15/Assembly-Language/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1><span id="1-intel-and-atampt-syntax"> 1 Intel and AT&amp;T Syntax</span></h1>
+<p><strong>Assembly language has 2 different syntaxes, namely <code>Intel Syntax</code> and <code>AT&amp;T Syntax</code>. They are roughly similar in form, but there are significant differences in detail. Very easy to confuse.</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">Intel</th>
+<th style="text-align:left">AT&amp;T</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Comment</td>
+<td style="text-align:left"><code>;</code></td>
+<td style="text-align:left"><code>#</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Instruction</td>
+<td style="text-align:left">No suffix, e.g., <code>add</code></td>
+<td style="text-align:left">With suffix, indicating operand size, e.g., <code>addq</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Register</td>
+<td style="text-align:left"><code>eax</code>, <code>ebx</code>, etc.</td>
+<td style="text-align:left"><code>%eax</code>, <code>%ebx</code>, etc.</td>
+</tr>
+<tr>
+<td style="text-align:left">Immediate Value</td>
+<td style="text-align:left"><code>0x100</code></td>
+<td style="text-align:left"><code>$0x100</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Direct Addressing</td>
+<td style="text-align:left"><code>[eax]</code></td>
+<td style="text-align:left"><code>(%eax)</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Indirect Addressing</td>
+<td style="text-align:left"><code>[base + reg + reg * scale + displacement]</code></td>
+<td style="text-align:left"><code>displacement(base, reg, scale)</code></td>
+</tr>
+</tbody>
+</table>
+<h2><span id="11-memory-reference"> 1.1 Memory Reference</span></h2>
+<p><strong>The format for indirect memory reference in <code>Intel Syntax</code> is: <code>section:[base + index*scale + displacement]</code></strong><br>
+<strong>The format for indirect memory reference in <code>AT&amp;T Syntax</code> is: section:displacement(base, index, scale)</strong></p>
+<ul>
+<li>Here, <code>base</code> and <code>index</code> are any <code>32-bit</code> <code>base</code> and <code>index</code> registers.</li>
+<li><code>scale</code> can be <code>1</code>, <code>2</code>, <code>4</code>, or <code>8</code>. If the <code>scale</code> is not specified, the default value is <code>1</code>.</li>
+<li><code>section</code> can specify any segment register as the segment prefix. The default segment register varies depending on the situation.</li>
+</ul>
+<p><strong>Some examples:</strong></p>
+<ol>
+<li><code>-4(%ebp)</code>
+<ul>
+<li><code>base</code>: <code>%ebp</code></li>
+<li><code>displacement</code>: <code>-4</code></li>
+<li><code>section</code>: not specified</li>
+<li><code>index</code>: not specified, defaults to 0</li>
+<li><code>scale</code>: not specified, defaults to 1</li>
+</ul>
+</li>
+</ol>
+<h1><span id="2-instructions"> 2 Instructions</span></h1>
+<p><strong>The characteristics of the <code>Intel Syntax</code> are as follows:</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mnemonic DestinationOperand sourceOperand</span><br></pre></td></tr></table></figure>
+<p><strong>The characteristics of the <code>AT&amp;T Syntax</code> are as follows:</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mnemonic SourceOperand DestinationOperand</span><br></pre></td></tr></table></figure>
+<p><strong>Below are common instructions in the form of <code>AT&amp;T Syntax</code>:</strong></p>
+<p><strong>Data Transfer Instructions:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Instruction Format</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>movl src, dst</code></td>
+<td style="text-align:left">Transfer doubleword</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>movw src, dst</code></td>
+<td style="text-align:left">Transfer word</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>movb src, dst</code></td>
+<td style="text-align:left">Transfer byte</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>movsbl src, dst</code></td>
+<td style="text-align:left">Sign-extend <code>src</code> (byte) to <code>dst</code> (doubleword)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>movzbl src, dst</code></td>
+<td style="text-align:left">Zero-extend <code>src</code> (byte) to <code>dst</code> (doubleword)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>pushl src</code></td>
+<td style="text-align:left">Push<br><code>R[%esp] -= 4</code><br><code>M[R[%esp]] = src</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>popl dst</code></td>
+<td style="text-align:left">Pop<br><code>dst = M[R[%esp]]</code><br><code>R[%esp] += 4</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>xchg mem/reg mem/reg</code></td>
+<td style="text-align:left">Exchange the contents between two registers or between a register and memory (at least one must be a register)<br>Both operands must be of the same data type, e.g., if one is byte, the other must be byte</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>lea src, dst</code></td>
+<td style="text-align:left">Load Effective Address DoubleWords, the instruction computes the effective address of a memory location and then places this address into a specified general-purpose register.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>leaq src, dst</code></td>
+<td style="text-align:left">Load Effective Address Quadwords, similar to lea.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Arithmetic and Logical Operations Instructions:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Instruction Format</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>leal src, dst</code></td>
+<td style="text-align:left"><code>dst = &amp;src</code>, <code>dst</code> can only be a register</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>incl dst</code></td>
+<td style="text-align:left"><code>dst += 1</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>decl dst</code></td>
+<td style="text-align:left"><code>dst -= 1</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>negl dst</code></td>
+<td style="text-align:left"><code>dst = -dst</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>notl dst</code></td>
+<td style="text-align:left"><code>dst = ~dst</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addl src, dst</code></td>
+<td style="text-align:left"><code>dst += src</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>subl src, dst</code></td>
+<td style="text-align:left"><code>dst -= src</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>imull src, dst</code></td>
+<td style="text-align:left"><code>dst *= src</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>xorl src, dst</code></td>
+<td style="text-align:left"><code>dst ^= src</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>orl src, dst</code></td>
+<td style="text-align:left">`dst</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>andl src, dst</code></td>
+<td style="text-align:left"><code>dst &amp;= src</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>sall k dst</code></td>
+<td style="text-align:left"><code>dst &lt;&lt; k</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>shll k dst</code></td>
+<td style="text-align:left"><code>dst &lt;&lt; k</code> (same as <code>sall</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>sarl k dst</code></td>
+<td style="text-align:left"><code>dst &gt;&gt; k</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>shrl k dst</code></td>
+<td style="text-align:left"><code>dst &gt;&gt; k</code> (same as <code>sarl</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Comparison Instructions:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Instruction Format</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>cmpb s1, s2</code></td>
+<td style="text-align:left"><code>s2 - s1</code>, compare byte, difference relationship</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>testb s1, s2</code></td>
+<td style="text-align:left"><code>s2 &amp; s1</code>, compare byte, and relationship</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>cmpw s1, s2</code></td>
+<td style="text-align:left"><code>s2 - s1</code>, compare word, difference relationship</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>testw s1, s2</code></td>
+<td style="text-align:left"><code>s2 &amp; s1</code>, compare word, and relationship</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>cmpl s1, s2</code></td>
+<td style="text-align:left"><code>s2 - s1</code>, compare doubleword, difference relationship</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>testl s1, s2</code></td>
+<td style="text-align:left"><code>s2 &amp; s1</code>, compare doubleword, and relationship</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Jump Instructions:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Instruction Format</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>jmp label</code></td>
+<td style="text-align:left">Direct jump</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jmp *operand</code></td>
+<td style="text-align:left">Indirect jump</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>je label</code></td>
+<td style="text-align:left">Jump if equal</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jne label</code></td>
+<td style="text-align:left">Jump if not equal</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jz label</code></td>
+<td style="text-align:left">Jump if zero</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jnz label</code></td>
+<td style="text-align:left">Jump if not zero</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>js label</code></td>
+<td style="text-align:left">Jump if negative</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jns label</code></td>
+<td style="text-align:left">Jump if not negative</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jg label</code></td>
+<td style="text-align:left">Jump if greater</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jnle label</code></td>
+<td style="text-align:left">Jump if greater</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jge label</code></td>
+<td style="text-align:left">Jump if greater or equal</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jnl label</code></td>
+<td style="text-align:left">Jump if greater or equal</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jl label</code></td>
+<td style="text-align:left">Jump if less</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jnge label</code></td>
+<td style="text-align:left">Jump if less</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jle label</code></td>
+<td style="text-align:left">Jump if less or equal</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>jng label</code></td>
+<td style="text-align:left">Jump if less or equal</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>SIMD</code>-related Instruction Set</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Advanced_Vector_Extensions">Advanced Vector Extensions</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_32916805/article/details/117637192">一文读懂SIMD指令集 目前最全SSE/AVX介绍</a></li>
+<li><img src="/images/Assembly-Language/simd.png" alt="simd"></li>
+<li>Instruction Sets</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Instruction Set</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>MMX</code></td>
+<td style="text-align:left">Introduced 8 new 64-bit vector registers <code>MM0</code> to <code>MM7</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>SSE</code></td>
+<td style="text-align:left">Building on <code>MMX</code>, introduced 8 new 128-bit vector registers <code>XMM0</code> to <code>XMM7</code>. Only supports 128-bit floating point</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>SSE2</code></td>
+<td style="text-align:left">Supports 128-bit integer</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>SSE3</code></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>SSSE3</code></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>SSE4.1</code></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>SSE4.2</code></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>AVX</code></td>
+<td style="text-align:left">Introduced 16 new 256-bit vector registers <code>YMM0</code> to <code>YMM15</code>. Floating point supports 256-bit, while integer only supports 128-bit</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>AVX2</code></td>
+<td style="text-align:left">Integer now also supports 256-bit</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>AVX512</code></td>
+<td style="text-align:left">Introduced 32 new 512-bit vector registers <code>ZMM0</code> to <code>ZMM31</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Data Types</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Data Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__m128</code></td>
+<td style="text-align:left">Vector containing 4 float numbers</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>__m128d</code></td>
+<td style="text-align:left">Vector containing 2 double numbers</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>__m128i</code></td>
+<td style="text-align:left">Vector containing several integer numbers</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>__m256</code></td>
+<td style="text-align:left">Vector containing 8 float numbers</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>__m256d</code></td>
+<td style="text-align:left">Vector containing 4 double numbers</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>__m256i</code></td>
+<td style="text-align:left">Vector containing several integer numbers</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Others:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Instruction</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>enter size, nesting level</code></td>
+<td style="text-align:left">Prepares the current stack frame. Where <code>nesting level</code> ranges from <code>0-31</code> which indicates the number of stack frame pointers copied from the previous frame to the new frame, typically <code>0</code>. <code>enter $size, $0</code> is equivalent to <code>push %rbp</code> + <code>mov %rsp, %rbp</code> + <code>sub $size, %rsp</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>leave</code></td>
+<td style="text-align:left">Restores the previous stack frame, equivalent to <code>mov %rbp, %rsp</code>, <code>pop %rbp</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>ret</code></td>
+<td style="text-align:left">Returns after a function call</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>cli</code></td>
+<td style="text-align:left">Disables interrupts, ring0</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>sti</code></td>
+<td style="text-align:left">Enables interrupts, ring0</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>lgdt src</code></td>
+<td style="text-align:left">Loads the global descriptor</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>lidt src</code></td>
+<td style="text-align:left">Loads the interrupt descriptor</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>cmov</code></td>
+<td style="text-align:left">Conditional move instructions, used to eliminate branching</td>
+</tr>
+</tbody>
+</table>
+<h2><span id="21-how-to-check-instructions"> 2.1 How to Check Instructions</span></h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.felixcloutier.com/x86/">x86 and amd64 instruction reference</a></li>
+<li><a target="_blank" rel="noopener" href="https://sites.google.com/site/huibianyuyanzaixianbangzhu/">汇编语言在线帮助</a></li>
+<li><a target="_blank" rel="noopener" href="http://ref.x86asm.net/">X86 Opcode and Instruction Reference</a>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://ref.x86asm.net/geek.html">geek.html</a></li>
+</ul>
+</li>
+<li><a target="_blank" rel="noopener" href="https://www.intel.cn/content/www/cn/zh/architecture-and-technology/64-ia-32-architectures-software-developer-vol-1-manual.html">Intel x86/x64 开发者手册 卷1</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.intel.cn/content/www/cn/zh/architecture-and-technology/64-ia-32-architectures-software-developer-vol-2a-manual.html">Intel x86/x64 开发者手册 卷2</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html">Intel® 64 and IA-32 Architectures Software Developer Manuals</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/4568848/good-reference-for-x86-assembly-instructions">Good reference for x86 assembly instructions</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/lsgxeva/p/8948153.html">汇编指令速查</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/bnagy/cgasm">cgasm</a>  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">go get github.com/bnagy/cgasm</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 GOPATH</span></span><br><span class="line">go <span class="built_in">env</span> | grep GOPATH</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将 GOPATH 添加到环境变量 PATH 中</span></span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;PATH&#125;</span>:$(go <span class="built_in">env</span> | grep GOPATH | awk -F <span class="string">&#x27;=&#x27;</span> <span class="string">&#x27;&#123;print $2&#125;&#x27;</span> | sed -e <span class="string">&#x27;s/&quot;//g&#x27;</span>)/bin</span><br><span class="line"></span><br><span class="line">cgasm -f push</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2><span id="22-memory-barriers"> 2.2 Memory Barriers</span></h2>
+<p>In the <code>x86</code> architecture, there are several assembly instructions that can serve as memory barriers. Their role is to ensure that the order of memory accesses is not reordered, thereby ensuring the correctness and reliability of the program. These instructions include:</p>
+<ul>
+<li><code>MFENCE</code>: All memory accesses before the execution of the <code>MFENCE</code> instruction must complete before the <code>MFENCE</code> instruction, and all memory accesses after the <code>MFENCE</code> instruction must start after the execution of the <code>MFENCE</code> instruction. This instruction acts as a full barrier, meaning it prevents all memory accesses on all processors.</li>
+<li><code>SFENCE</code>: <code>SFENCE</code> ensures that all write operations before its execution have been committed to memory. Any write operations after the <code>SFENCE</code> instruction cannot be reordered to occur before the <code>SFENCE</code> instruction.</li>
+<li><code>LFENCE</code>: <code>LFENCE</code> ensures that all read operations prior to its execution are complete. Any read operations after the <code>LFENCE</code> instruction cannot be reordered to happen before the <code>LFENCE</code> instruction.</li>
+<li><code>LOCK</code> instruction prefix: The <code>LOCK</code> prefix can be applied to specific instructions, such as <code>LOCK ADD</code>, <code>LOCK DEC</code>, <code>LOCK XCHG</code>, etc. They guarantee that when executing an instruction with the <code>LOCK</code> prefix, access to shared memory is serialized.</li>
+</ul>
+<h1><span id="3-register"> 3 Register</span></h1>
+<p><strong>For more information, please refer to<a href="/2017/08/21/System-Architecture-Register/" title="System-Architecture-Register">System-Architecture-Register</a></strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">64-bit register</th>
+<th style="text-align:left">Lower 32 bits</th>
+<th style="text-align:left">Lower 16 bits</th>
+<th style="text-align:left">Lower 8 bits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">rax</td>
+<td style="text-align:left">eax</td>
+<td style="text-align:left">ax</td>
+<td style="text-align:left">al</td>
+</tr>
+<tr>
+<td style="text-align:left">rbx</td>
+<td style="text-align:left">ebx</td>
+<td style="text-align:left">bx</td>
+<td style="text-align:left">bl</td>
+</tr>
+<tr>
+<td style="text-align:left">rcx</td>
+<td style="text-align:left">ecx</td>
+<td style="text-align:left">cx</td>
+<td style="text-align:left">cl</td>
+</tr>
+<tr>
+<td style="text-align:left">rdx</td>
+<td style="text-align:left">edx</td>
+<td style="text-align:left">dx</td>
+<td style="text-align:left">dl</td>
+</tr>
+<tr>
+<td style="text-align:left">rsi</td>
+<td style="text-align:left">esi</td>
+<td style="text-align:left">si</td>
+<td style="text-align:left">sil</td>
+</tr>
+<tr>
+<td style="text-align:left">rdi</td>
+<td style="text-align:left">edi</td>
+<td style="text-align:left">di</td>
+<td style="text-align:left">dil</td>
+</tr>
+<tr>
+<td style="text-align:left">rbp</td>
+<td style="text-align:left">ebp</td>
+<td style="text-align:left">bp</td>
+<td style="text-align:left">bpl</td>
+</tr>
+<tr>
+<td style="text-align:left">rsp</td>
+<td style="text-align:left">esp</td>
+<td style="text-align:left">sp</td>
+<td style="text-align:left">spl</td>
+</tr>
+<tr>
+<td style="text-align:left">rip</td>
+<td style="text-align:left">eip</td>
+<td style="text-align:left">?</td>
+<td style="text-align:left">?</td>
+</tr>
+<tr>
+<td style="text-align:left">r8</td>
+<td style="text-align:left">r8d</td>
+<td style="text-align:left">r8w</td>
+<td style="text-align:left">r8b</td>
+</tr>
+<tr>
+<td style="text-align:left">r9</td>
+<td style="text-align:left">r9d</td>
+<td style="text-align:left">r9w</td>
+<td style="text-align:left">r9b</td>
+</tr>
+<tr>
+<td style="text-align:left">r10</td>
+<td style="text-align:left">r10d</td>
+<td style="text-align:left">r10w</td>
+<td style="text-align:left">r10b</td>
+</tr>
+<tr>
+<td style="text-align:left">r11</td>
+<td style="text-align:left">r11d</td>
+<td style="text-align:left">r11w</td>
+<td style="text-align:left">r11b</td>
+</tr>
+<tr>
+<td style="text-align:left">r12</td>
+<td style="text-align:left">r12d</td>
+<td style="text-align:left">r12w</td>
+<td style="text-align:left">r12b</td>
+</tr>
+<tr>
+<td style="text-align:left">r13</td>
+<td style="text-align:left">r13d</td>
+<td style="text-align:left">r13w</td>
+<td style="text-align:left">r13b</td>
+</tr>
+<tr>
+<td style="text-align:left">r14</td>
+<td style="text-align:left">r14d</td>
+<td style="text-align:left">r14w</td>
+<td style="text-align:left">r14b</td>
+</tr>
+<tr>
+<td style="text-align:left">r15</td>
+<td style="text-align:left">r15d</td>
+<td style="text-align:left">r15w</td>
+<td style="text-align:left">r15b</td>
+</tr>
+</tbody>
+</table>
+<p><strong>In this context, <code>rbp</code> is the base pointer register pointing to the bottom of the stack; <code>rsp</code> is the stack pointer register pointing to the top of the stack; <code>rip</code> is the instruction pointer register pointing to the next instruction to be executed.</strong></p>
+<p><strong>Vector-related Registers (Refert to<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Advanced_Vector_Extensions">Advanced Vector Extensions</a>)</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Register Name</th>
+<th style="text-align:left">Bit Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">xmm</td>
+<td style="text-align:left">128</td>
+</tr>
+<tr>
+<td style="text-align:left">ymm</td>
+<td style="text-align:left">256</td>
+</tr>
+<tr>
+<td style="text-align:left">zmm</td>
+<td style="text-align:left">512</td>
+</tr>
+</tbody>
+</table>
+<h2><span id="31-the-registers-used-for-parameters"> 3.1 The registers used for parameters</span></h2>
+<p>The specific register used to store function parameters depends on the architecture and the calling convention being used. I’ll provide details for the x86-64 architecture using the System V AMD64 ABI calling convention, which is common for Unix-like systems (including Linux).</p>
+<p>For the x86-64 System V AMD64 ABI:</p>
+<ol>
+<li>First parameter: <code>%rdi</code></li>
+<li>Second parameter: <code>%rsi</code></li>
+<li>Third parameter: <code>%rdx</code></li>
+<li>Fourth parameter: <code>%rcx</code></li>
+<li>Fifth parameter: <code>%r8</code></li>
+<li>Sixth parameter: <code>%r9</code></li>
+<li>Seventh parameter: Placed on the stack.</li>
+<li>Eighth parameter: Placed on the stack after the seventh parameter.</li>
+<li>… and so on.</li>
+</ol>
+<h1><span id="4-assembly-syntax"> 4 Assembly Syntax</span></h1>
+<p><strong>Reference:</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikibooks.org/wiki/X86_Assembly">x86 Assembly</a>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikibooks.org/wiki/X86_Assembly/GNU_assembly_syntax">x86 Assembly/GNU assembly syntax</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikibooks.org/wiki/X86_Assembly/NASM_Syntax">x86 Assembly/NASM Syntax</a></li>
+</ul>
+</li>
+<li><a target="_blank" rel="noopener" href="http://ted.is-programmer.com/posts/5250.html">AT&amp;T汇编教程</a>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://ted.is-programmer.com/posts/5251.html">AT&amp;T汇编语法</a></li>
+<li><a target="_blank" rel="noopener" href="http://ted.is-programmer.com/posts/5254.html">Linux 汇编语言开发指南</a></li>
+<li><a target="_blank" rel="noopener" href="http://ted.is-programmer.com/posts/5262.html">AT&amp;T汇编指令</a></li>
+<li><a target="_blank" rel="noopener" href="http://ted.is-programmer.com/posts/5263.html">AT＆T汇编伪指令</a></li>
+</ul>
+</li>
+</ul>
+<h2><span id="41-intel-syntax"> 4.1 Intel Syntax</span></h2>
+<h3><span id="411-comment"> 4.1.1 Comment</span></h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">; this is comment</span><br></pre></td></tr></table></figure>
+<h2><span id="42-atampt-syntax"> 4.2 AT&amp;T Syntax</span></h2>
+<h3><span id="421-assembler-commands"> 4.2.1 Assembler Commands</span></h3>
+<p><strong>Assembler directives (<code>Assembler Directives</code>) start with an English period (‘.’) followed by letters for the rest of the command name. Typically, these are in lowercase. Below are some common commands:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Command</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>.abort</code></td>
+<td style="text-align:left">This command immediately terminates the assembly process. This is for compatibility with other assemblers. The initial idea was that the assembly language source would be fed into the assembler. If the program sending the source wanted to exit, it could use this command to notify <code>as</code> to exit. Use of <code>.abort</code> might not be supported in the future.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.align abs-expr, abs-expr, abs-expr</code></td>
+<td style="text-align:left">Increase the position counter (in the current subsection) to point to the specified storage boundary. The first expression argument (mandatory) represents the boundary base; the second expression argument represents the value of the filler byte, which is used to fill places passed by the position counter; the third expression argument (optional) indicates the maximum number of bytes this alignment command is allowed to cross.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.ascii &quot;str&quot;...</code></td>
+<td style="text-align:left"><code>.ascii</code> can have no arguments or several strings separated by commas. It saves each assembled string (without automatically appending a null byte at the end) in consecutive addresses.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.asciz &quot;str&quot;...</code></td>
+<td style="text-align:left"><code>.asciz</code> is similar to <code>.ascii</code>, but it automatically appends a null byte at the end of each string.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.byte</code></td>
+<td style="text-align:left"><code>.byte</code> can have no arguments or multiple expression arguments separated by commas. Each expression argument is assembled into the next byte.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.data subsection</code></td>
+<td style="text-align:left"><code>.data</code> informs <code>as</code> to append subsequent statements to the data section ending in <code>subsection</code> (which must be a pure expression). If the <code>subsection</code> argument is omitted, the default is 0.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.def name</code></td>
+<td style="text-align:left">Starts defining debug information for the symbol <code>name</code>. The definition area extends to the <code>.endef</code> command encountered.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.end</code></td>
+<td style="text-align:left"><code>.end</code> marks the end of the assembly file. <code>as</code> doesn’t process any statements after the <code>.end</code> command.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.err</code></td>
+<td style="text-align:left">If <code>as</code> assembles a <code>.err</code> command, it will print an error message.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.float flonums</code></td>
+<td style="text-align:left">Assemble 0 or more floating point numbers, separated by commas.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.global symbol</code></td>
+<td style="text-align:left"><code>.global</code> makes the symbol <code>symbol</code> visible to the linker <code>ld</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.int intnums</code></td>
+<td style="text-align:left">Assemble 0 or more integers, separated by commas.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.long</code></td>
+<td style="text-align:left">Same as <code>.int</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.macro</code></td>
+<td style="text-align:left"><code>.macro</code> and <code>.endm</code> are used to define macros. Macros can be used to generate assembly output.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.quad bignums</code></td>
+<td style="text-align:left">Assemble 0 or more long integers, separated by commas.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.section name</code></td>
+<td style="text-align:left">The <code>.section</code> command assembles subsequent code into a segment named <code>name</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.short shortnums</code></td>
+<td style="text-align:left">Assemble 0 or more short integers, separated by commas.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.single flonums</code></td>
+<td style="text-align:left">Same as <code>.float</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.size</code></td>
+<td style="text-align:left">This command is usually generated by compilers to add auxiliary debugging information in the symbol table.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.string &quot;str&quot;</code></td>
+<td style="text-align:left">Copies characters from the argument <code>str</code> into the target file. Multiple strings can be specified for copying, separated by commas.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.text subsection</code></td>
+<td style="text-align:left">Instructs <code>as</code> to assemble subsequent statements to the end of the text subsection identified by <code>subsection</code>, which is a pure expression. If the <code>subsection</code> argument is omitted, the default subsection is 0.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.title &quot;heading&quot;</code></td>
+<td style="text-align:left">When generating an assembly listing, use <code>heading</code> as the title.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>.word</code></td>
+<td style="text-align:left">Same as <code>.short</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3><span id="422-symbol"> 4.2.2 Symbol</span></h3>
+<p>A <code>Symbol</code> is composed of letters and underscores, ending with a colon <code>:</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;symbol_name&gt;:</span><br></pre></td></tr></table></figure>
+<h3><span id="423-comment"> 4.2.3 Comment</span></h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/* this is comment */</span><br></pre></td></tr></table></figure>
+<h1><span id="5-practical-application"> 5 Practical Application</span></h1>
+<p><strong>本小节转载摘录自<a target="_blank" rel="noopener" href="https://www.zhihu.com/people/hackeris">不吃油条</a>针对汇编语言的系列文章</strong></p>
+<h2><span id="51-setting-up-the-environment"> 5.1 Setting Up the Environment</span></h2>
+<p><strong>Assembly Tools:</strong></p>
+<ol>
+<li><strong><code>nasm</code>: Stands for <code>Netwide Assembler</code>. It’s a generic assembler that uses <code>Intel Syntax</code>.</strong>
+<ul>
+<li>Lacks the <code>PTR</code> keyword, so <code>mov DWORD PTR [rbp-0xc], edi</code> should be written as <code>mov DWORD [rbp-0xc], edi</code>.</li>
+</ul>
+</li>
+<li><code>masm</code>: Stands for <code>Microsoft Macro Assembler</code>. It’s specifically written by Microsoft for assembly under <code>windows</code>.</li>
+<li><strong><code>gas</code>: Stands for <code>GNU Assembler</code> and uses <code>AT&amp;T Syntax</code>.</strong></li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget http://mirror.centos.org/centos/7/os/x86_64/Packages/nasm-2.10.07-7.el7.x86_64.rpm</span><br><span class="line">yum localinstall -y nasm-2.10.07-7.el7.x86_64.rpm</span><br></pre></td></tr></table></figure>
+<h2><span id="52-first-program"> 5.2 First Program</span></h2>
+<p><strong>Objective of this section: Write assembly code equivalent to the following C++ program</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3><span id="521-intel-version"> 5.2.1 Intel Version</span></h3>
+<p><code>first.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">global main</span><br><span class="line"></span><br><span class="line">main:</span><br><span class="line">    mov eax, 0</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nasm -o first.o -f elf64 first.asm</span><br><span class="line">gcc -o first -m64 first.o</span><br><span class="line"></span><br><span class="line">./first; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h3><span id="522-atampt-version"> 5.2.2 AT&amp;T Version</span></h3>
+<p><code>first.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">    .text</span><br><span class="line">    .globl main</span><br><span class="line">main:</span><br><span class="line">    mov $0, %eax</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">as -o first.o first.asm</span><br><span class="line">gcc -o first -m64 first.o</span><br><span class="line"></span><br><span class="line">./first; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h2><span id="53-use-memory"> 5.3 Use Memory</span></h2>
+<p><strong>Objective of this section: Calculate the value of 1+2 using memory.</strong></p>
+<h3><span id="531-intel-version"> 5.3.1 Intel Version</span></h3>
+<p><code>use_memory.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">global main</span><br><span class="line"></span><br><span class="line">main:</span><br><span class="line">    mov ebx, 1</span><br><span class="line">    mov ecx, 2</span><br><span class="line">    add ebx, ecx</span><br><span class="line">    </span><br><span class="line">    mov [0x233], ebx</span><br><span class="line">    mov eax, [0x233]</span><br><span class="line">    </span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nasm -o use_memory.o -f elf64 use_memory.asm</span><br><span class="line">gcc -o use_memory -m64 use_memory.o</span><br><span class="line"></span><br><span class="line">./use_memory; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<p><strong>The result shows a <code>core dump</code>. This is because in the Linux operating system, memory is controlled by the operating system and cannot be read or written arbitrarily. You can change it to the following form:</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">global main</span><br><span class="line"></span><br><span class="line">main:</span><br><span class="line">    mov ebx, 1                  ;将ebx赋值为1</span><br><span class="line">    mov ecx, 2                  ;将ecx赋值为2</span><br><span class="line">    add ebx, ecx                ;ebx = ebx + ecx</span><br><span class="line">    </span><br><span class="line">    mov [sui_bian_xie], ebx     ; 将ebx的值保存起来</span><br><span class="line">    mov eax, [sui_bian_xie]     ; 将刚才保存的值重新读取出来，放到eax中</span><br><span class="line">    </span><br><span class="line">    ret                         ; 返回，整个程序最后的返回值，就是eax中的值</span><br><span class="line"></span><br><span class="line">section .data</span><br><span class="line">sui_bian_xie   dw    0</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nasm -o use_memory.o -f elf64 use_memory.asm</span><br><span class="line">gcc -o use_memory -m64 use_memory.o</span><br><span class="line"></span><br><span class="line">./use_memory; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<p><strong>In this version of the code, in addition to using <code>[sui_bian_xie]</code> instead of a memory address, there are also two additional lines:</strong></p>
+<ul>
+<li>The first line indicates that the following content, after compilation, will be placed in the data section of the executable file and will be allocated corresponding memory when the program starts.</li>
+<li>The second line is crucial as it describes the actual data. This line means that a 4-byte space is allocated and filled with zeros. The <code>dw</code> (double word) here represents 4 bytes. The <code>sui_bian_xie</code> in front is just a name, which means you can write anything here for ease of distinction when writing code. This <code>sui_bian_xie</code> will be processed by the compiler into a specific address during compilation. We don’t need to worry about the exact address; we just need to know that the <code>sui_bian_xie</code> before and after represents the same thing.</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">section .data</span><br><span class="line">sui_bian_xie   dw    0</span><br></pre></td></tr></table></figure>
+<p>Here’s another example, <code>use_memory2.asm</code>, as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">global main</span><br><span class="line"></span><br><span class="line">main:</span><br><span class="line">    mov eax, [number_1]</span><br><span class="line">    mov ebx, [number_2]</span><br><span class="line">    add eax, ebx</span><br><span class="line">    </span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">section .data</span><br><span class="line">number_1      dw        10</span><br><span class="line">number_2      dw        20</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nasm -o use_memory2.o -f elf64 use_memory2.asm</span><br><span class="line">gcc -o use_memory2 -m64 use_memory2.o</span><br><span class="line"></span><br><span class="line">./use_memory2; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h3><span id="532-atampt-version"> 5.3.2 AT&amp;T Version</span></h3>
+<p><code>use_memory.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">    .text</span><br><span class="line">    .data</span><br><span class="line">sui_bian_xie:</span><br><span class="line">    .int 0</span><br><span class="line">    .text</span><br><span class="line">    .globl main</span><br><span class="line">main:</span><br><span class="line">    mov $1, %ebx</span><br><span class="line">    mov $2, %ecx</span><br><span class="line">    add %ecx, %ebx</span><br><span class="line">    mov %ebx, (sui_bian_xie)</span><br><span class="line">    mov (sui_bian_xie), %eax</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">as -o use_memory.o use_memory.asm</span><br><span class="line">gcc -o use_memory -m64 use_memory.o</span><br><span class="line"></span><br><span class="line">./use_memory; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<p><code>use_memory2.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">    .text</span><br><span class="line">    .data</span><br><span class="line">number_1:</span><br><span class="line">    .int 10</span><br><span class="line">number_2:</span><br><span class="line">    .int 20</span><br><span class="line">    .text</span><br><span class="line">    .globl main</span><br><span class="line">main:</span><br><span class="line">    mov (number_1), %eax</span><br><span class="line">    mov (number_2), %ebx</span><br><span class="line">    add %ebx, %eax</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">as -o use_memory2.o use_memory2.asm</span><br><span class="line">gcc -o use_memory2 -m64 use_memory2.o</span><br><span class="line"></span><br><span class="line">./use_memory2; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h2><span id="54-translate-the-first-c-program"> 5.4 Translate the first C program:</span></h2>
+<p>For the following C program:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> x = <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> y = <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> z = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    x = <span class="number">2</span>;</span><br><span class="line">    y = <span class="number">3</span>;</span><br><span class="line">    z = x + y;</span><br><span class="line">    <span class="keyword">return</span> z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3><span id="541-intel-version"> 5.4.1 Intel Version</span></h3>
+<p><code>first_c.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">global main</span><br><span class="line"></span><br><span class="line">main:</span><br><span class="line">    mov eax, 2</span><br><span class="line">    mov [x], eax</span><br><span class="line">    mov eax, 3</span><br><span class="line">    mov [y], eax</span><br><span class="line">    mov eax, [x]</span><br><span class="line">    mov ebx, [y]</span><br><span class="line">    add eax, ebx</span><br><span class="line">    mov [z], eax</span><br><span class="line">    mov eax, [z]</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">section .data</span><br><span class="line">x       dw      0</span><br><span class="line">y       dw      0</span><br><span class="line">z       dw      0</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nasm -o first_c.o -f elf64 first_c.asm</span><br><span class="line">gcc -o first_c -m64 first_c.o</span><br><span class="line"></span><br><span class="line">./first_c; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h3><span id="542-atampt-version"> 5.4.2 AT&amp;T Version</span></h3>
+<p><code>first_c.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">    .text</span><br><span class="line">    .data</span><br><span class="line">x:</span><br><span class="line">    .int 0</span><br><span class="line">y:</span><br><span class="line">    .int 0</span><br><span class="line">z:</span><br><span class="line">    .int 0</span><br><span class="line">    .text</span><br><span class="line">    .globl main</span><br><span class="line">main:</span><br><span class="line">    mov $2, %eax</span><br><span class="line">    mov %eax, (x)</span><br><span class="line">    mov $3, %eax</span><br><span class="line">    mov %eax, (y)</span><br><span class="line">    mov (x), %eax</span><br><span class="line">    mov (y), %ebx</span><br><span class="line">    add %ebx, %eax</span><br><span class="line">    mov %eax, (z)</span><br><span class="line">    mov (z), %eax</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">as -o first_c.o first_c.asm</span><br><span class="line">gcc -o first_c -m64 first_c.o</span><br><span class="line"></span><br><span class="line">./first_c; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h2><span id="55-translating-c-language-if-statements"> 5.5 Translating C Language if Statements</span></h2>
+<p>For the following C program:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">50</span>;</span><br><span class="line">    <span class="keyword">if</span> (a &gt; <span class="number">10</span>) &#123;</span><br><span class="line">        a = a - <span class="number">10</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3><span id="551-intel-version"> 5.5.1 Intel Version</span></h3>
+<p><code>if_c.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">global main</span><br><span class="line"></span><br><span class="line">main:</span><br><span class="line">    mov eax, 50</span><br><span class="line">    cmp eax, 10             ; 对eax和10进行比较</span><br><span class="line">    jle xiaoyu_dengyu_shi   ; 小于或等于的时候跳转</span><br><span class="line">    sub eax, 10</span><br><span class="line">xiaoyu_dengyu_shi:</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nasm -o if_c.o -f elf64 if_c.asm</span><br><span class="line">gcc -o if_c -m64 if_c.o</span><br><span class="line"></span><br><span class="line">./if_c; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h3><span id="552-atampt-version"> 5.5.2 AT&amp;T Version</span></h3>
+<p><code>if_c.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">    .text</span><br><span class="line">    .globl main</span><br><span class="line">main:</span><br><span class="line">    mov $50, %eax</span><br><span class="line">    cmp $10, %eax</span><br><span class="line">    jle xiaoyu_dengyu_shi</span><br><span class="line">    sub $10, %eax</span><br><span class="line">xiaoyu_dengyu_shi:</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">as -o if_c.o if_c.asm</span><br><span class="line">gcc -o if_c -m64 if_c.o</span><br><span class="line"></span><br><span class="line">./if_c; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h2><span id="56-translating-c-language-loop-statements"> 5.6 Translating C Language Loop Statements</span></h2>
+<p>For the following C program:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> i = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span> (i &lt;= <span class="number">10</span>) &#123;</span><br><span class="line">        sum = sum + i;</span><br><span class="line">        i = i + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Or the <code>for</code> version as follows:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt;= <span class="number">10</span>; i++) &#123;</span><br><span class="line">        sum = sum + i;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>The above two forms of loops, with slight adjustments, can be simplified to the following equivalent program:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> i = <span class="number">1</span>;</span><br><span class="line">loop:</span><br><span class="line">    <span class="keyword">if</span> (i &lt;= <span class="number">10</span>) &#123;</span><br><span class="line">        sum = sum + i;</span><br><span class="line">        i = i + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">goto</span> loop;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3><span id="561-intel-version"> 5.6.1 Intel Version</span></h3>
+<p><code>loop_c.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">global main:</span><br><span class="line"></span><br><span class="line">main:</span><br><span class="line">    mov eax, 0</span><br><span class="line">    mov ebx, 1</span><br><span class="line">loop:</span><br><span class="line">    cmp ebx, 10</span><br><span class="line">    jg end</span><br><span class="line">    add eax, ebx</span><br><span class="line">    add ebx, 1</span><br><span class="line">    jmp loop</span><br><span class="line">end:</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nasm -o loop_c.o -f elf64 loop_c.asm</span><br><span class="line">gcc -o loop_c -m64 loop_c.o</span><br><span class="line"></span><br><span class="line">./loop_c; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h3><span id="562-atampt-version"> 5.6.2 AT&amp;T Version</span></h3>
+<p><code>loop_c.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">    .text</span><br><span class="line">    .globl main</span><br><span class="line">main:</span><br><span class="line">    mov $0, %eax</span><br><span class="line">    mov $1, %ebx</span><br><span class="line">loop:</span><br><span class="line">    cmp $10, %ebx</span><br><span class="line">    jg end</span><br><span class="line">    add %ebx, %eax</span><br><span class="line">    add $1, %ebx</span><br><span class="line">    jmp loop</span><br><span class="line">end:</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">as -o loop_c.o loop_c.asm</span><br><span class="line">gcc -o loop_c -m64 loop_c.o</span><br><span class="line"></span><br><span class="line">./loop_c; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<h2><span id="57-translating-c-language-function-calls"> 5.7 Translating C Language Function Calls</span></h2>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">fibonacci</span><span class="params">(<span class="type">int</span> num)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (num == <span class="number">0</span> || num == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">fibonacci</span>(num - <span class="number">1</span>) + <span class="built_in">fibonacci</span>(num - <span class="number">2</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">fibonacci</span>(<span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>To facilitate conversion to assembly, the program above has been rewritten into the following equivalent program:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">fibonacci</span><span class="params">(<span class="type">int</span> num)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (num == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (num == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> left = <span class="built_in">fibonacci</span>(num - <span class="number">1</span>);</span><br><span class="line">    <span class="type">int</span> right = <span class="built_in">fibonacci</span>(num - <span class="number">2</span>);</span><br><span class="line">    <span class="keyword">return</span> left + right;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">fibonacci</span>(<span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Since registers are global resources, for recursive calls to work, before making a call, it’s necessary to push each register used by the current function onto the stack, and after the call returns, restore the registers. The instructions involved include:</strong></p>
+<ul>
+<li><code>call</code>: Initiates a function call.</li>
+<li><code>ret</code>: Returns from a function.</li>
+<li><code>push</code>: Pushes onto the stack.</li>
+<li><code>pop</code>: Pops from the stack.</li>
+<li><code>rsp</code>: Stack pointer.</li>
+<li><code>rbp</code>: Base pointer.</li>
+</ul>
+<h3><span id="571-intel-version"> 5.7.1 Intel Version</span></h3>
+<p><code>fibonacci_c.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">global main:</span><br><span class="line"></span><br><span class="line">main:</span><br><span class="line">    mov edi, 0xa</span><br><span class="line">    call fibonacci</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">fibonacci:</span><br><span class="line">    push rbp                        ; 保存上一级的栈底指针</span><br><span class="line">    mov rbp, rsp                    ; 上个函数的栈顶指针作为当前函数的栈底指针</span><br><span class="line">    sub rsp, 0xc                    ; 栈顶向下移动 12 个字节，当前栈空间就是 12 个字节</span><br><span class="line">    mov DWORD [rbp-0xc], edi        ; 将入参存到 [rbp-0xc] 位置，(rbp-0x8, rbp-0xc]</span><br><span class="line">    cmp DWORD [rbp-0xc], 0x0        ; if (num == 0)</span><br><span class="line">    je plain_case</span><br><span class="line">    cmp DWORD [rbp-0xc], 0x1        ; if (num ==1 )</span><br><span class="line">    je plain_case</span><br><span class="line">    mov eax, DWORD [rbp-0xc]</span><br><span class="line">    sub eax, 0x1                    ; num - 1</span><br><span class="line">    mov edi, eax                    ; 将入参 num - 1 保存到 edi 中</span><br><span class="line">    call fibonacci</span><br><span class="line">    mov DWORD [rbp-0x4], eax        ; 将 fibonacci(num - 1) 的结果保存到 [rbp-0x4] 位置，(rbp-0x0, rbp-0x4]</span><br><span class="line">    mov eax, DWORD [rbp-0xc]</span><br><span class="line">    sub eax, 0x2                    ; num - 2</span><br><span class="line">    mov edi, eax                    ; 将入参 num - 1 保存到 edi 中</span><br><span class="line">    call fibonacci</span><br><span class="line">    mov DWORD [rbp-0x8], eax        ; 将 fibonacci(num - 2) 的结果保存到 [rbp-0x8] 位置，(rbp-0x4, rbp-0x8]</span><br><span class="line">    mov edx, DWORD [rbp-0x4]</span><br><span class="line">    mov eax, DWORD [rbp-0x8]</span><br><span class="line">    add eax, edx</span><br><span class="line">    mov rsp, rbp                    ; 恢复 rsp</span><br><span class="line">    pop rbp                         ; 恢复 rbp</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">plain_case:</span><br><span class="line">    mov eax, 0x1</span><br><span class="line">    mov rsp, rbp                    ; 恢复 rsp</span><br><span class="line">    pop rbp                         ; 恢复 rbp</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nasm -o fibonacci_c.o -f elf64 fibonacci_c.asm</span><br><span class="line">gcc -o fibonacci_c -m64 fibonacci_c.o</span><br><span class="line"></span><br><span class="line">./fibonacci_c; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<p>Among these, preparing the current stack frame and restoring the parent stack frame can be replaced with <code>enter</code> and <code>leave</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">push rbp                        ; 保存上一级的栈底指针</span><br><span class="line">mov rbp, rsp                    ; 上个函数的栈顶指针作为当前函数的栈底指针</span><br><span class="line">sub rsp, 0xc                    ; 栈顶向下移动 12 个字节，当前栈空间就是 12 个字节</span><br><span class="line"></span><br><span class="line">mov rsp, rbp                    ; 恢复 rsp</span><br><span class="line">pop rbp                         ; 恢复 rbp</span><br></pre></td></tr></table></figure>
+<p>Can be replaced with</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">enter 0xc, 0x0</span><br><span class="line"></span><br><span class="line">leave</span><br></pre></td></tr></table></figure>
+<h3><span id="572-atampt-version"> 5.7.2 AT&amp;T Version</span></h3>
+<p><code>fibonacci_c.asm</code> is as follows:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">    .text</span><br><span class="line">    .globl main</span><br><span class="line">main:</span><br><span class="line">    mov $0xa, %edi </span><br><span class="line">    call fibonacci</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">fibonacci:</span><br><span class="line">    push %rbp                       # 保存上一级的栈底指针</span><br><span class="line">    mov %rsp, %rbp                  # 上个函数的栈顶指针作为当前函数的栈底指针</span><br><span class="line">    sub $0xc, %rsp                  # 栈顶向下移动 12 个字节，当前栈空间就是 12 个字节</span><br><span class="line">    mov %edi, -0xc(%rbp)            # 将入参存到 -0xc(%rbp) 位置，(-0x8(%rbp), -0xc(%rbp)]</span><br><span class="line">    cmp $0x0, -0xc(%rbp)            # if (num == 0)</span><br><span class="line">    je plain_case</span><br><span class="line">    cmp $0x1, -0xc(%rbp)            # if (num ==1 )</span><br><span class="line">    je plain_case</span><br><span class="line">    mov -0xc(%rbp), %eax </span><br><span class="line">    sub $0x1, %eax                  # num - 1</span><br><span class="line">    mov %eax, %edi                  # 将入参 num - 1 保存到 edi 中</span><br><span class="line">    call fibonacci</span><br><span class="line">    mov %eax, -0x4(%rbp)            # 将 fibonacci(num - 1) 的结果保存到 -0x4(%rbp) 位置，(-0x0(%rbp), -0x4(%rbp)]</span><br><span class="line">    mov -0xc(%rbp), %eax </span><br><span class="line">    sub $0x2, %eax                  # num - 2</span><br><span class="line">    mov %eax, %edi                  # 将入参 num - 1 保存到 edi 中</span><br><span class="line">    call fibonacci</span><br><span class="line">    mov %eax, -0x8(%rbp)            # 将 fibonacci(num - 2) 的结果保存到 -0x8(%rbp) 位置，(-0x4(%rbp), -0x8(%rbp)]</span><br><span class="line">    mov -0x4(%rbp), %edx</span><br><span class="line">    mov -0x8(%rbp), %eax </span><br><span class="line">    add %edx, %eax </span><br><span class="line">    mov %rbp, %rsp                  # 恢复 rsp</span><br><span class="line">    pop %rbp                        # 恢复 rbp</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">plain_case:</span><br><span class="line">    mov $0x1, %eax </span><br><span class="line">    mov %rbp, %rsp                  # 恢复 rsp</span><br><span class="line">    pop %rbp                        # 恢复 rbp</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<p>Compile and execute:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">as -o fibonacci_c.o fibonacci_c.asm</span><br><span class="line">gcc -o fibonacci_c -m64 fibonacci_c.o</span><br><span class="line"></span><br><span class="line">./fibonacci_c; <span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+<p>Among these, preparing the current stack frame and restoring the parent stack frame can be replaced with <code>enter</code> and <code>leave</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">push %rbp                       # 保存上一级的栈底指针</span><br><span class="line">mov %rsp, %rbp                  # 上个函数的栈顶指针作为当前函数的栈底指针</span><br><span class="line">sub $0xc, %rsp                  # 栈顶向下移动 12 个字节，当前栈空间就是 12 个字节</span><br><span class="line"></span><br><span class="line">mov %rbp, %rsp                  # 恢复 rsp</span><br><span class="line">pop %rbp                        # 恢复 rbp</span><br></pre></td></tr></table></figure>
+<p>Can be replaced with</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">enter $0xc, $0x0</span><br><span class="line"></span><br><span class="line">leave</span><br></pre></td></tr></table></figure>
+<h1><span id="6-tips"> 6 Tips</span></h1>
+<h2><span id="61-how-to-generate-readable-assembly-code"> 6.1 How to generate readable assembly code</span></h2>
+<p><strong>Approach 1: (Not easy to understand)</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Generate</span></span><br><span class="line">gcc main.cpp -S -g -fverbose-asm</span><br><span class="line"></span><br><span class="line"><span class="comment"># View</span></span><br><span class="line"><span class="built_in">cat</span> main.s</span><br></pre></td></tr></table></figure>
+<p><strong>Approach 2：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 生成目标文件</span></span><br><span class="line">gcc main.cpp -c -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># 反汇编（AT&amp;T Syntax)</span></span><br><span class="line"><span class="comment"># -d: 仅显式可执行部分的汇编</span></span><br><span class="line"><span class="comment"># -r: 在重定位时显示符号名称</span></span><br><span class="line"><span class="comment"># -w: 以多于 80 列的宽度对输出进行格式化</span></span><br><span class="line"><span class="comment"># -C: 对修饰过的 (mangled) 符号名进行解码</span></span><br><span class="line"><span class="comment"># -S: 将源代码与反汇编混合在一起，便于阅读</span></span><br><span class="line">objdump -drwCS main.o</span><br><span class="line"></span><br><span class="line"><span class="comment"># 反汇编（Intel Syntax）</span></span><br><span class="line">objdump -drwCS -M intel main.o</span><br></pre></td></tr></table></figure>
+<h1><span id="7-参考"> 7 参考</span></h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.tutorialspoint.com/assembly_programming/index.htm">Assembly Programming Tutorial</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/X86_instruction_listings">x86 instruction listings</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23618489">汇编语言入门一：环境准备</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23639191">汇编语言入门二：环境有了先过把瘾</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23722940">汇编语言入门三：是时候上内存了</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23779935">汇编语言入门四：打通C和汇编语言</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23845369">汇编语言入门五：流程控制（一）</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23902265">汇编语言入门六：流程控制（二）</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/24129384">汇编语言入门七：函数调用（一）</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/24265088">汇编语言入门八：函数调用（二）</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/24424432">汇编语言入门九：总结与后续（闲扯）</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/41232333/what-is-the-difference-between-mov-rax-eax-and-mov-rax-eax">What is the difference between “mov (%rax),%eax” and “mov %rax,%eax”?</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/1289881/using-gcc-to-produce-readable-assembly">Using GCC to produce readable assembly?</a></li>
+<li><a target="_blank" rel="noopener" href="http://c.biancheng.net/asm/">汇编语言入门教程：汇编语言程序设计指南（精讲版）</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/opendba/article/details/6104485">AT&amp;T ASM Syntax详解</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/53394807">汇编语言–x86汇编指令集大全</a></li>
+<li><a target="_blank" rel="noopener" href="https://flint.cs.yale.edu/cs421/papers/x86-asm/asm.html">x86 Assembly Guide</a></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8E%9F%E5%88%9B/" rel="tag"># 原创</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/11/TPC-H/" rel="prev" title="TPC-H">
+      <i class="fa fa-chevron-left"></i> TPC-H
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/10/15/Cpp-Performance-Optimization/" rel="next" title="Cpp-Performance-Optimization">
+      Cpp-Performance-Optimization <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 1 Intel and AT&amp;T Syntax</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 1.1 Memory Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 2 Instructions</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.1 How to Check Instructions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 2.2 Memory Barriers</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 3 Register</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 3.1 The registers used for parameters</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 4 Assembly Syntax</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.1 Intel Syntax</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.1.1 Comment</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 4.2 AT&amp;T Syntax</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.2.1 Assembler Commands</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.2.2 Symbol</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 4.2.3 Comment</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 5 Practical Application</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.1 Setting Up the Environment</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.2 First Program</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.2.1 Intel Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.2.2 AT&amp;T Version</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.3 Use Memory</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.3.1 Intel Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.3.2 AT&amp;T Version</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.4 Translate the first C program:</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.4.1 Intel Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.4.2 AT&amp;T Version</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.5 Translating C Language if Statements</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.5.1 Intel Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.5.2 AT&amp;T Version</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.6 Translating C Language Loop Statements</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.6.1 Intel Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.6.2 AT&amp;T Version</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 5.7 Translating C Language Function Calls</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.7.1 Intel Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-text"> 5.7.2 AT&amp;T Version</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 6 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> 6.1 How to generate readable assembly code</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"> 7 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
