@@ -32,7 +32,7 @@
 <meta property="og:image" content="http://example.com/images/Cpp-Trivial/jemalloc.png">
 <meta property="og:image" content="http://example.com/images/Cpp-Trivial/analysis-tools.png">
 <meta property="article:published_time" content="2021-08-19T01:38:42.000Z">
-<meta property="article:modified_time" content="2024-03-31T03:50:28.000Z">
+<meta property="article:modified_time" content="2024-05-26T15:33:59.000Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -234,7 +234,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-03-31 11:50:28" itemprop="dateModified" datetime="2024-03-31T11:50:28+08:00">2024-03-31</time>
+                <time title="修改时间：2024-05-26 23:33:59" itemprop="dateModified" datetime="2024-05-26T23:33:59+08:00">2024-05-26</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -282,21 +282,21 @@
 <span id="more"></span>
 <h1 id="1-compile-process"><a class="markdownIt-Anchor" href="#1-compile-process"></a> 1 Compile Process</h1>
 <pre class="mermaid">flowchart TD
-    other_target(["其他目标代码"])
-    linker[["链接器"]]
-    source(["源代码"])
-    compiler[["编译器"]]
-    assembly(["汇编代码"])
-    assembler[["汇编器"]]
-    target(["目标代码"])
-    lib(["库文件"])
-    result_target(["目标代码"])
-    exec(["可执行程序"])
-    result_lib(["库文件"])
+    other_target(["Other Object File"])
+    linker[["Linker"]]
+    source(["Source Code"])
+    compiler[["Compiler"]]
+    assembly(["Assembly Code"])
+    assembler[["Assembler"]]
+    target(["Object File"])
+    lib(["Library File"])
+    result_target(["Object File"])
+    exec(["Executable File"])
+    result_lib(["Library File"])
 
     other_target --> linker
 
-    subgraph 编译过程
+    subgraph Compile Process
         source --> compiler
         compiler --> assembly
         assembly --> assembler
@@ -309,7 +309,39 @@
     linker --> exec
     linker --> result_lib</pre>
 <h1 id="2-library"><a class="markdownIt-Anchor" href="#2-library"></a> 2 Library</h1>
-<h2 id="21-static-library"><a class="markdownIt-Anchor" href="#21-static-library"></a> 2.1 Static Library</h2>
+<h2 id="21-header-file-search-order"><a class="markdownIt-Anchor" href="#21-header-file-search-order"></a> 2.1 Header File Search Order</h2>
+<p><strong>头文件<code>#include &quot;xxx.h&quot;</code>的搜索顺序</strong></p>
+<ol>
+<li>先搜索当前目录</li>
+<li>然后搜索<code>-I</code>参数指定的目录</li>
+<li>再搜索gcc的环境变量<code>CPLUS_INCLUDE_PATH</code>（C程序使用的是<code>C_INCLUDE_PATH</code>）</li>
+<li>最后搜索gcc的内定目录，包括：
+<ul>
+<li><code>/usr/include</code></li>
+<li><code>/usr/local/include</code></li>
+<li><code>/usr/lib/gcc/x86_64-redhat-linux/&lt;gcc version&gt;/include</code>（C头文件）或者<code>/usr/include/c++/&lt;gcc version&gt;</code>（C++头文件）</li>
+</ul>
+</li>
+</ol>
+<p><strong>头文件<code>#include &lt;xxx.h&gt;</code>的搜索顺序</strong></p>
+<ol>
+<li>先搜索<code>-I</code>参数指定的目录</li>
+<li>再搜索gcc的环境变量<code>CPLUS_INCLUDE_PATH</code>（C程序使用的是<code>C_INCLUDE_PATH</code>）</li>
+<li>最后搜索gcc的内定目录，包括：
+<ul>
+<li><code>/usr/include</code></li>
+<li><code>/usr/local/include</code></li>
+<li><code>/usr/lib/gcc/x86_64-redhat-linux/&lt;gcc version&gt;/include</code>（C头文件）或者<code>/usr/include/c++/&lt;gcc version&gt;</code>（C++头文件）</li>
+</ul>
+</li>
+</ol>
+<p><strong>可以在编译的时候加上<code>-v</code>参数，就可以看到最准确的搜索路径</strong></p>
+<ul>
+<li>每个版本的编译器都有自己的头文件，这个路径应该是在构建编译器的时候写到二进制里面去的</li>
+<li><code>gcc -v -c -xc++ /dev/null</code></li>
+<li><code>clang -v -c -xc++ /dev/null</code></li>
+</ul>
+<h2 id="22-static-library"><a class="markdownIt-Anchor" href="#22-static-library"></a> 2.2 Static Library</h2>
 <p><strong>后缀：<code>*.a</code></strong></p>
 <p><strong>编译时如何链接静态链接库：</strong></p>
 <ul>
@@ -325,23 +357,26 @@
 <li><code>-Xlinker -Map=a.map</code>：将链接时的信息记录到<code>a.map</code>中</li>
 <li><code>nm/objdump/readelf/strings</code>或许可以找到一些静态库相关的<code>hint</code></li>
 </ul>
-<h2 id="22-dynamic-library"><a class="markdownIt-Anchor" href="#22-dynamic-library"></a> 2.2 Dynamic Library</h2>
+<h2 id="23-dynamic-library"><a class="markdownIt-Anchor" href="#23-dynamic-library"></a> 2.3 Dynamic Library</h2>
 <p><strong>后缀：<code>*.so</code></strong></p>
 <p><strong>如何查看二进制的动态链接库：<code>ldd</code> (list dynamic dependencies)</strong></p>
 <p><strong>查看动态链接库绑定信息：<code>ldconfig -v</code>、<code>ldconfig -p</code></strong></p>
-<h3 id="221-linuxs-so-version-mechanism"><a class="markdownIt-Anchor" href="#221-linuxs-so-version-mechanism"></a> 2.2.1 Linux’s so version mechanism</h3>
+<ul>
+<li>安装新的库后，需要<code>sudo ldconfig</code>更新缓存，否则运行时可能会找不到对应的<code>so</code>文件</li>
+</ul>
+<h3 id="231-linuxs-so-version-mechanism"><a class="markdownIt-Anchor" href="#231-linuxs-so-version-mechanism"></a> 2.3.1 Linux’s so version mechanism</h3>
 <p><strong>本小节转载摘录自<a target="_blank" rel="noopener" href="https://blog.ideawand.com/2020/02/15/how-does-linux-shared-library-versioning-works/">一文读懂Linux下动态链接库版本管理及查找加载方式</a></strong></p>
 <p>在<code>/lib64</code>、<code>/usr/lib64</code>、<code>/usr/local/lib64</code>目录下，会看到很多具有下列特征的软连接，其中<code>x</code>、<code>y</code>、<code>z</code>为数字, 那么这些软连接和他们后面的数字有什么用途呢？</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">libfoo.so    -&gt;  libfoo.so.x</span><br><span class="line">libfoo.so.x  -&gt;  libfoo.so.x.y.z</span><br><span class="line">libbar.so.x  -&gt;  libbar.so.x.y</span><br></pre></td></tr></table></figure>
 <p>这里的<code>x</code>、<code>y</code>、<code>z</code>分别代表的是这个<code>so</code>的主版本号（<code>MAJOR</code>），次版本号（<code>MINOR</code>），以及发行版本号（<code>RELEASE</code>），对于这三个数字各自的含义，以及什么时候会进行增长，不同的文献上有不同的解释，不同的组织遵循的规定可能也有细微的差别，但有一个可以肯定的事情是：主版本号（<code>MAJOR</code>）不同的两个<code>so</code>库，所暴露出的<code>API</code>接口是不兼容的。而对于次版本号，和发行版本号，则有着不同定义，其中一种定义是：次要版本号表示<code>API</code>接口的定义发生了改变（比如参数的含义发生了变化），但是保持向前兼容；而发行版本号则是函数内部的一些功能调整、优化、BUG修复，不涉及<code>API</code>接口定义的修改</p>
-<h4 id="2211-so-related-names"><a class="markdownIt-Anchor" href="#2211-so-related-names"></a> 2.2.1.1 so Related Names</h4>
+<h4 id="2311-so-related-names"><a class="markdownIt-Anchor" href="#2311-so-related-names"></a> 2.3.1.1 so Related Names</h4>
 <p><strong>介绍一下在<code>so</code>查找过程中的几个名字</strong></p>
 <ul>
 <li><strong><code>SONAME</code>：一组具有兼容<code>API</code>的<code>so</code>库所共有的名字，其命名特征是<code>lib&lt;库名&gt;.so.&lt;数字&gt;</code>这种形式的</strong></li>
 <li><strong><code>real name</code>：是真实具有<code>so</code>库可执行代码的那个文件，之所以叫<code>real</code>是相对于<code>SONAME</code>和<code>linker name</code>而言的，因为另外两种名字一般都是一个软连接，这些软连接最终指向的文件都是具有<code>real name</code>命名形式的文件。<code>real name</code>的命名格式中，可能有<code>2</code>个数字尾缀，也可能有<code>3</code>个数字尾缀，但这不重要。你只要记住，真实的那个，不是以软连接形式存在的，就是一个<code>real name</code></strong></li>
 <li><strong><code>linker name</code>：这个名字只是给编译工具链中的连接器使用的名字，和程序运行并没有什么关系，仅仅在链接得到可执行文件的过程中才会用到。它的命名特征是以<code>lib</code>开头，以<code>.so</code>结尾，不带任何数字后缀的格式</strong></li>
 </ul>
-<h4 id="2212-soname"><a class="markdownIt-Anchor" href="#2212-soname"></a> 2.2.1.2 SONAME</h4>
+<h4 id="2312-soname"><a class="markdownIt-Anchor" href="#2312-soname"></a> 2.3.1.2 SONAME</h4>
 <p>假设在你的Linux系统中有3个不同版本的<code>bar</code>共享库，他们在磁盘上保存的文件名如下：</p>
 <ul>
 <li><code>/usr/lib64/libbar.so.1.3</code></li>
@@ -362,7 +397,7 @@
 <li>通过修改软连接的指向，可以让应用程序在互相兼容的<code>so</code>库中方便切换使用哪一个</li>
 <li>通常情况下，大家使用最新版本即可，除非是为了在特定版本下做一些调试、开发工作</li>
 </ul>
-<h4 id="2213-linker-name"><a class="markdownIt-Anchor" href="#2213-linker-name"></a> 2.2.1.3 linker name</h4>
+<h4 id="2313-linker-name"><a class="markdownIt-Anchor" href="#2313-linker-name"></a> 2.3.1.3 linker name</h4>
 <p>上一节中我们提到，可执行文件里会存储精确到主版本号的<code>SONAME</code>，但是在编译生成可执行文件的过程中，编译器怎么知道应该用哪个主版本号呢？为了回答这个问题，我们从编译链接的过程来梳理一下</p>
 <p>假设我们使用<code>gcc</code>编译生成一个依赖<code>foo</code>库的可执行文件<code>A</code>：<code>gcc A.c -lfoo -o A</code></p>
 <p>熟悉<code>gcc</code>编译的读者们肯定知道，上述的<code>-l</code>标记后跟随了<code>foo</code>参数，表示我们告诉<code>gcc</code>在编译的过程中需要用到一个外部的名为<code>foo</code>的库，但这里有一个问题，我们并没有说使用哪一个主版本，我们只给出了一个名字。为了解决这个问题，软链接再次发挥作用，具体流程如下：</p>
@@ -375,8 +410,8 @@
 <li>编译器从软链接指向的文件里找到其<code>SONAME</code>，并将<code>SONAME</code>写入到生成的可执行文件中</li>
 <li>通过改变<code>linker name</code>软连接的指向，可以将不同主版本号的<code>SONAME</code>写入到生成的可执行文件中</li>
 </ul>
-<h2 id="23-search-order"><a class="markdownIt-Anchor" href="#23-search-order"></a> 2.3 Search Order</h2>
-<h3 id="231-compilation-time"><a class="markdownIt-Anchor" href="#231-compilation-time"></a> 2.3.1 Compilation Time</h3>
+<h2 id="24-search-order"><a class="markdownIt-Anchor" href="#24-search-order"></a> 2.4 Search Order</h2>
+<h3 id="241-compilation-time"><a class="markdownIt-Anchor" href="#241-compilation-time"></a> 2.4.1 Compilation Time</h3>
 <p>During compilation, the order in which the linker (such as GNU’s <code>ld</code>) searches for library files follows certain rules, ensuring that the linker can find and link the correct version of the library. The search order typically goes as follows:</p>
 <ul>
 <li><strong>Library files specified directly in the command line</strong>: If the compilation command directly specifies the full path to the library files, the linker will first use these specified paths. For example, <code>gcc main.c /path/to/libmylibrary.a</code> will link directly to the library at the specified path.</li>
@@ -394,17 +429,21 @@
 <li><strong>Augmentation by GCC</strong>: GCC might automatically augment <code>LIBRARY_PATH</code> with additional paths based on its internal logic or other environment variables. For instance, GCC might add paths related to its internal libraries or the target architecture’s standard library locations.</li>
 <li><strong>Security Restrictions</strong>: In some secure or restricted environments, modifications to environment variables like <code>LIBRARY_PATH</code> may be ignored or overridden by security policies. This is often seen in managed or shared computing environments where administrators want to control the software linking process strictly.</li>
 </ul>
-<h3 id="232-runtime"><a class="markdownIt-Anchor" href="#232-runtime"></a> 2.3.2 Runtime</h3>
+<h3 id="242-runtime"><a class="markdownIt-Anchor" href="#242-runtime"></a> 2.4.2 Runtime</h3>
 <p>The runtime search order for shared libraries (.so files) on Unix-like systems is determined by several factors and environment settings. Here’s a general overview of how the runtime search order works: (<strong>Refer to <code>man ld.so</code> for details</strong>)</p>
 <ul>
-<li><strong><code>RPATH</code> and <code>RUNPATH</code></strong>: When a binary is compiled, it can be linked with shared libraries using <code>-rpath</code> or <code>-runpath</code> linker options. These options embed paths directly into the binary where the dynamic linker (<code>ld.so</code> or similar) should look for shared libraries. <code>RPATH</code> is checked first, but if <code>RUNPATH</code> is also specified, it takes precedence over <code>RPATH</code> when the dynamic linker is configured to use <code>DT_RUNPATH</code> entries (a newer feature).</li>
+<li><strong><code>RPATH</code> and <code>RUNPATH</code></strong>: When a binary is compiled, it can be linked with shared libraries using <code>-rpath</code> or <code>-runpath</code> linker options. These options embed paths directly into the binary where the dynamic linker (<code>ld.so</code> or similar) should look for shared libraries. <code>RPATH</code> is checked first, but if <code>RUNPATH</code> is also specified, it takes precedence over <code>RPATH</code> when the dynamic linker is configured to use <code>DT_RUNPATH</code> entries (a newer feature).
+<ul>
+<li>How to check the runpath of a binary: <code>readelf -d &lt;binary&gt; | grep 'RPATH\|RUNPATH'</code></li>
+</ul>
+</li>
 <li><strong><code>LD_LIBRARY_PATH</code> Environment Variable</strong>: Before falling back to default system paths, the dynamic linker checks the directories listed in the <code>LD_LIBRARY_PATH</code> environment variable, if it is set. This allows users to override the system’s default library paths or the paths embedded in the binary. However, for security reasons, this variable is ignored for setuid/setgid executables.</li>
 <li><strong>Default System Library Paths</strong>: If the library is not found in any of the previously mentioned locations, the linker searches the default library paths. These typically include <code>/lib</code>, <code>/usr/lib</code>, and their architecture-specific counterparts (e.g., <code>/lib/x86_64-linux-gnu</code> on some Linux distributions). The exact default paths can vary between systems and are defined in the dynamic linker’s configuration file (usually <code>/etc/ld.so.conf</code>), which can include additional directories beyond the standard ones.</li>
 <li><strong>DT_RPATH and DT_RUNPATH of Used Libraries (Dependencies)</strong>: If the shared library being loaded has dependencies on other shared libraries, the dynamic linker also searches the <code>RPATH</code> and <code>RUNPATH</code> of those dependencies. This step ensures that all nested dependencies are resolved correctly.</li>
 <li><strong><code>/etc/ld.so.cache</code></strong>: This is a compiled list of candidate libraries previously found in the configured system library paths. The dynamic linker uses this cache to speed up the lookup process. The cache can be updated with the <code>ldconfig</code> command, which scans the directories in <code>/etc/ld.so.conf</code> and the standard directories for libraries, then builds the cache file.</li>
 <li><strong>Built-in System Paths</strong>: Finally, if the library still hasn’t been found, the linker falls back to built-in system paths hardcoded into the dynamic linker. This usually includes the standard directories like <code>/lib</code> and <code>/usr/lib</code>.</li>
 </ul>
-<h4 id="2321-how-to-update-etcldsocache"><a class="markdownIt-Anchor" href="#2321-how-to-update-etcldsocache"></a> 2.3.2.1 How to update <code>/etc/ld.so.cache</code></h4>
+<h4 id="2421-how-to-update-etcldsocache"><a class="markdownIt-Anchor" href="#2421-how-to-update-etcldsocache"></a> 2.4.2.1 How to update <code>/etc/ld.so.cache</code></h4>
 <p>Adding content directly to <code>/etc/ld.so.cache</code> is not recommended because it’s a binary file generated by the <code>ldconfig</code> tool. Modifying it manually can lead to system instability or even make your system unbootable. The correct way to add new libraries to the cache involves placing the library files in a directory that is scanned by <code>ldconfig</code> and then running <code>ldconfig</code> to update the cache.</p>
 <p>Here’s how you can add a new library to the system and update <code>/etc/ld.so.cache</code>:</p>
 <p><strong>Place the Library in a Standard Directory</strong></p>
@@ -423,22 +462,31 @@
 <p>After placing your libraries in the appropriate directory and configuring any custom paths, you need to update <code>/etc/ld.so.cache</code> by running <code>ldconfig</code>. This step requires root privileges:</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ldconfig</span><br></pre></td></tr></table></figure>
 <p>This command scans the directories listed in <code>/etc/ld.so.conf</code>, its <code>*.conf</code> includes in <code>/etc/ld.so.conf.d/</code>, and the default directories (<code>/lib</code>, <code>/usr/lib</code>). It then updates <code>/etc/ld.so.cache</code> with the paths to the available libraries.</p>
-<h2 id="24-link-order"><a class="markdownIt-Anchor" href="#24-link-order"></a> 2.4 Link Order</h2>
+<p><strong>Check</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ldconfig -p | grep /custom/lib</span><br></pre></td></tr></table></figure>
+<p><strong>All-in-one Command</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;/custom/lib&#x27;</span> | sudo <span class="built_in">tee</span> /etc/ld.so.conf.d/mylibs.conf &amp;&amp; sudo ldconfig</span><br></pre></td></tr></table></figure>
+<h2 id="25-link-order"><a class="markdownIt-Anchor" href="#25-link-order"></a> 2.5 Link Order</h2>
 <p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/45135/why-does-the-order-in-which-libraries-are-linked-sometimes-cause-errors-in-gcc">Why does the order in which libraries are linked sometimes cause errors in GCC?</a></p>
-<p><strong>示例：</strong></p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt; a.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">extern int a;</span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="built_in">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> &gt; b.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">extern int b;</span><br><span class="line">int a = b;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> &gt; d.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">int b;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">g++ -c b.cpp -o b.o</span><br><span class="line">ar cr libb.a b.o</span><br><span class="line">g++ -c d.cpp -o d.o</span><br><span class="line">ar cr libd.a d.o</span><br><span class="line"></span><br><span class="line">g++ -L. -ld -lb a.cpp <span class="comment"># wrong order</span></span><br><span class="line">g++ -L. -lb -ld a.cpp <span class="comment"># wrong order</span></span><br><span class="line">g++ a.cpp -L. -ld -lb <span class="comment"># wrong order</span></span><br><span class="line">g++ a.cpp -L. -lb -ld <span class="comment"># right order</span></span><br></pre></td></tr></table></figure>
-<p><strong>链接器解析过程如下：从左到右扫描目标文件、库文件</strong></p>
+<h3 id="251-static-linking"><a class="markdownIt-Anchor" href="#251-static-linking"></a> 2.5.1 Static Linking</h3>
+<p>In static linking, the order in which libraries are linked can be very important. This is because the linker, which resolves symbols and references in your code, processes libraries in the order they are specified. If one library depends on symbols from another, the dependent library must be listed first. This order dependency ensures that all symbols are resolved correctly at the time of linking, and the final executable contains all necessary code.</p>
+<p><strong>Here’s the description of the link process:</strong></p>
 <ul>
-<li>记录未解析的符号</li>
-<li>若发现某个库文件可以解决「未解析符号表」中的某个符号，则将该符号从「未解析符号表」中删除</li>
+<li><strong>Scan Object Files and Libraries</strong>: The linker scans the object files and libraries in the order they are specified on the command line from left to right. This order is crucial because it can determine which definitions of symbols are used when multiple definitions are present.</li>
+<li><strong>Record Symbols</strong>: As the linker scans, it builds tables of symbols. It distinguishes between undefined symbols (those referenced but not defined in the scanned files) and defined symbols (those that have definitions in the scanned files).</li>
+<li><strong>Resolve Symbols</strong>: When the linker encounters an undefined symbol, it looks for a definition of that symbol in the subsequent files and libraries. If a library is found that resolves an undefined symbol, the linker links that library’s code to satisfy the symbol reference. Libraries are not fully linked unless they contain symbols that resolve undefined references.</li>
+<li><strong>Remove Resolved Symbols from Unresolved Symbols Table</strong>: Once a symbol is resolved, it is removed from the unresolved symbols table. If there are any unresolved symbols after all files and libraries have been processed, the linker typically throws an error indicating unresolved symbols.</li>
 </ul>
-<p><strong>因此，假设<code>libA</code>依赖<code>libB</code>，那么需要将<code>libA</code>写前面，<code>libB</code>写后面</strong></p>
-<h2 id="25-environment-variables"><a class="markdownIt-Anchor" href="#25-environment-variables"></a> 2.5 Environment Variables</h2>
+<p><strong>Example:</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt; a.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">extern int a;</span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="built_in">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> &gt; b.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">extern int b;</span><br><span class="line">int a = b;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> &gt; d.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">int b;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">g++ -c b.cpp -o b.o</span><br><span class="line">ar cr libb.a b.o</span><br><span class="line">g++ -c d.cpp -o d.o</span><br><span class="line">ar cr libd.a d.o</span><br><span class="line"></span><br><span class="line">g++ -L. -ld -lb a.cpp <span class="comment"># wrong order</span></span><br><span class="line">g++ -L. -lb -ld a.cpp <span class="comment"># wrong order</span></span><br><span class="line">g++ a.cpp -L. -ld -lb <span class="comment"># wrong order</span></span><br><span class="line">g++ a.cpp -L. -lb -ld <span class="comment"># right order</span></span><br></pre></td></tr></table></figure>
+<h3 id="252-dynamic-linking"><a class="markdownIt-Anchor" href="#252-dynamic-linking"></a> 2.5.2 Dynamic Linking</h3>
+<p>In dynamic linking, the order of linking libraries is typically less critical. Libraries are not combined into a single executable at compile time; instead, references to these libraries are resolved at runtime. The dynamic linker/loader handles the process of loading the necessary libraries into memory when the program is executed and resolves symbols on the fly. This means that the system can usually manage dependencies more flexibly, and the specific order in which libraries are listed is not as crucial.</p>
+<h2 id="26-environment-variables"><a class="markdownIt-Anchor" href="#26-environment-variables"></a> 2.6 Environment Variables</h2>
 <p>Please refer to <code>man ld.so</code> for details:</p>
-<h3 id="251-ld_preload"><a class="markdownIt-Anchor" href="#251-ld_preload"></a> 2.5.1 LD_PRELOAD</h3>
+<h3 id="261-ld_preload"><a class="markdownIt-Anchor" href="#261-ld_preload"></a> 2.6.1 LD_PRELOAD</h3>
 <p>Lists shared libraries that are loaded (preloaded) before any other shared libraries. This can be used to override functions in other shared objects.</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt; sample.c &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;stdio.h&gt;</span></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Calling the fopen() function...\n&quot;</span>);</span><br><span class="line">    FILE *fd = fopen(<span class="string">&quot;test.txt&quot;</span>,<span class="string">&quot;r&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (!fd) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;fopen() returned NULL\n&quot;</span>);</span><br><span class="line">        <span class="built_in">return</span> 1;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;fopen() succeeded\n&quot;</span>);</span><br><span class="line">    <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">gcc -o sample sample.c</span><br><span class="line"></span><br><span class="line">./sample </span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">fopen() returned NULL</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">touch</span> test.txt</span><br><span class="line">./sample</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">fopen() succeeded</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> &gt; myfopen.c &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;stdio.h&gt;</span></span><br><span class="line">FILE *fopen(const char *path, const char *mode) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;This is my fopen!\n&quot;</span>);</span><br><span class="line">    <span class="built_in">return</span> NULL;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">gcc -o myfopen.so myfopen.c -Wall -fPIC -shared</span><br><span class="line"></span><br><span class="line">LD_PRELOAD=./myfopen.so ./sample</span><br><span class="line"><span class="comment">#-------------------------↓↓↓↓↓↓-------------------------</span></span><br><span class="line">Calling the fopen() <span class="keyword">function</span>...</span><br><span class="line">This is my fopen!</span><br><span class="line">fopen() returned NULL</span><br><span class="line"><span class="comment">#-------------------------↑↑↑↑↑↑-------------------------</span></span><br></pre></td></tr></table></figure>
-<h3 id="252-ld_debug"><a class="markdownIt-Anchor" href="#252-ld_debug"></a> 2.5.2 LD_DEBUG</h3>
+<h3 id="262-ld_debug"><a class="markdownIt-Anchor" href="#262-ld_debug"></a> 2.6.2 LD_DEBUG</h3>
 <p>Usage: <code>LD_DEBUG=&lt;type&gt; &lt;binary&gt;</code>, here are all available types.</p>
 <ol>
 <li><code>all</code>: Print all debugging information (except statistics and unused; see below).</li>
@@ -452,12 +500,12 @@
 <li><code>unused</code>: Determine unused DSOs.</li>
 <li><code>versions</code>: Display version dependencies.</li>
 </ol>
-<h2 id="26-how-to-make-library"><a class="markdownIt-Anchor" href="#26-how-to-make-library"></a> 2.6 How to make library</h2>
-<h3 id="261-how-to-make-static-library"><a class="markdownIt-Anchor" href="#261-how-to-make-static-library"></a> 2.6.1 How to make static library</h3>
+<h2 id="27-how-to-make-library"><a class="markdownIt-Anchor" href="#27-how-to-make-library"></a> 2.7 How to make library</h2>
+<h3 id="271-how-to-make-static-library"><a class="markdownIt-Anchor" href="#271-how-to-make-static-library"></a> 2.7.1 How to make static library</h3>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt; foo.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">void <span class="function"><span class="title">foo</span></span>() &#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;hello, this is foo&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">cat &gt; main.cpp &lt;&lt; &#x27;EOF&#x27;</span></span><br><span class="line"><span class="string">void foo();</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">int main() &#123;</span></span><br><span class="line"><span class="string">    foo();</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">gcc -o foo.o -c foo.cpp -O3 -Wall -fPIC</span></span><br><span class="line"><span class="string">ar rcs libfoo.a foo.o</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">gcc -o main main.cpp -O3 -L . -lfoo -lstdc++</span></span><br><span class="line"><span class="string">./main</span></span><br></pre></td></tr></table></figure>
-<h3 id="262-how-to-make-dynamic-library"><a class="markdownIt-Anchor" href="#262-how-to-make-dynamic-library"></a> 2.6.2 How to make dynamic library</h3>
+<h3 id="272-how-to-make-dynamic-library"><a class="markdownIt-Anchor" href="#272-how-to-make-dynamic-library"></a> 2.7.2 How to make dynamic library</h3>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt; foo.cpp &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">void <span class="function"><span class="title">foo</span></span>() &#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;hello, this is foo&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">cat &gt; main.cpp &lt;&lt; &#x27;EOF&#x27;</span></span><br><span class="line"><span class="string">void foo();</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">int main() &#123;</span></span><br><span class="line"><span class="string">    foo();</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">gcc -o foo.o -c foo.cpp -O3 -Wall -fPIC</span></span><br><span class="line"><span class="string">gcc -shared -o libfoo.so foo.o</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">gcc -o main main.cpp -O3 -L . -lfoo -lstdc++</span></span><br><span class="line"><span class="string">./main # ./main: error while loading shared libraries: libfoo.so: cannot open shared object file: No such file or directory</span></span><br><span class="line"><span class="string">gcc -o main main.cpp -O3 -L . -Wl,-rpath=`pwd` -lfoo -lstdc++</span></span><br><span class="line"><span class="string">./main</span></span><br></pre></td></tr></table></figure>
-<h2 id="27-abi"><a class="markdownIt-Anchor" href="#27-abi"></a> 2.7 ABI</h2>
+<h2 id="28-abi"><a class="markdownIt-Anchor" href="#28-abi"></a> 2.8 ABI</h2>
 <p><code>ABI</code>全称是<code>Application Binary Interface</code>，它是两个二进制模块间的接口，二进制模块可以是<code>lib</code>，可以是操作系统的基础设施，或者一个正在运行的用户程序</p>
 <blockquote>
 <p>An ABI defines how data structures or computational routines are accessed in machine code, which is a low-level, hardware-dependent format</p>
@@ -478,7 +526,16 @@
 <li>如何发起系统调用</li>
 <li><code>lib</code>、<code>object file</code>等的文件格式</li>
 </ol>
-<h3 id="271-language-specific-abi"><a class="markdownIt-Anchor" href="#271-language-specific-abi"></a> 2.7.1 Language-Specific ABI</h3>
+<h3 id="281-cxxabih"><a class="markdownIt-Anchor" href="#281-cxxabih"></a> 2.8.1 cxxabi.h</h3>
+<p>Some commonly used functions for handling C++ ABI (Application Binary Interface), defined in <code>&lt;cxxabi.h&gt;</code>, include(The prefix <code>__cxa</code> stands for <code>C++ eXception ABI</code>):</p>
+<ul>
+<li><code>abi::__cxa_demangle</code>: Used to demangle symbol names generated by the C++ compiler into a human-readable form. This is useful in debugging and symbol resolution as compilers often mangle function names to distinguish different function overloads, template instantiations, etc.</li>
+<li><code>abi::__cxa_throw</code>: Used to throw exceptions in C++ exception handling. It’s typically called within a <code>try-catch</code> block’s <code>throw</code> statement to throw an exception object of a specific type.</li>
+<li><code>abi::__cxa_allocate_exception</code>: Used to allocate memory for an exception object. It takes the size of the exception object as a parameter and returns a pointer to the allocated memory.</li>
+<li><code>abi::__cxa_current_exception_type</code>: Used to retrieve type information for the current exception. It returns a pointer to a <code>std::type_info</code> object that describes the type of the current thrown exception.</li>
+<li><code>abi::__cxa_bad_cast</code>: Used to throw a <code>std::bad_cast</code> exception when a <code>dynamic_cast</code> fails. It’s typically called when a runtime type conversion fails.</li>
+</ul>
+<h3 id="282-language-specific-abi"><a class="markdownIt-Anchor" href="#282-language-specific-abi"></a> 2.8.2 Language-Specific ABI</h3>
 <p>摘自<a target="_blank" rel="noopener" href="https://www.quora.com/What-is-C-ABI">What is C++ ABI?</a></p>
 <blockquote>
 <p>Often, a platform will specify a “base ABI” that specifies how to use that platform’s basic services and that is often done in terms of C language capabilities. However, other programming languages like C++ may require support for additional mechanisms. That’s how you get to language-specific ABIs, including a variety of C++ ABIs. Among the concerns of a C++ ABI are the following:</p>
@@ -492,7 +549,7 @@
 <li>How are spilled inline functions and template instantiations handled? After all, different object files might use/spill the same instances, which could lead to collisions.</li>
 </ul>
 </blockquote>
-<h3 id="272-dual-abi"><a class="markdownIt-Anchor" href="#272-dual-abi"></a> 2.7.2 Dual ABI</h3>
+<h3 id="283-dual-abi"><a class="markdownIt-Anchor" href="#283-dual-abi"></a> 2.8.3 Dual ABI</h3>
 <p><a target="_blank" rel="noopener" href="https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html">Dual ABI</a></p>
 <blockquote>
 <p>In the GCC 5.1 release libstdc++ introduced a new library ABI that includes new implementations of std::string and std::list. These changes were necessary to conform to the 2011 C++ standard which forbids Copy-On-Write strings and requires lists to keep track of their size.</p>
@@ -507,15 +564,17 @@
 <li><a target="_blank" rel="noopener" href="https://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html">ABI Policy and Guidelines</a></li>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/556726543">C/C++ ABI兼容那些事儿</a></li>
 </ul>
-<h3 id="273-abi-mismatch-issue"><a class="markdownIt-Anchor" href="#273-abi-mismatch-issue"></a> 2.7.3 ABI Mismatch Issue</h3>
+<h3 id="284-abi-mismatch-issue"><a class="markdownIt-Anchor" href="#284-abi-mismatch-issue"></a> 2.8.4 ABI Mismatch Issue</h3>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># compile works fine</span><br><span class="line">gcc -o main main.cpp -O0 -lstdc++</span><br><span class="line"></span><br><span class="line"># Errors occur at runtime</span><br><span class="line">./main</span><br><span class="line"></span><br><span class="line"># ./main: /lib64/libstdc++.so.6: version `GLIBCXX_3.4.29&#x27; not found (required by ./main)</span><br><span class="line"># ./main: /lib64/libstdc++.so.6: version `GLIBCXX_3.4.30&#x27; not found (required by ./main)</span><br><span class="line"># ./main: /lib64/libstdc++.so.6: version `CXXABI_1.3.13&#x27; not found (required by ./main)</span><br></pre></td></tr></table></figure>
 <p>The errors you’re encountering at runtime indicate that your application (<code>main</code>) is linked against newer versions of the C++ standard library (<code>libstdc++</code>) and C++ ABI (<code>CXXABI</code>) than are available on your system. This typically happens when your application is compiled with a newer version of GCC than the one installed on the runtime system.</p>
 <ul>
 <li><code>gcc -o main main.cpp -O0 -lstdc++ -fuse-ld=gold -Wl,--verbose</code>: Check the dynamic lib path that used at link time.</li>
 <li><code>ldd main</code>: Check the dynamic lib path that used at runtime.</li>
 </ul>
-<h2 id="28-commonly-used-librarys"><a class="markdownIt-Anchor" href="#28-commonly-used-librarys"></a> 2.8 Commonly-used Librarys</h2>
-<p><strong><code>libc/glibc/glib</code>（<code>man libc/glibc</code>）</strong></p>
+<h2 id="29-commonly-used-librarys"><a class="markdownIt-Anchor" href="#29-commonly-used-librarys"></a> 2.9 Commonly-used Librarys</h2>
+<p><a target="_blank" rel="noopener" href="https://docs.oracle.com/cd/E86824_01/html/E54772/makehtml-id-7.html#scrolltoc">Library Interfaces and Headers</a></p>
+<h3 id="291-libcglibcglib"><a class="markdownIt-Anchor" href="#291-libcglibcglib"></a> 2.9.1 libc/glibc/glib</h3>
+<p><strong>You can refer to <code>man libc/glibc</code> for details</strong></p>
 <ul>
 <li><code>libc</code>实现了C的标准库函数，例如<code>strcpy()</code>，以及<code>POSIX</code>函数，例如系统调用<code>getpid()</code>。此外，不是所有的C标准库函数都包含在<code>libc</code>中，比如大多数<code>math</code>相关的库函数都封装在<code>libm</code>中，大多数压缩相关的库函数都封装在<code>libz</code>中
 <ul>
@@ -538,19 +597,35 @@
 <li><code>gcc -print-file-name=libc.so</code></li>
 <li><code>strings /lib64/libc.so.6 | grep GLIBC</code>：查看<code>glibc</code>的API的版本</li>
 </ul>
-<p><strong>其他常用动态库可以参考<a target="_blank" rel="noopener" href="https://docs.oracle.com/cd/E86824_01/html/E54772/makehtml-id-7.html#scrolltoc">Library Interfaces and Headers</a>中的介绍</strong></p>
-<ol>
-<li><code>libdl</code>：dynamic linking library
+<h3 id="292-libdl"><a class="markdownIt-Anchor" href="#292-libdl"></a> 2.9.2 libdl</h3>
+<p>The <code>libdl</code> library plays a crucial role in the Linux environment as it provides dynamic linking capabilities. Here’s a breakdown of its primary functions:</p>
 <ul>
-<li><strong><code>libdl</code>主要作用是将那些早已存在于<code>libc</code>中的<code>private dl functions</code>对外露出，便于用户实现一些特殊的需求。<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/31155824/dlopen-in-libc-and-libdl">dlopen in libc and libdl</a></strong></li>
-<li>可以通过<code>readelf -s /lib64/ld-linux-x86-64.so.2 | grep PRIVATE</code>查看露出的这些方法</li>
+<li><strong>Loading of Shared Libraries</strong>: <code>libdl</code> enables the dynamic loading of shared libraries into memory during the runtime of an application. This is done without these libraries being statically linked to the executable, allowing for a more flexible and modular approach to application development and deployment.</li>
+<li><strong>Symbol Resolution</strong>: Once a shared library is loaded, <code>libdl</code> provides functions to look up symbols (functions and variables) within these libraries. This allows an application to call functions whose addresses are only known at runtime, facilitating the use of plugins or modules that can extend the application’s capabilities without needing to recompile the application.</li>
+<li><strong>Dynamic Unloading</strong>: It also supports the unloading of shared libraries from memory. This is useful for applications that need to load and unload modules dynamically based on runtime conditions, optimizing memory usage and functionality on the fly.</li>
+</ul>
+<p><strong>The primary functions provided by <code>libdl</code> include:</strong></p>
+<ul>
+<li><code>dlopen()</code>: Opens a shared library and prepares it for use.</li>
+<li><code>dlsym()</code>: Searches for the address of a symbol in the opened libraries.</li>
+<li><code>dlclose()</code>: Closes a shared library, releasing resources associated with it.</li>
+<li><code>dlerror()</code>: Provides string descriptions of errors caused by any of the above functions.</li>
+</ul>
+<p><strong>Supplemental Insights:</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/31155824/dlopen-in-libc-and-libdl">dlopen in libc and libdl</a>: <code>libdl</code> is only exposing the <strong>private</strong> dl functions that already exist in libc as well as some wrappers to make the use of the libraries a bit easier. You can see some of this behaviour by looking at the symbol table of <code>libdl</code>.
+<ul>
+<li>Check private methods: <code>readelf -s /lib64/ld-linux-x86-64.so.2 | grep PRIVATE</code></li>
 </ul>
 </li>
+</ul>
+<h3 id="293-others"><a class="markdownIt-Anchor" href="#293-others"></a> 2.9.3 Others</h3>
+<ol>
 <li><code>libm</code>：c math library</li>
 <li><code>libz</code>：compression/decompression library</li>
 <li><code>libpthread</code>：POSIX threads library</li>
 </ol>
-<h2 id="29-reference"><a class="markdownIt-Anchor" href="#29-reference"></a> 2.9 Reference</h2>
+<h2 id="210-reference"><a class="markdownIt-Anchor" href="#210-reference"></a> 2.10 Reference</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html">Program Library HOWTO</a></li>
 <li><a target="_blank" rel="noopener" href="https://amir.rachum.com/blog/2016/09/17/shared-libraries/">Shared Libraries: Understanding Dynamic Loading</a></li>
@@ -609,7 +684,7 @@
 </ul>
 <h3 id="321-install"><a class="markdownIt-Anchor" href="#321-install"></a> 3.2.1 Install</h3>
 <p><a target="_blank" rel="noopener" href="https://github.com/jemalloc/jemalloc/blob/dev/INSTALL.md">jemalloc/INSTALL.md</a></p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> git@github.com:jemalloc/jemalloc.git</span><br><span class="line"><span class="built_in">cd</span> jemalloc</span><br><span class="line">git checkout 5.3.0</span><br><span class="line"></span><br><span class="line">./autogen.sh</span><br><span class="line">./configure --prefix=/usr/local --enable-prof</span><br><span class="line">make -j 16</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/jemalloc/jemalloc.git</span><br><span class="line"><span class="built_in">cd</span> jemalloc</span><br><span class="line">git checkout 5.3.0</span><br><span class="line"></span><br><span class="line">./autogen.sh</span><br><span class="line">./configure --prefix=/usr/local --enable-prof</span><br><span class="line">make -j $(( (cores=$(nproc))&gt;1?cores/2:1 ))</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
 <h3 id="322-heap-profile"><a class="markdownIt-Anchor" href="#322-heap-profile"></a> 3.2.2 Heap-profile</h3>
 <p><a target="_blank" rel="noopener" href="https://github.com/jemalloc/jemalloc/wiki/Getting-Started">Getting Started</a></p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdint&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">alloc_1M</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">uint8_t</span>[<span class="number">1024</span> * <span class="number">1024</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">        <span class="built_in">alloc_1M</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -926,32 +1001,90 @@
 <p><code>jump_fcontext</code> and <code>make_fcontext</code> is copy from <a target="_blank" rel="noopener" href="https://github.com/apache/brpc/blob/master/src/bthread/context.h">context.h</a> and <a target="_blank" rel="noopener" href="https://github.com/apache/brpc/blob/master/src/bthread/context.cpp">context.cpp</a></p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstddef&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">void</span>* <span class="type">fcontext_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> &#123;</span><br><span class="line"><span class="function"><span class="type">intptr_t</span> <span class="title">jump_fcontext</span><span class="params">(<span class="type">fcontext_t</span>* ofc, <span class="type">fcontext_t</span> nfc, <span class="type">intptr_t</span> vp, <span class="type">bool</span> preserve_fpu = <span class="literal">false</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="type">fcontext_t</span> <span class="title">make_fcontext</span><span class="params">(<span class="type">void</span>* sp, <span class="type">size_t</span> size, <span class="type">void</span> (*fn)(<span class="type">intptr_t</span>))</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">__asm(<span class="string">&quot;.text\n&quot;</span>                         <span class="comment">// Section for code</span></span><br><span class="line">      <span class="string">&quot;.globl jump_fcontext\n&quot;</span>          <span class="comment">// Globally visible symbol</span></span><br><span class="line">      <span class="string">&quot;.type jump_fcontext,@function\n&quot;</span> <span class="comment">// Specifies the symbol type</span></span><br><span class="line">      <span class="string">&quot;.align 16\n&quot;</span>                     <span class="comment">// Aligns the code at 16-byte boundaries</span></span><br><span class="line">      <span class="string">&quot;jump_fcontext:\n&quot;</span>                <span class="comment">// Start of function named &#x27;jump_fcontext&#x27;</span></span><br><span class="line">      <span class="string">&quot;    pushq  %rbp  \n&quot;</span>             <span class="comment">// Pushes base pointer onto the stack</span></span><br><span class="line">      <span class="string">&quot;    pushq  %rbx  \n&quot;</span>             <span class="comment">// Pushes bx register onto the stack</span></span><br><span class="line">      <span class="string">&quot;    pushq  %r15  \n&quot;</span>             <span class="comment">// Pushes r15 register onto the stack</span></span><br><span class="line">      <span class="string">&quot;    pushq  %r14  \n&quot;</span>             <span class="comment">// Pushes r14 register onto the stack</span></span><br><span class="line">      <span class="string">&quot;    pushq  %r13  \n&quot;</span>             <span class="comment">// Pushes r13 register onto the stack</span></span><br><span class="line">      <span class="string">&quot;    pushq  %r12  \n&quot;</span>             <span class="comment">// Pushes r12 register onto the stack</span></span><br><span class="line">      <span class="string">&quot;    leaq  -0x8(%rsp), %rsp\n&quot;</span>    <span class="comment">// Decrement the stack pointer by 8 bytes (allocate stack memory)</span></span><br><span class="line">      <span class="string">&quot;    cmp  $0, %rcx\n&quot;</span>             <span class="comment">// Compare rcx register with 0</span></span><br><span class="line">      <span class="string">&quot;    je  1f\n&quot;</span>                    <span class="comment">// If rcx == 0, jump to label 1</span></span><br><span class="line">      <span class="string">&quot;    stmxcsr  (%rsp)\n&quot;</span>           <span class="comment">// Store the contents of the MXCSR register onto the stack</span></span><br><span class="line">      <span class="string">&quot;    fnstcw   0x4(%rsp)\n&quot;</span>        <span class="comment">// Store the control word of FPU onto the stack</span></span><br><span class="line">      <span class="string">&quot;1:\n&quot;</span></span><br><span class="line">      <span class="string">&quot;    movq  %rsp, (%rdi)\n&quot;</span> <span class="comment">// Save current stack pointer to location pointed by rdi</span></span><br><span class="line">      <span class="string">&quot;    movq  %rsi, %rsp\n&quot;</span>   <span class="comment">// Set stack pointer to value in rsi</span></span><br><span class="line">      <span class="string">&quot;    cmp  $0, %rcx\n&quot;</span>      <span class="comment">// Compare rcx register with 0</span></span><br><span class="line">      <span class="string">&quot;    je  2f\n&quot;</span>             <span class="comment">// If rcx == 0, jump to label 2</span></span><br><span class="line">      <span class="string">&quot;    ldmxcsr  (%rsp)\n&quot;</span>    <span class="comment">// Load value from the stack into the MXCSR register</span></span><br><span class="line">      <span class="string">&quot;    fldcw  0x4(%rsp)\n&quot;</span>   <span class="comment">// Load control word into FPU</span></span><br><span class="line">      <span class="string">&quot;2:\n&quot;</span></span><br><span class="line">      <span class="string">&quot;    leaq  0x8(%rsp), %rsp\n&quot;</span>               <span class="comment">// Increment the stack pointer by 8 bytes (deallocate stack memory)</span></span><br><span class="line">      <span class="string">&quot;    popq  %r12  \n&quot;</span>                        <span class="comment">// Restore r12 register from the stack</span></span><br><span class="line">      <span class="string">&quot;    popq  %r13  \n&quot;</span>                        <span class="comment">// Restore r13 register from the stack</span></span><br><span class="line">      <span class="string">&quot;    popq  %r14  \n&quot;</span>                        <span class="comment">// Restore r14 register from the stack</span></span><br><span class="line">      <span class="string">&quot;    popq  %r15  \n&quot;</span>                        <span class="comment">// Restore r15 register from the stack</span></span><br><span class="line">      <span class="string">&quot;    popq  %rbx  \n&quot;</span>                        <span class="comment">// Restore bx register from the stack</span></span><br><span class="line">      <span class="string">&quot;    popq  %rbp  \n&quot;</span>                        <span class="comment">// Restore base pointer from the stack</span></span><br><span class="line">      <span class="string">&quot;    popq  %r8\n&quot;</span>                           <span class="comment">// Restore r8 register from the stack</span></span><br><span class="line">      <span class="string">&quot;    movq  %rdx, %rax\n&quot;</span>                    <span class="comment">// Copy value from rdx to rax</span></span><br><span class="line">      <span class="string">&quot;    movq  %rdx, %rdi\n&quot;</span>                    <span class="comment">// Copy value from rdx to rdi</span></span><br><span class="line">      <span class="string">&quot;    jmp  *%r8\n&quot;</span>                           <span class="comment">// Jump to the address in r8</span></span><br><span class="line">      <span class="string">&quot;.size jump_fcontext,.-jump_fcontext\n&quot;</span>     <span class="comment">// Specifies the size of jump_fcontext function</span></span><br><span class="line">      <span class="string">&quot;.section .note.GNU-stack,\&quot;\&quot;,%progbits\n&quot;</span> <span class="comment">// Stack properties note for linkers</span></span><br><span class="line">      <span class="string">&quot;.previous\n&quot;</span>);                             <span class="comment">// Return to previous section</span></span><br><span class="line"></span><br><span class="line">__asm(<span class="string">&quot;.text\n&quot;</span>                         <span class="comment">// Section for code</span></span><br><span class="line">      <span class="string">&quot;.globl make_fcontext\n&quot;</span>          <span class="comment">// Globally visible symbol</span></span><br><span class="line">      <span class="string">&quot;.type make_fcontext,@function\n&quot;</span> <span class="comment">// Specifies the symbol type</span></span><br><span class="line">      <span class="string">&quot;.align 16\n&quot;</span>                     <span class="comment">// Aligns the code at 16-byte boundaries</span></span><br><span class="line">      <span class="string">&quot;make_fcontext:\n&quot;</span>                <span class="comment">// Start of function named &#x27;make_fcontext&#x27;</span></span><br><span class="line">      <span class="string">&quot;    movq  %rdi, %rax\n&quot;</span>          <span class="comment">// Copy the value of rdi into rax</span></span><br><span class="line">      <span class="string">&quot;    andq  $-16, %rax\n&quot;</span>          <span class="comment">// Align rax to the nearest lower 16-byte boundary</span></span><br><span class="line">      <span class="string">&quot;    leaq  -0x48(%rax), %rax\n&quot;</span>   <span class="comment">// Decrement rax by 72 bytes (0x48) (allocate stack memory)</span></span><br><span class="line">      <span class="string">&quot;    movq  %rdx, 0x38(%rax)\n&quot;</span>    <span class="comment">// Store the value of rdx at memory address rax + 56 bytes (0x38)</span></span><br><span class="line">      <span class="string">&quot;    stmxcsr  (%rax)\n&quot;</span>           <span class="comment">// Store the contents of the MXCSR register at the address in rax</span></span><br><span class="line">      <span class="string">&quot;    fnstcw   0x4(%rax)\n&quot;</span>        <span class="comment">// Store the control word of FPU at memory address rax + 4 bytes</span></span><br><span class="line">      <span class="string">&quot;    leaq  finish(%rip), %rcx\n&quot;</span>  <span class="comment">// Load the address of the `finish` label into rcx</span></span><br><span class="line">      <span class="string">&quot;    movq  %rcx, 0x40(%rax)\n&quot;</span>    <span class="comment">// Store the address from rcx at memory address rax + 64 bytes (0x40)</span></span><br><span class="line">      <span class="string">&quot;    ret \n&quot;</span>                      <span class="comment">// Return from the function</span></span><br><span class="line">      <span class="string">&quot;finish:\n&quot;</span>                       <span class="comment">// Label &#x27;finish&#x27;</span></span><br><span class="line">      <span class="string">&quot;    xorq  %rdi, %rdi\n&quot;</span>          <span class="comment">// Zero out the rdi register</span></span><br><span class="line">      <span class="string">&quot;    call  _exit@PLT\n&quot;</span>           <span class="comment">// Call the exit function to terminate</span></span><br><span class="line">      <span class="string">&quot;    hlt\n&quot;</span>                       <span class="comment">// Halt the processor (This should never be reached due to the above _exit call)</span></span><br><span class="line">      <span class="string">&quot;.size make_fcontext,.-make_fcontext\n&quot;</span>     <span class="comment">// Specifies the size of make_fcontext function</span></span><br><span class="line">      <span class="string">&quot;.section .note.GNU-stack,\&quot;\&quot;,%progbits\n&quot;</span> <span class="comment">// Stack properties note for linkers</span></span><br><span class="line">      <span class="string">&quot;.previous\n&quot;</span>);                             <span class="comment">// Return to previous section</span></span><br><span class="line"></span><br><span class="line"><span class="type">fcontext_t</span> ctx_main;</span><br><span class="line"><span class="type">fcontext_t</span> ctx1;</span><br><span class="line"><span class="type">fcontext_t</span> ctx2;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func1</span><span class="params">(<span class="type">intptr_t</span>)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func1 step1, jump to func2&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx1, ctx2, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func1 step2, jump to func2&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx1, ctx2, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func1 step3, jump to func2&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx1, ctx2, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func1 step4, jump to func2&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx1, ctx2, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func1 step5, jump to func2&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx1, ctx2, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func2</span><span class="params">(<span class="type">intptr_t</span>)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func2 step1, jump to func1&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx2, ctx1, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func2 step2, jump to func1&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx2, ctx1, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func2 step3, jump to func1&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx2, ctx1, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func2 step4, jump to func1&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx2, ctx1, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;func2 step5, jump to main&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx2, ctx_main, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">char</span> sp1[<span class="number">4096</span>];</span><br><span class="line">    <span class="type">char</span> sp2[<span class="number">4096</span>];</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;create ctx1&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    ctx1 = <span class="built_in">make_fcontext</span>(sp1 + <span class="built_in">sizeof</span>(sp1), <span class="built_in">sizeof</span>(sp1), &amp;func1);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;create ctx2&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    ctx2 = <span class="built_in">make_fcontext</span>(sp2 + <span class="built_in">sizeof</span>(sp2), <span class="built_in">sizeof</span>(sp2), &amp;func2);</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;start, jump to func1&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">jump_fcontext</span>(&amp;ctx_main, ctx1, <span class="number">0</span>, <span class="literal">false</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;end, back to main&quot;</span> &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">create ctx1</span><br><span class="line">create ctx2</span><br><span class="line">start, jump to func1</span><br><span class="line">func1 step1, jump to func2</span><br><span class="line">func2 step1, jump to func1</span><br><span class="line">func1 step2, jump to func2</span><br><span class="line">func2 step2, jump to func1</span><br><span class="line">func1 step3, jump to func2</span><br><span class="line">func2 step3, jump to func1</span><br><span class="line">func1 step4, jump to func2</span><br><span class="line">func2 step4, jump to func1</span><br><span class="line">func1 step5, jump to func2</span><br><span class="line">func2 step5, jump to main</span><br><span class="line">end, back to main</span><br></pre></td></tr></table></figure>
-<h1 id="7-gnu-tools"><a class="markdownIt-Anchor" href="#7-gnu-tools"></a> 7 GNU Tools</h1>
+<h1 id="7-gnu"><a class="markdownIt-Anchor" href="#7-gnu"></a> 7 GNU</h1>
+<h2 id="71-build-install"><a class="markdownIt-Anchor" href="#71-build-install"></a> 7.1 Build &amp; Install</h2>
+<p><strong>You can download any version from <a target="_blank" rel="noopener" href="http://ftp.gnu.org/gnu/gcc/">gcc-ftp</a>, I choose <code>gcc-14.1.0</code></strong></p>
+<p><strong>For China, refer to <a target="_blank" rel="noopener" href="http://gcc.gnu.org/mirrors.html">GCC mirror sites</a> for suitable mirrors</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Downloads</span></span><br><span class="line">wget <span class="string">&#x27;https://ftp.gnu.org/gnu/gcc/gcc-14.1.0/gcc-14.1.0.tar.gz&#x27;</span></span><br><span class="line">tar -zxf gcc-14.1.0.tar.gz</span><br><span class="line"><span class="built_in">cd</span> gcc-14.1.0</span><br><span class="line"></span><br><span class="line"><span class="comment"># Install prerequisites</span></span><br><span class="line">./contrib/download_prerequisites</span><br><span class="line"></span><br><span class="line"><span class="comment"># Compile</span></span><br><span class="line">./configure --disable-multilib --enable-languages=c,c++</span><br><span class="line">make -j $(( (cores=$(nproc))&gt;1?cores/2:1 ))</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+<p>Post Settings: (Use <code>sudo ldconfig -p | grep stdc++</code> to check the default path of <code>libstdc++.so.6</code>)</p>
+<ul>
+<li>
+<p>Centos</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Remove Original Gcc</span></span><br><span class="line">sudo yum remove -y gcc gcc-c++</span><br><span class="line"></span><br><span class="line"><span class="comment"># Create soft link</span></span><br><span class="line">sudo <span class="built_in">rm</span> -f /usr/bin/gcc /usr/bin/g++ /usr/bin/cc /usr/bin/c++ /lib64/libstdc++.so.6</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/local/bin/gcc /usr/bin/gcc</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/local/bin/g++ /usr/bin/g++</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/bin/gcc /usr/bin/cc</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/bin/g++ /usr/bin/c++</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/local/lib64/libstdc++.so.6.0.33 /lib64/libstdc++.so.6</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Ubuntu</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Remove Original Gcc</span></span><br><span class="line">sudo apt remove -y gcc g++</span><br><span class="line"></span><br><span class="line"><span class="comment"># Create soft link</span></span><br><span class="line">sudo <span class="built_in">rm</span> -f /usr/bin/gcc /usr/bin/g++ /usr/bin/cc /usr/bin/c++ /usr/lib/x86_64-linux-gnu/libstdc++.so.6</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/local/bin/gcc /usr/bin/gcc</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/local/bin/g++ /usr/bin/g++</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/bin/gcc /usr/bin/cc</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/bin/g++ /usr/bin/c++</span><br><span class="line">sudo <span class="built_in">ln</span> -s /usr/local/lib64/libstdc++.so.6.0.33 /usr/lib/x86_64-linux-gnu/libstdc++.so.6</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><strong>Issue:</strong></p>
+<ul>
+<li><code>error: ‘fenv_t’ has not been declared in ‘::’</code>: this error message occur when I’m build gcc-14 inside the docker container of <code>centos:7.9.2009</code>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80196">Bug 80196 - fenv_t not declared</a></li>
+<li><a target="_blank" rel="noopener" href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100017">Bug 100017 - [11 regression] error: ‘fenv_t’ has not been declared in ‘::’ – canadian compilation fails</a>
+<ul>
+<li>Solution: <a target="_blank" rel="noopener" href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100017#c12">Comment 12</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="72-gnu-binutils"><a class="markdownIt-Anchor" href="#72-gnu-binutils"></a> 7.2 GNU Binutils</h2>
+<p>The GNU Binutils are a collection of binary tools. The main ones are:</p>
+<ul>
+<li><code>ld</code>: the GNU linker.</li>
+<li><code>as</code>: the GNU assembler.</li>
+<li><code>gold</code>: a new, faster, ELF only linker.</li>
+</ul>
+<p>But they also include:</p>
+<ul>
+<li><code>addr2line</code>: Converts addresses into filenames and line numbers.</li>
+<li><code>ar</code>: A utility for creating, modifying and extracting from archives.</li>
+<li><code>c++filt</code>: Filter to demangle encoded C++ symbols.</li>
+<li><code>dlltool</code>: Creates files for building and using DLLs.</li>
+<li><code>elfedit</code>: Allows alteration of ELF format files.</li>
+<li><code>gprof</code>: Displays profiling information.</li>
+<li><code>gprofng</code>: Collects and displays application performance data.</li>
+<li><code>nlmconv</code>: Converts object code into an NLM.</li>
+<li><code>nm</code>: Lists symbols from object files.</li>
+<li><code>objcopy</code>: Copies and translates object files.</li>
+<li><code>objdump</code>: Displays information from object files.</li>
+<li><code>ranlib</code>: Generates an index to the contents of an archive.</li>
+<li><code>readelf</code>: Displays information from any ELF format object file.</li>
+<li><code>size</code>: Lists the section sizes of an object or archive file.</li>
+<li><code>strings</code>: Lists printable strings from files.</li>
+<li><code>strip</code>: Discards symbols.</li>
+<li><code>windmc</code>: A Windows compatible message compiler.</li>
+<li><code>windres</code>: A compiler for Windows resource files.</li>
+</ul>
+<p>As well as some libraries:</p>
+<ul>
+<li><code>libbfd</code>: A library for manipulating binary files in a variety of different formats.</li>
+<li><code>libctf</code>: A library for manipulating the CTF debug format.</li>
+<li><code>libopcodes</code>: A library for assembling and disassembling a variety of different assembler languages.</li>
+<li><code>libsframe</code>: A library for manipulating the SFRAME debug format.</li>
+</ul>
+<p><strong>Installation:</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://ftp.gnu.org/gnu/binutils/">Index of /gnu/binutils</a></li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget https://ftp.gnu.org/gnu/binutils/binutils-2.39.tar.xz</span><br><span class="line">tar -xf binutils-2.39.tar.xz</span><br><span class="line"><span class="built_in">cd</span> binutils-2.39</span><br><span class="line"></span><br><span class="line">./configure</span><br><span class="line">make -j $(( (cores=$(nproc))&gt;1?cores/2:1 ))</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+<h3 id="721-dwarf-error"><a class="markdownIt-Anchor" href="#721-dwarf-error"></a> 7.2.1 DWARF Error</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">addr2line: Dwarf Error: found dwarf version &#x27;5&#x27;, this reader only handles version 2, 3 and 4 information.</span><br><span class="line">??:?</span><br></pre></td></tr></table></figure>
 <ol>
-<li><code>ld</code>：the GNU linker</li>
-<li><code>as</code>：the GNU assembler</li>
-<li><code>gold</code>：a new, faster, ELF only linker</li>
-<li><code>addr2line</code>：Converts addresses into filenames and line numbers</li>
-<li><code>ar</code>：A utility for creating, modifying and extracting from archives</li>
-<li><code>c++filt</code> - Filter to demangle encoded C++ symbols.</li>
-<li><code>dlltool</code> - Creates files for building and using DLLs.</li>
-<li><code>elfedit</code> - Allows alteration of ELF format files.</li>
-<li><code>gprof</code> - Displays profiling information.</li>
-<li><code>nlmconv</code> - Converts object code into an NLM.</li>
-<li><code>nm</code> - Lists symbols from object files.</li>
-<li><code>objcopy</code> - Copies and translates object files.</li>
-<li><code>objdump</code> - Displays information from object files.</li>
-<li><code>ranlib</code> - Generates an index to the contents of an archive.</li>
-<li><code>readelf</code> - Displays information from any ELF format object file.</li>
-<li><code>size</code> - Lists the section sizes of an object or archive file.</li>
-<li><code>strings</code> - Lists printable strings from files.</li>
-<li><code>strip</code> - Discards symbols.</li>
-<li><code>windmc</code> - A Windows compatible message compiler.</li>
-<li><code>windres</code> - A compiler for Windows resource files.</li>
+<li>Try use different linker.</li>
+<li>Try use higher version of <code>binutils</code>.</li>
 </ol>
-<h2 id="71-gcc"><a class="markdownIt-Anchor" href="#71-gcc"></a> 7.1 gcc</h2>
+<h2 id="73-gcc"><a class="markdownIt-Anchor" href="#73-gcc"></a> 7.3 gcc</h2>
 <p><strong>常用参数说明：</strong></p>
 <ol>
+<li><strong>编译信息</strong>
+<ul>
+<li><code>-v</code>：输出编译详情，包括头文件搜索路径、一些环境变量的实际值等等</li>
+<li><code>-H</code>：输出编译过程中使用到的头文件</li>
+</ul>
+</li>
 <li><strong>文件类型</strong>
 <ul>
 <li><code>-E</code>：生成预处理文件（<code>.i</code>）</li>
@@ -1070,14 +1203,14 @@
 </ul>
 </li>
 </ol>
-<h3 id="711-how-to-link-libc-statically"><a class="markdownIt-Anchor" href="#711-how-to-link-libc-statically"></a> 7.1.1 How to link libc++ statically</h3>
+<h3 id="731-how-to-link-libc-statically"><a class="markdownIt-Anchor" href="#731-how-to-link-libc-statically"></a> 7.3.1 How to link libc++ statically</h3>
 <p><strong>Use <code>g++</code>:</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">g++ -o main main.cpp -static-libstdc++</span><br><span class="line"></span><br><span class="line"><span class="comment"># Or</span></span><br><span class="line"></span><br><span class="line">g++ -o main main.cpp -static</span><br></pre></td></tr></table></figure>
 <p><strong>Use <code>gcc</code>:</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gcc main.cpp -o main -std=gnu++17 -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic</span><br><span class="line"></span><br><span class="line"><span class="comment"># Or</span></span><br><span class="line"></span><br><span class="line">gcc main.cpp -o main -std=gnu++17 -static -lstdc++</span><br></pre></td></tr></table></figure>
 <p><strong>Use <code>cmake</code>:</strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">target_compile_options(&lt;target&gt; PRIVATE -static-libstdc++)</span><br><span class="line">target_link_options(&lt;target&gt; PRIVATE -static-libstdc++)</span><br></pre></td></tr></table></figure>
-<h2 id="72-ld"><a class="markdownIt-Anchor" href="#72-ld"></a> 7.2 ld</h2>
+<h2 id="74-ld"><a class="markdownIt-Anchor" href="#74-ld"></a> 7.4 ld</h2>
 <p><strong>种类</strong></p>
 <ul>
 <li><code>GNU ld</code></li>
@@ -1100,6 +1233,7 @@
 <li><code>-rpath=&lt;dir&gt;</code>：增加运行时库文件搜索路径（务必用绝路径，否则二进制一旦换目录就无法运行了）。<code>-L</code>参数只在编译、链接期间生效，运行时仍然会找不到动态库文件，需要通过该参数指定。因此，对于位于非默认搜索路径下的动态库文件，<code>-L</code>与<code>-Wl,-rpath=</code>这两个参数通常是一起使用的
 <ul>
 <li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/49138195/whats-the-difference-between-rpath-link-and-l">What’s the difference between <code>-rpath-link</code> and <code>-L</code>?</a></li>
+<li><code>readelf -d &lt;binary&gt; | grep 'RPATH\|RUNPATH'</code></li>
 </ul>
 </li>
 <li><code>-Bstatic</code>：修改默认行为，强制使用静态链接库，只对该参数之后出现的库有效。如果找不到对应的静态库会报错（即便有动态库）</li>
@@ -1113,17 +1247,99 @@
   <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt; proxy_malloc.c &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment">#include &lt;stddef.h&gt;</span></span><br><span class="line"><span class="comment">#include &lt;stdio.h&gt;</span></span><br><span class="line"><span class="comment">#include &lt;stdlib.h&gt;</span></span><br><span class="line"></span><br><span class="line">void* __real_malloc(size_t c);</span><br><span class="line"></span><br><span class="line">void* __wrap_malloc(size_t c) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;malloc called with %zu\n&quot;</span>, c);</span><br><span class="line">    <span class="built_in">return</span> __real_malloc(c);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">    int* num = (int*)malloc(sizeof(int));</span><br><span class="line">    <span class="built_in">return</span> *num;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">gcc -o proxy_malloc proxy_malloc.c -Wl,-wrap=malloc</span><br><span class="line"></span><br><span class="line">./proxy_malloc</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
-<h3 id="721-how-to-check-default-linker"><a class="markdownIt-Anchor" href="#721-how-to-check-default-linker"></a> 7.2.1 How to check default linker</h3>
+<h3 id="741-how-to-check-default-linker"><a class="markdownIt-Anchor" href="#741-how-to-check-default-linker"></a> 7.4.1 How to check default linker</h3>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -l $(<span class="built_in">which</span> ld)</span><br><span class="line"></span><br><span class="line">update-alternatives --display ld</span><br></pre></td></tr></table></figure>
-<h3 id="722-how-to-print-dynamic-lib-path-when-linking-program"><a class="markdownIt-Anchor" href="#722-how-to-print-dynamic-lib-path-when-linking-program"></a> 7.2.2 How to print dynamic lib path when linking program</h3>
+<h3 id="742-how-to-print-dynamic-lib-path-when-linking-program"><a class="markdownIt-Anchor" href="#742-how-to-print-dynamic-lib-path-when-linking-program"></a> 7.4.2 How to print dynamic lib path when linking program</h3>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># default GNU ld</span></span><br><span class="line">gcc -o your_program your_program.c -Wl,--verbose</span><br><span class="line"></span><br><span class="line"><span class="comment"># gold</span></span><br><span class="line">gcc -o your_program your_program.c -fuse-ld=gold -Wl,--verbose</span><br><span class="line"></span><br><span class="line"><span class="comment"># lld</span></span><br><span class="line">gcc -o your_program your_program.c -fuse-ld=lld -Wl,--verbose</span><br></pre></td></tr></table></figure>
-<h3 id="723-how-to-determine-which-linker-was-used-to-link-a-binary-file"><a class="markdownIt-Anchor" href="#723-how-to-determine-which-linker-was-used-to-link-a-binary-file"></a> 7.2.3 How to determine which linker was used to link a binary file</h3>
+<h3 id="743-how-to-determine-which-linker-was-used-to-link-a-binary-file"><a class="markdownIt-Anchor" href="#743-how-to-determine-which-linker-was-used-to-link-a-binary-file"></a> 7.4.3 How to determine which linker was used to link a binary file</h3>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># method 1</span></span><br><span class="line">readelf -p .comment &lt;binary_file&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># method 2</span></span><br><span class="line">strings &lt;binary_file&gt; | grep &lt;linker_name&gt;</span><br></pre></td></tr></table></figure>
-<h2 id="73-dwarf-problems"><a class="markdownIt-Anchor" href="#73-dwarf-problems"></a> 7.3 DWARF Problems</h2>
-<p>Try use different linker.</p>
-<h2 id="74-reference"><a class="markdownIt-Anchor" href="#74-reference"></a> 7.4 Reference</h2>
+<h2 id="75-lto-dump"><a class="markdownIt-Anchor" href="#75-lto-dump"></a> 7.5 lto-dump</h2>
+<h2 id="76-env"><a class="markdownIt-Anchor" href="#76-env"></a> 7.6 ENV</h2>
+<p><strong>Common:</strong></p>
+<ul>
+<li><code>CC</code></li>
+<li><code>CXX</code></li>
+<li><code>CFLAGS</code></li>
+<li><code>CXXFLAGS</code></li>
+<li><code>LDFLAGS</code>：Specifies flags to pass to the linker (<code>ld</code>) when building programs</li>
+</ul>
+<p><strong><code>man gcc</code>:</strong></p>
+<ul>
+<li><code>CPATH</code>: Affects both C and C++ compilers</li>
+<li><code>C_INCLUDE_PATH</code></li>
+<li><code>CPLUS_INCLUDE_PATH</code></li>
+<li><code>OBJC_INCLUDE_PATH</code></li>
+<li><code>LIBRARY_PATH</code>: Specifies the directories to search for library files at compile time</li>
+</ul>
+<p><strong><code>man ld</code>:</strong></p>
+<ul>
+<li><code>LD_LIBRARY_PATH</code>: Specifies the directories to search for shared libraries (dynamic libraries) at runtime</li>
+<li><code>LD_RUN_PATH</code>: Provides a way to ensure that your program can locate the shared libraries it depends on, regardless of the runtime environment (like <code>LD_LIBRARY_PATH</code>), by embedding the necessary search paths directly into the executable</li>
+</ul>
+<p><strong><code>man ld.so</code></strong></p>
+<ul>
+<li><code>LD_LIBRARY_PATH</code></li>
+<li><code>LD_PRELOAD</code></li>
+<li><code>LD_DEBUG</code>/<code>LD_DEBUG_OUTPUT</code></li>
+<li><code>LD_PROFILE</code>/<code>LD_PROFILE_OUTPUT</code></li>
+</ul>
+<h2 id="77-reference"><a class="markdownIt-Anchor" href="#77-reference"></a> 7.7 Reference</h2>
 <h1 id="8-llvm-tools"><a class="markdownIt-Anchor" href="#8-llvm-tools"></a> 8 LLVM Tools</h1>
-<h2 id="81-clang"><a class="markdownIt-Anchor" href="#81-clang"></a> 8.1 clang</h2>
+<h2 id="81-build-install"><a class="markdownIt-Anchor" href="#81-build-install"></a> 8.1 Build &amp; Install</h2>
+<p><strong>Doc:</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://llvm.org/docs/GettingStarted.html#getting-the-source-code-and-building-llvm">Getting Started with the LLVM System</a></li>
+<li><a target="_blank" rel="noopener" href="https://clang.llvm.org/get_started.html">Getting Started: Building and Running Clang</a></li>
+<li><a target="_blank" rel="noopener" href="https://clang.llvm.org/extra/">Extra Clang Tools</a>
+<ul>
+<li><code>clang-tidy</code></li>
+<li><code>clang-include-fixer</code></li>
+<li><code>clang-rename</code></li>
+<li><code>clangd</code></li>
+<li><code>clang-doc</code></li>
+</ul>
+</li>
+</ul>
+<p><strong><code>LLVM_ENABLE_PROJECTS</code> vs. <code>LLVM_ENABLE_RUNTIMES</code></strong></p>
+<ul>
+<li><code>LLVM_ENABLE_PROJECTS</code>
+<ul>
+<li>Purpose: This option is used to specify which LLVM projects to build. These projects are typically related to the compiler infrastructure and tools.</li>
+<li>Examples of projects: <code>clang</code>, <code>lldb</code>, <code>lld</code>, etc.</li>
+<li>Usage: When you specify a project with <code>LLVM_ENABLE_PROJECTS</code>, the build system includes it in the build process.</li>
+<li>How can I know all the possible projects that supported by <code>LLVM_ENABLE_PROJECTS</code>?
+<ul>
+<li><code>cmake -B build -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=&quot;invalid&quot; llvm</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>LLVM_ENABLE_RUNTIMES</code>
+<ul>
+<li>Purpose: This option is used to specify which LLVM runtimes to build. These runtimes are libraries and runtime components that are used by programs compiled with LLVM-based compilers.</li>
+<li>Examples of runtimes: <code>compiler-rt</code>, <code>libcxx</code>, <code>libcxxabi</code>, <code>libunwind</code>, etc.</li>
+<li>Usage: When you specify a runtime with <code>LLVM_ENABLE_RUNTIMES</code>, the build system includes it in the build process, typically for building and installing the necessary runtime libraries.
+<ul>
+<li>If you specify item in <code>LLVM_ENABLE_RUNTIMES</code>, then you don’t need to include it in the <code>LLVM_ENABLE_PROJECTS</code>, otherwise you may get an error.</li>
+</ul>
+</li>
+<li>How can I know all the possible projects that supported by <code>LLVM_ENABLE_RUNTIMES</code>?
+<ul>
+<li><code>cmake -B build -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=&quot;clang&quot; -DLLVM_ENABLE_RUNTIMES=&quot;invalid&quot; llvm</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Build:</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">LLVM_VERSION=16</span><br><span class="line">LLVM_INSTALL_PREFIX=/usr/local/llvm-<span class="variable">$&#123;LLVM_VERSION&#125;</span></span><br><span class="line">LLVM_DIR=llvm-project-<span class="variable">$&#123;LLVM_VERSION&#125;</span></span><br><span class="line">LLVM_BUILD_TOOL_TYPE=<span class="string">&quot;Ninja&quot;</span></span><br><span class="line"><span class="comment"># LLVM_BUILD_TOOL_TYPE=&quot;Unix Makefiles&quot;</span></span><br><span class="line">git <span class="built_in">clone</span> -b release/<span class="variable">$&#123;LLVM_VERSION&#125;</span>.x https://github.com/llvm/llvm-project.git <span class="variable">$&#123;LLVM_DIR&#125;</span> --depth 1</span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$&#123;LLVM_DIR&#125;</span></span><br><span class="line">cmake -B build -DLLVM_ENABLE_PROJECTS=<span class="string">&quot;clang;clang-tools-extra;libclc;lld;lldb&quot;</span> \</span><br><span class="line">    -DLLVM_ENABLE_RUNTIMES=<span class="string">&quot;libc;libunwind;libcxxabi;pstl;libcxx;compiler-rt&quot;</span> \</span><br><span class="line">    -DCMAKE_BUILD_TYPE=Release \</span><br><span class="line">    -DCMAKE_INSTALL_PREFIX=<span class="variable">$&#123;LLVM_INSTALL_PREFIX&#125;</span> \</span><br><span class="line">    -G <span class="variable">$&#123;LLVM_BUILD_TOOL_TYPE&#125;</span> \</span><br><span class="line">    llvm</span><br><span class="line">cmake --build build -j $(( (cores=$(nproc))&gt;1?cores/2:1 ))</span><br><span class="line">sudo cmake --install build</span><br><span class="line"></span><br><span class="line">LLVM_ABI_LIB_PATH=$(find <span class="variable">$&#123;LLVM_INSTALL_PREFIX&#125;</span> -name <span class="string">&#x27;libc++.so&#x27;</span> | <span class="built_in">head</span> -n 1)</span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;<span class="variable">$&#123;LLVM_INSTALL_PREFIX&#125;</span>/lib\n<span class="variable">$&#123;LLVM_ABI_LIB_PATH%/*&#125;</span>&quot;</span> | sudo <span class="built_in">tee</span> /etc/ld.so.conf.d/llvm-<span class="variable">$&#123;LLVM_VERSION&#125;</span>.conf &amp;&amp; sudo ldconfig</span><br></pre></td></tr></table></figure>
+<p><strong>Install specific target(Only for ninja):</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ninja -C build -t targets | grep -E <span class="string">&#x27;^install&#x27;</span></span><br><span class="line"></span><br><span class="line">ninja -C build -j $(( (cores=$(nproc))&gt;1?cores/2:1 )) clang</span><br><span class="line">ninja -C build -j $(( (cores=$(nproc))&gt;1?cores/2:1 )) clang-format</span><br><span class="line">ninja -C build -j $(( (cores=$(nproc))&gt;1?cores/2:1 )) clangd</span><br><span class="line">sudo ninja -C build install-clang</span><br><span class="line">sudo ninja -C build install-clang-format</span><br><span class="line">sudo ninja -C build install-clangd</span><br></pre></td></tr></table></figure>
+<h3 id="811-tips"><a class="markdownIt-Anchor" href="#811-tips"></a> 8.1.1 Tips</h3>
+<ol>
+<li>Build <code>release/11.x</code> with high version of gcc or clang, you may need to add additional <code>-DCMAKE_CXX_STANDARD=17</code>, otherwise, you may encounter <code>no member named 'numeric_limits' in namespace 'std'</code></li>
+</ol>
+<h2 id="82-clang"><a class="markdownIt-Anchor" href="#82-clang"></a> 8.2 clang</h2>
 <p><strong>Doc:</strong></p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://clang.llvm.org/docs/">Clang documentation</a>
@@ -1132,7 +1348,24 @@
 </ul>
 </li>
 </ul>
-<h2 id="82-clang-format"><a class="markdownIt-Anchor" href="#82-clang-format"></a> 8.2 clang-format</h2>
+<p><strong>Options:</strong></p>
+<ul>
+<li><code>--gcc-install-dir=&lt;value&gt;</code>: Use GCC installation in the specified directory, for standard library search path.
+<ul>
+<li><code>--gcc-install-dir=/usr/local/lib/gcc/x86_64-pc-linux-gnu/14.1.0</code></li>
+</ul>
+</li>
+<li><code>-stdlib=&lt;value&gt;</code>: C++ standard library to use
+<ul>
+<li><code>clang -o main main.cpp -stdlib=libc++ -std=c++17 -lc++ -lc++abi</code></li>
+<li><code>clang -o main main.cpp -stdlib=libstdc++ -std=gnu++17 -lstdc++</code></li>
+<li><code>clang -o main main.cpp --gcc-install-dir=/usr/local/lib/gcc/x86_64-pc-linux-gnu/14.1.0 -stdlib=libstdc++ -std=gnu++17 -lstdc++</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>How to build with <code>libc++</code>:</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cmake -B build \</span><br><span class="line">      -DCMAKE_C_COMPILER=clang \</span><br><span class="line">      -DCMAKE_CXX_COMPILER=clang++ \</span><br><span class="line">      -DCMAKE_CXX_FLAGS=<span class="string">&quot;-stdlib=libc++&quot;</span> \</span><br><span class="line">      -DCMAKE_EXE_LINKER_FLAGS=<span class="string">&quot;-stdlib=libc++&quot;</span> \</span><br><span class="line">      -DCMAKE_SHARED_LINKER_FLAGS=<span class="string">&quot;-stdlib=libc++&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="83-clang-format"><a class="markdownIt-Anchor" href="#83-clang-format"></a> 8.3 clang-format</h2>
 <p><strong>如何安装<code>clang-format</code></strong></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g clang-format</span><br></pre></td></tr></table></figure>
 <p><strong>如何使用：在<code>用户目录</code>或者<code>项目根目录</code>中创建<code>.clang-format</code>文件用于指定格式化的方式，下面给一个示例</strong></p>
@@ -1148,36 +1381,49 @@
 <ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/StarRocks/starrocks/blob/main/.clang-format">StarRocks-format</a></li>
 </ul>
+<h2 id="84-clangd"><a class="markdownIt-Anchor" href="#84-clangd"></a> 8.4 clangd</h2>
+<p><strong><code>compile_commands.json</code> vs. <code>compile_flags.txt</code>(<a target="_blank" rel="noopener" href="https://clang.llvm.org/docs/JSONCompilationDatabase.html">JSON Compilation Database Format Specification</a>)</strong></p>
+<ul>
+<li>对于复杂工程，可以用<code>cmake</code>等工具生成<code>compile_commands.json</code>
+<ul>
+<li>首先会在当前目录（或者<code>--compile-commands-dir</code>指定的目录）下查找<code>compile_commands.json</code></li>
+<li>若找不到，则递归在上级目录中查找，直至找到<code>compile_commands.json</code>或者到根目录</li>
+</ul>
+</li>
+<li>对于简单工程，可以直接配置<code>compile_flags.txt</code>
+<ul>
+<li>首先会在当前目录下查找<code>compile_flags.txt</code></li>
+<li>若找不到，则递归在上级目录中查找，直至找到<code>compile_flags.txt</code>或者到根目录</li>
+</ul>
+</li>
+</ul>
+<p><strong>Options:</strong></p>
+<ul>
+<li><code>--query-driver=</code>：设置一个或多个<code>glob</code>，会从匹配这些<code>glob</code>的路径中搜索头文件
+<ul>
+<li><code>--query-driver=/usr/bin/**/clang-*,/path/to/repo/**/g++-*</code></li>
+</ul>
+</li>
+<li><code>--compile-commands-dir=</code>：指定<code>compile_commands.json</code>的查找路径
+<ul>
+<li><code>--compile-commands-dir=/home/test/code/duckdb/build</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="841-clangd-configuration"><a class="markdownIt-Anchor" href="#841-clangd-configuration"></a> 8.4.1 .clangd Configuration</h3>
+<p><a target="_blank" rel="noopener" href="https://clangd.llvm.org/config">Configuration</a></p>
+<p>我们可以在项目的根目录中创建<code>.clangd</code>，对<code>clangd</code>进行项目唯独的定制化配置</p>
+<p>下面是<code>duckdb</code>的<a target="_blank" rel="noopener" href="https://github.com/duckdb/duckdb/blob/main/.clangd">duckdb/.clangd</a>配置</p>
+<ul>
+<li>指定了<code>compile_commands.json</code>路径为：<code>build/clangd</code>（<a target="_blank" rel="noopener" href="https://github.com/clangd/clangd/issues/1204">Can not find duckdb headers</a>）</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CompileFlags:</span><br><span class="line">  CompilationDatabase: build/clangd</span><br><span class="line">  Add: -Wno-unqualified-std-cast-call</span><br></pre></td></tr></table></figure>
+<h2 id="85-lld"><a class="markdownIt-Anchor" href="#85-lld"></a> 8.5 lld</h2>
+<h2 id="86-lldb"><a class="markdownIt-Anchor" href="#86-lldb"></a> 8.6 lldb</h2>
 <h1 id="9-assorted"><a class="markdownIt-Anchor" href="#9-assorted"></a> 9 Assorted</h1>
 <h2 id="91-dynamic-analysis"><a class="markdownIt-Anchor" href="#91-dynamic-analysis"></a> 9.1 Dynamic Analysis</h2>
 <p><img src="/images/Cpp-Trivial/analysis-tools.png" alt="analysis-tools" /></p>
-<h2 id="92-header-file-search-order"><a class="markdownIt-Anchor" href="#92-header-file-search-order"></a> 9.2 Header File Search Order</h2>
-<p><strong>头文件<code>#include &quot;xxx.h&quot;</code>的搜索顺序</strong></p>
-<ol>
-<li>先搜索当前目录</li>
-<li>然后搜索<code>-I</code>参数指定的目录</li>
-<li>再搜索gcc的环境变量<code>CPLUS_INCLUDE_PATH</code>（C程序使用的是<code>C_INCLUDE_PATH</code>）</li>
-<li>最后搜索gcc的内定目录，包括：
-<ul>
-<li><code>/usr/include</code></li>
-<li><code>/usr/local/include</code></li>
-<li><code>/usr/lib/gcc/x86_64-redhat-linux/&lt;gcc version&gt;/include</code>（C头文件）或者<code>/usr/include/c++/&lt;gcc version&gt;</code>（C++头文件）</li>
-</ul>
-</li>
-</ol>
-<p><strong>头文件<code>#include &lt;xxx.h&gt;</code>的搜索顺序</strong></p>
-<ol>
-<li>先搜索<code>-I</code>参数指定的目录</li>
-<li>再搜索gcc的环境变量<code>CPLUS_INCLUDE_PATH</code>（C程序使用的是<code>C_INCLUDE_PATH</code>）</li>
-<li>最后搜索gcc的内定目录，包括：
-<ul>
-<li><code>/usr/include</code></li>
-<li><code>/usr/local/include</code></li>
-<li><code>/usr/lib/gcc/x86_64-redhat-linux/&lt;gcc version&gt;/include</code>（C头文件）或者<code>/usr/include/c++/&lt;gcc version&gt;</code>（C++头文件）</li>
-</ul>
-</li>
-</ol>
-<h2 id="93-how-to-check-the-compile-error-message"><a class="markdownIt-Anchor" href="#93-how-to-check-the-compile-error-message"></a> 9.3 How to check the compile error message</h2>
+<h2 id="92-how-to-check-the-compile-error-message"><a class="markdownIt-Anchor" href="#92-how-to-check-the-compile-error-message"></a> 9.2 How to check the compile error message</h2>
 <p>Example:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">In file included from /starrocks/be/src/exprs/agg/approx_top_k.h:20:</span><br><span class="line">/starrocks/be/src/column/column_hash.h: In instantiation of ‘std::size_t starrocks::StdHashWithSeed&lt;T, seed&gt;::operator()(T) const [with T = std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;; starrocks::PhmapSeed seed = starrocks::PhmapSeed1; std::size_t = long unsigned int]’:</span><br><span class="line">/starrocks/be/src/util/phmap/phmap.h:1723:49:   required from ‘size_t phmap::priv::raw_hash_set&lt;Policy, Hash, Eq, Alloc&gt;::HashElement::operator()(const K&amp;, Args&amp;&amp; ...) const [with K = std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;; Args = &#123;&#125;; Policy = phmap::priv::FlatHashMapPolicy&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::ApproxTopKState&lt;starrocks::TYPE_VARCHAR&gt;::Counter*&gt;; Hash = starrocks::StdHashWithSeed&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::PhmapSeed1&gt;; Eq = phmap::EqualTo&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt; &gt;; Alloc = std::allocator&lt;std::pair&lt;const std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::ApproxTopKState&lt;starrocks::TYPE_VARCHAR&gt;::Counter*&gt; &gt;; size_t = long unsigned int]’</span><br><span class="line">/starrocks/be/src/util/phmap/phmap.h:1689:39:   required from ‘size_t phmap::priv::raw_hash_set&lt;Policy, Hash, Eq, Alloc&gt;::hash(const K&amp;) const [with K = std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;; Policy = phmap::priv::FlatHashMapPolicy&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::ApproxTopKState&lt;starrocks::TYPE_VARCHAR&gt;::Counter*&gt;; Hash = starrocks::StdHashWithSeed&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::PhmapSeed1&gt;; Eq = phmap::EqualTo&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt; &gt;; Alloc = std::allocator&lt;std::pair&lt;const std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::ApproxTopKState&lt;starrocks::TYPE_VARCHAR&gt;::Counter*&gt; &gt;; size_t = long unsigned int]’</span><br><span class="line">/starrocks/be/src/util/phmap/phmap.h:1625:36:   required from ‘phmap::priv::raw_hash_set&lt;Policy, Hash, Eq, Alloc&gt;::iterator phmap::priv::raw_hash_set&lt;Policy, Hash, Eq, Alloc&gt;::find(key_arg&lt;K&gt;&amp;) [with K = std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;; Policy = phmap::priv::FlatHashMapPolicy&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::ApproxTopKState&lt;starrocks::TYPE_VARCHAR&gt;::Counter*&gt;; Hash = starrocks::StdHashWithSeed&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::PhmapSeed1&gt;; Eq = phmap::EqualTo&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt; &gt;; Alloc = std::allocator&lt;std::pair&lt;const std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;, starrocks::ApproxTopKState&lt;starrocks::TYPE_VARCHAR&gt;::Counter*&gt; &gt;; key_arg&lt;K&gt; = std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;]’</span><br><span class="line">/starrocks/be/src/exprs/agg/approx_top_k.h:80:23:   required from ‘void starrocks::ApproxTopKState&lt;LT&gt;::process(const CppType&amp;, int64_t, bool) [with starrocks::LogicalType LT = starrocks::TYPE_VARCHAR; CppType = std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;; int64_t = long int]’</span><br><span class="line">/starrocks/be/src/exprs/agg/approx_top_k.h:75:13:   required from ‘void starrocks::ApproxTopKState&lt;LT&gt;::merge(std::vector&lt;Counter&gt;) [with starrocks::LogicalType LT = starrocks::TYPE_VARCHAR]’</span><br><span class="line">/starrocks/be/src/exprs/agg/approx_top_k.h:239:32:   required from ‘void starrocks::ApproxTopKAggregateFunction&lt;LT, T&gt;::merge(starrocks::FunctionContext*, const starrocks::Column*, starrocks::AggDataPtr, size_t) const [with starrocks::LogicalType LT = starrocks::TYPE_VARCHAR; T = starrocks::Slice; starrocks::AggDataPtr = unsigned char*; size_t = long unsigned int]’</span><br><span class="line">/starrocks/be/src/exprs/agg/approx_top_k.h:215:10:   required from here</span><br><span class="line">/starrocks/be/src/column/column_hash.h:282:101: error: use of deleted function ‘std::hash&lt;std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt; &gt;::hash()’</span><br><span class="line">  282 |     std::size_t operator()(T value) const &#123; return phmap_mix_with_seed&lt;sizeof(size_t), seed&gt;()(std::hash&lt;T&gt;()(value)); &#125;</span><br></pre></td></tr></table></figure>
 <p>When interpreting compiler error messages, especially those involving template instantiation (which can be particularly verbose and intricate), there’s a general approach that you can take. Here’s how to approach such error messages:</p>
@@ -1208,7 +1454,7 @@
 </li>
 </ol>
 <p>In Summary: While the bottom-up approach is useful for quickly identifying the core error and the immediate lines of code causing it, you sometimes need to go top-down to fully understand the context and sequence of events leading to the error. With experience, you’ll develop an intuition for quickly scanning and pinpointing the most relevant parts of such error messages.</p>
-<h2 id="94-how-to-get-coverage-of-code"><a class="markdownIt-Anchor" href="#94-how-to-get-coverage-of-code"></a> 9.4 How to get coverage of code</h2>
+<h2 id="93-how-to-get-coverage-of-code"><a class="markdownIt-Anchor" href="#93-how-to-get-coverage-of-code"></a> 9.3 How to get coverage of code</h2>
 <p><strong>Here’s how it works: <code>gcov</code> determines which files to analyze for coverage information based on the profile data files (<code>*.gcda</code> and <code>*.gcno</code>) that are generated when you compile and run your program with the appropriate GCC flags (<code>-fprofile-arcs</code> and <code>-ftest-coverage</code>). Here’s a breakdown of how <code>gcov</code> knows which files to load:</strong></p>
 <ol>
 <li><strong>Compilation and Execution:</strong>
@@ -1244,9 +1490,9 @@
 <p><strong>Here’s an example:</strong></p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">printMessage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Hello, World!&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unusedFunction</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;This function is never called.&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printMessage</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">g++ --coverage -o example example.cpp</span><br><span class="line">./example</span><br><span class="line">gcov example.cpp</span><br><span class="line"><span class="built_in">cat</span> example.cpp.gcov</span><br></pre></td></tr></table></figure>
-<h2 id="95-how-to-check-standard-library-search-path-when-compiling"><a class="markdownIt-Anchor" href="#95-how-to-check-standard-library-search-path-when-compiling"></a> 9.5 How to check standard library search path when compiling</h2>
+<h2 id="94-how-to-check-standard-library-search-path-when-compiling"><a class="markdownIt-Anchor" href="#94-how-to-check-standard-library-search-path-when-compiling"></a> 9.4 How to check standard library search path when compiling</h2>
 <p>Add <code>-v</code> option.</p>
-<h2 id="96-document"><a class="markdownIt-Anchor" href="#96-document"></a> 9.6 Document</h2>
+<h2 id="95-document"><a class="markdownIt-Anchor" href="#95-document"></a> 9.5 Document</h2>
 <ol>
 <li><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/">cpp reference</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/aitjcize/cppman/">cppman</a>
@@ -1257,7 +1503,7 @@
 </ul>
 </li>
 </ol>
-<h2 id="97-reference"><a class="markdownIt-Anchor" href="#97-reference"></a> 9.7 Reference</h2>
+<h2 id="96-reference"><a class="markdownIt-Anchor" href="#96-reference"></a> 9.6 Reference</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/crylearner/article/details/17013187">C/C++ 头文件以及库的搜索路径</a></li>
 </ul>
@@ -1300,19 +1546,19 @@
           
       <div class="tabs tabs-comment">
         <ul class="nav-tabs">
-            <li class="tab"><a href="#comment-valine">valine</a></li>
             <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
         </ul>
         <div class="tab-content">
-            <div class="tab-pane valine" id="comment-valine">
-              <div class="comments" id="valine-comments"></div>
-            </div>
             <div class="tab-pane livere" id="comment-livere">
               
   <div class="comments">
     <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
   </div>
   
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
             </div>
         </div>
       </div>
@@ -1362,7 +1608,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-compile-process"><span class="nav-text"> 1 Compile Process</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-library"><span class="nav-text"> 2 Library</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-static-library"><span class="nav-text"> 2.1 Static Library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-dynamic-library"><span class="nav-text"> 2.2 Dynamic Library</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#221-linuxs-so-version-mechanism"><span class="nav-text"> 2.2.1 Linux’s so version mechanism</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2211-so-related-names"><span class="nav-text"> 2.2.1.1 so Related Names</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2212-soname"><span class="nav-text"> 2.2.1.2 SONAME</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2213-linker-name"><span class="nav-text"> 2.2.1.3 linker name</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-search-order"><span class="nav-text"> 2.3 Search Order</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#231-compilation-time"><span class="nav-text"> 2.3.1 Compilation Time</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#232-runtime"><span class="nav-text"> 2.3.2 Runtime</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2321-how-to-update-etcldsocache"><span class="nav-text"> 2.3.2.1 How to update &#x2F;etc&#x2F;ld.so.cache</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-link-order"><span class="nav-text"> 2.4 Link Order</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-environment-variables"><span class="nav-text"> 2.5 Environment Variables</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#251-ld_preload"><span class="nav-text"> 2.5.1 LD_PRELOAD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#252-ld_debug"><span class="nav-text"> 2.5.2 LD_DEBUG</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#26-how-to-make-library"><span class="nav-text"> 2.6 How to make library</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#261-how-to-make-static-library"><span class="nav-text"> 2.6.1 How to make static library</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#262-how-to-make-dynamic-library"><span class="nav-text"> 2.6.2 How to make dynamic library</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#27-abi"><span class="nav-text"> 2.7 ABI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#271-language-specific-abi"><span class="nav-text"> 2.7.1 Language-Specific ABI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#272-dual-abi"><span class="nav-text"> 2.7.2 Dual ABI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#273-abi-mismatch-issue"><span class="nav-text"> 2.7.3 ABI Mismatch Issue</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#28-commonly-used-librarys"><span class="nav-text"> 2.8 Commonly-used Librarys</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#29-reference"><span class="nav-text"> 2.9 Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-memory-management"><span class="nav-text"> 3 Memory Management</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-tcmalloc"><span class="nav-text"> 3.1 tcmalloc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#311-heap-profile"><span class="nav-text"> 3.1.1 Heap-profile</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-jemalloc"><span class="nav-text"> 3.2 jemalloc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-install"><span class="nav-text"> 3.2.1 Install</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#322-heap-profile"><span class="nav-text"> 3.2.2 Heap-profile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#323-work-with-http"><span class="nav-text"> 3.2.3 Work with http</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#324-reference"><span class="nav-text"> 3.2.4 Reference</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-mimalloc"><span class="nav-text"> 3.3 mimalloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-comparison"><span class="nav-text"> 3.4 Comparison</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#35-hook"><span class="nav-text"> 3.5 Hook</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#351-override-the-operator-new"><span class="nav-text"> 3.5.1 Override the operator new</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#352-wrap-operator-new-by-its-mangled-name"><span class="nav-text"> 3.5.2 Wrap operator new by its mangled name</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#353-work-with-library"><span class="nav-text"> 3.5.3 Work With Library</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3531-static-linking-libraryworking"><span class="nav-text"> 3.5.3.1 Static Linking Library(Working)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3532-dynamic-linking-librarynot-working"><span class="nav-text"> 3.5.3.2 Dynamic Linking library(Not Working)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#36-reference"><span class="nav-text"> 3.6 Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-name-mangling"><span class="nav-text"> 4 Name mangling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-encoding-elements"><span class="nav-text"> 4.1 Encoding Elements</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-example"><span class="nav-text"> 4.2 Example</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-address-sanitizer"><span class="nav-text"> 5 Address Sanitizer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-how-it-works"><span class="nav-text"> 5.1 How it works</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-memory-leak"><span class="nav-text"> 5.2 memory leak</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-stack-buffer-underflow"><span class="nav-text"> 5.3 stack buffer underflow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-reference"><span class="nav-text"> 5.4 Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-user-defined-thread"><span class="nav-text"> 6 User-defined Thread</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-gnu-tools"><span class="nav-text"> 7 GNU Tools</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-gcc"><span class="nav-text"> 7.1 gcc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#711-how-to-link-libc-statically"><span class="nav-text"> 7.1.1 How to link libc++ statically</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-ld"><span class="nav-text"> 7.2 ld</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#721-how-to-check-default-linker"><span class="nav-text"> 7.2.1 How to check default linker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#722-how-to-print-dynamic-lib-path-when-linking-program"><span class="nav-text"> 7.2.2 How to print dynamic lib path when linking program</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#723-how-to-determine-which-linker-was-used-to-link-a-binary-file"><span class="nav-text"> 7.2.3 How to determine which linker was used to link a binary file</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-dwarf-problems"><span class="nav-text"> 7.3 DWARF Problems</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-reference"><span class="nav-text"> 7.4 Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-llvm-tools"><span class="nav-text"> 8 LLVM Tools</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-clang"><span class="nav-text"> 8.1 clang</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-clang-format"><span class="nav-text"> 8.2 clang-format</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-assorted"><span class="nav-text"> 9 Assorted</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-dynamic-analysis"><span class="nav-text"> 9.1 Dynamic Analysis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-header-file-search-order"><span class="nav-text"> 9.2 Header File Search Order</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-how-to-check-the-compile-error-message"><span class="nav-text"> 9.3 How to check the compile error message</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-how-to-get-coverage-of-code"><span class="nav-text"> 9.4 How to get coverage of code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#95-how-to-check-standard-library-search-path-when-compiling"><span class="nav-text"> 9.5 How to check standard library search path when compiling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#96-document"><span class="nav-text"> 9.6 Document</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#97-reference"><span class="nav-text"> 9.7 Reference</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-compile-process"><span class="nav-text"> 1 Compile Process</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-library"><span class="nav-text"> 2 Library</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-header-file-search-order"><span class="nav-text"> 2.1 Header File Search Order</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-static-library"><span class="nav-text"> 2.2 Static Library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-dynamic-library"><span class="nav-text"> 2.3 Dynamic Library</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#231-linuxs-so-version-mechanism"><span class="nav-text"> 2.3.1 Linux’s so version mechanism</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2311-so-related-names"><span class="nav-text"> 2.3.1.1 so Related Names</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2312-soname"><span class="nav-text"> 2.3.1.2 SONAME</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2313-linker-name"><span class="nav-text"> 2.3.1.3 linker name</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-search-order"><span class="nav-text"> 2.4 Search Order</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#241-compilation-time"><span class="nav-text"> 2.4.1 Compilation Time</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#242-runtime"><span class="nav-text"> 2.4.2 Runtime</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2421-how-to-update-etcldsocache"><span class="nav-text"> 2.4.2.1 How to update &#x2F;etc&#x2F;ld.so.cache</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-link-order"><span class="nav-text"> 2.5 Link Order</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#251-static-linking"><span class="nav-text"> 2.5.1 Static Linking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#252-dynamic-linking"><span class="nav-text"> 2.5.2 Dynamic Linking</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#26-environment-variables"><span class="nav-text"> 2.6 Environment Variables</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#261-ld_preload"><span class="nav-text"> 2.6.1 LD_PRELOAD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#262-ld_debug"><span class="nav-text"> 2.6.2 LD_DEBUG</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#27-how-to-make-library"><span class="nav-text"> 2.7 How to make library</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#271-how-to-make-static-library"><span class="nav-text"> 2.7.1 How to make static library</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#272-how-to-make-dynamic-library"><span class="nav-text"> 2.7.2 How to make dynamic library</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#28-abi"><span class="nav-text"> 2.8 ABI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#281-cxxabih"><span class="nav-text"> 2.8.1 cxxabi.h</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#282-language-specific-abi"><span class="nav-text"> 2.8.2 Language-Specific ABI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#283-dual-abi"><span class="nav-text"> 2.8.3 Dual ABI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#284-abi-mismatch-issue"><span class="nav-text"> 2.8.4 ABI Mismatch Issue</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#29-commonly-used-librarys"><span class="nav-text"> 2.9 Commonly-used Librarys</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#291-libcglibcglib"><span class="nav-text"> 2.9.1 libc&#x2F;glibc&#x2F;glib</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#292-libdl"><span class="nav-text"> 2.9.2 libdl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#293-others"><span class="nav-text"> 2.9.3 Others</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#210-reference"><span class="nav-text"> 2.10 Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-memory-management"><span class="nav-text"> 3 Memory Management</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-tcmalloc"><span class="nav-text"> 3.1 tcmalloc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#311-heap-profile"><span class="nav-text"> 3.1.1 Heap-profile</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-jemalloc"><span class="nav-text"> 3.2 jemalloc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-install"><span class="nav-text"> 3.2.1 Install</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#322-heap-profile"><span class="nav-text"> 3.2.2 Heap-profile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#323-work-with-http"><span class="nav-text"> 3.2.3 Work with http</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#324-reference"><span class="nav-text"> 3.2.4 Reference</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-mimalloc"><span class="nav-text"> 3.3 mimalloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-comparison"><span class="nav-text"> 3.4 Comparison</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#35-hook"><span class="nav-text"> 3.5 Hook</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#351-override-the-operator-new"><span class="nav-text"> 3.5.1 Override the operator new</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#352-wrap-operator-new-by-its-mangled-name"><span class="nav-text"> 3.5.2 Wrap operator new by its mangled name</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#353-work-with-library"><span class="nav-text"> 3.5.3 Work With Library</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3531-static-linking-libraryworking"><span class="nav-text"> 3.5.3.1 Static Linking Library(Working)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3532-dynamic-linking-librarynot-working"><span class="nav-text"> 3.5.3.2 Dynamic Linking library(Not Working)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#36-reference"><span class="nav-text"> 3.6 Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-name-mangling"><span class="nav-text"> 4 Name mangling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-encoding-elements"><span class="nav-text"> 4.1 Encoding Elements</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-example"><span class="nav-text"> 4.2 Example</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-address-sanitizer"><span class="nav-text"> 5 Address Sanitizer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-how-it-works"><span class="nav-text"> 5.1 How it works</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-memory-leak"><span class="nav-text"> 5.2 memory leak</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-stack-buffer-underflow"><span class="nav-text"> 5.3 stack buffer underflow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#54-reference"><span class="nav-text"> 5.4 Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-user-defined-thread"><span class="nav-text"> 6 User-defined Thread</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-gnu"><span class="nav-text"> 7 GNU</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-build-install"><span class="nav-text"> 7.1 Build &amp; Install</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-gnu-binutils"><span class="nav-text"> 7.2 GNU Binutils</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#721-dwarf-error"><span class="nav-text"> 7.2.1 DWARF Error</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-gcc"><span class="nav-text"> 7.3 gcc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#731-how-to-link-libc-statically"><span class="nav-text"> 7.3.1 How to link libc++ statically</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-ld"><span class="nav-text"> 7.4 ld</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#741-how-to-check-default-linker"><span class="nav-text"> 7.4.1 How to check default linker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#742-how-to-print-dynamic-lib-path-when-linking-program"><span class="nav-text"> 7.4.2 How to print dynamic lib path when linking program</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#743-how-to-determine-which-linker-was-used-to-link-a-binary-file"><span class="nav-text"> 7.4.3 How to determine which linker was used to link a binary file</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-lto-dump"><span class="nav-text"> 7.5 lto-dump</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#76-env"><span class="nav-text"> 7.6 ENV</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#77-reference"><span class="nav-text"> 7.7 Reference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-llvm-tools"><span class="nav-text"> 8 LLVM Tools</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-build-install"><span class="nav-text"> 8.1 Build &amp; Install</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#811-tips"><span class="nav-text"> 8.1.1 Tips</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-clang"><span class="nav-text"> 8.2 clang</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#83-clang-format"><span class="nav-text"> 8.3 clang-format</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#84-clangd"><span class="nav-text"> 8.4 clangd</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#841-clangd-configuration"><span class="nav-text"> 8.4.1 .clangd Configuration</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#85-lld"><span class="nav-text"> 8.5 lld</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#86-lldb"><span class="nav-text"> 8.6 lldb</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-assorted"><span class="nav-text"> 9 Assorted</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#91-dynamic-analysis"><span class="nav-text"> 9.1 Dynamic Analysis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#92-how-to-check-the-compile-error-message"><span class="nav-text"> 9.2 How to check the compile error message</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#93-how-to-get-coverage-of-code"><span class="nav-text"> 9.3 How to get coverage of code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#94-how-to-check-standard-library-search-path-when-compiling"><span class="nav-text"> 9.4 How to check standard library search path when compiling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#95-document"><span class="nav-text"> 9.5 Document</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#96-reference"><span class="nav-text"> 9.6 Reference</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -1378,7 +1624,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-count">288</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1497,6 +1743,22 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
 
 <script>
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
@@ -1523,22 +1785,6 @@ NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
       serverURLs : ''
     });
   }, window.Valine);
-});
-</script>
-
-<script>
-NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
-  window.livereOptions = {
-    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
-  };
-  (function(d, s) {
-    var j, e = d.getElementsByTagName(s)[0];
-    if (typeof LivereTower === 'function') { return; }
-    j = d.createElement(s);
-    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-    j.async = true;
-    e.parentNode.insertBefore(j, e);
-  })(document, 'script');
 });
 </script>
 

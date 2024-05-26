@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-09-06T02:55:03.000Z">
-<meta property="article:modified_time" content="2024-03-18T13:37:51.000Z">
+<meta property="article:modified_time" content="2024-05-07T16:22:28.000Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="原创">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-03-18 21:37:51" itemprop="dateModified" datetime="2024-03-18T21:37:51+08:00">2024-03-18</time>
+                <time title="修改时间：2024-05-08 00:22:28" itemprop="dateModified" datetime="2024-05-08T00:22:28+08:00">2024-05-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -418,7 +418,8 @@
 </li>
 <li><code>list</code>：查看源码
 <ul>
-<li><code>list</code>：紧接着上一次的输出，继续输出10行源码</li>
+<li><code>list</code>：紧接着上一次的输出，继续输出后10行源码</li>
+<li><code>list -</code>：紧接着上一次的输出，继续输出前10行源码</li>
 <li><code>list &lt;linenumber&gt;</code>：输出当前文件指定行号开始的10行源码</li>
 <li><code>list &lt;function&gt;</code>：输出指定函数的10行源码</li>
 <li><code>list &lt;filename:linenum&gt;</code>：输出指定文件指定行号开始的10行源码</li>
@@ -524,10 +525,12 @@
 <p>格式：<code>!&lt;command&gt; [params]</code></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(gdb) !<span class="built_in">pwd</span></span><br><span class="line">xxx/gdb_tutorial</span><br></pre></td></tr></table></figure>
 <h2 id="38-tips"><a class="markdownIt-Anchor" href="#38-tips"></a> 3.8 Tips</h2>
-<ol>
-<li>Redirect source file path: <code>set substitute-path</code></li>
-</ol>
-<h1 id="4-how-analyze-a-core-file"><a class="markdownIt-Anchor" href="#4-how-analyze-a-core-file"></a> 4 How analyze a core file</h1>
+<h3 id="381-redirect-source-file-path"><a class="markdownIt-Anchor" href="#381-redirect-source-file-path"></a> 3.8.1 Redirect source file path</h3>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(gdb) <span class="built_in">set</span> substitute-path</span><br></pre></td></tr></table></figure>
+<h3 id="382-redirect-thread-info-to-file"><a class="markdownIt-Anchor" href="#382-redirect-thread-info-to-file"></a> 3.8.2 Redirect Thread Info to File</h3>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(gdb) <span class="built_in">set</span> pagination off</span><br><span class="line">(gdb) <span class="built_in">set</span> logging file /tmp/threads.txt</span><br><span class="line">(gdb) <span class="built_in">set</span> logging on</span><br><span class="line">(gdb) info threads</span><br><span class="line">(gdb) <span class="built_in">set</span> logging off</span><br></pre></td></tr></table></figure>
+<h1 id="4-tips"><a class="markdownIt-Anchor" href="#4-tips"></a> 4 Tips</h1>
+<h2 id="41-how-to-analyze-a-core-file"><a class="markdownIt-Anchor" href="#41-how-to-analyze-a-core-file"></a> 4.1 How to Analyze a Core File</h2>
 <p>Here are some of tips:</p>
 <ol>
 <li><code>info threads</code>: The default thread may not be where the crash occurred.</li>
@@ -537,6 +540,15 @@
 <li><code>info locals</code>、<code>info args</code>: See local variables and arguments.</li>
 <li><code>print</code>: See details of something.</li>
 </ol>
+<h2 id="42-debugging-an-x86-application-in-rosetta-for-linux"><a class="markdownIt-Anchor" href="#42-debugging-an-x86-application-in-rosetta-for-linux"></a> 4.2 Debugging an x86 application in Rosetta for Linux</h2>
+<p>I’m runing a centos7.9/amd64 docker container on my mac(M3), and fail to debug a core file with the error message below:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">$ gdb main core</span><br><span class="line"></span><br><span class="line">GNU gdb (GDB) Red Hat Enterprise Linux 10.2-6.el7</span><br><span class="line">Copyright (C) 2021 Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.</span><br><span class="line">Type &quot;show copying&quot; and &quot;show warranty&quot; for details.</span><br><span class="line">This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.</span><br><span class="line">Type &quot;show configuration&quot; for configuration details.</span><br><span class="line">For bug reporting instructions, please see:</span><br><span class="line">&lt;https://www.gnu.org/software/gdb/bugs/&gt;.</span><br><span class="line">Find the GDB manual and other documentation resources online at:</span><br><span class="line">    &lt;http://www.gnu.org/software/gdb/documentation/&gt;.</span><br><span class="line"></span><br><span class="line">For help, type &quot;help&quot;.</span><br><span class="line">Type &quot;apropos word&quot; to search for commands related to &quot;word&quot;...</span><br><span class="line">Reading symbols from main...</span><br><span class="line"></span><br><span class="line">warning: Can&#x27;t open file /run/rosetta/rosetta during file-backed mapping note processing</span><br><span class="line"></span><br><span class="line">warning: core file may not match specified executable file.</span><br><span class="line">[New LWP 17530]</span><br><span class="line"></span><br><span class="line">warning: Selected architecture i386:x86-64 is not compatible with reported target architecture aarch64</span><br><span class="line"></span><br><span class="line">warning: Architecture rejected target-supplied description</span><br><span class="line"></span><br><span class="line">warning: Unexpected size of section `.reg/17530&#x27; in core file.</span><br><span class="line"></span><br><span class="line">warning: Unexpected size of section `.reg2/17530&#x27; in core file.</span><br><span class="line">Core was generated by `/run/rosetta/rosetta ./main ./main&#x27;.</span><br><span class="line">Program terminated with signal SIGABRT, Aborted.</span><br><span class="line"></span><br><span class="line">warning: Unexpected size of section `.reg/17530&#x27; in core file.</span><br><span class="line"></span><br><span class="line">warning: Unexpected size of section `.reg2/17530&#x27; in core file.</span><br><span class="line">#0  0x0000effff7dfba50 in ?? ()</span><br></pre></td></tr></table></figure>
+<p>And there’s a mechanism called Rosetta:</p>
+<blockquote>
+<p>This is a software bridge that allows applications compiled for one instruction set architecture (such as Intel x86) to run on a different architecture (like Apple’s ARM-based processors). Apple has used two versions: Rosetta for the transition from PowerPC to Intel processors, and Rosetta 2 for the transition from Intel to Apple Silicon.</p>
+</blockquote>
+<p>According to <a target="_blank" rel="noopener" href="https://sporks.space/2023/04/12/debugging-an-x86-application-in-rosetta-for-linux/">Debugging an x86 application in Rosetta for Linux</a>, I can debug the program by:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># this will hang</span></span><br><span class="line">ROSETTA_DEBUGSERVER_PORT=1234 ./main &amp;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Enter Gdb</span></span><br><span class="line">gdb</span><br><span class="line">(gdb) <span class="built_in">set</span> architecture i386:x86-64</span><br><span class="line">(gdb) file main</span><br><span class="line">(gdb) target remote localhost:1234</span><br><span class="line">(gdb) <span class="built_in">continue</span></span><br></pre></td></tr></table></figure>
 <h1 id="5-gdb-dashboard"><a class="markdownIt-Anchor" href="#5-gdb-dashboard"></a> 5 gdb-dashboard</h1>
 <p><a target="_blank" rel="noopener" href="https://github.com/cyrus-and/gdb-dashboard">gdb-dashboard</a>在<code>gdb</code>的基础之上，提供了一个更加友好的格式化界面</p>
 <ul>
@@ -544,7 +556,14 @@
 <li><code>dashboard thread</code>：启用/禁用线程信息（大型工程，线程比较多的话，一般会禁用）</li>
 <li><code>dashboard</code>：刷新，通常在<code>print</code>查看一些变量信息后，需要刷新一下重新显示详情</li>
 </ul>
-<h1 id="6-reference"><a class="markdownIt-Anchor" href="#6-reference"></a> 6 Reference</h1>
+<h1 id="6-lldb"><a class="markdownIt-Anchor" href="#6-lldb"></a> 6 LLDB</h1>
+<p>LLDB is similar to GDB in most operations, but there are some differences (<code>help</code> for more details):</p>
+<ol>
+<li>There is no <code>start</code> command</li>
+<li><code>frame select &lt;id&gt;</code>: select a frame</li>
+<li><code>lldb -c &lt;core&gt; &lt;binary&gt;</code>: Analyze core file</li>
+</ol>
+<h1 id="7-reference"><a class="markdownIt-Anchor" href="#7-reference"></a> 7 Reference</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.cs.umd.edu/~srhuang/teaching/cmsc212/gdb-tutorial-handout.pdf">GDB Tutorial - A Walkthrough with Examples</a></li>
 <li><a target="_blank" rel="noopener" href="https://visualgdb.com/gdbreference/commands/">GDB Command Reference</a></li>
@@ -593,19 +612,19 @@
           
       <div class="tabs tabs-comment">
         <ul class="nav-tabs">
-            <li class="tab"><a href="#comment-valine">valine</a></li>
             <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
         </ul>
         <div class="tab-content">
-            <div class="tab-pane valine" id="comment-valine">
-              <div class="comments" id="valine-comments"></div>
-            </div>
             <div class="tab-pane livere" id="comment-livere">
               
   <div class="comments">
     <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
   </div>
   
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
             </div>
         </div>
       </div>
@@ -655,7 +674,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-what-is-gdb"><span class="nav-text"> 1 What is GDB</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-how-to-use-gdb"><span class="nav-text"> 2 How to use GDB</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-symbol-mismatch"><span class="nav-text"> 2.1 Symbol Mismatch</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-command"><span class="nav-text"> 3 Command</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-run-program"><span class="nav-text"> 3.1 Run Program</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-attach-program"><span class="nav-text"> 3.2 Attach Program</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-break-point"><span class="nav-text"> 3.3 Break Point</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#331-demo"><span class="nav-text"> 3.3.1 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-debugging"><span class="nav-text"> 3.4 Debugging</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#35-display-information"><span class="nav-text"> 3.5 Display Information</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#351-demo-of-print"><span class="nav-text"> 3.5.1 demo of print</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#36-load-symbol-table"><span class="nav-text"> 3.6 Load Symbol Table</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#37-execute-outside-commands"><span class="nav-text"> 3.7 Execute outside commands</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#38-tips"><span class="nav-text"> 3.8 Tips</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-how-analyze-a-core-file"><span class="nav-text"> 4 How analyze a core file</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-gdb-dashboard"><span class="nav-text"> 5 gdb-dashboard</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-reference"><span class="nav-text"> 6 Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-what-is-gdb"><span class="nav-text"> 1 What is GDB</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-how-to-use-gdb"><span class="nav-text"> 2 How to use GDB</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-symbol-mismatch"><span class="nav-text"> 2.1 Symbol Mismatch</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-command"><span class="nav-text"> 3 Command</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-run-program"><span class="nav-text"> 3.1 Run Program</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-attach-program"><span class="nav-text"> 3.2 Attach Program</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#33-break-point"><span class="nav-text"> 3.3 Break Point</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#331-demo"><span class="nav-text"> 3.3.1 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#34-debugging"><span class="nav-text"> 3.4 Debugging</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#35-display-information"><span class="nav-text"> 3.5 Display Information</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#351-demo-of-print"><span class="nav-text"> 3.5.1 demo of print</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#36-load-symbol-table"><span class="nav-text"> 3.6 Load Symbol Table</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#37-execute-outside-commands"><span class="nav-text"> 3.7 Execute outside commands</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#38-tips"><span class="nav-text"> 3.8 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#381-redirect-source-file-path"><span class="nav-text"> 3.8.1 Redirect source file path</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#382-redirect-thread-info-to-file"><span class="nav-text"> 3.8.2 Redirect Thread Info to File</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-tips"><span class="nav-text"> 4 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-how-to-analyze-a-core-file"><span class="nav-text"> 4.1 How to Analyze a Core File</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-debugging-an-x86-application-in-rosetta-for-linux"><span class="nav-text"> 4.2 Debugging an x86 application in Rosetta for Linux</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-gdb-dashboard"><span class="nav-text"> 5 gdb-dashboard</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-lldb"><span class="nav-text"> 6 LLDB</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-reference"><span class="nav-text"> 7 Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -671,7 +690,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-count">288</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -790,6 +809,22 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
 
 <script>
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
@@ -816,22 +851,6 @@ NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
       serverURLs : ''
     });
   }, window.Valine);
-});
-</script>
-
-<script>
-NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
-  window.livereOptions = {
-    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
-  };
-  (function(d, s) {
-    var j, e = d.getElementsByTagName(s)[0];
-    if (typeof LivereTower === 'function') { return; }
-    j = d.createElement(s);
-    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-    j.async = true;
-    e.parentNode.insertBefore(j, e);
-  })(document, 'script');
 });
 </script>
 
