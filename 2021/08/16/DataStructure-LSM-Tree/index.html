@@ -28,7 +28,7 @@
 <meta property="og:description" content="1 Introduction LSM-tree stands for Log-Structured Merge Tree. It is a data structure used in computer systems, particularly in storage and database systems, to efficiently manage and store large vol">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-08-16T07:12:30.000Z">
-<meta property="article:modified_time" content="2024-03-18T13:37:51.000Z">
+<meta property="article:modified_time" content="2024-10-14T15:38:25.000Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-03-18 21:37:51" itemprop="dateModified" datetime="2024-03-18T21:37:51+08:00">2024-03-18</time>
+                <time title="修改时间：2024-10-14 23:38:25" itemprop="dateModified" datetime="2024-10-14T23:38:25+08:00">2024-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -293,6 +293,84 @@
 <li>Flexibility: LSM-trees can be tuned to balance the trade-offs between write and read performance based on system requirements.</li>
 </ol>
 <p>LSM-trees are widely used in various storage and database systems, including Apache Cassandra, LevelDB, RocksDB, and HBase, to name a few.</p>
+<h1 id="2-implementation"><a class="markdownIt-Anchor" href="#2-implementation"></a> 2 Implementation</h1>
+<h2 id="21-core-components"><a class="markdownIt-Anchor" href="#21-core-components"></a> 2.1 Core Components</h2>
+<ol>
+<li><code>Memtable</code>: An in-memory key-value store (often implemented as a sorted tree like a Red-Black Tree or SkipList).</li>
+<li><code>Immutable Memtable</code>: When a memtable is full, it becomes immutable and awaits flushing to disk.</li>
+<li><code>SSTables (Sorted String Tables)</code>: Disk-based, read-only data structures that store sorted key-value pairs.</li>
+<li><code>Write-Ahead Log (WAL)</code>: A log to ensure durability by recording operations before writing them to the memtable.</li>
+<li><code>Compaction</code>: Merges multiple SSTables to remove duplicates and reclaim space.</li>
+</ol>
+<h2 id="22-operations-in-an-lsm-tree"><a class="markdownIt-Anchor" href="#22-operations-in-an-lsm-tree"></a> 2.2 Operations in an LSM Tree</h2>
+<p><strong>On a Write Operation</strong></p>
+<ol>
+<li>Log the operation in the Write-Ahead Log (WAL):
+<ul>
+<li>This ensures that the data can be recovered in case of a crash before it’s written to the SSTable.</li>
+</ul>
+</li>
+<li>Write the key-value pair to the active memtable:
+<ul>
+<li>The memtable is a fast, in-memory data structure (e.g., a Red-Black Tree or SkipList) that holds the latest data.</li>
+</ul>
+</li>
+</ol>
+<p><strong>When the Memtable is Full</strong></p>
+<ol>
+<li>Convert the active memtable into an immutable memtable:
+<ul>
+<li>The active memtable is marked as immutable. No further writes are allowed to it, ensuring thread safety during the flush operation.</li>
+</ul>
+</li>
+<li>Flush the immutable memtable to disk as an SSTable:
+<ul>
+<li>The immutable memtable is serialized into a new SSTable (Sorted String Table) on disk.</li>
+</ul>
+</li>
+<li>Clear the active memtable:
+<ul>
+<li>Once the immutable memtable is flushed, the active memtable is reset, and a new memtable is ready to accept writes.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Periodic Compaction</strong></p>
+<ol>
+<li>Identify SSTables for compaction:
+<ul>
+<li>As more SSTables are created, older ones may contain duplicate or obsolete key-value pairs. Compaction ensures that these are merged into a single, optimized SSTable.</li>
+</ul>
+</li>
+<li>Merge SSTables:
+<ul>
+<li>Compaction reads multiple SSTables, removes redundant or outdated entries, and creates a new SSTable with the latest values.</li>
+</ul>
+</li>
+<li>Delete the old SSTables:
+<ul>
+<li>Once compaction is complete, the old SSTables are removed to save space.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Read Operation</strong></p>
+<ol>
+<li>Search the active memtable:
+<ul>
+<li>On a read request, the system first checks the active memtable.</li>
+</ul>
+</li>
+<li>Search the immutable memtable (if any):
+<ul>
+<li>If the key is not found in the active memtable, the system checks the immutable memtable (if it exists).</li>
+</ul>
+</li>
+<li>Search SSTables on disk:
+<ul>
+<li>If the key is not found in the memtables, the system searches the SSTables on disk using the index block for efficient lookups.</li>
+<li>Bloom filters (if used) help determine if the key might exist in an SSTable to avoid unnecessary disk reads.</li>
+</ul>
+</li>
+</ol>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
     </div>
 
@@ -394,7 +472,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-introduction"><span class="nav-text"> 1 Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-implementation"><span class="nav-text"> 2 Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-core-components"><span class="nav-text"> 2.1 Core Components</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-operations-in-an-lsm-tree"><span class="nav-text"> 2.2 Operations in an LSM Tree</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -410,14 +488,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">288</span>
+          <span class="site-state-item-count">285</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">98</span>
+        <span class="site-state-item-count">99</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -450,7 +528,7 @@
 <div class="copyright">
   
   &copy; 2017 – 
-  <span itemprop="copyrightYear">2024</span>
+  <span itemprop="copyrightYear">2025</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux-IO">
+<meta property="og:url" content="http://example.com/2024/06/18/Linux-IO/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-06-18T05:41:34.000Z">
+<meta property="article:modified_time" content="2025-01-05T16:01:08.000Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2024/06/18/Linux-IO/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux-IO | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/06/18/Linux-IO/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux-IO
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-06-18 13:41:34" itemprop="dateCreated datePublished" datetime="2024-06-18T13:41:34+08:00">2024-06-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-06 00:01:08" itemprop="dateModified" datetime="2025-01-06T00:01:08+08:00">2025-01-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/" itemprop="url" rel="index"><span itemprop="name">Operating System</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2024/06/18/Linux-IO/" class="post-meta-item leancloud_visitors" data-flag-title="Linux-IO" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2024/06/18/Linux-IO/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/06/18/Linux-IO/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1 id="1-terms"><a class="markdownIt-Anchor" href="#1-terms"></a> 1 Terms</h1>
+<ol>
+<li><code>Standard I/O</code>: Basic read and write operations using standard C library functions.</li>
+<li><code>Buffered I/O</code>: Uses buffers to minimize the number of read and write operations.</li>
+<li><code>Unbuffered I/O</code>: Directly interacts with the underlying hardware without buffering.</li>
+<li><code>Zero-Copy</code>: Techniques that avoid copying data between buffers in the kernel and user space, such as sendfile, splice, and mmap.</li>
+<li><code>Direct I/O</code>: Bypasses the OS cache, allowing data to be transferred directly between user space and the storage device.</li>
+<li><code>Memory-Mapped I/O (mmap)</code>: Maps files or devices into memory, enabling applications to access them as if they were in memory.</li>
+<li><code>Asynchronous I/O (AIO)</code>: Allows operations to be performed without blocking the executing thread, using functions like io_submit and io_getevents.</li>
+<li><code>Synchronous I/O</code>: Operations that block the executing thread until they are completed.</li>
+<li><code>Blocking I/O</code>: The default behavior where system calls wait for operations to complete before returning.</li>
+<li><code>Non-blocking I/O</code>: System calls return immediately if an operation cannot be completed, using mechanisms like select, poll, and epoll.</li>
+<li><code>Scatter-Gather I/O</code>: Allows data to be transferred between non-contiguous memory areas and a single I/O operation.</li>
+<li><code>Kernel I/O Subsystem</code>: The part of the Linux kernel responsible for managing I/O operations.</li>
+<li><code>Character Device I/O</code>: Interfaces with devices that handle data as a stream of characters.</li>
+<li><code>Block Device I/O</code>: Interfaces with devices that handle data in fixed-size blocks.</li>
+<li><code>Network I/O</code>: Handling data transfer over network connections.</li>
+<li><code>DMA (Direct Memory Access)</code>: Allows devices to transfer data directly to and from memory without CPU involvement.</li>
+<li><code>I/O Scheduling</code>: The method by which the kernel decides the order in which I/O operations are executed.</li>
+<li><code>I/O Priorities</code>: Assigning priorities to I/O operations to influence their order of execution.</li>
+<li><code>IOCTL (Input/Output Control)</code>: System calls for device-specific input/output operations and other operations which cannot be expressed by regular system calls.</li>
+<li><code>Device Drivers</code>: Kernel modules that manage communication with hardware devices.</li>
+</ol>
+<h2 id="11-mmap-vs-sequential-io"><a class="markdownIt-Anchor" href="#11-mmap-vs-sequential-io"></a> 1.1 mmap vs. sequential I/O</h2>
+<h1 id="2-classic-io-models"><a class="markdownIt-Anchor" href="#2-classic-io-models"></a> 2 Classic I/O Models</h1>
+<h2 id="21-blocking-io"><a class="markdownIt-Anchor" href="#21-blocking-io"></a> 2.1 Blocking I/O</h2>
+<p>Blocking I/O waits until the data is available before returning.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdio&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> fd = <span class="built_in">open</span>(<span class="string">&quot;example.txt&quot;</span>, O_RDONLY);</span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> buffer[<span class="number">1024</span>];</span><br><span class="line">    <span class="type">ssize_t</span> bytes_read = <span class="built_in">read</span>(fd, buffer, <span class="built_in">sizeof</span>(buffer)); <span class="comment">// Blocks until data is available</span></span><br><span class="line">    <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        buffer[bytes_read] = <span class="string">&#x27;\0&#x27;</span>; <span class="comment">// Null-terminate the buffer</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Read: %s\n&quot;</span>, buffer);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;read&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(fd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="22-non-blocking-io"><a class="markdownIt-Anchor" href="#22-non-blocking-io"></a> 2.2 Non-Blocking I/O</h2>
+<p>Non-blocking I/O returns immediately if no data is available, requiring error handling.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cerrno&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdio&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> fd = <span class="built_in">open</span>(<span class="string">&quot;example.txt&quot;</span>, O_RDONLY | O_NONBLOCK); <span class="comment">// Set non-blocking flag</span></span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> buffer[<span class="number">1024</span>];</span><br><span class="line">    <span class="type">ssize_t</span> bytes_read = <span class="built_in">read</span>(fd, buffer, <span class="built_in">sizeof</span>(buffer));</span><br><span class="line">    <span class="keyword">if</span> (bytes_read == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (errno == EAGAIN || errno == EWOULDBLOCK) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;No data available (non-blocking mode)\n&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">perror</span>(<span class="string">&quot;read&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        buffer[bytes_read] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Read: %s\n&quot;</span>, buffer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(fd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="23-io-multiplexing"><a class="markdownIt-Anchor" href="#23-io-multiplexing"></a> 2.3 I/O Multiplexing</h2>
+<p>I/O multiplexing allows you to monitor multiple file descriptors at once.</p>
+<h3 id="231-select"><a class="markdownIt-Anchor" href="#231-select"></a> 2.3.1 select</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Open two files in non-blocking mode</span></span><br><span class="line">    <span class="type">int</span> fd1 = <span class="built_in">open</span>(<span class="string">&quot;example1.txt&quot;</span>, O_RDONLY | O_NONBLOCK);</span><br><span class="line">    <span class="type">int</span> fd2 = <span class="built_in">open</span>(<span class="string">&quot;example2.txt&quot;</span>, O_RDONLY | O_NONBLOCK);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (fd1 == <span class="number">-1</span> || fd2 == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (fd1 != <span class="number">-1</span>) <span class="built_in">close</span>(fd1);</span><br><span class="line">        <span class="keyword">if</span> (fd2 != <span class="number">-1</span>) <span class="built_in">close</span>(fd2);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set up file descriptor set</span></span><br><span class="line">    fd_set read_fds;</span><br><span class="line">    <span class="type">int</span> max_fd = std::<span class="built_in">max</span>(fd1, fd2) + <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Monitoring example1.txt and example2.txt for readability...\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// Clear the file descriptor set and add our fds</span></span><br><span class="line">        <span class="built_in">FD_ZERO</span>(&amp;read_fds);</span><br><span class="line">        <span class="built_in">FD_SET</span>(fd1, &amp;read_fds);</span><br><span class="line">        <span class="built_in">FD_SET</span>(fd2, &amp;read_fds);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Wait for data to become available on either file</span></span><br><span class="line">        <span class="type">int</span> result = <span class="built_in">select</span>(max_fd, &amp;read_fds, <span class="literal">nullptr</span>, <span class="literal">nullptr</span>, <span class="literal">nullptr</span>);</span><br><span class="line">        <span class="keyword">if</span> (result == <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="built_in">perror</span>(<span class="string">&quot;select&quot;</span>);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Check which file descriptor is ready</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">FD_ISSET</span>(fd1, &amp;read_fds)) &#123;</span><br><span class="line">            <span class="type">char</span> buffer[<span class="number">1024</span>];</span><br><span class="line">            <span class="type">ssize_t</span> bytes_read = <span class="built_in">read</span>(fd1, buffer, <span class="built_in">sizeof</span>(buffer) - <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                buffer[bytes_read] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Read from example1.txt: %s\n&quot;</span>, buffer);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bytes_read == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;EOF reached on example1.txt\n&quot;</span>);</span><br><span class="line">                <span class="built_in">close</span>(fd1);</span><br><span class="line">                <span class="built_in">FD_CLR</span>(fd1, &amp;read_fds); <span class="comment">// Remove fd1 from the set</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="built_in">perror</span>(<span class="string">&quot;read from example1.txt&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">FD_ISSET</span>(fd2, &amp;read_fds)) &#123;</span><br><span class="line">            <span class="type">char</span> buffer[<span class="number">1024</span>];</span><br><span class="line">            <span class="type">ssize_t</span> bytes_read = <span class="built_in">read</span>(fd2, buffer, <span class="built_in">sizeof</span>(buffer) - <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                buffer[bytes_read] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Read from example2.txt: %s\n&quot;</span>, buffer);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bytes_read == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;EOF reached on example2.txt\n&quot;</span>);</span><br><span class="line">                <span class="built_in">close</span>(fd2);</span><br><span class="line">                <span class="built_in">FD_CLR</span>(fd2, &amp;read_fds); <span class="comment">// Remove fd2 from the set</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="built_in">perror</span>(<span class="string">&quot;read from example2.txt&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Exit if both files are closed</span></span><br><span class="line">        <span class="keyword">if</span> (fd1 == <span class="number">-1</span> &amp;&amp; fd2 == <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="232-epoll"><a class="markdownIt-Anchor" href="#232-epoll"></a> 2.3.2 epoll</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/epoll.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_EVENTS 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PORT 8080</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> epoll_fd = <span class="built_in">epoll_create1</span>(<span class="number">0</span>); <span class="comment">// Create epoll instance</span></span><br><span class="line">    <span class="keyword">if</span> (epoll_fd == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;epoll_create1&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Create a listening socket</span></span><br><span class="line">    <span class="type">int</span> server_fd = <span class="built_in">socket</span>(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (server_fd == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;socket&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(epoll_fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">sockaddr_in</span> server_addr;</span><br><span class="line">    server_addr.sin_family = AF_INET;</span><br><span class="line">    server_addr.sin_addr.s_addr = INADDR_ANY;</span><br><span class="line">    server_addr.sin_port = <span class="built_in">htons</span>(PORT);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Bind and listen on the socket</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">bind</span>(server_fd, (<span class="keyword">struct</span> sockaddr*)&amp;server_addr, <span class="built_in">sizeof</span>(server_addr)) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;bind&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(server_fd);</span><br><span class="line">        <span class="built_in">close</span>(epoll_fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">listen</span>(server_fd, <span class="number">1</span>) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;listen&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(server_fd);</span><br><span class="line">        <span class="built_in">close</span>(epoll_fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Register the server socket with epoll to watch for incoming connections</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">epoll_event</span> ev;</span><br><span class="line">    ev.events = EPOLLIN;</span><br><span class="line">    ev.data.fd = server_fd;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">epoll_ctl</span>(epoll_fd, EPOLL_CTL_ADD, server_fd, &amp;ev) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;epoll_ctl: server_fd&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(server_fd);</span><br><span class="line">        <span class="built_in">close</span>(epoll_fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">epoll_event</span> events[MAX_EVENTS];</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Waiting for events on port %d...\n&quot;</span>, PORT);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="type">int</span> num_events = <span class="built_in">epoll_wait</span>(epoll_fd, events, MAX_EVENTS, <span class="number">-1</span>);</span><br><span class="line">        <span class="keyword">if</span> (num_events == <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="built_in">perror</span>(<span class="string">&quot;epoll_wait&quot;</span>);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; num_events; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (events[i].data.fd == server_fd) &#123;</span><br><span class="line">                <span class="comment">// Accept a new connection</span></span><br><span class="line">                <span class="type">int</span> client_fd = <span class="built_in">accept</span>(server_fd, <span class="literal">nullptr</span>, <span class="literal">nullptr</span>);</span><br><span class="line">                <span class="keyword">if</span> (client_fd == <span class="number">-1</span>) &#123;</span><br><span class="line">                    <span class="built_in">perror</span>(<span class="string">&quot;accept&quot;</span>);</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// Make the client socket non-blocking</span></span><br><span class="line">                <span class="built_in">fcntl</span>(client_fd, F_SETFL, O_NONBLOCK);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// Register the client socket with epoll</span></span><br><span class="line">                <span class="keyword">struct</span> <span class="title class_">epoll_event</span> client_ev;</span><br><span class="line">                client_ev.events = EPOLLIN;</span><br><span class="line">                client_ev.data.fd = client_fd;</span><br><span class="line">                <span class="keyword">if</span> (<span class="built_in">epoll_ctl</span>(epoll_fd, EPOLL_CTL_ADD, client_fd, &amp;client_ev) == <span class="number">-1</span>) &#123;</span><br><span class="line">                    <span class="built_in">perror</span>(<span class="string">&quot;epoll_ctl: client_fd&quot;</span>);</span><br><span class="line">                    <span class="built_in">close</span>(client_fd);</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Accepted new connection\n&quot;</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// Handle data from a client socket</span></span><br><span class="line">                <span class="type">int</span> client_fd = events[i].data.fd;</span><br><span class="line">                <span class="type">char</span> buffer[<span class="number">1024</span>];</span><br><span class="line">                <span class="type">ssize_t</span> bytes_read = <span class="built_in">read</span>(client_fd, buffer, <span class="built_in">sizeof</span>(buffer) - <span class="number">1</span>);</span><br><span class="line">                <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    buffer[bytes_read] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">&quot;Received from client: %s\n&quot;</span>, buffer);</span><br><span class="line">                    <span class="comment">// Echo the data back to the client</span></span><br><span class="line">                    <span class="built_in">write</span>(client_fd, buffer, bytes_read);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bytes_read == <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">&quot;Client disconnected\n&quot;</span>);</span><br><span class="line">                    <span class="built_in">epoll_ctl</span>(epoll_fd, EPOLL_CTL_DEL, client_fd, <span class="literal">nullptr</span>);</span><br><span class="line">                    <span class="built_in">close</span>(client_fd);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="built_in">perror</span>(<span class="string">&quot;read&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(server_fd);</span><br><span class="line">    <span class="built_in">close</span>(epoll_fd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="24-signal-driven-io"><a class="markdownIt-Anchor" href="#24-signal-driven-io"></a> 2.4 Signal-Driven I/O</h2>
+<p>Signal-driven I/O uses a signal handler to be notified when the file descriptor is ready.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;csignal&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> server_fd, client_fd; <span class="comment">// Global variables to access the socket in the signal handler</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Signal handler for SIGIO</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">sigio_handler</span><span class="params">(<span class="type">int</span> signo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (signo == SIGIO &amp;&amp; client_fd != <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="type">char</span> buffer[<span class="number">1024</span>];</span><br><span class="line">        <span class="type">ssize_t</span> bytes_read = <span class="built_in">read</span>(client_fd, buffer, <span class="built_in">sizeof</span>(buffer) - <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            buffer[bytes_read] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;Received from client: %s\n&quot;</span>, buffer);</span><br><span class="line">            <span class="comment">// Echo the message back to the client</span></span><br><span class="line">            <span class="built_in">write</span>(client_fd, buffer, bytes_read);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bytes_read == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;Closing client socket %d\n&quot;</span>, client_fd);</span><br><span class="line">            <span class="built_in">close</span>(client_fd);</span><br><span class="line">            client_fd = <span class="number">-1</span>; <span class="comment">// Mark client as disconnected</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">perror</span>(<span class="string">&quot;read&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Create a server socket</span></span><br><span class="line">    server_fd = <span class="built_in">socket</span>(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (server_fd == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;socket&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Bind the socket to an address and port</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">sockaddr_in</span> server_addr;</span><br><span class="line">    server_addr.sin_family = AF_INET;</span><br><span class="line">    server_addr.sin_addr.s_addr = INADDR_ANY;</span><br><span class="line">    server_addr.sin_port = <span class="built_in">htons</span>(<span class="number">8080</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">bind</span>(server_fd, (<span class="keyword">struct</span> sockaddr*)&amp;server_addr, <span class="built_in">sizeof</span>(server_addr)) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;bind&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(server_fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Listen for incoming connections</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">listen</span>(server_fd, <span class="number">1</span>) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;listen&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(server_fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Waiting for a connection on port 8080...\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Accept a client connection (this will initially block until a client connects)</span></span><br><span class="line">    client_fd = <span class="built_in">accept</span>(server_fd, <span class="literal">nullptr</span>, <span class="literal">nullptr</span>);</span><br><span class="line">    <span class="keyword">if</span> (client_fd == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;accept&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(server_fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Client connected!\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set client socket to non-blocking mode and enable asynchronous I/O</span></span><br><span class="line">    <span class="built_in">fcntl</span>(client_fd, F_SETFL, O_NONBLOCK | O_ASYNC);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set up the signal handler for SIGIO</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">sigaction</span> sa;</span><br><span class="line">    sa.sa_handler = sigio_handler;</span><br><span class="line">    sa.sa_flags = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">sigemptyset</span>(&amp;sa.sa_mask);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">sigaction</span>(SIGIO, &amp;sa, <span class="literal">nullptr</span>) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;sigaction&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(client_fd);</span><br><span class="line">        <span class="built_in">close</span>(server_fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set the process to be the owner of the socket file descriptor for SIGIO signals</span></span><br><span class="line">    <span class="built_in">fcntl</span>(client_fd, F_SETOWN, <span class="built_in">getpid</span>());</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Waiting for SIGIO events...\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Keep the program running to receive and handle signals</span></span><br><span class="line">    <span class="keyword">while</span> (client_fd != <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">pause</span>(); <span class="comment">// Wait for signals</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(server_fd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="25-asynchronous-io-aio"><a class="markdownIt-Anchor" href="#25-asynchronous-io-aio"></a> 2.5 Asynchronous I/O (AIO)</h2>
+<p>Asynchronous I/O allows you to start the I/O and be notified when it’s done without waiting.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;aio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// AIO completion handler</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">aio_completion_handler</span><span class="params">(<span class="type">sigval_t</span> sigval)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">aiocb</span>* req = <span class="built_in">static_cast</span>&lt;<span class="keyword">struct</span> aiocb*&gt;(sigval.sival_ptr);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">aio_error</span>(req) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="type">ssize_t</span> bytes_read = <span class="built_in">aio_return</span>(req); <span class="comment">// Check bytes read</span></span><br><span class="line">        <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            ((<span class="type">char</span>*)req-&gt;aio_buf)[bytes_read] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;Read (AIO): %s\n&quot;</span>, <span class="built_in">static_cast</span>&lt;<span class="keyword">volatile</span> <span class="type">char</span>*&gt;(req-&gt;aio_buf));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;aio_error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">free</span>((<span class="type">void</span>*)req-&gt;aio_buf); <span class="comment">// Free buffer memory</span></span><br><span class="line">    <span class="built_in">free</span>(req);                 <span class="comment">// Free request struct</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> fd = <span class="built_in">open</span>(<span class="string">&quot;example.txt&quot;</span>, O_RDONLY);</span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Allocate memory for aiocb structure</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">aiocb</span>* cb = <span class="built_in">static_cast</span>&lt;<span class="keyword">struct</span> aiocb*&gt;(<span class="built_in">malloc</span>(<span class="built_in">sizeof</span>(<span class="keyword">struct</span> aiocb)));</span><br><span class="line">    <span class="built_in">memset</span>(cb, <span class="number">0</span>, <span class="built_in">sizeof</span>(<span class="keyword">struct</span> aiocb));</span><br><span class="line">    cb-&gt;aio_fildes = fd;</span><br><span class="line">    cb-&gt;aio_nbytes = <span class="number">1024</span>;</span><br><span class="line">    cb-&gt;aio_buf = <span class="built_in">malloc</span>(<span class="number">1024</span>); <span class="comment">// Allocate buffer for data</span></span><br><span class="line">    cb-&gt;aio_offset = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set up notification for AIO completion using a thread</span></span><br><span class="line">    cb-&gt;aio_sigevent.sigev_notify = SIGEV_THREAD;</span><br><span class="line">    cb-&gt;aio_sigevent.sigev_notify_function = aio_completion_handler;</span><br><span class="line">    cb-&gt;aio_sigevent.sigev_notify_attributes = <span class="literal">nullptr</span>;</span><br><span class="line">    cb-&gt;aio_sigevent.sigev_value.sival_ptr = cb;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Start asynchronous read</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">aio_read</span>(cb) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;aio_read&quot;</span>);</span><br><span class="line">        <span class="built_in">free</span>((<span class="type">void</span>*)cb-&gt;aio_buf);</span><br><span class="line">        <span class="built_in">free</span>(cb);</span><br><span class="line">        <span class="built_in">close</span>(fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Keep the process running until the AIO completes</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Waiting for AIO completion...\n&quot;</span>);</span><br><span class="line">    <span class="built_in">pause</span>(); <span class="comment">// Wait for AIO completion signal</span></span><br><span class="line">    <span class="built_in">close</span>(fd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="26-io-uring"><a class="markdownIt-Anchor" href="#26-io-uring"></a> 2.6 I/O Uring</h2>
+<p>io_uring is a high-performance asynchronous I/O framework introduced in Linux kernel 5.1 to improve I/O efficiency and performance. Developed by Jens Axboe, io_uring aims to provide a more efficient and flexible interface for asynchronous I/O operations by leveraging ring buffers for communication between user space and kernel space, minimizing the need for system calls, and reducing context switching.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;liburing.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cerrno&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUEUE_DEPTH 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUFFER_SIZE 1024</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">io_uring</span> ring;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">io_uring_cqe</span>* cqe;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">io_uring_sqe</span>* sqe;</span><br><span class="line">    <span class="type">int</span> fd;</span><br><span class="line">    <span class="type">char</span> buffer[BUFFER_SIZE] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Open the file to read</span></span><br><span class="line">    fd = <span class="built_in">open</span>(<span class="string">&quot;example.txt&quot;</span>, O_RDONLY);</span><br><span class="line">    <span class="keyword">if</span> (fd &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Initialize io_uring with a single-entry queue</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">io_uring_queue_init</span>(QUEUE_DEPTH, &amp;ring, <span class="number">0</span>) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;io_uring_queue_init&quot;</span>);</span><br><span class="line">        <span class="built_in">close</span>(fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get a submission queue entry (SQE)</span></span><br><span class="line">    sqe = <span class="built_in">io_uring_get_sqe</span>(&amp;ring);</span><br><span class="line">    <span class="keyword">if</span> (!sqe) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(stderr, <span class="string">&quot;Failed to get SQE\n&quot;</span>);</span><br><span class="line">        <span class="built_in">io_uring_queue_exit</span>(&amp;ring);</span><br><span class="line">        <span class="built_in">close</span>(fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Prepare the SQE for a read operation</span></span><br><span class="line">    <span class="built_in">io_uring_prep_read</span>(sqe, fd, buffer, BUFFER_SIZE, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Submit the SQE to the queue</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">io_uring_submit</span>(&amp;ring) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;io_uring_submit&quot;</span>);</span><br><span class="line">        <span class="built_in">io_uring_queue_exit</span>(&amp;ring);</span><br><span class="line">        <span class="built_in">close</span>(fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Wait for the completion queue entry (CQE)</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">io_uring_wait_cqe</span>(&amp;ring, &amp;cqe) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">perror</span>(<span class="string">&quot;io_uring_wait_cqe&quot;</span>);</span><br><span class="line">        <span class="built_in">io_uring_queue_exit</span>(&amp;ring);</span><br><span class="line">        <span class="built_in">close</span>(fd);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Check the result of the operation</span></span><br><span class="line">    <span class="keyword">if</span> (cqe-&gt;res &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(stderr, <span class="string">&quot;Async read failed: %s\n&quot;</span>, <span class="built_in">strerror</span>(-cqe-&gt;res));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Read %d bytes: %s\n&quot;</span>, cqe-&gt;res, buffer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Mark CQE as seen</span></span><br><span class="line">    <span class="built_in">io_uring_cqe_seen</span>(&amp;ring, cqe);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Clean up</span></span><br><span class="line">    <span class="built_in">io_uring_queue_exit</span>(&amp;ring);</span><br><span class="line">    <span class="built_in">close</span>(fd);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="3-zero-copy-io"><a class="markdownIt-Anchor" href="#3-zero-copy-io"></a> 3 Zero-Copy I/O</h1>
+<p>Zero-copy is a term in computer science that refers to a method of transferring data without requiring the CPU to copy data from one memory area to another explicitly. The primary goal of zero-copy is to improve system performance by reducing CPU overhead and memory bandwidth usage, especially for high-throughput applications like file transfers, networking, or streaming.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/sendfile.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;filesystem&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">constexpr</span> <span class="type">size_t</span> BUFFER_SIZE = <span class="number">8192</span>;</span><br><span class="line"><span class="keyword">constexpr</span> std::string_view source_file = <span class="string">&quot;source.dat&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CHECK_OR_DIE(x)                            \</span></span><br><span class="line"><span class="meta">    <span class="keyword">if</span> (!(x)) &#123;                                    \</span></span><br><span class="line"><span class="meta">        std::cerr &lt;&lt; #x &lt;&lt; <span class="string">&quot; failed&quot;</span> &lt;&lt; std::endl; \</span></span><br><span class="line"><span class="meta">        exit(1);                                   \</span></span><br><span class="line"><span class="meta">    &#125;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">zero_copy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Perform zero_copy:&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="type">int</span> source_fd = <span class="built_in">open</span>(source_file.<span class="built_in">data</span>(), O_RDONLY);</span><br><span class="line">    <span class="built_in">CHECK_OR_DIE</span>(source_fd != <span class="number">-1</span>);</span><br><span class="line">    <span class="type">int</span> target_fd = <span class="built_in">open</span>(<span class="string">&quot;zero_copy.dat&quot;</span>, O_WRONLY | O_CREAT, <span class="number">0644</span>);</span><br><span class="line">    <span class="built_in">CHECK_OR_DIE</span>(target_fd != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">stat</span> source_stat;</span><br><span class="line">    <span class="built_in">fstat</span>(source_fd, &amp;source_stat);</span><br><span class="line"></span><br><span class="line">    <span class="type">off_t</span> offset = <span class="number">0</span>;</span><br><span class="line">    <span class="type">ssize_t</span> bytes_sent;</span><br><span class="line">    bytes_sent = <span class="built_in">sendfile</span>(target_fd, source_fd, &amp;offset, source_stat.st_size);</span><br><span class="line">    <span class="built_in">CHECK_OR_DIE</span>(bytes_sent == source_stat.st_size);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(source_fd);</span><br><span class="line">    <span class="built_in">close</span>(target_fd);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">non_zero_copy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Perform non_zero_copy:&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    <span class="type">int</span> source_fd = <span class="built_in">open</span>(source_file.<span class="built_in">data</span>(), O_RDONLY);</span><br><span class="line">    <span class="built_in">CHECK_OR_DIE</span>(source_fd != <span class="number">-1</span>);</span><br><span class="line">    <span class="type">int</span> target_fd = <span class="built_in">open</span>(<span class="string">&quot;non_zero_copy.dat&quot;</span>, O_WRONLY | O_CREAT, <span class="number">0644</span>);</span><br><span class="line">    <span class="built_in">CHECK_OR_DIE</span>(target_fd != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">stat</span> source_stat;</span><br><span class="line">    <span class="built_in">fstat</span>(source_fd, &amp;source_stat);</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> buffer[BUFFER_SIZE];</span><br><span class="line">    <span class="type">size_t</span> total_written = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (total_written &lt; source_stat.st_size) &#123;</span><br><span class="line">        <span class="type">size_t</span> expected_read_size = std::<span class="built_in">min</span>(BUFFER_SIZE, source_stat.st_size - total_written);</span><br><span class="line">        <span class="type">ssize_t</span> bytes_read = <span class="built_in">read</span>(source_fd, buffer, expected_read_size);</span><br><span class="line">        <span class="built_in">CHECK_OR_DIE</span>(bytes_read == expected_read_size);</span><br><span class="line">        <span class="type">ssize_t</span> bytes_written = <span class="built_in">write</span>(target_fd, buffer, bytes_read);</span><br><span class="line">        <span class="built_in">CHECK_OR_DIE</span>(bytes_written == expected_read_size);</span><br><span class="line">        total_written += bytes_written;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(source_fd);</span><br><span class="line">    <span class="built_in">close</span>(target_fd);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> type = std::<span class="built_in">atoi</span>(argv[<span class="number">1</span>]);</span><br><span class="line">    <span class="keyword">if</span> (type == <span class="number">0</span>)</span><br><span class="line">        <span class="built_in">zero_copy</span>();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">non_zero_copy</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">gcc -o main main.cpp -lstdc++ -std=gnu++17 -O3</span><br><span class="line"></span><br><span class="line">fallocate -l 1G source.dat</span><br><span class="line">time ./main 1</span><br><span class="line">time ./main 0</span><br><span class="line"></span><br><span class="line">Perform non_zero_copy:</span><br><span class="line">./main 1  0.01s user 1.39s system 99% cpu 1.401 total</span><br><span class="line">Perform zero_copy:</span><br><span class="line">./main 0  0.00s user 1.03s system 99% cpu 1.028 total</span><br></pre></td></tr></table></figure><script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/06/07/Paimon-Trial/" rel="prev" title="Paimon-Trial">
+      <i class="fa fa-chevron-left"></i> Paimon-Trial
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/09/23/Iceberg-Trial/" rel="next" title="Iceberg-Trial">
+      Iceberg-Trial <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-terms"><span class="nav-text"> 1 Terms</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-mmap-vs-sequential-io"><span class="nav-text"> 1.1 mmap vs. sequential I&#x2F;O</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-classic-io-models"><span class="nav-text"> 2 Classic I&#x2F;O Models</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-blocking-io"><span class="nav-text"> 2.1 Blocking I&#x2F;O</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-non-blocking-io"><span class="nav-text"> 2.2 Non-Blocking I&#x2F;O</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-io-multiplexing"><span class="nav-text"> 2.3 I&#x2F;O Multiplexing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#231-select"><span class="nav-text"> 2.3.1 select</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#232-epoll"><span class="nav-text"> 2.3.2 epoll</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-signal-driven-io"><span class="nav-text"> 2.4 Signal-Driven I&#x2F;O</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-asynchronous-io-aio"><span class="nav-text"> 2.5 Asynchronous I&#x2F;O (AIO)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#26-io-uring"><span class="nav-text"> 2.6 I&#x2F;O Uring</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-zero-copy-io"><span class="nav-text"> 3 Zero-Copy I&#x2F;O</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">99</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
