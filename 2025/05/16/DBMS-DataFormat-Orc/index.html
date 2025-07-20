@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="阅读更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DBMS-DataFormat-Orc">
+<meta property="og:url" content="http://example.com/2025/05/16/DBMS-DataFormat-Orc/index.html">
+<meta property="og:site_name" content="Liuye Notebook">
+<meta property="og:description" content="阅读更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-05-16T07:51:05.000Z">
+<meta property="article:modified_time" content="2025-06-15T11:46:15.000Z">
+<meta property="article:author" content="Liuyehcf">
+<meta property="article:tag" content="摘录">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/05/16/DBMS-DataFormat-Orc/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>DBMS-DataFormat-Orc | Liuye Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Liuye Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-explore">
+
+    <a href="/explore/" rel="section"><i class="fa fa-sitemap fa-fw"></i>发现</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/05/16/DBMS-DataFormat-Orc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Liuyehcf">
+      <meta itemprop="description" content="大音希声，大象无形">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Liuye Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DBMS-DataFormat-Orc
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-05-16 15:51:05" itemprop="dateCreated datePublished" datetime="2025-05-16T15:51:05+08:00">2025-05-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-06-15 19:46:15" itemprop="dateModified" datetime="2025-06-15T19:46:15+08:00">2025-06-15</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/" itemprop="url" rel="index"><span itemprop="name">Database</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Database/Data-Format/" itemprop="url" rel="index"><span itemprop="name">Data Format</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2025/05/16/DBMS-DataFormat-Orc/" class="post-meta-item leancloud_visitors" data-flag-title="DBMS-DataFormat-Orc" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2025/05/16/DBMS-DataFormat-Orc/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2025/05/16/DBMS-DataFormat-Orc/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>阅读更多</strong></p>
+<span id="more"></span>
+<h1 id="1-java-sdk-demo"><a class="markdownIt-Anchor" href="#1-java-sdk-demo"></a> 1 Java SDK Demo</h1>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.conf.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.FileSystem;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.LocalFileSystem;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path;</span><br><span class="line"><span class="keyword">import</span> org.apache.orc.*;</span><br><span class="line"><span class="keyword">import</span> org.apache.orc.storage.ql.exec.vector.BytesColumnVector;</span><br><span class="line"><span class="keyword">import</span> org.apache.orc.storage.ql.exec.vector.LongColumnVector;</span><br><span class="line"><span class="keyword">import</span> org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrcDemo</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Path</span> <span class="variable">path</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Path</span>(<span class="string">&quot;/tmp/user.orc&quot;</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Configuration</span> <span class="variable">conf</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Configuration</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> LocalFileSystem local;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            local = FileSystem.getLocal(conf);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        write();</span><br><span class="line">        read();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">write</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">TypeDescription</span> <span class="variable">schema</span> <span class="operator">=</span></span><br><span class="line">                TypeDescription.fromString(<span class="string">&quot;struct&lt;id:bigint,name:string,age:int&gt;&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (local.exists(path)) &#123;</span><br><span class="line">            local.delete(path, <span class="literal">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> (<span class="type">Writer</span> <span class="variable">writer</span> <span class="operator">=</span> OrcFile.createWriter(path,</span><br><span class="line">                OrcFile.writerOptions(conf).setSchema(schema).fileSystem(local))) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="type">VectorizedRowBatch</span> <span class="variable">batch</span> <span class="operator">=</span> schema.createRowBatch();</span><br><span class="line">            <span class="type">LongColumnVector</span> <span class="variable">idCol</span> <span class="operator">=</span> (LongColumnVector) batch.cols[<span class="number">0</span>];</span><br><span class="line">            <span class="type">BytesColumnVector</span> <span class="variable">nameCol</span> <span class="operator">=</span> (BytesColumnVector) batch.cols[<span class="number">1</span>];</span><br><span class="line">            <span class="type">LongColumnVector</span> <span class="variable">ageCol</span> <span class="operator">=</span> (LongColumnVector) batch.cols[<span class="number">2</span>];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">5</span>; i++) &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">row</span> <span class="operator">=</span> batch.size++;</span><br><span class="line">                idCol.vector[row] = i + <span class="number">1</span>;</span><br><span class="line">                <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> <span class="string">&quot;User&quot;</span> + (i + <span class="number">1</span>);</span><br><span class="line">                <span class="type">byte</span>[] nameBytes = name.getBytes();</span><br><span class="line">                nameCol.setVal(row, nameBytes);</span><br><span class="line">                ageCol.vector[row] = <span class="number">20</span> + i;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (batch.size == batch.getMaxSize()) &#123;</span><br><span class="line">                    writer.addRowBatch(batch);</span><br><span class="line">                    batch.reset();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (batch.size &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                writer.addRowBatch(batch);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            System.out.println(<span class="string">&quot;Write Successfully&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">read</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">Reader</span> <span class="variable">reader</span> <span class="operator">=</span></span><br><span class="line">                OrcFile.createReader(path, OrcFile.readerOptions(conf).filesystem(local));</span><br><span class="line">                <span class="type">RecordReader</span> <span class="variable">rows</span> <span class="operator">=</span> reader.rows()) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="type">TypeDescription</span> <span class="variable">schema</span> <span class="operator">=</span> reader.getSchema();</span><br><span class="line">            <span class="type">VectorizedRowBatch</span> <span class="variable">batch</span> <span class="operator">=</span> schema.createRowBatch();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> (rows.nextBatch(batch)) &#123;</span><br><span class="line">                <span class="type">LongColumnVector</span> <span class="variable">idCol</span> <span class="operator">=</span> (LongColumnVector) batch.cols[<span class="number">0</span>];</span><br><span class="line">                <span class="type">BytesColumnVector</span> <span class="variable">nameCol</span> <span class="operator">=</span> (BytesColumnVector) batch.cols[<span class="number">1</span>];</span><br><span class="line">                <span class="type">LongColumnVector</span> <span class="variable">ageCol</span> <span class="operator">=</span> (LongColumnVector) batch.cols[<span class="number">2</span>];</span><br><span class="line"></span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">r</span> <span class="operator">=</span> <span class="number">0</span>; r &lt; batch.size; ++r) &#123;</span><br><span class="line">                    <span class="type">long</span> <span class="variable">id</span> <span class="operator">=</span> idCol.vector[r];</span><br><span class="line">                    <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> nameCol.toString(r);</span><br><span class="line">                    <span class="type">int</span> <span class="variable">age</span> <span class="operator">=</span> (<span class="type">int</span>) ageCol.vector[r];</span><br><span class="line"></span><br><span class="line">                    System.out.printf(<span class="string">&quot;User&#123;id=%d, name=&#x27;%s&#x27;, age=%d&#125;%n&quot;</span>, id, name, age);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="2-tools"><a class="markdownIt-Anchor" href="#2-tools"></a> 2 Tools</h1>
+<h2 id="21-parquet-orc-utils"><a class="markdownIt-Anchor" href="#21-parquet-orc-utils"></a> 2.1 Parquet ORC Utils</h2>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">import</span> pyarrow <span class="keyword">as</span> pa</span><br><span class="line"><span class="keyword">import</span> pyarrow.orc <span class="keyword">as</span> orc</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">parse_arguments</span>():</span><br><span class="line">    parser = argparse.ArgumentParser(description=<span class="string">&quot;ORC reader using pyarrow&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-f&quot;</span>, <span class="string">&quot;--file&quot;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&quot;Path to ORC file&quot;</span>)</span><br><span class="line">    parser.add_argument(</span><br><span class="line">        <span class="string">&quot;--show&quot;</span>,</span><br><span class="line">        nargs=<span class="string">&quot;?&quot;</span>,</span><br><span class="line">        const=<span class="string">&quot;0,10&quot;</span>,</span><br><span class="line">        default=<span class="literal">None</span>,</span><br><span class="line">        <span class="built_in">type</span>=<span class="built_in">str</span>,</span><br><span class="line">        <span class="built_in">help</span>=<span class="string">&quot;Show ORC data rows. Format: start_row[,num_rows], e.g. --show 5,30&quot;</span></span><br><span class="line">    )</span><br><span class="line">    parser.add_argument(<span class="string">&quot;--summary&quot;</span>, action=<span class="string">&quot;store_true&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;Print summary statistics&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> parser.parse_args()</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show_rows</span>(<span class="params">table: pa.Table, show_arg</span>):</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        parts = show_arg.split(<span class="string">&quot;,&quot;</span>)</span><br><span class="line">        start = <span class="built_in">int</span>(parts[<span class="number">0</span>])</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(parts) &gt; <span class="number">1</span>:</span><br><span class="line">            length = <span class="built_in">int</span>(parts[<span class="number">1</span>])</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            length = <span class="number">10</span></span><br><span class="line">    <span class="keyword">except</span> Exception:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Invalid --show argument format: &#x27;<span class="subst">&#123;show_arg&#125;</span>&#x27;. Expected format: start[,length]&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> start &lt; <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Start row must be &gt;= 0 (got <span class="subst">&#123;start&#125;</span>)&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> start &gt; table.num_rows:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Start row <span class="subst">&#123;start&#125;</span> out of bounds (max <span class="subst">&#123;table.num_rows&#125;</span>)&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    length = <span class="built_in">min</span>(length, table.num_rows - start)</span><br><span class="line">    <span class="keyword">if</span> length &lt;= <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;No rows to display.&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    preview = table.<span class="built_in">slice</span>(start, length)</span><br><span class="line">    df = preview.to_pandas()</span><br><span class="line">    df.index = <span class="built_in">range</span>(start, start + length)</span><br><span class="line">    <span class="built_in">print</span>(df)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">summarize</span>(<span class="params">table: pa.Table, file_path: <span class="built_in">str</span></span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Summary:&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;- File: <span class="subst">&#123;file_path&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;- Total rows: <span class="subst">&#123;table.num_rows&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;- Total columns: <span class="subst">&#123;table.num_columns&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;- Column names: <span class="subst">&#123;table.column_names&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;- Column types:&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> name, col <span class="keyword">in</span> <span class="built_in">zip</span>(table.column_names, table.columns):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;  - <span class="subst">&#123;name&#125;</span>: <span class="subst">&#123;col.<span class="built_in">type</span>&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;- Null value counts:&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> name <span class="keyword">in</span> table.column_names:</span><br><span class="line">        col = table[name]</span><br><span class="line">        null_count = col.null_count</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;  - <span class="subst">&#123;name&#125;</span>: <span class="subst">&#123;null_count&#125;</span> nulls&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;- File size: <span class="subst">&#123;os.path.getsize(file_path)&#125;</span> bytes&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;- Stripes:&quot;</span>)</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(file_path, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        reader = orc.ORCFile(f)</span><br><span class="line">        n = reader.nstripes</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;  - Total stripes: <span class="subst">&#123;n&#125;</span>&quot;</span>)</span><br><span class="line">        prev_end = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(n):</span><br><span class="line">            stripe = reader.read_stripe(i)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;    - Stripe <span class="subst">&#123;i&#125;</span>: <span class="subst">&#123;stripe.num_rows&#125;</span> rows, range: [<span class="subst">&#123;prev_end&#125;</span>, <span class="subst">&#123;prev_end + stripe.num_rows&#125;</span>)&quot;</span>)</span><br><span class="line">            prev_end += stripe.num_rows</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    args = parse_arguments()</span><br><span class="line"></span><br><span class="line">    pd.set_option(<span class="string">&quot;display.max_rows&quot;</span>, <span class="literal">None</span>)</span><br><span class="line">    pd.set_option(<span class="string">&quot;display.max_columns&quot;</span>, <span class="literal">None</span>)</span><br><span class="line">    pd.set_option(<span class="string">&quot;display.width&quot;</span>, <span class="literal">None</span>)</span><br><span class="line">    pd.set_option(<span class="string">&quot;display.max_colwidth&quot;</span>, <span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(args.file, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        reader = orc.ORCFile(f)</span><br><span class="line">        table = reader.read()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> args.show:</span><br><span class="line">            show_rows(table, args.show)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> args.summary:</span><br><span class="line">            summarize(table, args.file)</span><br></pre></td></tr></table></figure>
+<h1 id="3-tips"><a class="markdownIt-Anchor" href="#3-tips"></a> 3 Tips</h1>
+<h2 id="31-java-dependency-classifier"><a class="markdownIt-Anchor" href="#31-java-dependency-classifier"></a> 3.1 Java Dependency classifier</h2>
+<p>Orc’s java dependency has two difference versions, one use hive’s class, another don’t. Which means the same mechod will have different signature, and these two versions cannot work together. Otherwise you may get following error message:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.NoSuchMethodError: org.apache.orc.TypeDescription.createRowBatch(I)Lorg/apache/hadoop/hive/ql/exec/vector/VectorizedRowBatch;</span><br></pre></td></tr></table></figure>
+<p>With hive:</p>
+<ul>
+<li><code>org.apache.orc.TypeDescription.createRowBatch(I)Lorg/apache/hadoop/hive/ql/exec/vector/VectorizedRowBatch;</code></li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.orc<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>orc-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.9.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Without hive:</p>
+<ul>
+<li><code>org.apache.orc.TypeDescription.createRowBatch(I)Lorg/apache/orc/storage/ql/exec/vector/VectorizedRowBatch;</code></li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.orc<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>orc-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">classifier</span>&gt;</span>nohive<span class="tag">&lt;/<span class="name">classifier</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.9.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%91%98%E5%BD%95/" rel="tag"># 摘录</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/03/23/Rust-Basics/" rel="prev" title="Rust-Basics">
+      <i class="fa fa-chevron-left"></i> Rust-Basics
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
+            <div class="tab-pane livere" id="comment-livere">
+              
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
+  </div>
+  
+            </div>
+        </div>
+      </div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-java-sdk-demo"><span class="nav-text"> 1 Java SDK Demo</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-tools"><span class="nav-text"> 2 Tools</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-parquet-orc-utils"><span class="nav-text"> 2.1 Parquet ORC Utils</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-tips"><span class="nav-text"> 3 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-java-dependency-classifier"><span class="nav-text"> 3.1 Java Dependency classifier</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Liuyehcf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Liuyehcf</p>
+  <div class="site-description" itemprop="description">大音希声，大象无形</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">286</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">99</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liuyehcf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'qhEhLuMeMOy1zgcBhkqUS6P8-gzGzoHsz',
+      appKey     : 'uhkruDLNLNdL5rQjRBY2X9Ke',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

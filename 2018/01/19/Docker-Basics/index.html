@@ -29,7 +29,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/images/Docker-Basics/container_lifecycle.webp">
 <meta property="article:published_time" content="2018-01-19T05:18:39.000Z">
-<meta property="article:modified_time" content="2025-04-05T14:12:20.000Z">
+<meta property="article:modified_time" content="2025-06-12T14:29:09.000Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -231,7 +231,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-04-05 22:12:20" itemprop="dateModified" datetime="2025-04-05T22:12:20+08:00">2025-04-05</time>
+                <time title="修改时间：2025-06-12 22:29:09" itemprop="dateModified" datetime="2025-06-12T22:29:09+08:00">2025-06-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -286,6 +286,21 @@
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># --step 1: install dependent softwares</span></span><br><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2</span><br><span class="line"><span class="comment"># --step 2: add repo</span></span><br><span class="line">yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line"><span class="comment"># --step 3</span></span><br><span class="line">sed -i <span class="string">&#x27;s+download.docker.com+mirrors.aliyun.com/docker-ce+&#x27;</span> /etc/yum.repos.d/docker-ce.repo</span><br><span class="line"><span class="comment"># --step 4: install docker</span></span><br><span class="line">yum list docker-ce --showduplicates | <span class="built_in">sort</span> -r</span><br><span class="line">yum makecache fast</span><br><span class="line">yum -y install docker-ce-20.10.5-3.el7</span><br><span class="line"><span class="comment"># --step 5: enable docker service</span></span><br><span class="line">systemctl <span class="built_in">enable</span> docker</span><br><span class="line">systemctl start docker</span><br></pre></td></tr></table></figure>
 <h2 id="12-ubuntu"><a class="markdownIt-Anchor" href="#12-ubuntu"></a> 1.2 Ubuntu</h2>
 <p><a target="_blank" rel="noopener" href="https://docs.docker.com/engine/install/ubuntu/">Install Docker Engine on Ubuntu</a></p>
+<h2 id="13-macos-apple-chip"><a class="markdownIt-Anchor" href="#13-macos-apple-chip"></a> 1.3 MacOS (Apple Chip)</h2>
+<p>Colima runs a minimal Linux VM using Lima under the hood. Docker Engine runs inside that VM. The Docker CLI talks to it through a Unix socket just like Docker Desktop would.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">brew install docker</span><br><span class="line">brew install colima</span><br><span class="line">colima start</span><br><span class="line"><span class="comment"># colima start --memory 4 --cpu 2 --disk 60</span></span><br><span class="line">docker version</span><br></pre></td></tr></table></figure>
+<h3 id="131-colima"><a class="markdownIt-Anchor" href="#131-colima"></a> 1.3.1 colima</h3>
+<p>Colima (short for Container on Lima) is a fast, lightweight Docker and Kubernetes runtime for macOS and Linux that provides a Docker-compatible environment using a virtual machine under the hood — specifically Lima (Linux virtual machines).</p>
+<p>It’s often used as a drop-in replacement for Docker Desktop — especially after Docker Desktop introduced licensing changes in 2022.</p>
+<p><strong>Commands:</strong></p>
+<ul>
+<li><code>colima status</code></li>
+<li><code>colima list</code></li>
+<li><code>colima ssh</code></li>
+<li><code>colima start --cpu 6 --memory 8 --disk 100</code></li>
+<li><code>colima stop</code></li>
+<li><code>colima start --edit</code></li>
+</ul>
 <h1 id="2-container-lifecycle"><a class="markdownIt-Anchor" href="#2-container-lifecycle"></a> 2 Container Lifecycle</h1>
 <p><img src="/images/Docker-Basics/container_lifecycle.webp" alt="container_lifecycle" /></p>
 <h1 id="3-filesystem"><a class="markdownIt-Anchor" href="#3-filesystem"></a> 3 Filesystem</h1>
@@ -559,6 +574,13 @@
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --user $(<span class="built_in">id</span> -u):$(<span class="built_in">id</span> -g) -v /etc/passwd:/etc/passwd</span><br></pre></td></tr></table></figure>
 <h2 id="711-find-containers-using-network"><a class="markdownIt-Anchor" href="#711-find-containers-using-network"></a> 7.11 Find containers using network</h2>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network inspect &lt;ns-name&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="712-how-to-map-ports-with-localhost-only"><a class="markdownIt-Anchor" href="#712-how-to-map-ports-with-localhost-only"></a> 7.12 How to map ports with localhost only</h2>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -dit -p 127.0.0.1:3306:3306 -e MYSQL_ROOT_PASSWORD=<span class="string">&#x27;Abcd1234&#x27;</span> mysql:5.7.37 mysqld --lower_case_table_names=1</span><br></pre></td></tr></table></figure>
+<h2 id="713-config-path"><a class="markdownIt-Anchor" href="#713-config-path"></a> 7.13 Config Path</h2>
+<ol>
+<li>Client: <code>~/.docker/config.json</code></li>
+<li>Daemon: <code>/etc/docker/daemon.json</code></li>
+</ol>
 <h1 id="8-faq"><a class="markdownIt-Anchor" href="#8-faq"></a> 8 FAQ</h1>
 <h2 id="81-k8s-env-docker-error"><a class="markdownIt-Anchor" href="#81-k8s-env-docker-error"></a> 8.1 K8S Env docker error</h2>
 <p>在k8s环境中，若容器运行时用的是<code>docker</code>，那么该<code>docker</code>会依赖<code>containerd</code>，当<code>containerd</code>不正常的时候，<code>docker</code>也就不正常了。恢复<code>containerd</code>的办法：将<code>/var/lib/containerd/io.containerd.metadata.v1.bolt</code>这个文件删掉</p>
@@ -633,19 +655,19 @@
           
       <div class="tabs tabs-comment">
         <ul class="nav-tabs">
-            <li class="tab"><a href="#comment-livere">livere</a></li>
             <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
         </ul>
         <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
             <div class="tab-pane livere" id="comment-livere">
               
   <div class="comments">
     <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
   </div>
   
-            </div>
-            <div class="tab-pane valine" id="comment-valine">
-              <div class="comments" id="valine-comments"></div>
             </div>
         </div>
       </div>
@@ -695,7 +717,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-installation"><span class="nav-text"> 1 Installation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-centos"><span class="nav-text"> 1.1 CentOS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-ubuntu"><span class="nav-text"> 1.2 Ubuntu</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-container-lifecycle"><span class="nav-text"> 2 Container Lifecycle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-filesystem"><span class="nav-text"> 3 Filesystem</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-overlay2"><span class="nav-text"> 3.1 overlay2</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-build-image"><span class="nav-text"> 4 Build Image</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-relative-path-in-a-dockerfile"><span class="nav-text"> 4.1 Relative Path in a Dockerfile</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-demo"><span class="nav-text"> 4.2 Demo</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-frequently-used-images"><span class="nav-text"> 5 Frequently-Used Images</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-alpine"><span class="nav-text"> 5.1 alpine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-jib"><span class="nav-text"> 5.2 jib</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-minio"><span class="nav-text"> 5.3 minio</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-docker-compose"><span class="nav-text"> 6 Docker Compose</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-install"><span class="nav-text"> 6.1 Install</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-usage"><span class="nav-text"> 6.2 Usage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-tips"><span class="nav-text"> 6.3 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#631-find-docker-compose-information-for-given-docker-container"><span class="nav-text"> 6.3.1 Find docker-compose information for given docker container</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-tips"><span class="nav-text"> 7 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-modify-docker-storage-path"><span class="nav-text"> 7.1 Modify docker storage path</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-modify-mirror-address"><span class="nav-text"> 7.2 Modify Mirror Address</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-run-docker-across-platform"><span class="nav-text"> 7.3 Run docker across platform</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-docker-image-prune-tools-dockerslim"><span class="nav-text"> 7.4 Docker Image Prune Tools - dockerslim</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-be-aware-of-running-as-a-container"><span class="nav-text"> 7.5 Be Aware of Running as a Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#76-build-image-from-container"><span class="nav-text"> 7.6 Build Image from Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#77-setup-http-proxy"><span class="nav-text"> 7.7 Setup Http Proxy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#78-access-host-ip-from-container"><span class="nav-text"> 7.8 Access Host Ip from Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#79-how-to-delete-exited-containers"><span class="nav-text"> 7.9 How to delete exited containers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#710-how-to-create-container-with-host-user"><span class="nav-text"> 7.10 How to create container with host user</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#711-find-containers-using-network"><span class="nav-text"> 7.11 Find containers using network</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-faq"><span class="nav-text"> 8 FAQ</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-k8s-env-docker-error"><span class="nav-text"> 8.1 K8S Env docker error</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-read-unix-varrundockersock-read-connection-reset-by-peer"><span class="nav-text"> 8.2 read unix @-&gt;&#x2F;var&#x2F;run&#x2F;docker.sock: read: connection reset by peer</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-reference"><span class="nav-text"> 9 Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-installation"><span class="nav-text"> 1 Installation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#11-centos"><span class="nav-text"> 1.1 CentOS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-ubuntu"><span class="nav-text"> 1.2 Ubuntu</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-macos-apple-chip"><span class="nav-text"> 1.3 MacOS (Apple Chip)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#131-colima"><span class="nav-text"> 1.3.1 colima</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-container-lifecycle"><span class="nav-text"> 2 Container Lifecycle</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-filesystem"><span class="nav-text"> 3 Filesystem</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-overlay2"><span class="nav-text"> 3.1 overlay2</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-build-image"><span class="nav-text"> 4 Build Image</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-relative-path-in-a-dockerfile"><span class="nav-text"> 4.1 Relative Path in a Dockerfile</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-demo"><span class="nav-text"> 4.2 Demo</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-frequently-used-images"><span class="nav-text"> 5 Frequently-Used Images</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-alpine"><span class="nav-text"> 5.1 alpine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#52-jib"><span class="nav-text"> 5.2 jib</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#53-minio"><span class="nav-text"> 5.3 minio</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-docker-compose"><span class="nav-text"> 6 Docker Compose</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#61-install"><span class="nav-text"> 6.1 Install</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#62-usage"><span class="nav-text"> 6.2 Usage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#63-tips"><span class="nav-text"> 6.3 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#631-find-docker-compose-information-for-given-docker-container"><span class="nav-text"> 6.3.1 Find docker-compose information for given docker container</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-tips"><span class="nav-text"> 7 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-modify-docker-storage-path"><span class="nav-text"> 7.1 Modify docker storage path</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-modify-mirror-address"><span class="nav-text"> 7.2 Modify Mirror Address</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-run-docker-across-platform"><span class="nav-text"> 7.3 Run docker across platform</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-docker-image-prune-tools-dockerslim"><span class="nav-text"> 7.4 Docker Image Prune Tools - dockerslim</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-be-aware-of-running-as-a-container"><span class="nav-text"> 7.5 Be Aware of Running as a Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#76-build-image-from-container"><span class="nav-text"> 7.6 Build Image from Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#77-setup-http-proxy"><span class="nav-text"> 7.7 Setup Http Proxy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#78-access-host-ip-from-container"><span class="nav-text"> 7.8 Access Host Ip from Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#79-how-to-delete-exited-containers"><span class="nav-text"> 7.9 How to delete exited containers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#710-how-to-create-container-with-host-user"><span class="nav-text"> 7.10 How to create container with host user</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#711-find-containers-using-network"><span class="nav-text"> 7.11 Find containers using network</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#712-how-to-map-ports-with-localhost-only"><span class="nav-text"> 7.12 How to map ports with localhost only</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#713-config-path"><span class="nav-text"> 7.13 Config Path</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-faq"><span class="nav-text"> 8 FAQ</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#81-k8s-env-docker-error"><span class="nav-text"> 8.1 K8S Env docker error</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#82-read-unix-varrundockersock-read-connection-reset-by-peer"><span class="nav-text"> 8.2 read unix @-&gt;&#x2F;var&#x2F;run&#x2F;docker.sock: read: connection reset by peer</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-reference"><span class="nav-text"> 9 Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -711,7 +733,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-count">286</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -830,22 +852,6 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
-<script>
-NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
-  window.livereOptions = {
-    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
-  };
-  (function(d, s) {
-    var j, e = d.getElementsByTagName(s)[0];
-    if (typeof LivereTower === 'function') { return; }
-    j = d.createElement(s);
-    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-    j.async = true;
-    e.parentNode.insertBefore(j, e);
-  })(document, 'script');
-});
-</script>
-
 
 <script>
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
@@ -872,6 +878,22 @@ NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
       serverURLs : ''
     });
   }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
 });
 </script>
 

@@ -28,7 +28,7 @@
 <meta property="og:description" content="阅读更多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-01-17T01:30:44.000Z">
-<meta property="article:modified_time" content="2025-04-03T15:30:58.000Z">
+<meta property="article:modified_time" content="2025-07-18T14:48:34.000Z">
 <meta property="article:author" content="Liuyehcf">
 <meta property="article:tag" content="摘录">
 <meta name="twitter:card" content="summary">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-04-03 23:30:58" itemprop="dateModified" datetime="2025-04-03T23:30:58+08:00">2025-04-03</time>
+                <time title="修改时间：2025-07-18 22:48:34" itemprop="dateModified" datetime="2025-07-18T22:48:34+08:00">2025-07-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -511,7 +511,7 @@
 <p><strong>Extracting an archive file: <code>jar xvf xxx.jar</code></strong></p>
 <ul>
 <li><code>jar xvf /path/xxx.jar</code></li>
-<li><code>jar xvf /path/xxx.jar xxx.class</code></li>
+<li><code>jar xvf /path/xxx.jar xxx.class</code>: Extract only one file.</li>
 </ul>
 <p><strong>Viewing an archive file: <code>jar tf xxx.jar</code></strong></p>
 <h3 id="291-jar-file-specification"><a class="markdownIt-Anchor" href="#291-jar-file-specification"></a> 2.9.1 JAR File Specification</h3>
@@ -531,6 +531,38 @@
 <h2 id="31-arthas"><a class="markdownIt-Anchor" href="#31-arthas"></a> 3.1 Arthas</h2>
 <p><a target="_blank" rel="noopener" href="https://github.com/alibaba/arthas">Arthas</a></p>
 <p><a target="_blank" rel="noopener" href="https://arthas.aliyun.com/doc/commands.html">commands</a></p>
+<p><strong>Usage:</strong></p>
+<ol>
+<li><code>help</code>:
+<ul>
+<li><code>help</code></li>
+<li><code>help &lt;command&gt;</code></li>
+</ul>
+</li>
+<li><code>trace</code>:
+<ul>
+<li><code>trace org.apache.paimon.catalog.Catalog getTable</code></li>
+</ul>
+</li>
+<li><code>monitor</code>:
+<ul>
+<li><code>monitor -c 5 org.apache.paimon.catalog.Catalog getTable</code></li>
+</ul>
+</li>
+<li><code>sc</code>:
+<ul>
+<li><code>sc org.apache.commons.lang.StringUtils</code></li>
+<li><code>sc -E org\\.apache\\.commons\\.lang\\.StringUtils</code></li>
+<li><code>sc -d -f org.apache.commons.lang.StringUtils</code></li>
+</ul>
+</li>
+<li><code>classloader</code>:
+<ul>
+<li><code>classloader -t</code></li>
+<li><code>classloader -l</code></li>
+</ul>
+</li>
+</ol>
 <h2 id="32-visualvm"><a class="markdownIt-Anchor" href="#32-visualvm"></a> 3.2 VisualVM</h2>
 <p><a target="_blank" rel="noopener" href="https://visualvm.github.io/">All-in-One Java Troubleshooting Tool</a></p>
 <h3 id="321-shallow-size-vs-retained-size"><a class="markdownIt-Anchor" href="#321-shallow-size-vs-retained-size"></a> 3.2.1 Shallow Size vs. Retained Size</h3>
@@ -634,6 +666,18 @@
 <li>Load some class <code>B</code> from <code>b.jar</code></li>
 </ol>
 <p><strong>And the same process won’t work if the classpath is reverted, i.e. <code>/path/to/b.jar:/path/to/a.jar</code>, because when JVM load class <code>A</code> it already searched <code>b.jar</code> and remember it’s not existed.</strong></p>
+<h2 id="76-how-to-get-the-location-which-class-belongs-to"><a class="markdownIt-Anchor" href="#76-how-to-get-the-location-which-class-belongs-to"></a> 7.6 How to get the location which class belongs to</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(org.apache.orc.TypeDescription.class.getProtectionDomain().getCodeSource().getLocation());</span><br></pre></td></tr></table></figure>
+<h2 id="77-search-which-jar-file-has-sepcific-class-file"><a class="markdownIt-Anchor" href="#77-search-which-jar-file-has-sepcific-class-file"></a> 7.7 Search which jar file has sepcific .class file</h2>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">search</span></span>() &#123;</span><br><span class="line">    <span class="built_in">local</span> <span class="built_in">dir</span>=<span class="variable">$1</span></span><br><span class="line">    <span class="built_in">local</span> class_file=<span class="variable">$2</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> [ -z <span class="string">&quot;<span class="variable">$&#123;dir&#125;</span>&quot;</span> ] || [ -z <span class="string">&quot;<span class="variable">$&#123;class_file&#125;</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;missing dir or class_file&quot;</span></span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    jar_files=( $(find <span class="variable">$&#123;dir&#125;</span> -name <span class="string">&quot;*.jar&quot;</span>) )</span><br><span class="line">    <span class="keyword">for</span> jar_file <span class="keyword">in</span> <span class="variable">$&#123;jar_files[@]&#125;</span></span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">        <span class="keyword">if</span> jar tf <span class="variable">$&#123;jar_file&#125;</span> | grep <span class="string">&quot;<span class="variable">$&#123;class_file&#125;</span>&quot;</span>; <span class="keyword">then</span></span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$&#123;jar_file&#125;</span> contains &#x27;<span class="variable">$&#123;class_file&#125;</span>&#x27;&quot;</span></span><br><span class="line">        <span class="keyword">fi</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="78-suppresswarnings-types"><a class="markdownIt-Anchor" href="#78-suppresswarnings-types"></a> 7.8 SuppressWarnings types</h2>
+<ul>
+<li><code>SuppressWarnings(&quot;all&quot;)</code></li>
+<li><code>SuppressWarnings(&quot;unchecked&quot;)</code></li>
+<li><code>SuppressWarnings(&quot;rawtypes&quot;)</code></li>
+<li><code>SuppressWarnings(&quot;fallthrough&quot;)</code></li>
+<li><code>SuppressWarnings(&quot;ResultOfMethodCallIgnored&quot;)</code></li>
+</ul>
 <h1 id="8-参考"><a class="markdownIt-Anchor" href="#8-参考"></a> 8 参考</h1>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://my.oschina.net/feichexia/blog/196575">JVM性能调优监控工具jps、jstack、jmap、jhat、jstat、hprof使用详解</a></li>
@@ -679,19 +723,19 @@
           
       <div class="tabs tabs-comment">
         <ul class="nav-tabs">
-            <li class="tab"><a href="#comment-livere">livere</a></li>
             <li class="tab"><a href="#comment-valine">valine</a></li>
+            <li class="tab"><a href="#comment-livere">livere</a></li>
         </ul>
         <div class="tab-content">
+            <div class="tab-pane valine" id="comment-valine">
+              <div class="comments" id="valine-comments"></div>
+            </div>
             <div class="tab-pane livere" id="comment-livere">
               
   <div class="comments">
     <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzY0My8xMDE5OA=="></div>
   </div>
   
-            </div>
-            <div class="tab-pane valine" id="comment-valine">
-              <div class="comments" id="valine-comments"></div>
             </div>
         </div>
       </div>
@@ -741,7 +785,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-install-jdk"><span class="nav-text"> 1 Install JDK</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-builtin"><span class="nav-text"> 2 Builtin</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-java"><span class="nav-text"> 2.1 java</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#211-execute"><span class="nav-text"> 2.1.1 Execute</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#212-enable-debug"><span class="nav-text"> 2.1.2 Enable Debug</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-jps"><span class="nav-text"> 2.2 jps</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-jstat"><span class="nav-text"> 2.3 jstat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-jinfo"><span class="nav-text"> 2.4 jinfo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-jmap"><span class="nav-text"> 2.5 jmap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#26-jhat"><span class="nav-text"> 2.6 jhat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#27-jstack"><span class="nav-text"> 2.7 jstack</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#28-java_home"><span class="nav-text"> 2.8 java_home</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#29-jar"><span class="nav-text"> 2.9 jar</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#291-jar-file-specification"><span class="nav-text"> 2.9.1 JAR File Specification</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#210-jdb"><span class="nav-text"> 2.10 jdb</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-monitor"><span class="nav-text"> 3 Monitor</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-arthas"><span class="nav-text"> 3.1 Arthas</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-visualvm"><span class="nav-text"> 3.2 VisualVM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-shallow-size-vs-retained-size"><span class="nav-text"> 3.2.1 Shallow Size vs. Retained Size</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-java-decompiler"><span class="nav-text"> 4 Java Decompiler</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-cfr"><span class="nav-text"> 4.1 CFR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-jd"><span class="nav-text"> 4.2 JD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-jad"><span class="nav-text"> 4.3 JAD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-fernflower"><span class="nav-text"> 4.4 Fernflower</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-java-environment-manager"><span class="nav-text"> 5 Java Environment Manager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-jenv"><span class="nav-text"> 5.1 jenv</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-class-isolation"><span class="nav-text"> 6 Class Isolation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-tips"><span class="nav-text"> 7 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-find-jdk-install-path"><span class="nav-text"> 7.1 Find JDK Install Path</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-how-to-check-whether-jar-file-contains-specific-class-file"><span class="nav-text"> 7.2 How to check whether jar file contains specific class file</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-how-to-extract-jar-file-to-specific-directory"><span class="nav-text"> 7.3 How to extract jar file to specific directory</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-how-to-breakthrough-checked-exception-limitation"><span class="nav-text"> 7.4 How to breakthrough checked exception limitation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-how-jvm-use-classpath"><span class="nav-text"> 7.5 How JVM use classpath</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%8F%82%E8%80%83"><span class="nav-text"> 8 参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-install-jdk"><span class="nav-text"> 1 Install JDK</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-builtin"><span class="nav-text"> 2 Builtin</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#21-java"><span class="nav-text"> 2.1 java</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#211-execute"><span class="nav-text"> 2.1.1 Execute</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#212-enable-debug"><span class="nav-text"> 2.1.2 Enable Debug</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-jps"><span class="nav-text"> 2.2 jps</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-jstat"><span class="nav-text"> 2.3 jstat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-jinfo"><span class="nav-text"> 2.4 jinfo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-jmap"><span class="nav-text"> 2.5 jmap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#26-jhat"><span class="nav-text"> 2.6 jhat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#27-jstack"><span class="nav-text"> 2.7 jstack</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#28-java_home"><span class="nav-text"> 2.8 java_home</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#29-jar"><span class="nav-text"> 2.9 jar</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#291-jar-file-specification"><span class="nav-text"> 2.9.1 JAR File Specification</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#210-jdb"><span class="nav-text"> 2.10 jdb</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-monitor"><span class="nav-text"> 3 Monitor</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#31-arthas"><span class="nav-text"> 3.1 Arthas</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32-visualvm"><span class="nav-text"> 3.2 VisualVM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#321-shallow-size-vs-retained-size"><span class="nav-text"> 3.2.1 Shallow Size vs. Retained Size</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-java-decompiler"><span class="nav-text"> 4 Java Decompiler</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#41-cfr"><span class="nav-text"> 4.1 CFR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#42-jd"><span class="nav-text"> 4.2 JD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#43-jad"><span class="nav-text"> 4.3 JAD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#44-fernflower"><span class="nav-text"> 4.4 Fernflower</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-java-environment-manager"><span class="nav-text"> 5 Java Environment Manager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#51-jenv"><span class="nav-text"> 5.1 jenv</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-class-isolation"><span class="nav-text"> 6 Class Isolation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-tips"><span class="nav-text"> 7 Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#71-find-jdk-install-path"><span class="nav-text"> 7.1 Find JDK Install Path</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#72-how-to-check-whether-jar-file-contains-specific-class-file"><span class="nav-text"> 7.2 How to check whether jar file contains specific class file</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#73-how-to-extract-jar-file-to-specific-directory"><span class="nav-text"> 7.3 How to extract jar file to specific directory</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#74-how-to-breakthrough-checked-exception-limitation"><span class="nav-text"> 7.4 How to breakthrough checked exception limitation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#75-how-jvm-use-classpath"><span class="nav-text"> 7.5 How JVM use classpath</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#76-how-to-get-the-location-which-class-belongs-to"><span class="nav-text"> 7.6 How to get the location which class belongs to</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#77-search-which-jar-file-has-sepcific-class-file"><span class="nav-text"> 7.7 Search which jar file has sepcific .class file</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#78-suppresswarnings-types"><span class="nav-text"> 7.8 SuppressWarnings types</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%8F%82%E8%80%83"><span class="nav-text"> 8 参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -757,7 +801,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">285</span>
+          <span class="site-state-item-count">286</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -876,22 +920,6 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
-<script>
-NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
-  window.livereOptions = {
-    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
-  };
-  (function(d, s) {
-    var j, e = d.getElementsByTagName(s)[0];
-    if (typeof LivereTower === 'function') { return; }
-    j = d.createElement(s);
-    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-    j.async = true;
-    e.parentNode.insertBefore(j, e);
-  })(document, 'script');
-});
-</script>
-
 
 <script>
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
@@ -918,6 +946,22 @@ NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
       serverURLs : ''
     });
   }, window.Valine);
+});
+</script>
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
 });
 </script>
 
